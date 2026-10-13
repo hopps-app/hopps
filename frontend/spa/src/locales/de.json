@@ -71,14 +71,10 @@
         "text2": "ohne Verpflichtung"
     },
     "common": {
-        "refresh": "Aktualisieren",
         "upload": "Hochladen",
         "addNew": "Neu hinzufügen",
         "close": "Schließen",
-        "expand": "Aufklappen",
         "collapse": "Zuklappen",
-        "noItems": "Keine Elemente zum Anzeigen",
-        "noResults": "Keine Ergebnisse",
         "search": "Suche",
         "goBack": "Zurück",
         "cancel": "Abbrechen",
@@ -86,7 +82,6 @@
         "edit": "Bearbeiten",
         "delete": "Löschen",
         "loading": "Wird geladen...",
-        "validationError": "Bitte füllen Sie alle Pflichtfelder aus",
         "unsavedChangesWarning": "Sie haben ungespeicherte Änderungen. Möchten Sie diese Seite wirklich verlassen?",
         "next": "Weiter",
         "confirm": "Bestätigen"
@@ -131,7 +126,6 @@
         "organizationNameRequired": "Organisationsname ist erforderlich",
         "firstNameRequired": "Vorname ist erforderlich",
         "lastNameRequired": "Nachname ist erforderlich",
-        "invalidFileType": "Ungültiger Dateityp",
         "passwordStrength": {
             "label": "Passwortstärke",
             "weak": "Schwach",
@@ -157,49 +151,17 @@
     },
     "invoiceUpload": {
         "title": "Neue Rechnung hochladen",
-        "assign": "Zuweisen zu",
-        "chooseFile": "Datei auswählen",
         "upload": "Hochladen",
         "uploadFailed": "Fehler beim Hochladen der Rechnung",
         "uploadSuccess": "Rechnung erfolgreich hochgeladen",
-        "dragDrop": "Ziehen & Ablegen von Dateien hier",
-        "dragFile": "Dateien hier ablegen...",
-        "fileTooLarge": "Datei ist zu groß, maximale Größe 5MB",
-        "invalidFileType": "Nicht unterstützter Dateityp. Bitte laden Sie PDF-, JPEG- oder PNG-Dateien hoch.",
-        "totalTooLarge": "Die gesamte Dateigröße überschreitet das Limit von 20MB.",
-        "maxFilesExceeded": "Es sind maximal 10 Dateien erlaubt.",
         "selectBommel": "Bommel wählen",
-        "privately": "Privat bezahlt",
         "invoice": "Rechnung",
         "receipt": "Quittung",
-        "docType": "Art des Vorgangs",
-        "pdfNavigation": {
-            "previousPage": "Vorherige Seite",
-            "nextPage": "Nächste Seite",
-            "pageIndicator": "{{current}} / {{total}}"
-        }
+        "docType": "Art des Vorgangs"
     },
     "invoices": {
-        "loadFailed": "Fehler beim Laden der Rechnungen",
-        "noInvoices": "Keine Rechnungen zum Anzeigen",
         "assignPopover": {
-            "assign": "Zuweisen",
-            "reassign": "Neu zuweisen",
-            "noBommels": "Keine verfügbaren Bommels",
-            "newBommel": "Neuer Bommel",
-            "successAssign": "Erfolgreich zugewiesen!",
-            "failedAssign": "Fehler beim Zuweisen des Bommels!"
-        },
-        "summary": {
-            "totalFirstPart": "Gesamt",
-            "invoicesPart": "Rechnungen mit Summe"
-        },
-        "table": {
-            "newInvoice": "Neue Rechnung",
-            "date": "Datum",
-            "bommel": "Bommel",
-            "amount": "Betrag",
-            "name": "Name"
+            "assign": "Zuweisen"
         }
     },
     "organization": {
@@ -254,7 +216,6 @@
                 "nameMaxLength": "Der Name darf maximal 255 Zeichen lang sein"
             },
             "editModeHint": "Per Drag & Drop in der Tabelle oder mit dem Verschieben-Button in der Baumansicht",
-            "moveBommel": "Bommel verschieben",
             "includeDrafts": "Entwürfe einbeziehen",
             "aggregate": "Inkl. Unterbommel",
             "details": {
@@ -493,14 +454,8 @@
     "settings": {
         "menu": {
             "account": "Mein Konto",
-            "invoices": "Rechnungen",
-            "organization": "Organisation",
-            "ngoDetails": "Organisationsdetails",
             "profile": "Profil"
         }
-    },
-    "settingsPage": {
-        "menu": "Menü"
     },
     "reports": {
         "title": "Berichte",
@@ -749,40 +704,14 @@
     },
     "receipts": {
         "draft": "Entwurf",
-        "unassigned": "Nicht zugewiesen",
-        "documentLinked": "Dokument angehängt",
-        "downloadDocument": "Dokument herunterladen",
-        "downloadFailed": "Dokument konnte nicht heruntergeladen werden",
         "noDocument": "Kein Dokument",
-        "dueDate": "Fällig am",
         "empty": "Keine Belege gefunden",
         "searchPlaceholder": "Suchen (Name, Absender, Betrag) …",
         "searchClear": "Suche löschen",
         "noSearchResults": "Keine Belege für „{{search}}\" gefunden",
         "newReceipt": "Neuer Beleg",
-        "statusBadge": {
-            "draft": "Entwurf",
-            "saved": "Gespeichert"
-        },
         "table": {
-            "issuer": "Vertragspartner",
-            "date": "Datum",
-            "project": "Bommel",
-            "category": "Kategorie",
-            "status": "Status",
-            "paid": "Bezahlt",
-            "amount": "Betrag",
-            "purpose": "Verwendungszweck",
-            "reference": "Referenz"
-        },
-        "paidLabel": {
-            "yes": "Ja",
-            "no": "Nein"
-        },
-        "emptyState": {
-            "title": "Noch keine Belege hochgeladen",
-            "description": "Hier können Belege gefiltert und verwaltet werden",
-            "action": "Ersten Beleg hochladen"
+            "category": "Kategorie"
         },
         "status": {
             "pending": "Ausstehend",
@@ -802,28 +731,16 @@
         },
         "filters": {
             "searchReceipt": "Beleg suchen",
-            "searchPlaceholder": "Suche",
             "receiptDate": "Belegdatum",
-            "startDate": "Belege ab",
-            "endDate": "Belege bis",
             "bommel": "Bommel",
             "category": "Kategorie",
             "type": "Belegart",
-            "income": "Einnahme",
-            "expense": "Ausgabe",
             "status": "Status",
-            "selectStatus": "Status wählen",
-            "all": "Alle",
-            "drafts": "Entwürfe",
-            "unassigned": "Nicht zugewiesen",
             "displayType": "Anzeigeart",
-            "displayAll": "Alles ausklappen",
-            "reset": "Zurücksetzen",
             "noResults": "Keine Ergebnisse",
             "area": "Bereich",
             "allAreas": "Bereich wählen",
-            "allCategories": "Kategorie wählen",
-            "showFilters": "Filter"
+            "allCategories": "Kategorie wählen"
         },
         "upload": {
             "sectionTitle": "Belege hochladen",
@@ -877,12 +794,7 @@
             "wirtschaftlich": "Wirtschaftlicher Geschäftsbetrieb",
             "unknown": "Unbekannt"
         },
-        "types": {
-            "income": "Einnahme",
-            "expense": "Ausgabe"
-        },
         "pagination": {
-            "page": "Seite",
             "previous": "Zurück",
             "next": "Weiter"
         },
@@ -891,14 +803,10 @@
             "description": "Sind Sie sicher, dass Sie '{{name}}' ({{amount}}) löschen möchten?",
             "warning": "Diese Aktion kann nicht rückgängig gemacht werden. Der Beleg wird dauerhaft gelöscht.",
             "confirm": "Ja, löschen",
-            "error": "Fehler beim Löschen des Belegs",
-            "success": "Beleg erfolgreich gelöscht",
             "optionTransactionOnly": "Nur die Buchung wird entfernt. Der Beleg bleibt erhalten und wartet wieder auf Prüfung.",
             "optionWithReceipt": "Buchung und Beleg werden dauerhaft gelöscht, inklusive der hochgeladenen Datei.",
             "confirmTransactionOnly": "Nur Transaktion löschen",
             "confirmWithReceipt": "Mit Beleg löschen",
-            "successTransactionOnly": "Transaktion gelöscht – der Beleg wartet wieder auf Prüfung",
-            "successWithReceipt": "Beleg und Transaktion gelöscht",
             "descriptionNoName": "Sind Sie sicher, dass Sie diese Transaktion ({{amount}}) löschen möchten?"
         },
         "title": "Belege",
@@ -1059,9 +967,6 @@
         "empty": "Keine Bommels gefunden",
         "select": "Bommel auswählen"
     },
-    "datePicker": {
-        "selectDate": "Datum auswählen"
-    },
     "dashboard": {
         "title": "Dashboard",
         "incomeExpenseChart": "Einnahmen & Ausgaben",
@@ -1183,18 +1088,6 @@
         "yes": "Ja"
     },
     "bankAccounts": {
-        "title": "Bankkonten",
-        "subtitle": "Verwalten Sie Ihre Bankkonten und importieren Sie Kontoauszüge.",
-        "newAccount": "Neues Konto",
-        "manageSchemas": "Schemas verwalten",
-        "notFound": "Bankkonto nicht gefunden",
-        "card": {
-            "schema": "Schema"
-        },
-        "emptyState": {
-            "title": "Noch keine Bankkonten",
-            "description": "Fügen Sie Ihr erstes Bankkonto hinzu, um Kontoauszüge zu importieren."
-        },
         "form": {
             "createTitle": "Bankkonto erstellen",
             "editTitle": "Bankkonto bearbeiten",
@@ -1228,18 +1121,6 @@
                 "duplicateIban": "Ein Konto mit dieser IBAN existiert bereits in Ihrer Organisation"
             }
         },
-        "table": {
-            "bookingDate": "Buchungsdatum",
-            "counterpartyName": "Auftraggeber/Empfänger",
-            "purpose": "Verwendungszweck",
-            "amount": "Betrag",
-            "status": "Status"
-        },
-        "transactions": {
-            "title": "Transaktionen",
-            "empty": "Keine Transaktionen vorhanden",
-            "export": "Exportieren"
-        },
         "toast": {
             "createSuccess": "Bankkonto erstellt",
             "createError": "Bankkonto konnte nicht erstellt werden",
@@ -1259,15 +1140,6 @@
             "startError": "Der Import konnte nicht gestartet werden."
         },
         "title": "Kontoauszug importieren",
-        "startImport": "Importieren",
-        "status": {
-            "QUEUED": "In Warteschlange",
-            "PROCESSING": "Wird verarbeitet",
-            "COMPLETED": "Abgeschlossen",
-            "PARTIAL": "Teilweise importiert",
-            "FAILED": "Fehlgeschlagen",
-            "UNKNOWN": "Unbekannt"
-        },
         "wizard": {
             "stepFile": "Datei",
             "stepSchema": "Schema",
@@ -1325,23 +1197,6 @@
             "errors": "Fehler",
             "backToAccount": "Zurück zum Konto",
             "viewTransactions": "Transaktionen anzeigen"
-        },
-        "history": {
-            "title": "Import-Verlauf",
-            "empty": "Noch keine Importe",
-            "fileName": "Dateiname",
-            "status": "Status",
-            "progress": "Fortschritt",
-            "imported": "Importiert",
-            "duplicates": "Duplikate",
-            "errors": "Fehler",
-            "finishedAt": "Abgeschlossen",
-            "actions": "Aktionen"
-        },
-        "rollback": {
-            "title": "Import rückgängig machen?",
-            "button": "Rückgängig",
-            "confirm": "Möchten Sie diesen Import wirklich rückgängig machen? Alle importierten Transaktionen werden gelöscht."
         },
         "toast": {
             "rollbackSuccess": "Import rückgängig gemacht",
