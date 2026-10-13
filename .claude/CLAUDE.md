@@ -460,6 +460,8 @@ Vereins/Verbands/Interessenten übergeben werden** (typisch: PDF/Word aus OneDri
 2. **Immer i18next verwenden:** Alle User-facing Strings MÜSSEN über `t('translation.key')` geladen werden
 3. **Mindestens zwei Sprachen:** Jeder neue Text benötigt SOWOHL deutsche ALS AUCH englische Übersetzung (Ukrainisch/`uk.json` nach Möglichkeit ebenfalls pflegen)
 4. **Konsistente Keys:** Verwende aussagekräftige, hierarchische Translation Keys (z.B. `organization.settings.structure`)
+5. **Neutrale Ansprache im Deutschen:** Kein „Sie“, kein „du“ und kein Imperativ („Prüfe …“). Anweisungen im Infinitiv formulieren (z.B. „Bitte alle Pflichtfelder ausfüllen“, „Diese Kategorie wirklich löschen?“). `src/locales/__tests__/de-address.test.ts` prüft `de.json` auf Anredepronomen.
+6. **Englisch in amerikanischer Schreibweise:** „organization“, „analyze“, „color“. „you“ ist im Englischen in Ordnung.
 
 **Übersetzungs-Dateien** (flache JSON-Dateien, konfiguriert in `src/i18n.ts`, Default `en`):
 - Deutsch: `/frontend/spa/src/locales/de.json`

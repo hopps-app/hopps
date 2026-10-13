@@ -182,7 +182,7 @@
             "subtitle": "Create your organization and account to get started.",
             "alreadyHaveAccount": "Already have an account?",
             "loginInstead": "Log in",
-            "success": "Organisation successfully created",
+            "success": "Organization successfully created",
             "successHeading": "Your organization has been successfully registered.",
             "organizationName": "Organization name",
             "firstName": "First name",
@@ -460,7 +460,7 @@
     },
     "reports": {
         "title": "Reports",
-        "subtitle": "Analyse transactions by category-group value over a date range.",
+        "subtitle": "Analyze income and expenses for a period by category group.",
         "group": "Category group",
         "selectGroup": "Select a category group …",
         "from": "From (transaction date)",
@@ -680,7 +680,7 @@
             "clear": "Clear selection",
             "delete": "Delete",
             "confirmTitle": "Delete selected transactions?",
-            "confirmDesc": "Do you really want to delete the selected transactions ({{n}})? This cannot be undone."
+            "confirmDesc": "Are you sure you want to delete the selected transactions ({{n}})? This cannot be undone."
         },
         "linked": "Linked",
         "notLinked": "Not linked"
@@ -849,11 +849,11 @@
             "itemErrorDuplicate": "Duplicate – already booked",
             "viewExisting": "View receipt",
             "analysis": {
-                "aiWarning": "The data recognized by the AI may contain errors. Please check all fields before saving.",
+                "aiWarning": "The data detected by the AI may contain errors. Please check all fields before saving.",
                 "pending": "Analysis is about to start …",
                 "analyzing": "Analyzing receipt …",
                 "completed": "Analysis complete",
-                "completedDescription": "Please check the recognized data and correct it if needed.",
+                "completedDescription": "Please review the detected data and correct it if needed.",
                 "extractedViaZugferd": "Data taken from ZUGFeRD invoice",
                 "extractedViaDocumentAI": "Data recognized via AI analysis",
                 "failed": "Automatic analysis not possible – please enter the data manually",
@@ -926,7 +926,7 @@
             "failedTitle": "Analysis failed",
             "failedHint": "Please enter the data manually or restart the analysis.",
             "serviceUnavailableTitle": "Analysis service unavailable",
-            "serviceUnavailableHint": "The receipt could not be analysed automatically right now. You can fill in all fields yourself and enter the receipt manually at any time.",
+            "serviceUnavailableHint": "The receipt could not be analyzed automatically right now. You can fill in all fields yourself and enter the receipt manually at any time.",
             "linkedTransaction": "Linked transaction",
             "openTransaction": "Go to transaction",
             "bankReconcileTitle": "Created from a bank transaction",
@@ -955,7 +955,7 @@
         "deleteConfirm": "Really delete this receipt?",
         "analysisUnavailable": {
             "title": "Analysis service unavailable",
-            "description": "The receipt could not be analysed automatically right now. You can still enter all information manually at any time."
+            "description": "The receipt could not be analyzed automatically right now. You can still enter all information manually at any time."
         },
         "preview": {
             "loading": "Loading receipt …",
@@ -992,7 +992,7 @@
             "clear": "Clear selection",
             "delete": "Delete",
             "confirmTitle": "Delete selected receipts?",
-            "confirmDesc": "Do you really want to delete the selected receipts ({{n}})? This cannot be undone."
+            "confirmDesc": "Are you sure you want to delete the selected receipts ({{n}})? This cannot be undone."
         }
     },
     "bommel": {
@@ -1030,7 +1030,7 @@
                 "bicTooLong": "BIC must not exceed 11 characters",
                 "openingBalanceDateRequired": "Opening balance date is required when a balance is provided",
                 "openingBalanceRequired": "Opening balance is required when a date is provided",
-                "duplicateIban": "An account with this IBAN already exists in your organisation"
+                "duplicateIban": "An account with this IBAN already exists in your organization"
             }
         },
         "toast": {
@@ -1242,7 +1242,7 @@
             "openSingular": "transaction not yet matched",
             "openPlural": "transactions not yet matched",
             "matched": "matched",
-            "openDesc": "Assign the open transactions below or create a booking from them.",
+            "openDesc": "Assign the open transactions below or create a transaction from them.",
             "openBookings": "Open bank transactions",
             "noData": "No transactions yet",
             "noDataDesc": "Import a bank statement to start reconciliation."
