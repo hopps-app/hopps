@@ -1027,7 +1027,8 @@
             "toast": {
                 "draftSaved": "Suddivisione salvata come bozza",
                 "created": "{{n}} transazioni create"
-            }
+            },
+            "cancel": "Non suddividere"
         },
         "review": {
             "title": "Revisiona ricevuta",

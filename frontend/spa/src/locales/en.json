@@ -1060,7 +1060,8 @@
             "toast": {
                 "draftSaved": "Split saved as draft",
                 "created": "{{n}} transactions created"
-            }
+            },
+            "cancel": "Don’t split"
         },
         "review": {
             "title": "Review Receipt",

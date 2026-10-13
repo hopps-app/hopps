@@ -1027,7 +1027,8 @@
             "toast": {
                 "draftSaved": "Répartition enregistrée comme brouillon",
                 "created": "{{n}} transactions créées"
-            }
+            },
+            "cancel": "Ne pas répartir"
         },
         "review": {
             "title": "Vérifier le reçu",
