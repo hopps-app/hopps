@@ -217,6 +217,43 @@ bankTransactions:
     counterpartyName: "Hotel Goldenes Kreuz"
     purpose: "Übernachtungen Gastspiel Regensburg"
 
+# Category groups of Bühnefrei e.V., each applying only to some bommels (a group applies to an assigned bommel and its
+# descendants). Räumlichkeiten (25) and the club itself (23) have none, so receipts there need no category values.
+categoryGroups:
+  # Required for every production: Projekte (27) and below (28, 29, 30).
+  - id: 1
+    organizationId: 4
+    name: "Produktionsbereich"
+    required: true
+    bommelIds: [27]
+    values: ["Probe", "Aufführung", "Bühnenbild", "Kostüme", "Werbung"]
+
+  # Required at the kiosk only.
+  - id: 2
+    organizationId: 4
+    name: "Warengruppe"
+    required: true
+    bommelIds: [24]
+    values: ["Getränke", "Snacks", "Pfand", "Verbrauchsmaterial"]
+
+  # Optional, workshops only.
+  - id: 3
+    organizationId: 4
+    name: "Workshop-Reihe"
+    required: false
+    bommelIds: [26]
+    values: ["Kindertheater", "Improvisation", "Sprechtechnik"]
+
+  # Optional, only the two funded productions (not "Das Hässliche Entlein").
+  - id: 4
+    organizationId: 4
+    name: "Förderprojekt"
+    required: false
+    bommelIds: [28, 30]
+    values: ["Kulturfonds Bayern 2026", "Jugendkultur Pfaffenhofen"]
+
 sequences:
   Document_SEQ: 300
   BankTransaction_SEQ: 400
+  category_group_seq: 100
+  category_group_value_seq: 1000
