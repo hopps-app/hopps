@@ -938,7 +938,8 @@
             "toast": {
                 "draftSaved": "Aufteilung als Entwurf gespeichert",
                 "created": "{{n}} Transaktionen erstellt"
-            }
+            },
+            "cancel": "Nicht aufteilen"
         },
         "review": {
             "title": "Beleg prüfen",
