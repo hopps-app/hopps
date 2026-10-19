@@ -51,7 +51,8 @@ export function OrganizationRegistrationForm(props: Props) {
                     lastName: z.string().min(1, t('validation.lastNameRequired')),
                     email: z.string().email(t('validation.email')),
                     password: z.string().min(8, t('validation.passwordMin')),
-                    passwordConfirm: z.string().min(8, t('validation.passwordMin')),
+                    // No length rule of its own: it would win over the mismatch message below for a short repetition.
+                    passwordConfirm: z.string(),
                 })
                 .refine((data) => data.password === data.passwordConfirm, {
                     message: t('validation.passwordMatch'),
@@ -60,7 +61,7 @@ export function OrganizationRegistrationForm(props: Props) {
         [t]
     );
 
-    const { register, handleSubmit, watch, formState } = useForm<FormFields>({
+    const { register, handleSubmit, watch, trigger, getValues, formState } = useForm<FormFields>({
         mode: 'onSubmit',
         reValidateMode: 'onChange',
         resolver: zodResolver(schema),
@@ -68,6 +69,11 @@ export function OrganizationRegistrationForm(props: Props) {
     const errors = formState.errors;
     const submittingRef = useRef(false);
     const password = watch('password') ?? '';
+    // The form validates on submit, but a mismatch should not wait that long: compare as soon as either password field
+    // is left, once the repetition has been typed.
+    const comparePasswords = () => {
+        if (getValues('passwordConfirm')) void trigger('passwordConfirm');
+    };
 
     // Two steps: the organization first, then the administrator account that owns it.
     const [step, setStep] = useState<1 | 2>(1);
@@ -201,7 +207,7 @@ export function OrganizationRegistrationForm(props: Props) {
                         <TextField
                             label={t('organization.registration.password')}
                             type="password"
-                            {...register('password')}
+                            {...register('password', { onBlur: comparePasswords, deps: ['passwordConfirm'] })}
                             error={errors.password?.message}
                             autoComplete="new-password"
                         />
@@ -211,7 +217,7 @@ export function OrganizationRegistrationForm(props: Props) {
                         <TextField
                             label={t('organization.registration.confirmPassword')}
                             type="password"
-                            {...register('passwordConfirm')}
+                            {...register('passwordConfirm', { onBlur: comparePasswords })}
                             error={errors.passwordConfirm?.message}
                             autoComplete="new-password"
                         />
