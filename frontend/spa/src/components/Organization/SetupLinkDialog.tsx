@@ -60,14 +60,14 @@ export function SetupLinkDialog({ link, name, onClose }: SetupLinkDialogProps) {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="inline-flex items-center rounded-full px-4 py-[9px] text-[13.5px] font-bold text-[#6B6B76] transition-colors hover:bg-[#F1F1F4] hover:text-[#1B1B1F] dark:text-[#A0A0AC] dark:hover:bg-[#26262D] dark:hover:text-[#F2F2F5]"
+                        className="inline-flex items-center rounded-[var(--btn-radius)] px-4 py-[9px] text-[13.5px] font-bold text-[#6B6B76] transition-colors hover:bg-[#F1F1F4] hover:text-[#1B1B1F] dark:text-[#A0A0AC] dark:hover:bg-[#26262D] dark:hover:text-[#F2F2F5]"
                     >
                         {t('common.close')}
                     </button>
                     <button
                         type="button"
                         onClick={copy}
-                        className="inline-flex items-center gap-2 rounded-full bg-[#9955CC] px-5 py-[10px] text-[14px] font-bold text-white shadow-[0_1px_2px_rgba(120,60,180,0.25)] transition-colors hover:bg-[#7E3FB4] dark:shadow-none dark:hover:bg-[#AE73DC]"
+                        className="inline-flex items-center gap-2 rounded-[var(--btn-radius)] bg-[#9955CC] px-5 py-[10px] text-[14px] font-bold text-white shadow-[0_1px_2px_rgba(120,60,180,0.25)] transition-colors hover:bg-[#7E3FB4] dark:shadow-none dark:hover:bg-[#AE73DC]"
                     >
                         <Copy size={16} aria-hidden="true" />
                         {t('organization.details.users.setupLink.copy')}
