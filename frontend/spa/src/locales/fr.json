@@ -71,22 +71,17 @@
         "text2": "jours"
     },
     "common": {
-        "refresh": "Actualiser",
         "upload": "Téléverser",
         "addNew": "Ajouter",
         "close": "Fermer",
-        "expand": "Développer",
         "collapse": "Réduire",
         "search": "Rechercher",
-        "noItems": "Aucun élément à afficher",
-        "noResults": "Aucun résultat",
         "goBack": "Retour",
         "cancel": "Annuler",
         "save": "Enregistrer",
         "edit": "Modifier",
         "delete": "Supprimer",
         "loading": "Chargement...",
-        "validationError": "Veuillez renseigner tous les champs obligatoires",
         "unsavedChangesWarning": "Vous avez des modifications non enregistrées. Voulez-vous vraiment quitter cette page ?",
         "next": "Suivant",
         "confirm": "Confirmer"
@@ -131,7 +126,6 @@
         "organizationNameRequired": "Le nom de l'organisation est obligatoire",
         "firstNameRequired": "Le prénom est obligatoire",
         "lastNameRequired": "Le nom est obligatoire",
-        "invalidFileType": "Type de fichier non valide",
         "passwordStrength": {
             "label": "Robustesse du mot de passe",
             "weak": "Faible",
@@ -154,50 +148,18 @@
     },
     "invoiceUpload": {
         "title": "Téléverser une nouvelle facture",
-        "assign": "Affecter à",
-        "chooseFile": "Choisir un fichier",
         "upload": "Téléverser",
         "uploadFailed": "Échec du téléversement de la facture",
         "uploadSuccess": "Facture téléversée avec succès",
-        "dragDrop": "Glissez-déposez les fichiers ici",
         "fileType": "Fichier PDF ou JPG",
-        "dragFile": "Déposez les fichiers ici...",
-        "fileTooLarge": "Le fichier est trop volumineux, taille maximale 5 Mo",
-        "invalidFileType": "Type de fichier non pris en charge. Veuillez téléverser des fichiers PDF, JPEG ou PNG.",
-        "totalTooLarge": "La taille totale des fichiers dépasse la limite de 20 Mo.",
-        "maxFilesExceeded": "Maximum de 10 fichiers autorisés.",
         "selectBommel": "Sélectionner un bommel",
-        "privately": "Payé à titre privé",
         "invoice": "Facture",
         "receipt": "Reçu",
-        "docType": "Type de transaction",
-        "pdfNavigation": {
-            "previousPage": "Page précédente",
-            "nextPage": "Page suivante",
-            "pageIndicator": "{{current}} / {{total}}"
-        }
+        "docType": "Type de transaction"
     },
     "invoices": {
-        "loadFailed": "Échec du chargement des factures",
-        "noInvoices": "Aucune facture à afficher",
         "assignPopover": {
-            "assign": "Affecter",
-            "reassign": "Réaffecter",
-            "noBommels": "Aucun bommel disponible",
-            "newBommel": "nouveau Bommel",
-            "successAssign": "Affectation réussie !",
-            "failedAssign": "Échec de l'affectation du bommel !"
-        },
-        "summary": {
-            "totalFirstPart": "Total",
-            "invoicesPart": "factures pour un montant de"
-        },
-        "table": {
-            "newInvoice": "nouvelle Facture",
-            "date": "Date",
-            "bommel": "Bommel",
-            "amount": "Montant",
-            "name": "Nom"
+            "assign": "Affecter"
         }
     },
     "organization": {
@@ -252,7 +214,6 @@
                 "nameMaxLength": "Le nom ne doit pas dépasser 255 caractères"
             },
             "editModeHint": "Glissez-déposez les bommels en vue tableau, ou utilisez le bouton de déplacement en vue arborescente",
-            "moveBommel": "Déplacer le bommel",
             "includeDrafts": "Inclure les brouillons",
             "aggregate": "Sous-bommels inclus",
             "details": {
@@ -461,18 +422,12 @@
     "settings": {
         "menu": {
             "account": "Mon compte",
-            "invoices": "Factures",
-            "organization": "Organisation",
-            "ngoDetails": "Détails de l'organisation",
             "profile": "Profil"
         }
     },
-    "settingsPage": {
-        "menu": "Menu"
-    },
     "reports": {
         "title": "Rapports",
-        "subtitle": "Analysez les transactions par valeur de groupe de catégories sur une période donnée.",
+        "subtitle": "Analysez les recettes et les dépenses d'une période par groupe de catégories.",
         "group": "Groupe de catégories",
         "selectGroup": "Sélectionner un groupe de catégories …",
         "from": "Du (date de transaction)",
@@ -715,9 +670,6 @@
             "bulkDeleteFailed": "Les transactions n'ont pas pu être supprimées"
         }
     },
-    "datePicker": {
-        "selectDate": "Sélectionner une date"
-    },
     "dashboard": {
         "title": "Tableau de bord",
         "incomeExpenseChart": "Recettes et dépenses",
@@ -829,40 +781,14 @@
     },
     "receipts": {
         "draft": "Brouillon",
-        "unassigned": "Non affecté",
-        "documentLinked": "Document joint",
-        "downloadDocument": "Télécharger le document",
-        "downloadFailed": "Échec du téléchargement du document",
         "noDocument": "Aucun document",
-        "dueDate": "Échéance le",
         "empty": "Aucun reçu trouvé",
         "searchPlaceholder": "Rechercher (nom, expéditeur, montant) …",
         "searchClear": "Effacer la recherche",
         "noSearchResults": "Aucun reçu trouvé pour « {{search}} »",
         "newReceipt": "Nouveau reçu",
-        "statusBadge": {
-            "draft": "Brouillon",
-            "saved": "Enregistré"
-        },
         "table": {
-            "issuer": "Émetteur",
-            "date": "Date",
-            "project": "Bommel",
-            "category": "Catégorie",
-            "status": "Statut",
-            "paid": "Payé",
-            "amount": "Montant",
-            "purpose": "Objet",
-            "reference": "Référence"
-        },
-        "paidLabel": {
-            "yes": "Oui",
-            "no": "Non"
-        },
-        "emptyState": {
-            "title": "Aucun reçu téléversé pour le moment",
-            "description": "Vous pouvez filtrer et gérer les reçus ici",
-            "action": "Téléverser le premier reçu"
+            "category": "Catégorie"
         },
         "status": {
             "pending": "En attente",
@@ -882,28 +808,16 @@
         },
         "filters": {
             "searchReceipt": "Rechercher un reçu",
-            "searchPlaceholder": "Rechercher",
             "receiptDate": "Date du reçu",
-            "startDate": "Reçus à partir du",
-            "endDate": "Reçus jusqu'au",
             "bommel": "Bommel",
             "category": "Catégorie",
             "type": "Type de reçu",
-            "income": "Recette",
-            "expense": "Dépense",
-            "selectStatus": "Sélectionner le statut",
             "status": "Statut",
-            "all": "Tous",
-            "drafts": "Brouillons",
-            "unassigned": "Non affecté",
             "displayType": "Type d'affichage",
-            "displayAll": "Tout développer",
-            "reset": "Réinitialiser",
             "noResults": "Aucun résultat",
             "area": "Sphère",
             "allAreas": "Sélectionner une sphère",
-            "allCategories": "Sélectionner une catégorie",
-            "showFilters": "Filtres"
+            "allCategories": "Sélectionner une catégorie"
         },
         "upload": {
             "sectionTitle": "Téléverser des reçus",
@@ -957,12 +871,7 @@
             "wirtschaftlich": "Activité commerciale",
             "unknown": "Inconnue"
         },
-        "types": {
-            "income": "Recette",
-            "expense": "Dépense"
-        },
         "pagination": {
-            "page": "Page",
             "previous": "Précédent",
             "next": "Suivant"
         },
@@ -971,14 +880,10 @@
             "description": "Voulez-vous vraiment supprimer « {{name}} » ({{amount}}) ?",
             "warning": "Cette action est irréversible. Le reçu sera définitivement supprimé.",
             "confirm": "Oui, supprimer",
-            "error": "Échec de la suppression du reçu",
-            "success": "Reçu supprimé avec succès",
             "optionTransactionOnly": "Seule l'écriture est supprimée. Le reçu est conservé et retourne en cours de vérification.",
             "optionWithReceipt": "L'écriture et le reçu sont définitivement supprimés, y compris le fichier téléversé.",
             "confirmTransactionOnly": "Supprimer uniquement la transaction",
             "confirmWithReceipt": "Supprimer avec le reçu",
-            "successTransactionOnly": "Transaction supprimée - le reçu est de nouveau en attente de vérification",
-            "successWithReceipt": "Reçu et transaction supprimés",
             "descriptionNoName": "Êtes-vous sûr de vouloir supprimer cette transaction ({{amount}}) ?"
         },
         "title": "Reçus",
@@ -1140,18 +1045,6 @@
         "select": "Sélectionner un bommel"
     },
     "bankAccounts": {
-        "title": "Comptes bancaires",
-        "subtitle": "Gérez vos comptes bancaires et importez des relevés bancaires.",
-        "newAccount": "Nouveau compte",
-        "manageSchemas": "Gérer les schémas",
-        "notFound": "Compte bancaire introuvable",
-        "card": {
-            "schema": "Schéma"
-        },
-        "emptyState": {
-            "title": "Aucun compte bancaire pour le moment",
-            "description": "Ajoutez votre premier compte bancaire pour commencer à importer des relevés bancaires."
-        },
         "form": {
             "createTitle": "Créer un compte bancaire",
             "editTitle": "Modifier le compte bancaire",
@@ -1185,18 +1078,6 @@
                 "duplicateIban": "Un compte avec cet IBAN existe déjà dans votre organisation"
             }
         },
-        "table": {
-            "bookingDate": "Date de comptabilisation",
-            "counterpartyName": "Contrepartie",
-            "purpose": "Objet",
-            "amount": "Montant",
-            "status": "Statut"
-        },
-        "transactions": {
-            "title": "Transactions",
-            "empty": "Aucune transaction pour le moment",
-            "export": "Exporter"
-        },
         "toast": {
             "createSuccess": "Compte bancaire créé",
             "createError": "Le compte bancaire n'a pas pu être créé",
@@ -1216,15 +1097,6 @@
             "startError": "L'import n'a pas pu être lancé."
         },
         "title": "Importer un relevé bancaire",
-        "startImport": "Importer",
-        "status": {
-            "QUEUED": "En file d'attente",
-            "PROCESSING": "Traitement en cours",
-            "COMPLETED": "Terminé",
-            "PARTIAL": "Partiellement importé",
-            "FAILED": "Échec",
-            "UNKNOWN": "Inconnu"
-        },
         "wizard": {
             "stepFile": "Fichier",
             "stepSchema": "Schéma",
@@ -1282,23 +1154,6 @@
             "errors": "Erreurs",
             "backToAccount": "Retour au compte",
             "viewTransactions": "Voir les transactions"
-        },
-        "history": {
-            "title": "Historique des imports",
-            "empty": "Aucun import pour le moment",
-            "fileName": "Nom du fichier",
-            "status": "Statut",
-            "progress": "Progression",
-            "imported": "Importées",
-            "duplicates": "Doublons",
-            "errors": "Erreurs",
-            "finishedAt": "Terminé",
-            "actions": "Actions"
-        },
-        "rollback": {
-            "title": "Annuler l'import ?",
-            "button": "Annuler",
-            "confirm": "Voulez-vous vraiment annuler cet import ? Toutes les transactions importées seront supprimées."
         },
         "toast": {
             "rollbackSuccess": "Import annulé",
@@ -1433,7 +1288,7 @@
             "openSingular": "transaction pas encore rapprochée",
             "openPlural": "transactions pas encore rapprochées",
             "matched": "rapprochées",
-            "openDesc": "Affectez les transactions ouvertes ci-dessous ou créez une écriture à partir d'elles.",
+            "openDesc": "Affectez les transactions ouvertes ci-dessous ou créez une transaction à partir d'elles.",
             "openBookings": "Transactions bancaires ouvertes",
             "noData": "Aucune transaction pour le moment",
             "noDataDesc": "Importez un relevé bancaire pour démarrer le rapprochement."
