@@ -9,7 +9,7 @@ ENV VITE_OIDC_CLIENT_ID="VITE_OIDC_CLIENT_ID_VALUE"
 ENV VITE_API_ORG_URL="VITE_API_ORG_URL_VALUE"
 ENV VITE_API_FIN_URL="VITE_API_FIN_URL_VALUE"
 # VITE_OIDC_SCOPE is optional and deliberately has no default here: left unset,
-# replaceEnvs.sh blanks it and the SPA requests "openid profile email".
+# replaceEnvs.sh fills in "openid profile email".
 
 # Legal pages (Impressum / Datenschutzerklärung) are configured at runtime, not
 # baked in. Link an external page with HOPPS_IMPRINT_URL / HOPPS_PRIVACY_URL, or
