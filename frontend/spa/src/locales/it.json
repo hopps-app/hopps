@@ -427,7 +427,7 @@
     },
     "reports": {
         "title": "Report",
-        "subtitle": "Analizza le transazioni per valore del gruppo di categorie in un intervallo di date.",
+        "subtitle": "Analizza entrate e uscite di un periodo per gruppo di categorie.",
         "group": "Gruppo di categorie",
         "selectGroup": "Seleziona un gruppo di categorie …",
         "from": "Da (data della transazione)",
@@ -1288,7 +1288,7 @@
             "openSingular": "transazione non ancora abbinata",
             "openPlural": "transazioni non ancora abbinate",
             "matched": "abbinata",
-            "openDesc": "Assegna le transazioni aperte qui sotto o crea una registrazione da esse.",
+            "openDesc": "Assegna le transazioni aperte qui sotto o crea una transazione da esse.",
             "openBookings": "Transazioni bancarie aperte",
             "noData": "Ancora nessuna transazione",
             "noDataDesc": "Importa un estratto conto per iniziare la riconciliazione."

@@ -121,7 +121,7 @@ export default function DocumentDetailScreen() {
 
         Alert.alert(
             'Beleg löschen',
-            'Möchtest du diesen Beleg wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
+            'Diesen Beleg wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
             [
                 { text: 'Abbrechen', style: 'cancel' },
                 {

@@ -427,7 +427,7 @@
     },
     "reports": {
         "title": "Rapports",
-        "subtitle": "Analysez les transactions par valeur de groupe de catégories sur une période donnée.",
+        "subtitle": "Analysez les recettes et les dépenses d'une période par groupe de catégories.",
         "group": "Groupe de catégories",
         "selectGroup": "Sélectionner un groupe de catégories …",
         "from": "Du (date de transaction)",
@@ -1288,7 +1288,7 @@
             "openSingular": "transaction pas encore rapprochée",
             "openPlural": "transactions pas encore rapprochées",
             "matched": "rapprochées",
-            "openDesc": "Affectez les transactions ouvertes ci-dessous ou créez une écriture à partir d'elles.",
+            "openDesc": "Affectez les transactions ouvertes ci-dessous ou créez une transaction à partir d'elles.",
             "openBookings": "Transactions bancaires ouvertes",
             "noData": "Aucune transaction pour le moment",
             "noDataDesc": "Importez un relevé bancaire pour démarrer le rapprochement."
