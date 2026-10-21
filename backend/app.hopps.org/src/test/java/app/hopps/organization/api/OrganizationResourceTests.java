@@ -103,7 +103,7 @@ class OrganizationResourceTests {
 
         OrganizationInput organizationInput = new OrganizationInput("Schützenverein", "schuetzenverein",
                 OrganizationType.EINGETRAGENER_VEREIN, URI.create("https://hopps.cloud").toURL(),
-                URI.create("https://hopps.cloud").toURL(), null, null, null, null, null, null, null, null, null);
+                URI.create("https://hopps.cloud").toURL(), null, null, null, null, null, null, null, null, null, null);
         OwnerInput ownerInput = new OwnerInput("info@op-paf.de", "Test", "User");
         NewOrganizationInput newOrganizationInput = new NewOrganizationInput(ownerInput, "testPassword",
                 organizationInput);
@@ -118,5 +118,40 @@ class OrganizationResourceTests {
                 .body("slug", equalTo("schuetzenverein"))
                 .body("name", equalTo("Schützenverein"))
                 .body("id", notNullValue());
+    }
+
+    @Test
+    @DisplayName("should take the currency from the country when registering a Swiss Verein")
+    void shouldRegisterSwissVereinInFrancs() {
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(registration("CH", OrganizationType.VEREIN))
+                .when()
+                .post()
+                .then()
+                .statusCode(201)
+                .body("country", equalTo("CH"))
+                .body("type", equalTo("VEREIN"))
+                .body("currency", equalTo("CHF"));
+    }
+
+    @Test
+    @DisplayName("should reject a country outside the euro and Swiss franc area")
+    void shouldRejectUnsupportedCountry() {
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(registration("US", OrganizationType.ANDERE))
+                .when()
+                .post()
+                .then()
+                .statusCode(400);
+    }
+
+    private static NewOrganizationInput registration(String country, OrganizationType type) {
+        OrganizationInput organizationInput = new OrganizationInput("Turnverein Zug", "turnverein-zug", type, null,
+                null,
+                null, null, null, null, country, null, null, null, null, null);
+        return new NewOrganizationInput(new OwnerInput("kassier@tv-zug.ch", "Test", "User"), "testPassword",
+                organizationInput);
     }
 }

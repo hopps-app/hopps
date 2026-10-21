@@ -1,16 +1,19 @@
 import { TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Change, formatCurrency, percentageChange } from './format';
+import { Change, percentageChange } from './format';
 import { useBankBalance, useYearTotals } from './hooks';
 import { KpiCard } from './KpiCard';
+
+import { useCurrency } from '@/hooks/use-currency';
 
 /**
  * The three headline figures. They always cover the running year for the whole organization — the
  * chart's filters do not touch them, so they stay a stable reference point.
  */
 export function KpiSection({ organizationId }: { organizationId: number | undefined }) {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
+    const { format } = useCurrency();
     const year = new Date().getFullYear();
 
     const balance = useBankBalance(organizationId);
@@ -37,7 +40,7 @@ export function KpiSection({ organizationId }: { organizationId: number | undefi
         <div className="mb-4 flex min-w-0 flex-col gap-4 sm:mb-[18px] sm:flex-row" data-testid="dashboard-kpis">
             <KpiCard
                 label={t('dashboard.kpi.balance')}
-                value={formatCurrency(i18n.language, balance.data?.balance)}
+                value={format(balance.data?.balance ?? 0)}
                 context={balance.data?.accountCount ? t('dashboard.kpi.available') : t('dashboard.kpi.noAccount')}
                 icon={Wallet}
                 isLoading={balance.isPending}
@@ -47,7 +50,7 @@ export function KpiSection({ organizationId }: { organizationId: number | undefi
             />
             <KpiCard
                 label={t('dashboard.kpi.income', { year })}
-                value={formatCurrency(i18n.language, totals.data?.income)}
+                value={format(totals.data?.income ?? 0)}
                 context={describe(incomeChange, hasBookings)}
                 // Rising income is good news; falling income is merely neutral — the dashboard reports,
                 // it does not pass judgement.
@@ -60,7 +63,7 @@ export function KpiSection({ organizationId }: { organizationId: number | undefi
             />
             <KpiCard
                 label={t('dashboard.kpi.expenses', { year })}
-                value={formatCurrency(i18n.language, totals.data?.expenses)}
+                value={format(totals.data?.expenses ?? 0)}
                 context={describe(expensesChange, hasBookings)}
                 tone={expensesChange?.direction === 'down' ? 'positive' : 'neutral'}
                 icon={TrendingDown}

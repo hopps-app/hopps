@@ -27,6 +27,11 @@ public enum OrganizationType {
     /** Gemeinnützige UG (haftungsbeschränkt) — the "small gGmbH" for founders with little starting capital. */
     GEMEINNUETZIGE_UG("gUG (haftungsbeschränkt)"),
     /** Fallback for anything not covered above. */
+    /**
+     * Association outside Germany (Swiss Verein under Art. 60 ZGB, Austrian Verein under VerG, …). The German e.V. is
+     * tied to the German register of associations, so it does not fit there.
+     */
+    VEREIN("Verein"),
     ANDERE("Andere");
 
     private final String displayString;

@@ -10,6 +10,7 @@ import { DatePicker } from '@/components/ui/shadecn/DatePicker';
 import Switch from '@/components/ui/Switch';
 import Tags from '@/components/ui/Tags';
 import TextField from '@/components/ui/TextField';
+import { useCurrency } from '@/hooks/use-currency';
 
 interface ReceiptFormFieldsProps {
     receiptNumber: string;
@@ -66,6 +67,7 @@ export function ReceiptFormFields({
     errors = {},
     readOnly = false,
 }: ReceiptFormFieldsProps) {
+    const { symbol } = useCurrency();
     const { t } = useTranslation();
 
     const radioItems = [
@@ -188,9 +190,9 @@ export function ReceiptFormFields({
                 }}
                 loading={loadingStates.taxAmount}
                 error={errors.taxAmount}
-                className="pr-8"
+                className={symbol.length > 1 ? 'pr-14' : 'pr-8'}
                 disabled={readOnly}
-                suffix="€"
+                suffix={symbol}
             />
             <TextField
                 label={t('receipts.upload.grossAmount')}
@@ -204,8 +206,8 @@ export function ReceiptFormFields({
                 error={errors.grossAmount}
                 required
                 disabled={readOnly}
-                className="pr-8"
-                suffix="€"
+                className={symbol.length > 1 ? 'pr-14' : 'pr-8'}
+                suffix={symbol}
             />
         </div>
     );

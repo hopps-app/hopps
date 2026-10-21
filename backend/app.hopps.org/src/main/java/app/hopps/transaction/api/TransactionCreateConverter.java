@@ -31,7 +31,9 @@ public class TransactionCreateConverter {
         transaction.setName(request.name());
         transaction.setTotal(request.total());
         transaction.setTotalTax(request.totalTax());
-        transaction.setCurrencyCode(request.currencyCode());
+        // Manual bookings rarely name a currency; they are in the organization's currency by definition.
+        transaction.setCurrencyCode(
+                request.currencyCode() != null ? request.currencyCode() : organization.getCurrency().name());
         transaction.setPrivatelyPaid(request.privatelyPaid());
 
         if (request.transactionDate() != null && !request.transactionDate().isBlank()) {

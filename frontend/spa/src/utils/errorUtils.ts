@@ -43,6 +43,25 @@ export function getErrorStatus(error: unknown): number | null {
 }
 
 /**
+ * The JSON body of an API error, e.g. the {@code { code, message, ... } } of a coded 409. The generated api-client only
+ * fills `ApiException.result` for responses with a documented schema; otherwise the body is the raw text in
+ * `.response`, so both are tried. Returns undefined if there is no parseable object body.
+ */
+export function getErrorBody<T extends object = { code?: string; message?: string }>(error: unknown): T | undefined {
+    if (!error || typeof error !== 'object') return undefined;
+    const result = (error as { result?: unknown }).result;
+    if (result && typeof result === 'object') return result as T;
+    const raw = (error as { response?: unknown }).response;
+    if (typeof raw !== 'string' || raw === '') return undefined;
+    try {
+        const body: unknown = JSON.parse(raw);
+        return body && typeof body === 'object' ? (body as T) : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+/**
  * For a duplicate-document upload rejection (HTTP 409), returns the id of the already-existing document carried in the
  * response body ({@code { existingDocumentId } }), or undefined for any other error. Lets the caller link straight to
  * the receipt that was already booked.

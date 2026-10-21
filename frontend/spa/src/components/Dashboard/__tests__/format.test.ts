@@ -1,19 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatCurrency, percentageChange } from '../format';
-
-// Intl separates amount and currency symbol with a no-break space; normalise it for the assertions.
-const normalise = (value: string) => value.replace(/\s/g, ' ');
-
-describe('formatCurrency', () => {
-    it('uses the German currency format', () => {
-        expect(normalise(formatCurrency('de', 12480))).toBe('12.480,00 €');
-    });
-
-    it('renders a missing value as zero rather than hiding the figure', () => {
-        expect(normalise(formatCurrency('de', undefined))).toBe('0,00 €');
-    });
-});
+import { percentageChange } from '../format';
 
 describe('percentageChange', () => {
     it('reports a rise', () => {

@@ -9,13 +9,9 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { LoadingState } from '@/components/common/LoadingState';
 import Button from '@/components/ui/Button';
 import { useBankAccounts } from '@/hooks/queries/useBankAccounts';
+import { useCurrency } from '@/hooks/use-currency';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { cn } from '@/lib/utils';
-
-function formatCurrency(amount: number | undefined, currency = 'EUR'): string {
-    if (amount === undefined || amount === null) return '—';
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(amount);
-}
 
 function ColorChip({ color }: { color?: string }) {
     if (!color) return null;
@@ -23,6 +19,7 @@ function ColorChip({ color }: { color?: string }) {
 }
 
 function BankAccountCard({ account, onClick }: { account: BankAccountResponse; onClick: () => void }) {
+    const { format } = useCurrency();
     const { t } = useTranslation();
 
     return (
@@ -42,7 +39,7 @@ function BankAccountCard({ account, onClick }: { account: BankAccountResponse; o
                         (account.balance ?? account.openingBalance ?? 0) >= 0 ? 'text-emerald-600' : 'text-red-500'
                     )}
                 >
-                    {formatCurrency(account.balance ?? account.openingBalance, account.currency ?? 'EUR')}
+                    {format(account.balance ?? account.openingBalance, { currency: account.currency })}
                 </span>
             </div>
 

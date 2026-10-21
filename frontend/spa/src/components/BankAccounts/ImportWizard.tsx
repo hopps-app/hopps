@@ -5,8 +5,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 
+import { isCurrencyMismatch, previewCurrencies } from '@/components/BankAccounts/importCurrency';
+import { FONT } from '@/components/Transactions/layout';
 import Button from '@/components/ui/Button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import Progress from '@/components/ui/Progress';
 import { BaseSelect, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/shadecn/BaseSelect';
 import {
@@ -23,8 +26,16 @@ import {
     bankImportKeys,
 } from '@/hooks/queries/useBankAccounts';
 import { cn } from '@/lib/utils';
+import { getErrorBody, getErrorStatus } from '@/utils/errorUtils';
 
 type WizardState = 'drop' | 'previewing' | 'preview' | 'importing' | 'done';
+
+/** Body of the 409 the backend answers when the file's currency does not fit the account (see BankImportRejectedException). */
+type ImportConflict = {
+    code?: 'CURRENCY_MISMATCH';
+    fileCurrencies?: string[];
+    accountCurrency?: string;
+};
 
 interface ImportWizardProps {
     accountId: number;
@@ -43,7 +54,8 @@ export function ImportWizard({ accountId, onClose, onViewTransactions }: ImportW
     // schemaId is "org:123" | "tpl:sparkasse-camt-v8" | "" (not yet chosen)
     const [schemaId, setSchemaId] = useState<string>('');
     const [importId, setImportId] = useState<number | null>(null);
-    const [showAllCols, setShowAllCols] = useState(false);
+    // Why the last start was rejected (wrong currency, server error); shown above the import button.
+    const [startError, setStartError] = useState<{ title?: string; message: string } | null>(null);
 
     const { data: account } = useBankAccount(accountId);
     const { data: schemas = [] } = useBankSchemas(false);
@@ -70,6 +82,9 @@ export function ImportWizard({ accountId, onClose, onViewTransactions }: ImportW
     }, [detection, isMt940, schemaId]);
 
     // Poll import progress
+    // TODO: polling (and the list refresh below) lives in this component, so closing the dialog while the import still
+    // runs stops it; the bank transaction lists then stay stale for up to the 5-minute staleTime. Move the watch to the
+    // page hosting the wizard (KontenView) when the bank page is refactored.
     const { data: importStatus } = useBankImport(importId);
     useEffect(() => {
         if (state === 'importing' && importStatus?.status && ['COMPLETED', 'PARTIAL', 'FAILED'].includes(importStatus.status)) {
@@ -92,6 +107,10 @@ export function ImportWizard({ accountId, onClose, onViewTransactions }: ImportW
     const selectedSchema = isTemplateSelected ? undefined : schemas.find((s) => String(s.id) === schemaId.replace('org:', ''));
     const selectedTemplate = isTemplateSelected ? templates.find((tpl) => `tpl:${tpl.templateId}` === schemaId) : undefined;
     const selectedName = selectedSchema?.name ?? selectedTemplate?.name ?? '';
+    // Currency check on the preview, so a file in the wrong currency is flagged before the user clicks "import". It only
+    // sees the sample; the backend checks the whole file again when the import starts.
+    const fileCurrencies = previewCurrencies(preview, selectedSchema ?? selectedTemplate);
+    const previewCurrencyMismatch = isCurrencyMismatch(fileCurrencies, account?.currency);
     const detectionSucceeded = detection != null && detection.type !== 'NONE';
 
     // Trigger preview automatically on drop
@@ -99,7 +118,6 @@ export function ImportWizard({ accountId, onClose, onViewTransactions }: ImportW
         async (f: File) => {
             setState('previewing');
             setSchemaId('');
-            setShowAllCols(false);
             createdSchemaRef.current = null;
             try {
                 const result = await previewMutation.mutateAsync({ accountId, file: f });
@@ -132,35 +150,54 @@ export function ImportWizard({ accountId, onClose, onViewTransactions }: ImportW
     const handleImport = async () => {
         if (!file) return;
         if (!isMt940 && !schemaId) return;
+        setStartError(null);
         setState('importing');
-        let resolvedSchemaId: number | undefined;
-        if (!isMt940) {
-            if (isTemplateSelected && selectedTemplate) {
-                if (createdSchemaRef.current) {
-                    resolvedSchemaId = createdSchemaRef.current;
+        try {
+            let resolvedSchemaId: number | undefined;
+            if (!isMt940) {
+                if (isTemplateSelected && selectedTemplate) {
+                    if (createdSchemaRef.current) {
+                        resolvedSchemaId = createdSchemaRef.current;
+                    } else {
+                        const created = await createSchemaMutation.mutateAsync({
+                            fromTemplate: selectedTemplate.templateId,
+                            data: {
+                                name: selectedTemplate.name ?? selectedTemplate.templateId ?? 'Schema',
+                                amountStrategy: selectedTemplate.amountStrategy ?? 'SIGNED_SINGLE_COLUMN',
+                                columnMappings: (selectedTemplate.columnMappings ?? []).map((m) => ({
+                                    targetField: m.targetField!,
+                                    sourceColumnIndex: m.sourceColumnIndex ?? undefined,
+                                    sourceColumnName: m.sourceColumnName ?? undefined,
+                                    transform: m.transform ?? undefined,
+                                })),
+                            },
+                        });
+                        resolvedSchemaId = created.id!;
+                        createdSchemaRef.current = resolvedSchemaId;
+                    }
                 } else {
-                    const created = await createSchemaMutation.mutateAsync({
-                        fromTemplate: selectedTemplate.templateId,
-                        data: {
-                            name: selectedTemplate.name ?? selectedTemplate.templateId ?? 'Schema',
-                            amountStrategy: selectedTemplate.amountStrategy ?? 'SIGNED_SINGLE_COLUMN',
-                            columnMappings: (selectedTemplate.columnMappings ?? []).map((m) => ({
-                                targetField: m.targetField!,
-                                sourceColumnIndex: m.sourceColumnIndex ?? undefined,
-                                sourceColumnName: m.sourceColumnName ?? undefined,
-                                transform: m.transform ?? undefined,
-                            })),
-                        },
-                    });
-                    resolvedSchemaId = created.id!;
-                    createdSchemaRef.current = resolvedSchemaId;
+                    resolvedSchemaId = Number(schemaId.replace('org:', ''));
                 }
+            }
+            const result = await startImportMutation.mutateAsync({ accountId, file, schemaId: resolvedSchemaId });
+            setImportId(result.id ?? null);
+        } catch (error) {
+            // The backend checks the file's currency before queueing it; back to the preview to explain.
+            setState('preview');
+            const body = getErrorStatus(error) === 409 ? getErrorBody<ImportConflict>(error) : undefined;
+            if (body?.code === 'CURRENCY_MISMATCH') {
+                const fileCurrencies = (body.fileCurrencies ?? []).join(', ');
+                setStartError({
+                    title: t('bankImport.check.currencyMismatchTitle'),
+                    message:
+                        (body.fileCurrencies?.length ?? 0) > 1
+                            ? t('bankImport.check.mixedCurrencies', { fileCurrencies })
+                            : t('bankImport.check.currencyMismatch', { fileCurrencies, accountCurrency: body.accountCurrency }),
+                });
             } else {
-                resolvedSchemaId = Number(schemaId.replace('org:', ''));
+                setStartError({ message: t('bankImport.check.startError') });
             }
         }
-        const result = await startImportMutation.mutateAsync({ accountId, file, schemaId: resolvedSchemaId });
-        setImportId(result.id ?? null);
     };
 
     // ── Drop / uploading ─────────────────────────────────────────────────────────
@@ -231,9 +268,14 @@ export function ImportWizard({ accountId, onClose, onViewTransactions }: ImportW
                 {/* Schema picker — always available for CSV so a confident-but-wrong auto-detection can be overridden */}
                 {!isMt940 && !isDetecting ? (
                     <div className="grid gap-1.5">
-                        <label className="text-sm font-medium">
-                            {detectionSucceeded ? t('bankImport.wizard.schemaLabelChange') : t('bankImport.wizard.schemaRequired')}
-                        </label>
+                        <div className="flex items-center gap-1.5">
+                            <label className="text-sm font-medium">
+                                {detectionSucceeded ? t('bankImport.wizard.schemaLabelChange') : t('bankImport.wizard.schemaRequired')}
+                            </label>
+                            {detectionSucceeded && (
+                                <InfoTooltip content={t('bankImport.wizard.schemaDetectedHint')} label={t('bankImport.wizard.schemaDetectedHintLabel')} />
+                            )}
+                        </div>
                         <BaseSelect value={schemaId} onValueChange={setSchemaId}>
                             <SelectTrigger>
                                 <SelectValue placeholder={t('bankImport.wizard.schemaPlaceholder')} />
@@ -272,84 +314,49 @@ export function ImportWizard({ accountId, onClose, onViewTransactions }: ImportW
                     </div>
                 )}
 
-                {/* Sample rows table */}
+                {/* Sample rows table: all columns and all preview rows, scrollable in both directions. Styled like the
+                    transactions table (card, uppercase header, row lines). */}
                 {preview.sampleRows &&
                     preview.sampleRows.length > 0 &&
                     (() => {
-                        const MAX_COLS = 6;
-                        const allCols = preview.headerColumns ?? [];
-                        // CSV: sampleRows[0] is the header row duplicated — skip it
-                        const dataRows = !isMt940 ? preview.sampleRows.slice(1, 6) : preview.sampleRows.slice(0, 5);
-                        // Drop columns where every data row has the same value (e.g. own IBAN in AUFTRAGSKONTO)
-                        const interestingIndices = allCols
-                            .map((_, ci) => ci)
-                            .filter((ci) => {
-                                if (dataRows.length === 0) return true;
-                                const first = dataRows[0][ci] ?? '';
-                                return dataRows.some((r) => (r[ci] ?? '') !== first);
-                            });
-                        const visibleIndices = showAllCols ? interestingIndices : interestingIndices.slice(0, MAX_COLS);
-                        const hiddenCount = interestingIndices.length - visibleIndices.length;
+                        const columns = preview.headerColumns ?? [];
+                        // CSV: sampleRows[0] is the header row duplicated, so skip it
+                        const dataRows = !isMt940 ? preview.sampleRows.slice(1) : preview.sampleRows;
+                        const columnCount = Math.max(columns.length, ...dataRows.map((r) => r.length));
+                        const indices = Array.from({ length: columnCount }, (_, ci) => ci);
                         return (
                             <div
-                                className={cn(
-                                    'rounded-xl border border-gray-200 dark:border-gray-700 w-full',
-                                    showAllCols ? 'overflow-x-auto' : 'overflow-hidden'
-                                )}
+                                className="rounded-[var(--r-card)] border border-border-soft overflow-auto max-h-[340px] w-full"
+                                style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-sm)', fontFamily: FONT }}
                             >
-                                <table className={cn('text-[11px] border-collapse', showAllCols ? 'w-max' : 'w-full table-fixed')}>
-                                    <thead>
-                                        <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                                            {visibleIndices.map((ci) => (
+                                <table className="w-max min-w-full border-collapse text-[12.5px]">
+                                    <thead className="sticky top-0 z-10" style={{ background: 'var(--background-secondary)' }}>
+                                        <tr>
+                                            {indices.map((ci) => (
                                                 <th
                                                     key={ci}
-                                                    className={cn(
-                                                        'py-2 px-3 text-left font-semibold text-muted-foreground uppercase tracking-wide text-[10px]',
-                                                        showAllCols ? 'whitespace-nowrap' : 'truncate'
-                                                    )}
+                                                    className="whitespace-nowrap border-b border-border-soft px-4 py-3 text-left text-[12px] font-bold uppercase tracking-[0.04em] text-muted-foreground"
                                                 >
-                                                    {allCols[ci]}
+                                                    {columns[ci] ?? ''}
                                                 </th>
                                             ))}
-                                            {hiddenCount > 0 ? (
-                                                <th className="py-2 px-2 w-20 text-center">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowAllCols(true)}
-                                                        className="text-[10px] font-semibold text-primary hover:underline whitespace-nowrap"
-                                                    >
-                                                        +{hiddenCount} {t('bankImport.wizard.showMore')}
-                                                    </button>
-                                                </th>
-                                            ) : showAllCols && interestingIndices.length > MAX_COLS ? (
-                                                <th className="py-2 px-2 w-20 text-center">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowAllCols(false)}
-                                                        className="text-[10px] font-semibold text-muted-foreground hover:underline whitespace-nowrap"
-                                                    >
-                                                        {t('bankImport.wizard.showLess')}
-                                                    </button>
-                                                </th>
-                                            ) : null}
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {dataRows.map((row, ri) => (
                                             <tr
                                                 key={ri}
-                                                className="border-b border-gray-100 dark:border-gray-800 last:border-0 hover:bg-gray-50/60 dark:hover:bg-gray-800/40"
+                                                className="border-b border-border-soft last:border-b-0 hover:bg-[var(--surface-sunken)] transition-colors"
                                             >
-                                                {visibleIndices.map((ci) => (
+                                                {indices.map((ci) => (
                                                     <td
                                                         key={ci}
-                                                        className={cn('py-2 px-3', showAllCols ? 'whitespace-nowrap max-w-[200px] truncate' : 'truncate')}
+                                                        className="max-w-[240px] truncate whitespace-nowrap px-4 py-2.5 text-foreground"
                                                         title={row[ci] ?? ''}
                                                     >
                                                         {row[ci] ?? ''}
                                                     </td>
                                                 ))}
-                                                {hiddenCount > 0 && <td className="py-2 px-2 w-20 text-center text-muted-foreground opacity-30">…</td>}
                                             </tr>
                                         ))}
                                     </tbody>
@@ -357,6 +364,32 @@ export function ImportWizard({ accountId, onClose, onViewTransactions }: ImportW
                             </div>
                         );
                     })()}
+
+                {/* The preview already shows amounts in another currency than the account */}
+                {previewCurrencyMismatch && (
+                    <div role="alert" className="flex items-start gap-2 text-sm text-destructive bg-destructive/10 rounded-xl p-3">
+                        <XCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <div className="flex flex-col gap-0.5">
+                            <span className="font-semibold">{t('bankImport.check.currencyMismatchTitle')}</span>
+                            <span>
+                                {fileCurrencies.length > 1
+                                    ? t('bankImport.check.mixedCurrencies', { fileCurrencies: fileCurrencies.join(', ') })
+                                    : t('bankImport.check.currencyMismatch', { fileCurrencies: fileCurrencies[0], accountCurrency: account?.currency })}
+                            </span>
+                        </div>
+                    </div>
+                )}
+
+                {/* Why the backend refused to start the import */}
+                {startError && (
+                    <div role="alert" className="flex items-start gap-2 text-sm text-destructive bg-destructive/10 rounded-xl p-3">
+                        <XCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <div className="flex flex-col gap-0.5">
+                            {startError.title && <span className="font-semibold">{startError.title}</span>}
+                            <span>{startError.message}</span>
+                        </div>
+                    </div>
+                )}
 
                 {/* Actions */}
                 <div className="flex items-center gap-3">
@@ -366,12 +399,13 @@ export function ImportWizard({ accountId, onClose, onViewTransactions }: ImportW
                             setState('drop');
                             setPreview(null);
                             setSchemaId('');
+                            setStartError(null);
                         }}
                     >
                         {t('common.goBack')}
                     </Button>
                     <div className="flex-1" />
-                    <Button onClick={handleImport} disabled={(!isMt940 && !schemaId) || isDetecting}>
+                    <Button onClick={() => handleImport()} disabled={(!isMt940 && !schemaId) || isDetecting || previewCurrencyMismatch}>
                         {t('bankImport.wizard.importBtn', { count: totalRows })}
                     </Button>
                 </div>

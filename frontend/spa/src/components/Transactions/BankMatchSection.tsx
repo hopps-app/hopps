@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { BankTransactionPicker } from '@/components/Transactions/BankTransactionPicker';
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
-import { fmtCurrency, fmtDate } from '@/components/Transactions/format';
+import { fmtDate } from '@/components/Transactions/format';
 import { MatchAllocationControl } from '@/components/Transactions/MatchAllocationControl';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import {
@@ -15,6 +15,7 @@ import {
     useUpdateBankTransactionMatchAmount,
 } from '@/hooks/queries/useBankAccounts';
 import { useReopenTransaction } from '@/hooks/queries/useTransactions';
+import { useCurrency } from '@/hooks/use-currency';
 import { cn } from '@/lib/utils';
 
 // Round icon button used on the linked-movement cards.
@@ -36,6 +37,7 @@ export function BankMatchSection({
     className?: string;
 }) {
     const { t } = useTranslation();
+    const { format } = useCurrency();
     const { data: linked, isLoading } = useBankTransactionsForTransaction(tx.id);
     const addMatch = useAddBankTransactionMatch();
     const removeMatch = useRemoveBankTransactionMatch();
@@ -161,7 +163,7 @@ export function BankMatchSection({
                         <div key={col.key} className="min-w-0">
                             <div className="truncate text-[12.5px] font-semibold text-muted-foreground">{col.label}</div>
                             <div className="mt-[3px] text-[16px] font-extrabold tabular-nums" style={{ color: col.color }}>
-                                {fmtCurrency(col.value)}
+                                {format(col.value)}
                             </div>
                         </div>
                     ))}
@@ -209,7 +211,7 @@ export function BankMatchSection({
                                         style={{ color: amount >= 0 ? 'var(--positive)' : 'var(--negative)' }}
                                     >
                                         {amount >= 0 ? '+ ' : '– '}
-                                        {fmtCurrency(Math.abs(amount))}
+                                        {format(Math.abs(amount))}
                                     </span>
                                     <div className="flex-1" />
                                     <MatchAllocationControl

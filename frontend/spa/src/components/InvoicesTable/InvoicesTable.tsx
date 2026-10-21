@@ -15,6 +15,7 @@ import AgGridSetFilter from '@/components/AgGrid/agGridSetFilter';
 import BommelCellRenderer from '@/components/InvoicesTable/BommelCellRenderer/BommelCellRenderer.tsx';
 import { InvoicesTableData } from '@/components/InvoicesTable/types.ts';
 import InvoiceUploadForm from '@/components/InvoiceUploadForm/InvoiceUploadForm.tsx';
+import { useCurrency } from '@/hooks/use-currency';
 
 interface Props {
     invoices: InvoicesTableData[];
@@ -24,7 +25,7 @@ interface Props {
 const InvoicesTable = ({ invoices, reload }: Props) => {
     const { t, i18n } = useTranslation();
 
-    const currencySymbolAfter = import.meta.env.VITE_GENERAL_CURRENCY_SYMBOL_AFTER;
+    const { format: formatCurrency } = useCurrency();
 
     // Get the appropriate date-fns locale based on the current language
     const getDateLocale = useCallback(() => {
@@ -49,16 +50,6 @@ const InvoicesTable = ({ invoices, reload }: Props) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isUploadInvoice, setIsUploadInvoice] = useState(false);
 
-    const formatNumber = useCallback(
-        (value: number) => {
-            return new Intl.NumberFormat(i18n.language, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            }).format(value);
-        },
-        [i18n.language]
-    );
-
     useEffect(() => {
         api?.setGridOption('quickFilterText', searchQuery);
     }, [searchQuery, api]);
@@ -66,8 +57,8 @@ const InvoicesTable = ({ invoices, reload }: Props) => {
     const summary = useMemo(() => {
         const totalAmount = filteredData.reduce((sum, invoice) => sum + (invoice.amount || 0), 0);
 
-        return `${t('invoices.summary.totalFirstPart')} ${filteredData.length} ${t('invoices.summary.invoicesPart')} ${formatNumber(totalAmount)}${currencySymbolAfter || ''}`;
-    }, [filteredData, currencySymbolAfter, formatNumber, t]);
+        return `${t('invoices.summary.totalFirstPart')} ${filteredData.length} ${t('invoices.summary.invoicesPart')} ${formatCurrency(totalAmount)}`;
+    }, [filteredData, formatCurrency, t]);
 
     const updateFilteredData = useCallback(() => {
         const items: InvoicesTableData[] = [];
@@ -118,7 +109,7 @@ const InvoicesTable = ({ invoices, reload }: Props) => {
                 filter: 'agNumberColumnFilter',
                 flex: 1,
                 cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', border: 'none', paddingLeft: '4px' },
-                valueFormatter: (params) => `${formatNumber(params.value)}${currencySymbolAfter || ''}`,
+                valueFormatter: (params) => formatCurrency(params.value),
             },
             {
                 headerName: `${t('invoices.table.date')}`,
@@ -145,7 +136,7 @@ const InvoicesTable = ({ invoices, reload }: Props) => {
                 cellRenderer: BommelCellRenderer,
             },
         ];
-    }, [t, getBommelFilterItems, formatNumber, currencySymbolAfter, getDateLocale]);
+    }, [t, getBommelFilterItems, formatCurrency, getDateLocale]);
 
     useEffect(() => {
         setRowData(invoices);

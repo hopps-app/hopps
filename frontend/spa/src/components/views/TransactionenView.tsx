@@ -9,7 +9,7 @@ import TransactionCategoryFilter, { type CategoryFilterRow } from '@/components/
 import { ALL_BOMMELS, BommelSelect, BommelSelection } from '@/components/Dashboard/BommelSelect';
 import { collectSubtreeIds, flattenBommelTree } from '@/components/Dashboard/bommelTree';
 import { DeleteTransactionDialog } from '@/components/Receipts/DeleteTransactionDialog';
-import { fmtCurrency, fmtDate } from '@/components/Transactions/format';
+import { fmtDate } from '@/components/Transactions/format';
 import { FONT, HIDE_BOMMEL_QUERY, TX_GRID, TX_GRID_NARROW } from '@/components/Transactions/layout';
 import { StatusBadge } from '@/components/Transactions/StatusBadge';
 import { TransactionDrawer } from '@/components/Transactions/TransactionDrawer';
@@ -30,6 +30,7 @@ import {
     TransactionSortBy,
     SortDirection,
 } from '@/hooks/queries/useTransactions';
+import { useCurrency } from '@/hooks/use-currency';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
@@ -104,6 +105,7 @@ function TransactionRow({
     onToggleBulk: () => void;
 }) {
     const { t } = useTranslation();
+    const { format } = useCurrency();
     const hideBommel = useMediaQuery(HIDE_BOMMEL_QUERY);
     const categoryText = (tx.categoryValues ?? [])
         .map((c) => c.value)
@@ -167,7 +169,7 @@ function TransactionRow({
                 className="text-right font-bold tabular-nums whitespace-nowrap"
                 style={{ fontSize: 14.5, color: incoming ? 'var(--positive)' : 'var(--negative)' }}
             >
-                {incoming ? '+' : '–'} {fmtCurrency(Math.abs(amount))}
+                {incoming ? '+' : '–'} {format(Math.abs(amount))}
             </span>
         </DataTableRow>
     );
@@ -177,6 +179,7 @@ function TransactionRow({
 
 export function TransactionenView() {
     const { t } = useTranslation();
+    const { format } = useCurrency();
     usePageTitle(t('transactions.title'));
     const { showSuccess, showWarning, showError } = useToast();
     const hideBommel = useMediaQuery(HIDE_BOMMEL_QUERY);
@@ -288,7 +291,11 @@ export function TransactionenView() {
         detached: filters.detached,
         categoryValues: filters.categoryValues,
     };
-    const { data: countDraft } = useTransactionAggregate({ ...countFilters, displayStatuses: ['DRAFT'] });
+    const {
+        data: countDraft,
+        isFetching: countDraftFetching,
+        isError: countDraftFailed,
+    } = useTransactionAggregate({ ...countFilters, displayStatuses: ['DRAFT'] });
     const { data: countPartial } = useTransactionAggregate({ ...countFilters, displayStatuses: ['PARTIAL'] });
     const { data: countLinked } = useTransactionAggregate({ ...countFilters, displayStatuses: ['LINKED'] });
     const { data: countConfirmed } = useTransactionAggregate({ ...countFilters, displayStatuses: ['CONFIRMED'] });
@@ -298,10 +305,28 @@ export function TransactionenView() {
         LINKED: countLinked?.count ?? 0,
         CONFIRMED: countConfirmed?.count ?? 0,
     };
+    // The drafts are only a useful start while there are any: with none, open on every status instead of an empty table
+    // Until that is decided the table stays on its skeleton and no segment is marked, so the page does not visibly
+    // switch filters after loading.
+    const [statusDecided, setStatusDecided] = useState(false);
+    useEffect(() => {
+        if (statusDecided || countDraftFetching || (!countDraft && !countDraftFailed)) return;
+        setStatusDecided(true);
+        if (countDraft?.count === 0) setStatusFilter([]);
+    }, [statusDecided, countDraft, countDraftFetching, countDraftFailed]);
     const toggleStatus = (id: TransactionDisplayStatus) => {
+        setStatusDecided(true);
         setStatusFilter((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
         setPage(0);
     };
+    const showAllStatuses = () => {
+        setStatusDecided(true);
+        setStatusFilter([]);
+        setPage(0);
+    };
+    // Transactions the other filters match but the selected status segments hide.
+    const hiddenByStatus =
+        statusFilter.length > 0 ? STATUS_SEGMENTS.filter((seg) => !statusFilter.includes(seg.id)).reduce((sum, seg) => sum + statusCounts[seg.id], 0) : 0;
     const allBommels = useBommelsStore((s) => s.allBommels);
     const rootBommel = useBommelsStore((s) => s.rootBommel);
     const loadBommelsForFilter = useBommelsStore((s) => s.loadBommels);
@@ -475,8 +500,8 @@ export function TransactionenView() {
                     <p className="mt-1 text-[14.5px] text-muted-foreground">
                         {t('transactions.subtitle', {
                             count: totalCount,
-                            income: fmtCurrency(totalIncome),
-                            expense: fmtCurrency(totalExpense),
+                            income: format(totalIncome),
+                            expense: format(totalExpense),
                         })}
                     </p>
                 </div>
@@ -515,7 +540,7 @@ export function TransactionenView() {
                     <StatusSegments
                         ariaLabel={t('transactions.columns.status')}
                         segments={STATUS_SEGMENTS.map((seg) => ({ ...seg, label: t(seg.labelKey), count: statusCounts[seg.id] }))}
-                        selected={statusFilter}
+                        selected={statusDecided ? statusFilter : []}
                         onToggle={toggleStatus}
                     />
 
@@ -687,10 +712,25 @@ export function TransactionenView() {
 
             {/* ── Table ── */}
             <div>
-                {isLoading ? (
+                {isLoading || !statusDecided ? (
                     <TableSkeleton hideBommel={hideBommel} />
                 ) : transactions.length === 0 ? (
-                    <DataTableEmpty title={t('transactions.noResults')} description={t('transactions.noResultsDesc')} />
+                    <DataTableEmpty
+                        title={t('transactions.noResults')}
+                        description={hiddenByStatus > 0 ? t('transactions.noResultsOtherStatus', { count: hiddenByStatus }) : t('transactions.noResultsDesc')}
+                        action={
+                            hiddenByStatus > 0 && (
+                                <BaseButton
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={showAllStatuses}
+                                    className="mt-3 rounded-[var(--btn-radius)] text-[13.5px] font-bold text-primary"
+                                >
+                                    {t('transactions.showAllStatuses')}
+                                </BaseButton>
+                            )
+                        }
+                    />
                 ) : (
                     <DataTable>
                         <DataTableHeader columns={hideBommel ? TX_GRID_NARROW : TX_GRID}>

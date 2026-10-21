@@ -62,6 +62,7 @@ import {
     documentKeys,
 } from '@/hooks/queries/useDocuments';
 import { useTransaction, useUpdateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
+import { useCurrency } from '@/hooks/use-currency';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
@@ -106,11 +107,6 @@ function canReanalyzeDocument(doc: DocumentResponse): boolean {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function fmtCurrency(amount: number | null | undefined): string {
-    if (amount == null) return '—';
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount);
-}
 
 function fmtDate(date: Date | string | null | undefined): string {
     if (!date) return '—';
@@ -245,6 +241,7 @@ function sameCategoryValues(a: Record<number, string>, b: Record<number, string>
 }
 
 export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentResponse | null; onClose: () => void; onDeleted: () => void }) {
+    const { format, symbol } = useCurrency();
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -578,7 +575,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
               [
                   t('receipts.review.amount'),
                   <span key="amount" className="tabular-nums font-extrabold" style={{ color: docIncome ? 'var(--positive)' : 'var(--negative)' }}>
-                      {docAmount != null ? `${docIncome ? '+' : '–'} ${fmtCurrency(docAmount)}` : '—'}
+                      {docAmount != null ? `${docIncome ? '+' : '–'} ${format(docAmount)}` : '—'}
                   </span>,
               ],
               ...(doc.totalTax != null
@@ -586,7 +583,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                         [
                             t('receipts.review.tax'),
                             <span key="tax" className="tabular-nums">
-                                {fmtCurrency(Number(doc.totalTax))}
+                                {format(Number(doc.totalTax))}
                             </span>,
                         ] as [string, React.ReactNode],
                     ]
@@ -746,7 +743,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                         <DrawerInput value={name} onChange={setName} loading={isAnalyzing && !name} />
                                     </Field>
                                     <div className="grid grid-cols-2 gap-3.5">
-                                        <Field label={`${t('receipts.review.amount')} (€)`}>
+                                        <Field label={`${t('receipts.review.amount')} (${symbol})`}>
                                             <DrawerInput value={amount} onChange={setAmount} inputMode="decimal" loading={isAnalyzing && !amount} />
                                         </Field>
                                         <Field label={t('receipts.review.date')}>
@@ -877,7 +874,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                                     style={{ color: Number(linkedTx.total ?? 0) >= 0 ? 'var(--positive)' : 'var(--foreground)' }}
                                                 >
                                                     {Number(linkedTx.total ?? 0) >= 0 ? '+ ' : '– '}
-                                                    {fmtCurrency(Math.abs(Number(linkedTx.total ?? 0)))}
+                                                    {format(Math.abs(Number(linkedTx.total ?? 0)))}
                                                 </span>
                                                 <ChevronRight size={17} className="flex-shrink-0 text-[var(--ink-faint)]" />
                                             </button>
@@ -925,8 +922,8 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                                         [
                                                             [t('receipts.review.name'), aiName, !!aiName && aiName !== name, () => setName(aiName!)],
                                                             [
-                                                                `${t('receipts.review.amount')} (€)`,
-                                                                aiAmount ? fmtCurrency(Number(aiAmount)) : undefined,
+                                                                `${t('receipts.review.amount')} (${symbol})`,
+                                                                aiAmount ? format(Number(aiAmount)) : undefined,
                                                                 !!aiAmount && aiAmount !== amount,
                                                                 () => setAmount(aiAmount!),
                                                             ],
@@ -1100,6 +1097,7 @@ function DocumentRow({
     bulkSelected: boolean;
     onToggleBulk: () => void;
 }) {
+    const { format } = useCurrency();
     const { t } = useTranslation();
     const hideBommel = useMediaQuery(HIDE_BOMMEL_QUERY);
     const status = getDocumentReviewStatus(doc);
@@ -1151,7 +1149,7 @@ function DocumentRow({
                 className="text-right font-bold tabular-nums whitespace-nowrap"
                 style={{ fontSize: 14.5, color: amount == null ? 'var(--ink-faint)' : outgoing ? 'var(--positive)' : 'var(--negative)' }}
             >
-                {amount != null ? `${outgoing ? '+' : '–'} ${fmtCurrency(Math.abs(amount))}` : '—'}
+                {amount != null ? `${outgoing ? '+' : '–'} ${format(Math.abs(amount))}` : '—'}
             </span>
         </DataTableRow>
     );

@@ -109,7 +109,7 @@ export function RowCheckbox({ checked, onToggle, ariaLabel }: { checked: boolean
 }
 
 /** Stands in for the table when there is nothing to show. */
-export function DataTableEmpty({ title, description }: { title: string; description?: string }) {
+export function DataTableEmpty({ title, description, action }: { title: string; description?: string; action?: ReactNode }) {
     return (
         <div
             className="flex flex-col items-center justify-center py-20 text-center rounded-[var(--r-card)] border border-border-soft"
@@ -122,6 +122,7 @@ export function DataTableEmpty({ title, description }: { title: string; descript
                 {title}
             </p>
             {description && <p className="mt-1 text-[13.5px] text-muted-foreground">{description}</p>}
+            {action}
         </div>
     );
 }
