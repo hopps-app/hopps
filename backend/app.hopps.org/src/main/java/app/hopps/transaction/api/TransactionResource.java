@@ -1,5 +1,6 @@
 package app.hopps.transaction.api;
 
+import app.hopps.document.audit.DocumentAuditor;
 import app.hopps.audit.domain.AuditAction;
 import app.hopps.bankimport.service.BankTransactionMatchService;
 import app.hopps.category.service.CategoryGroupService;
@@ -61,6 +62,9 @@ public class TransactionResource {
 
     @Inject
     TransactionRepository transactionRepository;
+
+    @Inject
+    DocumentAuditor documentAuditor;
 
     @Inject
     OrganizationContext organizationContext;
@@ -312,8 +316,10 @@ public class TransactionResource {
         // Keep the linked receipt (Beleg) in sync: confirming the bookkeeping transaction also confirms its document,
         // so it no longer lingers in the "needs manual review" state.
         Document document = transaction.getDocument();
-        if (document != null) {
+        if (document != null && document.getDocumentStatus() != DocumentStatus.CONFIRMED) {
+            DocumentStatus previousDocumentStatus = document.getDocumentStatus();
             document.setDocumentStatus(DocumentStatus.CONFIRMED);
+            documentAuditor.confirmed(document, previousDocumentStatus);
         }
 
         LOG.info("Transaction confirmed: id={}", transaction.getId());
@@ -457,9 +463,11 @@ public class TransactionResource {
      *            the document to revert
      */
     private void revertToReview(Document document) {
-        if (document.getDocumentStatus() == DocumentStatus.CONFIRMED) {
+        DocumentStatus previousStatus = document.getDocumentStatus();
+        if (previousStatus == DocumentStatus.CONFIRMED) {
             document.setDocumentStatus(DocumentStatus.ANALYZED);
         }
+        documentAuditor.reopened(document, previousStatus);
         document.setReviewedBy(null);
     }
 

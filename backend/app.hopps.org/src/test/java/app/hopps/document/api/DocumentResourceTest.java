@@ -364,6 +364,7 @@ class DocumentResourceTest {
         // Guards the confirm shortcut that skips creating a transaction while one is still linked - a stale link would
         // leave the receipt CONFIRMED with nothing booked behind it.
         Integer newTransactionId = given()
+                .contentType(MediaType.APPLICATION_JSON)
                 .when()
                 .post("/{id}/confirm", receipt.documentId())
                 .then()
@@ -427,6 +428,121 @@ class DocumentResourceTest {
         assertEquals(before, countTradeParties());
     }
 
+    @Test
+    void shouldRejectConfirmWhenRequiredCategoryGroupHasNoValue() {
+        long groupId = createRequiredCategoryGroup();
+        long documentId = uploadReceiptOnBommel();
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .when()
+                .post("/{id}/confirm", documentId)
+                .then()
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+
+        // The rejected confirmation must leave the receipt open for review.
+        given()
+                .when()
+                .get("/{id}", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("documentStatus", not(equalTo(DocumentStatus.CONFIRMED.name())))
+                .body("transactionId", nullValue());
+        assertTrue(groupId > 0);
+    }
+
+    @Test
+    void shouldStoreCategoryValuesOnTheTransactionWhenConfirming() {
+        long groupId = createRequiredCategoryGroup();
+        long documentId = uploadReceiptOnBommel();
+
+        Integer transactionId = given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "categoryValues": { "%d": "KS-100" } }
+                        """.formatted(groupId))
+                .when()
+                .post("/{id}/confirm", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("documentStatus", equalTo(DocumentStatus.CONFIRMED.name()))
+                .extract()
+                .path("transactionId");
+
+        given()
+                .basePath("/transactions")
+                .when()
+                .get("/{id}", transactionId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("categoryValues", hasSize(1))
+                .body("categoryValues[0].groupId", equalTo((int) groupId))
+                .body("categoryValues[0].value", equalTo("KS-100"));
+    }
+
+    @Test
+    void shouldRejectConfirmWithACategoryValueOutsideTheGroup() {
+        long groupId = createRequiredCategoryGroup();
+        long documentId = uploadReceiptOnBommel();
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "categoryValues": { "%d": "does-not-exist" } }
+                        """.formatted(groupId))
+                .when()
+                .post("/{id}/confirm", documentId)
+                .then()
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    /**
+     * Creates a mandatory category group with one allowed value, assigned to bommel 24 (a child of the root bommel).
+     */
+    private long createRequiredCategoryGroup() {
+        Integer id = given()
+                .basePath("/category-groups")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "name": "Kostenstelle", "required": true, "bommelIds": [24], "values": ["KS-100"] }
+                        """)
+                .when()
+                .post()
+                .then()
+                .statusCode(Response.Status.CREATED.getStatusCode())
+                .extract()
+                .path("id");
+        return id.longValue();
+    }
+
+    /** Uploads a receipt and books it on bommel 24, so the category group created above applies to it. */
+    private long uploadReceiptOnBommel() {
+        InputStream pdf = getClass().getClassLoader().getResourceAsStream("ZUGFeRD.pdf");
+        assertNotNull(pdf);
+
+        Integer documentId = given()
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .multiPart("file", "ZUGFeRD.pdf", pdf, "application/pdf")
+                .when()
+                .post()
+                .then()
+                .statusCode(Response.Status.CREATED.getStatusCode())
+                .extract()
+                .path("id");
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "name": "Kassenbeleg", "total": 180.00, "senderName": "%s", "bommelId": 24, "privatelyPaid": false }
+                        """
+                        .formatted(SENDER_NAME))
+                .when()
+                .patch("/{id}", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
+        return documentId.longValue();
+    }
+
     /**
      * Uploads a receipt, gives it a sender and confirms it. Confirm hands that very TradeParty to the new transaction,
      * so both rows share one party - the case the delete paths have to cope with.
@@ -463,6 +579,7 @@ class DocumentResourceTest {
                 .body("senderName", equalTo(SENDER_NAME));
 
         Integer transactionId = given()
+                .contentType(MediaType.APPLICATION_JSON)
                 .when()
                 .post("/{id}/confirm", documentId)
                 .then()

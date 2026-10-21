@@ -1,4 +1,4 @@
-import { DocumentDirection, DocumentResponse } from '@hopps/api-client';
+import { DocumentConfirmRequest, DocumentDirection, DocumentResponse } from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import i18n from 'i18next';
 
@@ -61,7 +61,8 @@ export function useDocument(id: number | undefined, options?: { poll?: boolean }
     });
 }
 
-export function useUploadDocument() {
+/** `toastErrors: false` for callers that show each failed file themselves (e.g. the upload rows on the receipts page). */
+export function useUploadDocument({ toastErrors = true }: { toastErrors?: boolean } = {}) {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: ({ file, analyze, direction }: { file: File; analyze: boolean; direction: DocumentDirection }) =>
@@ -69,7 +70,8 @@ export function useUploadDocument() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
         },
-        onError: showUploadError,
+        // Defining onError (even a no-op) also keeps the global error toast away.
+        onError: toastErrors ? showUploadError : () => {},
     });
 }
 
@@ -80,6 +82,7 @@ export function useUploadDocument() {
 export function useReuploadDocumentFile() {
     const queryClient = useQueryClient();
     return useMutation({
+        meta: { errorMessage: 'receipts.toast.reuploadError' },
         mutationFn: ({ id, file }: { id: number; file: File }) => apiService.orgService.filePOST(id, true, { data: file, fileName: file.name }),
         onSuccess: (_data, vars) => {
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
@@ -91,8 +94,11 @@ export function useReuploadDocumentFile() {
 export function useConfirmDocument() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id: number) => apiService.orgService.confirm(id),
-        onSuccess: (_data, id) => {
+        meta: { errorMessage: 'receipts.toast.createTransactionError' },
+        // categoryValues (groupId → value) are stored on the created transaction; required groups must be filled.
+        mutationFn: ({ id, categoryValues }: { id: number; categoryValues?: Record<number, string> }) =>
+            apiService.orgService.confirm(id, new DocumentConfirmRequest({ categoryValues })),
+        onSuccess: (_data, { id }) => {
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
             // Refetch the single document too, so a drawer kept open picks up the freshly linked transactionId
             // (the receipt then switches into the editable reconcile mode instead of closing).
@@ -106,6 +112,7 @@ export function useConfirmDocument() {
 export function useUpdateDocument() {
     const queryClient = useQueryClient();
     return useMutation({
+        meta: { errorMessage: 'receipts.toast.saveError' },
         mutationFn: ({ id, ...body }: Parameters<typeof apiService.orgService.documentsPATCH>[1] & { id: number }) =>
             apiService.orgService.documentsPATCH(id, body as Parameters<typeof apiService.orgService.documentsPATCH>[1]),
         onSuccess: (_data, vars) => {
@@ -115,9 +122,11 @@ export function useUpdateDocument() {
     });
 }
 
-export function useDeleteDocument() {
+/** `silent` for bulk deletes, which report one summary instead of an error per item. */
+export function useDeleteDocument({ silent = false }: { silent?: boolean } = {}) {
     const queryClient = useQueryClient();
     return useMutation({
+        meta: silent ? { silent: true } : { errorMessage: 'receipts.toast.deleteError' },
         mutationFn: (id: number) => apiService.orgService.documentsDELETE(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
@@ -131,6 +140,7 @@ export function useDeleteDocument() {
 export function useReanalyzeDocument() {
     const queryClient = useQueryClient();
     return useMutation({
+        meta: { errorMessage: 'receipts.toast.reanalyzeError' },
         mutationFn: (id: number) => apiService.orgService.reanalyze(id),
         onSuccess: (_data, id) => {
             queryClient.invalidateQueries({ queryKey: documentKeys.detail(id) });
@@ -156,10 +166,12 @@ export function useReanalyzeDocuments() {
 }
 
 // Derive a human-readable "review status" from documentStatus + analysisStatus
-export function getDocumentReviewStatus(doc: DocumentResponse): 'pending' | 'analyzing' | 'ready' | 'confirmed' | 'failed' {
+export function getDocumentReviewStatus(doc: DocumentResponse): 'pending' | 'analyzing' | 'ready' | 'confirmed' | 'failed' | 'skipped' {
     if (doc.documentStatus === 'CONFIRMED') return 'confirmed';
     if (doc.analysisStatus === 'FAILED' || doc.documentStatus === 'FAILED') return 'failed';
     if (doc.analysisStatus === 'ANALYZING' || doc.analysisStatus === 'PENDING') return 'analyzing';
-    if (doc.analysisStatus === 'COMPLETED' || doc.analysisStatus === 'SKIPPED') return 'ready';
+    if (doc.analysisStatus === 'COMPLETED') return 'ready';
+    // Not analyzed (analysis switched off, or created from a bank transaction): nothing was extracted to check.
+    if (doc.analysisStatus === 'SKIPPED') return 'skipped';
     return 'pending';
 }

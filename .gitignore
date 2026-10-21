@@ -221,3 +221,5 @@ playwright/.cache/
 
 .playwright-cli/
 .playwright/
+
+claude-design/

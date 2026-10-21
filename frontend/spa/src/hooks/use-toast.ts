@@ -2,7 +2,8 @@ import * as React from 'react';
 
 import type { ToastActionElement, ToastProps } from '@/components/ui/shadecn/Toast.tsx';
 
-const TOAST_LIMIT = 1;
+// Up to three at once, so a success does not push away an error the user has not read yet.
+const TOAST_LIMIT = 3;
 const TOAST_REMOVE_DELAY = 5000;
 
 type ToasterToast = ToastProps & {
@@ -180,6 +181,8 @@ function useToast() {
         dismiss: (toastId?: string) => dispatch({ type: ActionType.DISMISS_TOAST, toastId }),
         show: (props: Toast) => toast({ ...props, variant: 'success' }),
         showSuccess: (message: string, props?: Toast) => toast({ title: message, ...props, variant: 'success' }),
+        /** Neutral notice, e.g. something started in the background. */
+        showInfo: (message: string, props?: Toast) => toast({ title: message, ...props, variant: 'info' }),
         showError: (message: string, props?: Toast) => toast({ title: message, ...props, variant: 'error' }),
         showWarning: (message: string, props?: Toast) => toast({ title: message, ...props, variant: 'warning' }),
     };

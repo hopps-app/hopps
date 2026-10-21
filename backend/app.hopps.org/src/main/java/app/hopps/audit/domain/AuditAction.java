@@ -7,9 +7,9 @@ public enum AuditAction {
     CREATE,
     /** Fields of the record were changed. */
     UPDATE,
-    /** A draft transaction was confirmed. */
+    /** A draft transaction was confirmed, or a document was confirmed (which creates its transaction). */
     CONFIRM,
-    /** A confirmed transaction was sent back to draft. */
+    /** A confirmed transaction was sent back to draft, or a document went back to review. */
     REOPEN,
     /** A bank transaction was linked to the record. */
     LINK,
@@ -17,5 +17,13 @@ public enum AuditAction {
     UNLINK,
     /** The part of a linked bank transaction that is used for the record was changed. */
     ALLOCATION_UPDATE,
-    DELETE
+    DELETE,
+    /** The file of a document was replaced. */
+    FILE_REPLACE,
+    /** A user asked for a document to be analyzed again. */
+    REANALYZE,
+    /** The analysis of a document finished; lists the source and the fields it filled. */
+    ANALYZE,
+    /** The analysis of a document failed. */
+    ANALYSIS_FAIL
 }

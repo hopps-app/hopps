@@ -34,6 +34,8 @@ type BommelSelectProps = {
     emptyLabel?: string;
     /** Extra classes for the trigger, for callers whose surroundings want a different width or weight. */
     triggerClassName?: string;
+    /** Makes the dropdown as wide as the trigger, for form fields; the filter keeps its fixed width. */
+    matchTriggerWidth?: boolean;
 };
 
 /**
@@ -41,10 +43,13 @@ type BommelSelectProps = {
  * without hand-rolled key handling. Children are indented under their parent, but the indentation is
  * dropped while searching, where hits come from all over the tree and depth would only mislead.
  */
-export function BommelSelect({ items, value, onChange, isLoading, emptyLabel, triggerClassName }: BommelSelectProps) {
+export function BommelSelect({ items, value, onChange, isLoading, emptyLabel, triggerClassName, matchTriggerWidth = false }: BommelSelectProps) {
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState('');
+    // Keyboard cursor of the list. cmdk would put it on the first entry, which then shows the grey hover background;
+    // opening starts it on the chosen entry instead, which is highlighted anyway.
+    const [cursor, setCursor] = useState('');
 
     const selected = value === ALL_BOMMELS ? undefined : items.find((item) => item.id === value);
     const noneLabel = emptyLabel ?? t('dashboard.bommelSelect.all');
@@ -65,7 +70,9 @@ export function BommelSelect({ items, value, onChange, isLoading, emptyLabel, tr
             open={open}
             onOpenChange={(next) => {
                 setOpen(next);
-                if (!next) {
+                if (next) {
+                    setCursor(String(value));
+                } else {
                     setSearch('');
                 }
             }}
@@ -92,9 +99,20 @@ export function BommelSelect({ items, value, onChange, isLoading, emptyLabel, tr
                     <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-60" aria-hidden="true" />
                 </BaseButton>
             </PopoverTrigger>
-            <PopoverContent align="start" sideOffset={6} className="w-[260px] rounded-2xl border-border-soft p-2 shadow-card-hover">
+            <PopoverContent
+                align="start"
+                sideOffset={6}
+                className={cn(
+                    'rounded-2xl border-border-soft p-2 shadow-card-hover',
+                    matchTriggerWidth ? 'w-[var(--radix-popover-trigger-width)]' : 'w-[260px]'
+                )}
+            >
                 {/* The search box is a filled pill rather than the Command default's underline. */}
-                <Command className="[&_[cmdk-input-wrapper]]:mb-1.5 [&_[cmdk-input-wrapper]]:h-9 [&_[cmdk-input-wrapper]]:rounded-[10px] [&_[cmdk-input-wrapper]]:border-b-0 [&_[cmdk-input-wrapper]]:bg-hover-effect [&_[cmdk-input-wrapper]]:px-2.5">
+                <Command
+                    value={cursor}
+                    onValueChange={setCursor}
+                    className="[&_[cmdk-input-wrapper]]:mb-1.5 [&_[cmdk-input-wrapper]]:h-9 [&_[cmdk-input-wrapper]]:rounded-[10px] [&_[cmdk-input-wrapper]]:border-b-0 [&_[cmdk-input-wrapper]]:bg-hover-effect [&_[cmdk-input-wrapper]]:px-2.5"
+                >
                     <CommandInput value={search} onValueChange={setSearch} placeholder={t('dashboard.bommelSelect.search')} className="h-9 py-0" />
                     <CommandList className="max-h-[264px]">
                         <CommandEmpty>{t('dashboard.bommelSelect.empty')}</CommandEmpty>

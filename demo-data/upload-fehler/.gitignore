@@ -1,0 +1,3 @@
+# Große Testdateien werden lokal mit build_fehlerdateien.py erzeugt
+dateien/zu-gross-12mb.pdf
+dateien/genau-10mb.pdf
