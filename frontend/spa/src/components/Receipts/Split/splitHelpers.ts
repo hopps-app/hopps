@@ -4,10 +4,6 @@ import { addPart, createPart, formatPartAmount, type SplitPart } from '@/lib/spl
 
 export const EPSILON = 0.005;
 
-export function fmtEUR(amount: number): string {
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(amount);
-}
-
 export function fmtDate(date: Date | string | null | undefined): string {
     if (!date) return '—';
     const d = typeof date === 'string' ? new Date(date) : date;

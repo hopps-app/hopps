@@ -905,7 +905,7 @@
             "bommel": "Bommel",
             "categories": "Kategoriegruppen",
             "chooseBommel": "Bommel wählen",
-            "chooseFirstBommel": "Wähle zuerst einen Bommel.",
+            "chooseFirstBommel": "Bitte zuerst einen Bommel wählen.",
             "noGroups": "Für diesen Bommel gibt es keine Kategoriegruppen.",
             "noBommel": "Kein Bommel",
             "pleaseChoose": "Bitte wählen",
@@ -932,9 +932,9 @@
             "notBooked": "{{amount}} des Belegs sind nicht gebucht",
             "openTransaction": "Transaktion öffnen",
             "confirmPart": "Bestätigen",
-            "noTotal": "Der Beleg hat noch keinen Betrag. Trage ihn zuerst beim Prüfen des Belegs ein.",
+            "noTotal": "Der Beleg hat noch keinen Betrag. Bitte ihn zuerst beim Prüfen des Belegs eintragen.",
             "noTotalShort": "Belegbetrag fehlt",
-            "linkLater": "Bankumsätze verknüpfst du nach dem Erstellen an den einzelnen Transaktionen.",
+            "linkLater": "Bankumsätze werden nach dem Erstellen an den einzelnen Transaktionen verknüpft.",
             "toast": {
                 "draftSaved": "Aufteilung als Entwurf gespeichert",
                 "created": "{{n}} Transaktionen erstellt"

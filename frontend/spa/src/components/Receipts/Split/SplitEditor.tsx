@@ -1,13 +1,13 @@
 import { Info, Plus, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { fmtEUR } from './splitHelpers';
 import { SplitPartRow } from './SplitPartRow';
 import { SumBar } from './SumBar';
 import type { SplitEditorState } from './useSplitEditor';
 
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
+import { useCurrency } from '@/hooks/use-currency';
 import { segmentColor } from '@/lib/splitParts';
 
 /**
@@ -17,6 +17,7 @@ import { segmentColor } from '@/lib/splitParts';
  */
 export function SplitEditor({ editor, total, onCancel }: { editor: SplitEditorState; total: number; onCancel?: () => void }) {
     const { t } = useTranslation();
+    const { format } = useCurrency();
     const { sum, perPart, hasTotal } = editor;
 
     return (
@@ -44,22 +45,22 @@ export function SplitEditor({ editor, total, onCancel }: { editor: SplitEditorSt
                 </div>
             )}
             <SumBar
-                value={fmtEUR(sum.assigned)}
-                total={t('receipts.split.of', { total: fmtEUR(total) })}
+                value={format(sum.assigned)}
+                total={t('receipts.split.of', { total: format(total) })}
                 ok={!sum.over && sum.unassigned === 0 && hasTotal}
                 tone={sum.over ? 'warn' : 'neutral'}
                 message={
                     sum.over
-                        ? t('receipts.split.over', { amount: fmtEUR(-sum.diff) })
+                        ? t('receipts.split.over', { amount: format(-sum.diff) })
                         : sum.unassigned > 0
-                          ? t('receipts.split.unassigned', { amount: fmtEUR(sum.unassigned) })
+                          ? t('receipts.split.unassigned', { amount: format(sum.unassigned) })
                           : t('receipts.split.sumOk')
                 }
                 segments={perPart.map((x) => ({
                     key: x.part.key,
                     value: x.amount,
                     color: segmentColor(x.index),
-                    title: `${editor.nameOf(x.part, x.index)}: ${fmtEUR(x.amount)}`,
+                    title: `${editor.nameOf(x.part, x.index)}: ${format(x.amount)}`,
                 }))}
             />
             {perPart.map((x) => (

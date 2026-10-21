@@ -1,11 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { fmtEUR } from './splitHelpers';
-
 import { buildBommelIndex, groupsForBommel } from '@/components/CategoryGroups/helpers';
 import { flattenBommelTree } from '@/components/Dashboard/bommelTree';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
+import { useCurrency } from '@/hooks/use-currency';
 import {
     addPart,
     autoName,
@@ -47,6 +46,7 @@ export function useSplitLookups() {
  */
 export function useSplitEditor(total: number) {
     const { t } = useTranslation();
+    const { format } = useCurrency();
     const { bommelItems, groupsFor, bommelNameOf } = useSplitLookups();
 
     const [parts, setPartsState] = useState<SplitPart[]>([]);
@@ -69,7 +69,7 @@ export function useSplitEditor(total: number) {
         ...perPart
             .filter((x) => x.errors.length > 0)
             .map((x) => `${t('receipts.split.part', { n: x.index + 1 })}: ${x.errors.map((e) => fieldLabel(e.field, e.label)).join(', ')}`),
-        ...(sum.over ? [t('receipts.split.over', { amount: fmtEUR(-sum.diff) })] : []),
+        ...(sum.over ? [t('receipts.split.over', { amount: format(-sum.diff) })] : []),
     ];
     const nameOf = (part: SplitPart, index: number) =>
         autoName(part, bommelNameOf(part.bommelId), groupsFor(part.bommelId), t('receipts.split.part', { n: index + 1 }));

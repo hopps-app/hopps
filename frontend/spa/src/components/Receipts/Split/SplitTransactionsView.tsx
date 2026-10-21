@@ -4,7 +4,7 @@ import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { categoryValuesOf, coveredOf, EPSILON, fmtEUR, toIsoDate } from './splitHelpers';
+import { categoryValuesOf, coveredOf, EPSILON, toIsoDate } from './splitHelpers';
 import { PartBadge } from './SplitPartRow';
 import { SumBar } from './SumBar';
 import { useSplitLookups } from './useSplitEditor';
@@ -17,6 +17,7 @@ import { HintTooltip } from '@/components/ui/HintTooltip';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
 import { useConfirmTransaction } from '@/hooks/queries/useTransactions';
+import { useCurrency } from '@/hooks/use-currency';
 import { useToast } from '@/hooks/use-toast';
 import { segmentColor, type SplitGroup } from '@/lib/splitParts';
 import { getTransactionConfirmState } from '@/lib/transactionConfirm';
@@ -40,6 +41,7 @@ function InfoRows({ rows }: { rows: [string, ReactNode][] }) {
  */
 function ReadPart({ tx, index, groups, bommelName }: { tx: TransactionResponse; index: number; groups: SplitGroup[]; bommelName: string | null }) {
     const { t } = useTranslation();
+    const { format } = useCurrency();
     const navigate = useNavigate();
     const { showSuccess } = useToast();
     const confirmMutation = useConfirmTransaction();
@@ -84,7 +86,7 @@ function ReadPart({ tx, index, groups, bommelName }: { tx: TransactionResponse; 
             t('receipts.split.amount'),
             <span key="amount" className="tabular-nums" style={{ color: income ? 'var(--positive)' : 'var(--negative)' }}>
                 {income ? '+ ' : '– '}
-                {fmtEUR(Math.abs(total))}
+                {format(Math.abs(total))}
             </span>,
         ],
         [t('receipts.split.bommel'), bommelName ?? <span className="text-[var(--ink-faint)]">—</span>],
@@ -132,6 +134,7 @@ function ReadPart({ tx, index, groups, bommelName }: { tx: TransactionResponse; 
  */
 export function SplitTransactionsView({ parts, receiptTotal }: { parts: TransactionResponse[]; receiptTotal: number }) {
     const { t } = useTranslation();
+    const { format } = useCurrency();
     const { groupsFor, bommelNameOf } = useSplitLookups();
     const [activeId, setActiveId] = useState<number | null>(null);
 
@@ -147,22 +150,22 @@ export function SplitTransactionsView({ parts, receiptTotal }: { parts: Transact
             <Eyebrow className="mb-2">{t('receipts.split.fromReceipt')}</Eyebrow>
             <div className="mb-3">
                 <SumBar
-                    value={fmtEUR(coveredTotal)}
-                    total={t('receipts.split.of', { total: fmtEUR(partsTotal) })}
+                    value={format(coveredTotal)}
+                    total={t('receipts.split.of', { total: format(partsTotal) })}
                     ok={coverageOk}
-                    message={coverageOk ? t('receipts.split.covered') : t('receipts.split.uncovered', { amount: fmtEUR(partsTotal - coveredTotal) })}
+                    message={coverageOk ? t('receipts.split.covered') : t('receipts.split.uncovered', { amount: format(partsTotal - coveredTotal) })}
                     segments={parts.map((p, i) => ({
                         key: String(p.id),
                         value: coveredOf(p),
                         color: segmentColor(i),
-                        title: `${p.name ?? ''}: ${fmtEUR(coveredOf(p))}`,
+                        title: `${p.name ?? ''}: ${format(coveredOf(p))}`,
                     }))}
                     activeKey={activePart ? String(activePart.id) : null}
                     onSelect={(key) => setActiveId(Number(key))}
                     footer={
                         notBooked > EPSILON ? (
                             <span className="text-[12px] font-semibold text-muted-foreground tabular-nums">
-                                {t('receipts.split.notBooked', { amount: fmtEUR(notBooked) })}
+                                {t('receipts.split.notBooked', { amount: format(notBooked) })}
                             </span>
                         ) : undefined
                     }
@@ -189,7 +192,7 @@ export function SplitTransactionsView({ parts, receiptTotal }: { parts: Transact
                             <PartBadge index={i} />
                             <span className="flex min-w-0 flex-1 flex-col">
                                 <span className="truncate text-[13px] font-extrabold">{p.name || t('receipts.split.part', { n: i + 1 })}</span>
-                                <span className="text-[11.5px] font-semibold text-muted-foreground tabular-nums">{fmtEUR(Math.abs(Number(p.total ?? 0)))}</span>
+                                <span className="text-[11.5px] font-semibold text-muted-foreground tabular-nums">{format(Math.abs(Number(p.total ?? 0)))}</span>
                             </span>
                         </button>
                     );
