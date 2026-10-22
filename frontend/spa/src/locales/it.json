@@ -1407,7 +1407,9 @@
             "noMatchTitle": "Nessun risultato",
             "noMatchText": "Modifica la ricerca o scegli un altro filtro.",
             "noTransactionsTitle": "Ancora nessun movimento",
-            "noTransactionsText": "Importa un estratto conto per riconciliare i movimenti di questo conto."
+            "noTransactionsText": "Importa un estratto conto per riconciliare i movimenti di questo conto.",
+            "otherStatus_one": "{{count}} movimento ha un altro stato.",
+            "otherStatus_other": "{{count}} movimenti hanno un altro stato."
         },
         "form": {
             "subtitle": "Dati anagrafici del conto",

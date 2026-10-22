@@ -568,11 +568,31 @@ function AccountTab({
     };
 
     const filtered = transactions;
+    const statusCounts: Record<AccountStatus, number> = {
+        OPEN: countOpen?.count ?? 0,
+        FULLY_MATCHED: countMatched?.count ?? 0,
+        IGNORED: countIgnored?.count ?? 0,
+    };
+    // Movements the search/column filters match but the selected status toggles hide, like on the Transaktionen page.
+    const hiddenByStatus =
+        statusFilter.length > 0
+            ? (Object.keys(statusCounts) as AccountStatus[]).filter((s) => !statusFilter.includes(s)).reduce((sum, s) => sum + statusCounts[s], 0)
+            : 0;
+    const showAllStatuses = () => {
+        setStatusFilter([]);
+        setPage(0);
+    };
 
     const statusSegments: StatusSegment<AccountStatus>[] = [
-        { id: 'OPEN', label: t('konten.filter.open'), count: countOpen?.count ?? 0, color: 'var(--warning)', tint: 'var(--warning-surface)' },
-        { id: 'FULLY_MATCHED', label: t('konten.filter.matched'), count: countMatched?.count ?? 0, color: 'var(--positive)', tint: 'var(--positive-surface)' },
-        { id: 'IGNORED', label: t('konten.filter.ignored'), count: countIgnored?.count ?? 0, color: 'var(--muted-foreground)', tint: 'var(--surface-track)' },
+        { id: 'OPEN', label: t('konten.filter.open'), count: statusCounts.OPEN, color: 'var(--warning)', tint: 'var(--warning-surface)' },
+        {
+            id: 'FULLY_MATCHED',
+            label: t('konten.filter.matched'),
+            count: statusCounts.FULLY_MATCHED,
+            color: 'var(--positive)',
+            tint: 'var(--positive-surface)',
+        },
+        { id: 'IGNORED', label: t('konten.filter.ignored'), count: statusCounts.IGNORED, color: 'var(--muted-foreground)', tint: 'var(--surface-track)' },
     ];
 
     return (
@@ -608,7 +628,18 @@ function AccountTab({
                 <KontenTableSkeleton />
             ) : filtered.length === 0 ? (
                 <div className={cn(cardShadow, 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700')}>
-                    {filters.hasAnyFilter ? (
+                    {hiddenByStatus > 0 ? (
+                        <TableEmptyState
+                            icon={Search}
+                            title={t('konten.empty.noMatchTitle')}
+                            text={t('konten.empty.otherStatus', { count: hiddenByStatus })}
+                            action={
+                                <button type="button" onClick={showAllStatuses} className="text-xs font-semibold text-primary hover:underline">
+                                    {t('transactions.showAllStatuses')}
+                                </button>
+                            }
+                        />
+                    ) : filters.hasAnyFilter ? (
                         <TableEmptyState
                             icon={Search}
                             title={t('konten.empty.noMatchTitle')}

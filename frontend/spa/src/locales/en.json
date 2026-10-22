@@ -1440,7 +1440,9 @@
             "noMatchTitle": "Nothing found",
             "noMatchText": "Adjust your search or choose another filter.",
             "noTransactionsTitle": "No bank transactions yet",
-            "noTransactionsText": "Import a bank statement to reconcile this account's transactions."
+            "noTransactionsText": "Import a bank statement to reconcile this account's transactions.",
+            "otherStatus_one": "{{count}} bank transaction has a different status.",
+            "otherStatus_other": "{{count}} bank transactions have a different status."
         },
         "form": {
             "subtitle": "Account master data",

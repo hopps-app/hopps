@@ -1439,7 +1439,9 @@
             "noMatchTitle": "Nichts gefunden",
             "noMatchText": "Passe deine Suche an oder wähle einen anderen Filter.",
             "noTransactionsTitle": "Noch keine Umsätze",
-            "noTransactionsText": "Importiere einen Kontoauszug, um die Umsätze dieses Kontos abzugleichen."
+            "noTransactionsText": "Importiere einen Kontoauszug, um die Umsätze dieses Kontos abzugleichen.",
+            "otherStatus_one": "{{count}} Umsatz hat einen anderen Status.",
+            "otherStatus_other": "{{count}} Umsätze haben einen anderen Status."
         },
         "form": {
             "subtitle": "Stammdaten des Kontos",
