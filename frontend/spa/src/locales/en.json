@@ -461,11 +461,17 @@
         "createNode": "Add new"
     },
     "profile": {
+        "description": "Personal settings for this account.",
+        "appearance": "Appearance",
+        "browserOnly": "Saved in this browser.",
+        "languageLabel": "Interface language",
         "language": "Language",
         "theme": "Theme",
         "themes": {
             "light": "Light",
-            "dark": "Dark"
+            "dark": "Dark",
+            "auto": "Automatic",
+            "autoHint": "Same as the operating system"
         },
         "lang": {
             "english": "English",

@@ -7,6 +7,7 @@ import { ReportsSkeleton } from '@/components/Reports/ReportsSkeleton';
 import { LoadingState } from '@/components/common/LoadingState';
 import { DashboardSkeleton } from '@/components/Dashboard/DashboardSkeleton';
 import { OrganizationDetailsSkeleton } from '@/components/Organization/OrganizationDetailsSkeleton';
+import { ProfileSkeleton } from '@/components/Profile/ProfileSkeleton';
 import { ReceiptsSkeleton } from '@/components/Receipts/ReceiptsSkeleton';
 import { TransactionsSkeleton } from '@/components/Transactions/TransactionsSkeleton';
 import HomeView from '@/components/views/HomeView';
@@ -86,7 +87,7 @@ export default function AppRoutes() {
                 <Route
                     path="/profile"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<ProfileSkeleton />}>
                             <ProfileSettingsView />
                         </LazyRoute>
                     }

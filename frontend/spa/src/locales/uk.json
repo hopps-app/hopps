@@ -292,6 +292,25 @@
     "createNode": "Додати новий"
   },
   "profile": {
+    "description": "Особисті налаштування цього облікового запису.",
+    "appearance": "Вигляд",
+    "browserOnly": "Зберігається в цьому браузері.",
+    "languageLabel": "Мова інтерфейсу",
+    "language": "Мова",
+    "theme": "Тема",
+    "themes": {
+      "light": "Світла",
+      "dark": "Темна",
+      "auto": "Автоматично",
+      "autoHint": "Як в операційній системі"
+    },
+    "lang": {
+      "english": "Англійська",
+      "german": "Німецька",
+      "ukrainian": "Українська",
+      "italian": "Італійська",
+      "french": "Французька"
+    },
     "settings": {
       "language": "Мова",
       "theme": "Тема"

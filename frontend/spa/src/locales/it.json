@@ -428,11 +428,17 @@
         "createNode": "Aggiungi nuovo"
     },
     "profile": {
+        "description": "Impostazioni personali di questo account.",
+        "appearance": "Aspetto",
+        "browserOnly": "Salvato in questo browser.",
+        "languageLabel": "Lingua dell'interfaccia",
         "language": "Lingua",
         "theme": "Tema",
         "themes": {
             "light": "Chiaro",
-            "dark": "Scuro"
+            "dark": "Scuro",
+            "auto": "Automatico",
+            "autoHint": "Come il sistema operativo"
         },
         "lang": {
             "english": "Inglese",

@@ -460,11 +460,17 @@
         "createNode": "Neu hinzufügen"
     },
     "profile": {
+        "description": "Persönliche Einstellungen für dieses Konto.",
+        "appearance": "Darstellung",
+        "browserOnly": "Wird in diesem Browser gespeichert.",
+        "languageLabel": "Sprache der Oberfläche",
         "language": "Sprache",
         "theme": "Thema",
         "themes": {
             "light": "Hell",
-            "dark": "Dunkel"
+            "dark": "Dunkel",
+            "auto": "Automatisch",
+            "autoHint": "Wie im Betriebssystem"
         },
         "lang": {
             "english": "Englisch",
