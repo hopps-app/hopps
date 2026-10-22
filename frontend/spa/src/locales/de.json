@@ -9,7 +9,7 @@
     "categoryGroups": {
         "title": "Kategorien",
         "addButton": "Neue Gruppe",
-        "hint": "Eine Gruppe gilt für die Bommel, die du auswählst, und automatisch für alle Bommel darunter. Beispiel: Ordnest du sie „Jugend“ zu, gilt sie auch für „Jugend U12“. Für die ganze Organisation wähle den obersten Bommel.",
+        "hint": "Eine Gruppe gilt für die ausgewählten Bommel und automatisch für alle Bommel darunter. Beispiel: Ist sie „Jugend“ zugeordnet, gilt sie auch für „Jugend U12“. Für die ganze Organisation den obersten Bommel wählen.",
         "required": "Pflicht",
         "optional": "optional",
         "emptyState": {
@@ -47,7 +47,7 @@
             "addValue": "Hinzufügen",
             "noValues": "Noch keine Kategorien angelegt.",
             "templateTitle": "Vorlage übernehmen",
-            "templateSubtitle": "Wähle einen oder mehrere Bommel, für die die Gruppe gilt. Name, Pflichtfeld und Kategorien sind aus der Vorlage vorausgefüllt und lassen sich ändern.",
+            "templateSubtitle": "Einen oder mehrere Bommel wählen, für die die Gruppe gilt. Name, Pflichtfeld und Kategorien sind aus der Vorlage vorausgefüllt und lassen sich ändern.",
             "bommelSearch": "Bommel suchen …",
             "bommelOpen": "Liste öffnen",
             "bommelClose": "Liste schließen",
@@ -84,9 +84,9 @@
             "applyTemplate": "Vorlage übernehmen",
             "createGroup": "Gruppe anlegen",
             "moreValues": "+{{count}} weitere",
-            "noTemplatesTitle": "Lege deine erste Kategoriegruppe an",
+            "noTemplatesTitle": "Erste Kategoriegruppe anlegen",
             "ownGroupTitle": "Eigene Kategoriegruppe",
-            "ownGroupText": "Noch keine Kategorien, du legst sie selbst an."
+            "ownGroupText": "Noch keine Kategorien, sie werden selbst angelegt."
         }
     },
     "banner": {
@@ -517,7 +517,7 @@
         },
         "setup": {
             "title": "Noch nichts auszuwerten",
-            "text": "Berichte entstehen aus euren Kategorien und den zugeordneten Belegen bzw. Transaktionen. Bommel könnt ihr später jederzeit ergänzen.",
+            "text": "Berichte entstehen aus den Kategorien und den zugeordneten Belegen bzw. Transaktionen. Bommel lassen sich später jederzeit ergänzen.",
             "action": "Kategorien anlegen",
             "period": "Zeitraum",
             "sampleTitle": "Beispielauswertung",
@@ -755,9 +755,9 @@
     },
         "empty": {
             "firstTitle": "Noch keine Transaktionen",
-            "firstText": "Transaktionen entstehen aus geprüften Belegen und importierten Kontoumsätzen. Du kannst auch oben eine Transaktion erfassen.",
+            "firstText": "Transaktionen entstehen aus geprüften Belegen und importierten Kontoumsätzen. Oben lässt sich auch direkt eine Transaktion erfassen.",
             "noMatchTitle": "Nichts gefunden",
-            "noMatchText": "Passe deine Suche an oder wähle einen anderen Filter."
+            "noMatchText": "Suche anpassen oder einen anderen Filter wählen."
         }
     },
     "receipts": {
@@ -766,9 +766,9 @@
         "dueDate": "Fällig am",
         "empty": {
             "firstTitle": "Noch keine Belege",
-            "firstText": "Rechnungen, Quittungen und Kassenbons landen hier. Lade oben deinen ersten Beleg hoch.",
+            "firstText": "Rechnungen, Quittungen und Kassenbons landen hier. Der erste Beleg wird oben hochgeladen.",
             "noMatchTitle": "Nichts gefunden",
-            "noMatchText": "Passe deine Suche an oder wähle einen anderen Filter."
+            "noMatchText": "Suche anpassen oder einen anderen Filter wählen."
         },
         "searchPlaceholder": "Suchen (Name, Absender, Betrag) …",
         "searchClear": "Suche löschen",
@@ -1087,8 +1087,8 @@
         "startDate": "Von",
         "endDate": "Bis",
         "setup": {
-            "title": "Leg jetzt mit hopps los",
-            "subtitle": "In vier Schritten ist eure Buchhaltung startklar.",
+            "title": "Jetzt mit hopps loslegen",
+            "subtitle": "In vier Schritten ist die Buchhaltung startklar.",
             "done": "erledigt",
             "dismiss": "Ausblenden",
             "progress": "{{done}} von {{total}} Schritten erledigt",
@@ -1424,7 +1424,7 @@
         },
         "imports": {
             "title": "Import-Historie",
-            "subtitle": "Hier siehst du, welche Kontoauszüge wann und für welches Konto importiert wurden.",
+            "subtitle": "Hier ist zu sehen, welche Kontoauszüge wann und für welches Konto importiert wurden.",
             "account": "Konto",
             "file": "Datei",
             "imported": "Importiert",
@@ -1443,9 +1443,9 @@
         },
         "empty": {
             "noMatchTitle": "Nichts gefunden",
-            "noMatchText": "Passe deine Suche an oder wähle einen anderen Filter.",
+            "noMatchText": "Suche anpassen oder einen anderen Filter wählen.",
             "noTransactionsTitle": "Noch keine Umsätze",
-            "noTransactionsText": "Importiere einen Kontoauszug, um die Umsätze dieses Kontos abzugleichen.",
+            "noTransactionsText": "Sobald ein Kontoauszug importiert ist, werden die Umsätze dieses Kontos hier abgeglichen.",
             "otherStatus_one": "{{count}} Umsatz hat einen anderen Status.",
             "otherStatus_other": "{{count}} Umsätze haben einen anderen Status."
         },
@@ -1497,8 +1497,8 @@
             "shouldBeExpense": "Diese Banktransaktion ist eine Ausgabe. Bitte „Ausgabe\" wählen."
         },
         "firstAccount": {
-            "title": "Lege zuerst ein Bankkonto an",
-            "text": "Kontoauszüge werden immer einem Konto zugeordnet. Sobald ein Konto angelegt ist, kannst du Umsätze importieren und abgleichen.",
+            "title": "Zuerst ein Bankkonto anlegen",
+            "text": "Kontoauszüge werden immer einem Konto zugeordnet. Sobald ein Konto angelegt ist, können Umsätze importiert und abgeglichen werden.",
             "action": "Bankkonto hinzufügen"
         }
     },
