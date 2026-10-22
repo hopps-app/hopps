@@ -1073,6 +1073,7 @@
             "linkLater": "Bank movements are linked on the individual transactions after creating them.",
             "toast": {
                 "draftSaved": "Split saved as draft",
+                "saveError": "Split could not be saved",
                 "created": "{{n}} transactions created"
             },
             "cancel": "Don’t split"

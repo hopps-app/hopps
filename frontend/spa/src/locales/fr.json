@@ -1040,6 +1040,7 @@
             "linkLater": "Les mouvements bancaires se rattachent aux transactions individuelles après la création.",
             "toast": {
                 "draftSaved": "Répartition enregistrée comme brouillon",
+                "saveError": "La répartition n'a pas pu être enregistrée",
                 "created": "{{n}} transactions créées"
             },
             "cancel": "Ne pas répartir"

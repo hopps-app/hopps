@@ -937,6 +937,7 @@
             "linkLater": "Bankumsätze werden nach dem Erstellen an den einzelnen Transaktionen verknüpft.",
             "toast": {
                 "draftSaved": "Aufteilung als Entwurf gespeichert",
+                "saveError": "Aufteilung konnte nicht gespeichert werden",
                 "created": "{{n}} Transaktionen erstellt"
             },
             "cancel": "Nicht aufteilen"

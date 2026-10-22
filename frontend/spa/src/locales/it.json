@@ -1040,6 +1040,7 @@
             "linkLater": "I movimenti bancari si collegano alle singole transazioni dopo la creazione.",
             "toast": {
                 "draftSaved": "Suddivisione salvata come bozza",
+                "saveError": "Impossibile salvare la suddivisione",
                 "created": "{{n}} transazioni create"
             },
             "cancel": "Non suddividere"

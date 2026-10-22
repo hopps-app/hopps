@@ -189,8 +189,11 @@ export function getDocumentReviewStatus(doc: DocumentResponse): 'pending' | 'ana
 
 // ─── Document split: the transactions booked from one document ───────────────
 
+// Under the 'transactions' root on purpose: the parts are transactions, so every transaction mutation (confirm,
+// reopen, edit, delete, bank linking) refreshes them too. A separate root left the split drawer on stale parts, e.g.
+// offering "edit split" for parts confirmed meanwhile.
 export const documentTransactionKeys = {
-    all: ['documentTransactions'] as const,
+    all: ['transactions', 'byDocument'] as const,
     byDocument: (documentId: number) => [...documentTransactionKeys.all, documentId] as const,
 };
 
@@ -217,6 +220,7 @@ export interface ReplaceDocumentTransactionsInput {
 export function useReplaceDocumentTransactions() {
     const queryClient = useQueryClient();
     return useMutation({
+        meta: { errorMessage: 'receipts.split.toast.saveError' },
         mutationFn: ({ id, parts, confirmDocument }: ReplaceDocumentTransactionsInput): Promise<TransactionResponse[]> =>
             apiService.orgService.replaceDocumentTransactions(
                 id,
@@ -241,6 +245,12 @@ export function useReplaceDocumentTransactions() {
             queryClient.invalidateQueries({ queryKey: ['transactions'] });
             // Deleted parts release their bank matches.
             queryClient.invalidateQueries({ queryKey: ['bankTransactions'] });
+        },
+        // Rejected (e.g. 409: a part was confirmed meanwhile): show the parts as they really are now.
+        onSettled: (_data, error, { id }) => {
+            if (!error) return;
+            queryClient.invalidateQueries({ queryKey: documentKeys.detail(id) });
+            queryClient.invalidateQueries({ queryKey: documentTransactionKeys.byDocument(id) });
         },
     });
 }
