@@ -902,7 +902,6 @@
         },
         "searchPlaceholder": "Search (name, sender, amount) …",
         "searchClear": "Clear search",
-        "noSearchResults": "No receipts found for \"{{search}}\"",
         "newReceipt": "New receipt",
         "table": {
             "category": "Category"
@@ -1097,8 +1096,8 @@
             "unreviewed": "Unreviewed",
             "confirmed": "Confirmed"
         },
-        "noUnreviewed": "All receipts have been reviewed",
-        "noUnreviewedDesc": "Upload new receipts to review them.",
+        "noResultsOtherStatus_one": "{{count}} receipt has a different status.",
+        "noResultsOtherStatus_other": "{{count}} receipts have a different status.",
         "deleteConfirm": "Really delete this receipt?",
         "analysisUnavailable": {
             "title": "Analysis service unavailable",

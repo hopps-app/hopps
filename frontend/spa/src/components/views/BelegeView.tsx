@@ -1754,18 +1754,19 @@ export function BelegeView() {
         return Number.isFinite(n) ? Math.abs(n) : null;
     })();
 
-    const filtered = docs.filter((doc) => {
-        if (statusFilter.length > 0 && !statusFilter.includes(receiptStatus(doc))) return false;
-        if (searchTerm) {
-            const matchesText =
-                (doc.name ?? '').toLowerCase().includes(searchTerm) ||
-                (doc.fileName ?? '').toLowerCase().includes(searchTerm) ||
-                (doc.senderName ?? '').toLowerCase().includes(searchTerm);
-            const matchesAmount = searchAmount != null && doc.total != null && Math.abs(Number(doc.total)) === searchAmount;
-            if (!matchesText && !matchesAmount) return false;
-        }
-        return true;
-    });
+    const matchesSearch = (doc: DocumentResponse) => {
+        if (!searchTerm) return true;
+        const matchesText =
+            (doc.name ?? '').toLowerCase().includes(searchTerm) ||
+            (doc.fileName ?? '').toLowerCase().includes(searchTerm) ||
+            (doc.senderName ?? '').toLowerCase().includes(searchTerm);
+        const matchesAmount = searchAmount != null && doc.total != null && Math.abs(Number(doc.total)) === searchAmount;
+        return matchesText || matchesAmount;
+    };
+    const searched = docs.filter(matchesSearch);
+    const filtered = statusFilter.length > 0 ? searched.filter((doc) => statusFilter.includes(receiptStatus(doc))) : searched;
+    // Receipts the search matches but the selected status segments hide.
+    const hiddenByStatus = searched.length - filtered.length;
 
     const sortValue = (d: DocumentResponse): number => {
         switch (sortBy) {
@@ -1835,15 +1836,31 @@ export function BelegeView() {
     const unreviewedCount = docs.filter((d) => receiptStatus(d) === 'unreviewed').length;
     const statusCounts: Record<ReceiptStatus, number> = { unreviewed: unreviewedCount, confirmed: docs.length - unreviewedCount };
     const toggleStatus = (id: ReceiptStatus) => setStatusFilter((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
-    const onlyUnreviewed = statusFilter.length === 1 && statusFilter[0] === 'unreviewed';
 
-    // Empty table: nothing uploaded yet, everything on only "Zu prüfen" selected and all reviewed, or the search/filter finds nothing.
+    // Empty table, same cases as the transactions table: nothing uploaded yet, matches hidden by the status
+    // segments (offers to show all statuses), or the search finds nothing.
     const emptyState =
-        docs.length === 0
-            ? { title: t('receipts.empty.firstTitle'), text: t('receipts.empty.firstText') }
-            : !searchTerm && onlyUnreviewed
-              ? { title: t('receipts.noUnreviewed'), text: t('receipts.noUnreviewedDesc') }
-              : { title: t('receipts.empty.noMatchTitle'), text: t('receipts.empty.noMatchText') };
+        docs.length === 0 ? (
+            <TableEmptyState icon={FileText} title={t('receipts.empty.firstTitle')} text={t('receipts.empty.firstText')} />
+        ) : hiddenByStatus > 0 ? (
+            <TableEmptyState
+                icon={FileText}
+                title={t('receipts.empty.noMatchTitle')}
+                text={t('receipts.noResultsOtherStatus', { count: hiddenByStatus })}
+                action={
+                    <BaseButton
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setStatusFilter([])}
+                        className="rounded-[var(--btn-radius)] text-[13.5px] font-bold text-primary"
+                    >
+                        {t('transactions.showAllStatuses')}
+                    </BaseButton>
+                }
+            />
+        ) : (
+            <TableEmptyState icon={FileText} title={t('receipts.empty.noMatchTitle')} text={t('receipts.empty.noMatchText')} />
+        );
 
     return (
         <div className="flex flex-col w-full" style={{ fontFamily: FONT, background: '#F3F4F6' }}>
@@ -1987,7 +2004,7 @@ export function BelegeView() {
                             />
                         </DataTableHeader>
 
-                        {sorted.length === 0 && <TableEmptyState icon={FileText} {...emptyState} />}
+                        {sorted.length === 0 && emptyState}
                         {sorted.map((doc) => (
                             <DocumentRow
                                 key={doc.id}

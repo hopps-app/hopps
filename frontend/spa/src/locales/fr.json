@@ -869,7 +869,6 @@
         },
         "searchPlaceholder": "Rechercher (nom, expéditeur, montant) …",
         "searchClear": "Effacer la recherche",
-        "noSearchResults": "Aucun reçu trouvé pour « {{search}} »",
         "newReceipt": "Nouveau reçu",
         "table": {
             "category": "Catégorie"
@@ -1064,8 +1063,8 @@
             "unreviewed": "Non vérifiés",
             "confirmed": "Confirmés"
         },
-        "noUnreviewed": "Tous les reçus ont été vérifiés",
-        "noUnreviewedDesc": "Téléversez de nouveaux reçus pour les vérifier.",
+        "noResultsOtherStatus_one": "{{count}} justificatif a un autre statut.",
+        "noResultsOtherStatus_other": "{{count}} justificatifs ont un autre statut.",
         "deleteConfirm": "Vraiment supprimer ce reçu ?",
         "analysisUnavailable": {
             "title": "Service d'analyse indisponible",

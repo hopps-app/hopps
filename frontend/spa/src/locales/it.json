@@ -869,7 +869,6 @@
         },
         "searchPlaceholder": "Cerca (nome, mittente, importo) …",
         "searchClear": "Cancella ricerca",
-        "noSearchResults": "Nessuna ricevuta trovata per \"{{search}}\"",
         "newReceipt": "Nuova ricevuta",
         "table": {
             "category": "Categoria"
@@ -1064,8 +1063,8 @@
             "unreviewed": "Non revisionate",
             "confirmed": "Confermate"
         },
-        "noUnreviewed": "Tutte le ricevute sono state revisionate",
-        "noUnreviewedDesc": "Carica nuove ricevute per revisionarle.",
+        "noResultsOtherStatus_one": "{{count}} giustificativo ha un altro stato.",
+        "noResultsOtherStatus_other": "{{count}} giustificativi hanno un altro stato.",
         "deleteConfirm": "Eliminare davvero questa ricevuta?",
         "analysisUnavailable": {
             "title": "Servizio di analisi non disponibile",

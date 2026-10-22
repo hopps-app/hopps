@@ -766,7 +766,6 @@
         },
         "searchPlaceholder": "Suchen (Name, Absender, Betrag) …",
         "searchClear": "Suche löschen",
-        "noSearchResults": "Keine Belege für „{{search}}\" gefunden",
         "newReceipt": "Neuer Beleg",
         "table": {
             "category": "Kategorie"
@@ -961,8 +960,8 @@
             "unreviewed": "Ungeprüft",
             "confirmed": "Bestätigt"
         },
-        "noUnreviewed": "Alle Belege wurden geprüft",
-        "noUnreviewedDesc": "Neue Belege hochladen, um sie zu prüfen.",
+        "noResultsOtherStatus_one": "{{count}} Beleg hat einen anderen Status.",
+        "noResultsOtherStatus_other": "{{count}} Belege haben einen anderen Status.",
         "deleteConfirm": "Beleg wirklich löschen?",
         "analysisUnavailable": {
             "title": "Analyse-Service nicht erreichbar",
