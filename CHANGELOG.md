@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.1.0](https://github.com/hopps-app/hopps/compare/v2.0.0...v2.1.0) (2026-10-21)
+
+
+### Features
+
+* **bankimport:** Volksbanken / Raiffeisenbanken Umsatz-CSV template ([#853](https://github.com/hopps-app/hopps/issues/853)) ([a81e621](https://github.com/hopps-app/hopps/commit/a81e62115c0aaa15d51da6f0cf0c5e942322d49e))
+* CHF support for registration, bank accounts and import ([#852](https://github.com/hopps-app/hopps/issues/852)) ([504988c](https://github.com/hopps-app/hopps/commit/504988ccecf0396d57febf5623dd455f39da7972))
+* **organization:** configurable currency (EUR/CHF), locked after first transaction ([#819](https://github.com/hopps-app/hopps/issues/819)) ([679645c](https://github.com/hopps-app/hopps/commit/679645c84ee3691cfdd41a00499b6a5630be8e28))
+
+
+### Bug Fixes
+
+* **frontend:** transactions start filter, CHF currency note, password comparison ([#870](https://github.com/hopps-app/hopps/issues/870)) ([43b3843](https://github.com/hopps-app/hopps/commit/43b3843b089e9e41b72a7344d359363c55388345))
+* oidc scope default, upgrade notes workflow, compose image tags and org database ([#844](https://github.com/hopps-app/hopps/issues/844)) ([98c8cef](https://github.com/hopps-app/hopps/commit/98c8cefacc6f8db938a1d384704ad5cd233532da))
+
 ## [2.0.0](https://github.com/hopps-app/hopps/compare/v1.0.0...v2.0.0) (2026-09-30)
 
 
