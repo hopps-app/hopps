@@ -31,6 +31,8 @@ import { ALL_BOMMELS, BommelSelect } from '@/components/Dashboard/BommelSelect';
 import { flattenBommelTree } from '@/components/Dashboard/bommelTree';
 import { cacheBommelChoice, getCachedBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
+import { DOC_GRID, DOC_GRID_NARROW } from '@/components/Receipts/layout';
+import { ReceiptsTableSkeleton } from '@/components/Receipts/ReceiptsSkeleton';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { DirectionCards, Field, footerBtn, inputCls } from '@/components/Transactions/drawerParts';
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
@@ -85,12 +87,6 @@ const RECEIPT_STATUS_SEGMENTS: { id: ReceiptStatus; labelKey: string; color: str
     { id: 'unreviewed', labelKey: 'receipts.filter.unreviewed', color: 'var(--info)', tint: 'var(--info-surface)' },
     { id: 'confirmed', labelKey: 'receipts.filter.confirmed', color: 'var(--positive)', tint: 'var(--positive-surface)' },
 ];
-
-// Shared column layout for the documents table header and rows (must stay in sync), same order as the transactions
-// table. Checkbox | Beleg | Bommel | Datum | Erstellt am | Status | Betrag
-const DOC_GRID = '20px minmax(0,2.3fr) 1.2fr 0.9fr 0.9fr 1.1fr 1.1fr';
-// Narrow screens drop the Bommel column, like the transactions table.
-const DOC_GRID_NARROW = '20px minmax(0,2.3fr) 0.9fr 0.9fr 1.1fr 1.1fr';
 
 // Stable marker set by the backend when the AI analysis service was unreachable (mirrors
 // DocumentAnalysisService.ANALYSIS_SERVICE_UNAVAILABLE). Mapped to a localized message + notification here.
@@ -1967,7 +1963,7 @@ export function BelegeView() {
             {/* Document list */}
             <div>
                 {isLoading ? (
-                    <LoadingState className="py-12" />
+                    <ReceiptsTableSkeleton hideBommel={hideBommel} />
                 ) : (
                     <DataTable>
                         <DataTableHeader columns={hideBommel ? DOC_GRID_NARROW : DOC_GRID}>

@@ -7,11 +7,11 @@ import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
-import { LoadingState } from '@/components/common/LoadingState';
 import { AddUserDialog, type NewUserValues } from '@/components/Organization/AddUserDialog';
+import { CARD } from '@/components/Organization/layout';
+import { OrganizationDetailsSkeleton, OrganizationUsersSkeleton } from '@/components/Organization/OrganizationDetailsSkeleton';
 import { SetupLinkDialog } from '@/components/Organization/SetupLinkDialog';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import Select from '@/components/ui/Select';
 import TextField from '@/components/ui/TextField';
 import { useHasPermission } from '@/hooks/queries';
@@ -27,11 +27,6 @@ import { getErrorBody } from '@/utils/errorUtils';
 
 /** Design system: "Klar" — see the hopps design system tokens (colors.css / typography.css). */
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
-
-/** In dark mode the drop shadow is invisible, so a hairline ring separates the card from the page instead. */
-const CARD =
-    'rounded-[18px] bg-white shadow-[0_1px_2px_rgba(20,20,40,0.05),0_6px_22px_rgba(20,20,40,0.05)] ' +
-    'dark:bg-[#1C1C21] dark:shadow-none dark:ring-1 dark:ring-[#2E2E36]';
 
 /** Field widths follow the design's 6-column grid; everything collapses to full width on small screens. */
 const SPAN: Record<number, string> = {
@@ -568,7 +563,7 @@ function OrganizationDetailsSettingsView() {
     );
 
     if (!organization) {
-        return <LoadingOverlay />;
+        return <OrganizationDetailsSkeleton />;
     }
 
     return (
@@ -831,9 +826,7 @@ function OrganizationDetailsSettingsView() {
                             }
                         >
                             {usersLoading ? (
-                                <div className="py-6">
-                                    <LoadingState />
-                                </div>
+                                <OrganizationUsersSkeleton />
                             ) : users.length === 0 ? (
                                 <p className="py-4 text-[13.5px] text-[#9A9AA3] dark:text-[#7A7A86]">{t('organization.details.users.empty')}</p>
                             ) : (

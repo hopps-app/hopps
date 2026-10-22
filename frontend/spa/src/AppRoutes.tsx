@@ -6,6 +6,8 @@ import { CategoryGroupsSkeleton } from '@/components/CategoryGroups/CategoryGrou
 import { ReportsSkeleton } from '@/components/Reports/ReportsSkeleton';
 import { LoadingState } from '@/components/common/LoadingState';
 import { DashboardSkeleton } from '@/components/Dashboard/DashboardSkeleton';
+import { OrganizationDetailsSkeleton } from '@/components/Organization/OrganizationDetailsSkeleton';
+import { ReceiptsSkeleton } from '@/components/Receipts/ReceiptsSkeleton';
 import { TransactionsSkeleton } from '@/components/Transactions/TransactionsSkeleton';
 import HomeView from '@/components/views/HomeView';
 import NotFoundView from '@/components/views/NotFoundView';
@@ -111,7 +113,7 @@ export default function AppRoutes() {
                 <Route
                     path="/receipts"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<ReceiptsSkeleton />}>
                             <ReceiptView />
                         </LazyRoute>
                     }
@@ -159,7 +161,7 @@ export default function AppRoutes() {
                 <Route
                     path="/admin/ngo-details"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<OrganizationDetailsSkeleton />}>
                             <OrganizationDetailsSettingsView />
                         </LazyRoute>
                     }
