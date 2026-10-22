@@ -44,6 +44,8 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          # release.yml dispatches this workflow with GITHUB_TOKEN, so the actor is github-actions[bot]
+          allowed_bots: github-actions
           prompt: >-
             Follow .github/release-notes/upgrade-notes.md to write the upgrade notes for the range
             ${{ steps.base.outputs.ref }}..HEAD.
