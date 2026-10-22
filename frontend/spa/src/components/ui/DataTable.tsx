@@ -1,4 +1,4 @@
-import { Check, ChevronRight, Minus } from 'lucide-react';
+import { Check, ChevronRight, FileText, Minus } from 'lucide-react';
 import type { CSSProperties, ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
@@ -105,5 +105,24 @@ export function RowCheckbox({ checked, onToggle, ariaLabel }: { checked: boolean
                 <Check className="w-3 h-3 text-white" strokeWidth={3} />
             ) : null}
         </span>
+    );
+}
+
+/** Stands in for the table when there is nothing to show. */
+export function DataTableEmpty({ title, description, action }: { title: string; description?: string; action?: ReactNode }) {
+    return (
+        <div
+            className="flex flex-col items-center justify-center py-20 text-center rounded-[var(--r-card)] border border-border-soft"
+            style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-sm)' }}
+        >
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mb-3" style={{ background: 'var(--accent-surface)' }}>
+                <FileText size={26} className="text-primary" />
+            </div>
+            <p className="font-bold text-foreground" style={{ fontSize: 16 }}>
+                {title}
+            </p>
+            {description && <p className="mt-1 text-[13.5px] text-muted-foreground">{description}</p>}
+            {action}
+        </div>
     );
 }

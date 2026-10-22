@@ -1,0 +1,79 @@
+name: upgrade-notes
+
+# Claude drafts the upgrade notes for operators (config, migrations, deployment) as a comment on the open release PR.
+# Started by release.yml after every update of that PR: claude-code-action does not run on push events.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Number of the release PR
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+# a newer push to main replaces the draft anyway
+concurrency:
+  group: upgrade-notes
+  cancel-in-progress: true
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    env:
+      PR_NUMBER: ${{ inputs.pr }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Find the previous release
+        id: base
+        run: |
+          # before the first vX.Y.Z tag, start where release-please starts
+          BASE=$(git describe --tags --abbrev=0 --match 'v[0-9]*' 2>/dev/null || jq -r '."bootstrap-sha"' release-please-config.json)
+          echo "ref=$BASE" >> "$GITHUB_OUTPUT"
+
+      - name: Draft upgrade notes
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: >-
+            Follow .github/release-notes/upgrade-notes.md to write the upgrade notes for the range
+            ${{ steps.base.outputs.ref }}..HEAD.
+          # the schema is where user-facing release notes would be added later, next to upgradeNotes
+          claude_args: >-
+            --max-turns 40
+            --allowedTools "Read,Grep,Glob,Bash(git log:*),Bash(git diff:*),Bash(git show:*)"
+            --json-schema '{"type":"object","properties":{"upgradeNotes":{"type":"string"}},"required":["upgradeNotes"]}'
+
+      - name: Post the draft on the release PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE: ${{ steps.base.outputs.ref }}
+          # parsed here rather than with fromJSON, which breaks the whole job when the output is empty
+          OUTPUT: ${{ steps.claude.outputs.structured_output }}
+        run: |
+          NOTES=$(jq -r '.upgradeNotes' <<< "$OUTPUT")
+          {
+            echo '<!-- upgrade-notes:start -->'
+            echo '## Upgrade notes'
+            echo
+            echo "$NOTES"
+            echo '<!-- upgrade-notes:end -->'
+            echo
+            echo '---'
+            echo "_Drafted by Claude from the changes since \`$BASE\`. Edit the part above the line if needed: it is put at the top of the release notes when this PR is merged. A new push to main regenerates it._"
+          } > comment.md
+          ID=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --paginate --jq '.[] | select(.body | startswith("<!-- upgrade-notes:start -->")) | .id' | head -n1)
+          if [ -n "$ID" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$ID" -F body=@comment.md > /dev/null
+          else
+            gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file comment.md
+          fi

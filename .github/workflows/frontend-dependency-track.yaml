@@ -45,7 +45,7 @@ jobs:
         working-directory: ${{ matrix.baseDirectory }}
 
       - name: Get current project version
-        uses: avides/actions-project-version-check@v3.0.0
+        uses: avides/actions-project-version-check@v3.0.1
         id: project_version
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -54,7 +54,7 @@ jobs:
 
       # Upload the SBOM to Dependency-Track
       - name: Upload BOM to Dependency-Track
-        uses: DependencyTrack/gh-upload-sbom@v4.2.0
+        uses: DependencyTrack/gh-upload-sbom@v4.3.0
         with:
           apiKey: ${{ secrets.DEPENDENCYTRACK_APIKEY }}
           serverHostname: "dtrack.hopps.cloud"

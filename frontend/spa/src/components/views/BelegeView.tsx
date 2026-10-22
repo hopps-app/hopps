@@ -62,8 +62,8 @@ import {
     documentKeys,
 } from '@/hooks/queries/useDocuments';
 import { useTransaction, useUpdateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
-import { useMediaQuery } from '@/hooks/use-media-query';
 import { useCurrency } from '@/hooks/use-currency';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { useDocumentEvents } from '@/hooks/useDocumentEvents';

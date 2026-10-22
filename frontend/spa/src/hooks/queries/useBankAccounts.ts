@@ -13,13 +13,12 @@ import {
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
+import { SETUP_PROGRESS_KEY } from '@/components/Dashboard/setupProgressKey';
 import { documentKeys, showUploadError } from '@/hooks/queries/useDocuments';
 import { transactionKeys, type SortDirection } from '@/hooks/queries/useTransactions';
 import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
 import { getUserFriendlyErrorMessage } from '@/utils/errorUtils';
-
-import { SETUP_PROGRESS_KEY } from '@/components/Dashboard/setupProgressKey';
 
 // ─── Query Keys ─────────────────────────────────────────────────────────────
 

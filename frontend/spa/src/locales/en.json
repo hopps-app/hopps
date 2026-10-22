@@ -94,22 +94,17 @@
         "text2": "charge"
     },
     "common": {
-        "refresh": "Refresh",
         "upload": "Upload",
         "addNew": "Add new",
         "close": "Close",
-        "expand": "Expand",
         "collapse": "Collapse",
         "search": "Search",
-        "noItems": "No items to show",
-        "noResults": "No results",
         "goBack": "Back",
         "cancel": "Cancel",
         "save": "Save",
         "edit": "Edit",
         "delete": "Delete",
         "loading": "Loading...",
-        "validationError": "Please fill in all required fields",
         "unsavedChangesWarning": "You have unsaved changes. Are you sure you want to leave this page?",
         "next": "Next",
         "confirm": "Confirm"
@@ -154,7 +149,6 @@
         "organizationNameRequired": "Organization name is required",
         "firstNameRequired": "First name is required",
         "lastNameRequired": "Last name is required",
-        "invalidFileType": "Invalid file type",
         "passwordStrength": {
             "label": "Password strength",
             "weak": "Weak",
@@ -180,50 +174,18 @@
     },
     "invoiceUpload": {
         "title": "Upload new Invoice",
-        "assign": "Assign to",
-        "chooseFile": "Choose file",
         "upload": "Upload",
         "uploadFailed": "Failed to upload invoice",
         "uploadSuccess": "Invoice successfully uploaded",
-        "dragDrop": "Drag & Drop files here",
         "fileType": "PDF or JPG file",
-        "dragFile": "Drop the files here...",
-        "fileTooLarge": "File is too large, maximum size 5MB",
-        "invalidFileType": "Unsupported file type. Please upload PDF, JPEG, or PNG files.",
-        "totalTooLarge": "Total file size exceeds the 20MB limit.",
-        "maxFilesExceeded": "Maximum of 10 files allowed.",
         "selectBommel": "Select bommel",
-        "privately": "Privately paid",
         "invoice": "Invoice",
         "receipt": "Receipt",
-        "docType": "Transaction type",
-        "pdfNavigation": {
-            "previousPage": "Previous page",
-            "nextPage": "Next page",
-            "pageIndicator": "{{current}} / {{total}}"
-        }
+        "docType": "Transaction type"
     },
     "invoices": {
-        "loadFailed": "Failed to load invoices",
-        "noInvoices": "No invoices to show",
         "assignPopover": {
-            "assign": "Assign",
-            "reassign": "Reassign",
-            "noBommels": "No available bommels",
-            "newBommel": "new Bommel",
-            "successAssign": "Successfully assigned!",
-            "failedAssign": "Failed to assign bommel!"
-        },
-        "summary": {
-            "totalFirstPart": "Total",
-            "invoicesPart": "invoices with sum"
-        },
-        "table": {
-            "newInvoice": "new Invoice",
-            "date": "Date",
-            "bommel": "Bommel",
-            "amount": "Amount",
-            "name": "Name"
+            "assign": "Assign"
         }
     },
     "organization": {
@@ -243,7 +205,7 @@
             "subtitle": "Create your organization and account to get started.",
             "alreadyHaveAccount": "Already have an account?",
             "loginInstead": "Log in",
-            "success": "Organisation successfully created",
+            "success": "Organization successfully created",
             "successHeading": "Your organization has been successfully registered.",
             "organizationName": "Organization name",
             "firstName": "First name",
@@ -278,7 +240,6 @@
                 "nameMaxLength": "Name must not exceed 255 characters"
             },
             "editModeHint": "Drag & drop bommels in Table view, or use the move button in Tree view",
-            "moveBommel": "Move Bommel",
             "includeDrafts": "Include drafts",
             "aggregate": "Incl. sub-bommels",
             "details": {
@@ -517,18 +478,12 @@
     "settings": {
         "menu": {
             "account": "My Account",
-            "invoices": "Invoices",
-            "organization": "Organization",
-            "ngoDetails": "Organization Details",
             "profile": "Profile"
         }
     },
-    "settingsPage": {
-        "menu": "Menu"
-    },
     "reports": {
         "title": "Reports",
-        "subtitle": "Analyse transactions by category-group value over a date range.",
+        "subtitle": "Analyze income and expenses for a period by category group.",
         "group": "Category group",
         "selectGroup": "Select a category group …",
         "from": "From (transaction date)",
@@ -774,7 +729,7 @@
             "clear": "Clear selection",
             "delete": "Delete",
             "confirmTitle": "Delete selected transactions?",
-            "confirmDesc": "Do you really want to delete the selected transactions ({{n}})? This cannot be undone."
+            "confirmDesc": "Are you sure you want to delete the selected transactions ({{n}})? This cannot be undone."
         },
         "linked": "Linked",
         "notLinked": "Not linked",
@@ -799,9 +754,6 @@
             "noMatchTitle": "Nothing found",
             "noMatchText": "Adjust your search or choose another filter."
         }
-    },
-    "datePicker": {
-        "selectDate": "Select date"
     },
     "dashboard": {
         "title": "Dashboard",
@@ -940,10 +892,6 @@
     },
     "receipts": {
         "draft": "Draft",
-        "unassigned": "Unassigned",
-        "documentLinked": "Document attached",
-        "downloadDocument": "Download document",
-        "downloadFailed": "Failed to download document",
         "noDocument": "No document",
         "dueDate": "Due on",
         "empty": {
@@ -956,29 +904,8 @@
         "searchClear": "Clear search",
         "noSearchResults": "No receipts found for \"{{search}}\"",
         "newReceipt": "New receipt",
-        "statusBadge": {
-            "draft": "Draft",
-            "saved": "Saved"
-        },
         "table": {
-            "issuer": "Issuer",
-            "date": "Date",
-            "project": "Bommel",
-            "category": "Category",
-            "status": "Status",
-            "paid": "Paid",
-            "amount": "Amount",
-            "purpose": "Purpose",
-            "reference": "Reference"
-        },
-        "paidLabel": {
-            "yes": "Yes",
-            "no": "No"
-        },
-        "emptyState": {
-            "title": "No receipts uploaded yet",
-            "description": "Here you can filter and manage receipts",
-            "action": "Upload first receipt"
+            "category": "Category"
         },
         "status": {
             "pending": "Pending",
@@ -998,28 +925,16 @@
         },
         "filters": {
             "searchReceipt": "Search receipt",
-            "searchPlaceholder": "Search",
             "receiptDate": "Receipt date",
-            "startDate": "Receipts from",
-            "endDate": "Receipts until",
             "bommel": "Bommel",
             "category": "Category",
             "type": "Receipt type",
-            "income": "Income",
-            "expense": "Expense",
-            "selectStatus": "Select status",
             "status": "Status",
-            "all": "All",
-            "drafts": "Drafts",
-            "unassigned": "Unassigned",
             "displayType": "Display type",
-            "displayAll": "Expand all",
-            "reset": "Reset",
             "noResults": "No results",
             "area": "Area",
             "allAreas": "Select area",
-            "allCategories": "Select category",
-            "showFilters": "Filters"
+            "allCategories": "Select category"
         },
         "upload": {
             "sectionTitle": "Upload receipts",
@@ -1036,11 +951,11 @@
             "itemErrorDuplicate": "File already exists",
             "viewExisting": "View receipt",
             "analysis": {
-                "aiWarning": "The data recognized by the AI may contain errors. Please check all fields before saving.",
+                "aiWarning": "The data detected by the AI may contain errors. Please check all fields before saving.",
                 "pending": "Analysis is about to start …",
                 "analyzing": "Analyzing receipt …",
                 "completed": "Analysis complete",
-                "completedDescription": "Please check the recognized data and correct it if needed.",
+                "completedDescription": "Please review the detected data and correct it if needed.",
                 "extractedViaZugferd": "Data taken from ZUGFeRD invoice",
                 "extractedViaDocumentAI": "Data recognized via AI analysis",
                 "failed": "Automatic analysis not possible – please enter the data manually",
@@ -1074,12 +989,7 @@
             "wirtschaftlich": "Commercial operation",
             "unknown": "Unknown"
         },
-        "types": {
-            "income": "Income",
-            "expense": "Expense"
-        },
         "pagination": {
-            "page": "Page",
             "previous": "Previous",
             "next": "Next"
         },
@@ -1088,14 +998,10 @@
             "description": "Are you sure you want to delete '{{name}}' ({{amount}})?",
             "warning": "This action cannot be undone. The receipt will be permanently deleted.",
             "confirm": "Yes, delete",
-            "error": "Failed to delete receipt",
-            "success": "Receipt successfully deleted",
             "optionTransactionOnly": "Only the booking is removed. The receipt is kept and returns to review.",
             "optionWithReceipt": "Booking and receipt are permanently deleted, including the uploaded file.",
             "confirmTransactionOnly": "Delete transaction only",
             "confirmWithReceipt": "Delete with receipt",
-            "successTransactionOnly": "Transaction deleted - the receipt is awaiting review again",
-            "successWithReceipt": "Receipt and transaction deleted",
             "descriptionNoName": "Are you sure you want to delete this transaction ({{amount}})?"
         },
         "title": "Receipts",
@@ -1136,7 +1042,7 @@
             "failedTitle": "Analysis failed",
             "failedHint": "Please enter the data manually or restart the analysis.",
             "serviceUnavailableTitle": "Analysis service unavailable",
-            "serviceUnavailableHint": "The receipt could not be analysed automatically right now. You can fill in all fields yourself and enter the receipt manually at any time.",
+            "serviceUnavailableHint": "The receipt could not be analyzed automatically right now. You can fill in all fields yourself and enter the receipt manually at any time.",
             "linkedTransaction": "Linked transaction",
             "openTransaction": "Go to transaction",
             "bankReconcileTitle": "Created from a bank transaction",
@@ -1196,7 +1102,7 @@
         "deleteConfirm": "Really delete this receipt?",
         "analysisUnavailable": {
             "title": "Analysis service unavailable",
-            "description": "The receipt could not be analysed automatically right now. You can still enter all information manually at any time."
+            "description": "The receipt could not be analyzed automatically right now. You can still enter all information manually at any time."
         },
         "preview": {
             "loading": "Loading receipt …",
@@ -1234,7 +1140,7 @@
             "reanalyze": "Re-analyze ({{n}})",
             "delete": "Delete",
             "confirmTitle": "Delete selected receipts?",
-            "confirmDesc": "Do you really want to delete the selected receipts ({{n}})? This cannot be undone."
+            "confirmDesc": "Are you sure you want to delete the selected receipts ({{n}})? This cannot be undone."
         },
         "toast": {
             "reuploadError": "File could not be replaced",
@@ -1257,18 +1163,6 @@
         "select": "Select Bommel"
     },
     "bankAccounts": {
-        "title": "Bank accounts",
-        "subtitle": "Manage your bank accounts and import bank statements.",
-        "newAccount": "New account",
-        "manageSchemas": "Manage schemas",
-        "notFound": "Bank account not found",
-        "card": {
-            "schema": "Schema"
-        },
-        "emptyState": {
-            "title": "No bank accounts yet",
-            "description": "Add your first bank account to start importing bank statements."
-        },
         "form": {
             "createTitle": "Create bank account",
             "editTitle": "Edit bank account",
@@ -1299,20 +1193,8 @@
                 "bicTooLong": "BIC must not exceed 11 characters",
                 "openingBalanceDateRequired": "Opening balance date is required when a balance is provided",
                 "openingBalanceRequired": "Opening balance is required when a date is provided",
-                "duplicateIban": "An account with this IBAN already exists in your organisation"
+                "duplicateIban": "An account with this IBAN already exists in your organization"
             }
-        },
-        "table": {
-            "bookingDate": "Booking date",
-            "counterpartyName": "Counterparty",
-            "purpose": "Purpose",
-            "amount": "Amount",
-            "status": "Status"
-        },
-        "transactions": {
-            "title": "Transactions",
-            "empty": "No transactions yet",
-            "export": "Export"
         },
         "toast": {
             "createSuccess": "Bank account created",
@@ -1333,15 +1215,6 @@
             "startError": "The import could not be started."
         },
         "title": "Import bank statement",
-        "startImport": "Import",
-        "status": {
-            "QUEUED": "Queued",
-            "PROCESSING": "Processing",
-            "COMPLETED": "Completed",
-            "PARTIAL": "Partially imported",
-            "FAILED": "Failed",
-            "UNKNOWN": "Unknown"
-        },
         "wizard": {
             "stepFile": "File",
             "stepSchema": "Schema",
@@ -1399,23 +1272,6 @@
             "errors": "Errors",
             "backToAccount": "Back to account",
             "viewTransactions": "View transactions"
-        },
-        "history": {
-            "title": "Import history",
-            "empty": "No imports yet",
-            "fileName": "File name",
-            "status": "Status",
-            "progress": "Progress",
-            "imported": "Imported",
-            "duplicates": "Duplicates",
-            "errors": "Errors",
-            "finishedAt": "Finished",
-            "actions": "Actions"
-        },
-        "rollback": {
-            "title": "Roll back import?",
-            "button": "Rollback",
-            "confirm": "Are you sure you want to roll back this import? All imported transactions will be deleted."
         },
         "toast": {
             "rollbackSuccess": "Import rolled back",
@@ -1547,7 +1403,7 @@
             "openSingular": "transaction not yet matched",
             "openPlural": "transactions not yet matched",
             "matched": "matched",
-            "openDesc": "Assign the open transactions below or create a booking from them.",
+            "openDesc": "Assign the open transactions below or create a transaction from them.",
             "openBookings": "Open bank transactions",
             "noData": "No transactions yet",
             "noDataDesc": "Import a bank statement to start reconciliation."

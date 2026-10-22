@@ -115,8 +115,8 @@ src/
 │   ├── BommelTreeView/        - Organisations-Baumvisualisierung
 │   ├── Categories/            - Kategorie-Management
 │   ├── Forms/                 - Formular-Komponenten
-│   ├── BankAccounts/, Receipts/, Transactions/, InvoicesTable/, SettingsPage/, ...
-│   └── AgGrid/, common/, sidebar-navigation/
+│   ├── BankAccounts/, Receipts/, Transactions/, ...
+│   └── common/, sidebar-navigation/
 ├── services/                  - ApiService, OrganisationTreeService, Theme/Language/Connectivity/Emoji, auth/
 ├── store/                     - Zustand Stores
 ├── hooks/                     - Custom React Hooks
@@ -132,11 +132,10 @@ src/
 - `/register` - Organisationsregistrierung
 - `/dashboard/*` - Haupt-Dashboard (protected)
 - `/structure` - Organisationsstruktur-Management (protected)
-- `/receipts`, `/receipts/new`, `/receipts/:id` - Belege (protected)
+- `/receipts` - Belege inkl. Upload und Prüfung (protected)
 - `/transactions` - Transaktionsübersicht (protected)
-- `/bank-accounts`, `/bank-accounts/:id`, `/bank-accounts/:id/import`, `/bank-schemas` - Bank-Import (protected)
+- `/bank-accounts`, `/bank-schemas` - Konten, Bank-Import und CSV-Schemata (protected)
 - `/admin/categories`, `/admin/ngo-details` - Admin (protected)
-- `/settings/*` - Einstellungen (protected)
 - `/profile` - Benutzereinstellungen (protected)
 
 ### Mobile App
@@ -325,8 +324,9 @@ Der Login läuft über **Keycloak** (via Quarkus Keycloak Dev Services), und Key
 - `release.yml` hält einen PR `chore(main): release X.Y.Z` offen (Changelog aus den Commit-Titeln). **Merge dieses PRs = Release:** Tag + GitHub Release werden erstellt, danach startet `release.yml` die Image-Workflows per `workflow_dispatch` auf dem Tag (ein mit `GITHUB_TOKEN` erstellter Tag triggert keine anderen Workflows).
 - PR-Titel müssen Conventional Commits folgen (`feat(scope): ...`, `fix: ...`, `feat!:` für Breaking Changes), geprüft durch `pr-title.yml`. `feat` → Minor, `fix` → Patch.
 - Breaking Changes an Konfiguration/Env-Vars im Squash-Commit mit `BREAKING CHANGE: ...` im Body markieren (→ eigener Abschnitt im Changelog, Major-Bump).
-- **Upgrade Notes für Betreiber:** Bei jedem Update des Release-PRs entwirft Claude (`claude-code-action`, Secret `CLAUDE_CODE_OAUTH_TOKEN`) Hinweise zu Konfiguration, Migrationen und Deployment und postet sie als Kommentar am Release-PR. Der Kommentar kann vor dem Merge bearbeitet werden; beim Release wird der Teil zwischen den Markern oben in die GitHub Release Notes gesetzt. Anweisungen: `.github/release-notes/upgrade-notes.md`. Nutzerseitige Release Notes (i18n, "What's new" im SPA) sind noch nicht umgesetzt; das JSON-Schema im Workflow ist die Stelle, um sie zu ergänzen.
+- **Upgrade Notes für Betreiber:** Bei jedem Update des Release-PRs entwirft Claude (`claude-code-action`, Secret `CLAUDE_CODE_OAUTH_TOKEN`) Hinweise zu Konfiguration, Migrationen und Deployment und postet sie als Kommentar am Release-PR. Das läuft in `upgrade-notes.yml`, das `release.yml` per `workflow_dispatch` startet (`claude-code-action` unterstützt keine `push`-Events). Der Kommentar kann vor dem Merge bearbeitet werden; beim Release wird der Teil zwischen den Markern oben in die GitHub Release Notes gesetzt. Anweisungen: `.github/release-notes/upgrade-notes.md`. Nutzerseitige Release Notes (i18n, "What's new" im SPA) sind noch nicht umgesetzt; das JSON-Schema im Workflow ist die Stelle, um sie zu ergänzen.
 - Builds auf `main` behalten die Run-Number-Tags (Dev-Deployment in `hopps.cloud`). Der Helm-Chart wird weiterhin separat versioniert.
+- Der Image-Tag `TAG` in `infrastructure/hopps-app/.env.example` und die Defaults in den Compose-Files werden vom Release-PR mitgezogen (`extra-files`, Marker `x-release-please-version`). Neue Hopps-Images in Compose-Files bekommen denselben Marker und einen Eintrag in `extra-files`.
 - Konfiguration: `release-please-config.json`, `.release-please-manifest.json`.
 
 ### Kubernetes/Helm
@@ -461,6 +461,8 @@ Vereins/Verbands/Interessenten übergeben werden** (typisch: PDF/Word aus OneDri
 2. **Immer i18next verwenden:** Alle User-facing Strings MÜSSEN über `t('translation.key')` geladen werden
 3. **Mindestens zwei Sprachen:** Jeder neue Text benötigt SOWOHL deutsche ALS AUCH englische Übersetzung (Ukrainisch/`uk.json` nach Möglichkeit ebenfalls pflegen)
 4. **Konsistente Keys:** Verwende aussagekräftige, hierarchische Translation Keys (z.B. `organization.settings.structure`)
+5. **Neutrale Ansprache im Deutschen:** Kein „Sie“, kein „du“ und kein Imperativ („Prüfe …“). Anweisungen im Infinitiv formulieren (z.B. „Bitte alle Pflichtfelder ausfüllen“, „Diese Kategorie wirklich löschen?“). `src/locales/__tests__/de-address.test.ts` prüft `de.json` auf Anredepronomen.
+6. **Englisch in amerikanischer Schreibweise:** „organization“, „analyze“, „color“. „you“ ist im Englischen in Ordnung.
 
 **Übersetzungs-Dateien** (flache JSON-Dateien, konfiguriert in `src/i18n.ts`, Default `en`):
 - Deutsch: `/frontend/spa/src/locales/de.json`

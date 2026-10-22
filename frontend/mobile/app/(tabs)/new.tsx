@@ -38,7 +38,7 @@ export default function NewDocumentScreen() {
         if (!permissionResult.granted) {
             Alert.alert(
                 'Berechtigung erforderlich',
-                'Bitte erlaube den Zugriff auf deine Fotos, um Belege hochzuladen.'
+                'Für den Upload von Belegen wird der Zugriff auf die Fotos benötigt.'
             );
             return;
         }
@@ -66,7 +66,7 @@ export default function NewDocumentScreen() {
         if (!permissionResult.granted) {
             Alert.alert(
                 'Berechtigung erforderlich',
-                'Bitte erlaube den Zugriff auf die Kamera, um Belege zu fotografieren.'
+                'Zum Fotografieren von Belegen wird der Zugriff auf die Kamera benötigt.'
             );
             return;
         }
@@ -425,7 +425,7 @@ export default function NewDocumentScreen() {
                                         KI-gestützte Analyse
                                     </Text>
                                     <Text className="text-sm text-muted-foreground mt-1">
-                                        Nach dem Upload analysiert unsere KI deinen Beleg automatisch
+                                        Nach dem Upload analysiert unsere KI den Beleg automatisch
                                         und extrahiert alle wichtigen Informationen.
                                     </Text>
                                 </View>
