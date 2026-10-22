@@ -2,11 +2,10 @@ import { DocumentConfirmRequest, DocumentDirection, DocumentResponse } from '@ho
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import i18n from 'i18next';
 
+import { SETUP_PROGRESS_KEY } from '@/components/Dashboard/setupProgressKey';
 import { toast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
 import { getErrorStatus, getUserFriendlyErrorMessage } from '@/utils/errorUtils';
-
-import { SETUP_PROGRESS_KEY } from '@/components/Dashboard/setupProgressKey';
 
 /**
  * Shows a toast for a failed document/receipt upload. A 409 means the identical file was already uploaded before, so we

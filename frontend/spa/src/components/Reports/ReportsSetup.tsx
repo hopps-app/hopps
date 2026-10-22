@@ -73,7 +73,9 @@ export function ReportsSetup() {
                                     <div className="h-[7px] rounded-full bg-[var(--positive)]" style={{ width: `${(row.income / max) * 100}%` }} />
                                     <div className="h-[7px] rounded-full bg-[var(--primary)]" style={{ width: `${(row.expense / max) * 100}%` }} />
                                 </div>
-                                <div className="w-[20%] px-4 py-[13px] text-right text-sm font-extrabold tabular-nums text-foreground">{fmt(row.income - row.expense)}</div>
+                                <div className="w-[20%] px-4 py-[13px] text-right text-sm font-extrabold tabular-nums text-foreground">
+                                    {fmt(row.income - row.expense)}
+                                </div>
                             </div>
                         ))}
                     </div>

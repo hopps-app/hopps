@@ -149,7 +149,9 @@ const BommelMultiSelector: FC<BommelMultiSelectorProps> = ({ value, onChange, di
                             );
                         })}
                         {visible.length === 0 && (
-                            <div className="px-[9px] py-2 text-[13.5px] text-[var(--ink-faint)]">{rows.length === 0 && emptyText ? emptyText : t('categoryGroups.modal.bommelNone')}</div>
+                            <div className="px-[9px] py-2 text-[13.5px] text-[var(--ink-faint)]">
+                                {rows.length === 0 && emptyText ? emptyText : t('categoryGroups.modal.bommelNone')}
+                            </div>
                         )}
                     </div>
                 )}

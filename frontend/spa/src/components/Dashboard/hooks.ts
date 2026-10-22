@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import { DateRange, currentYearToDate, monthKeysInRange, sameRangeLastYear } from './periods';
-
 import { SETUP_PROGRESS_KEY } from './setupProgressKey';
 
 import apiService from '@/services/ApiService';

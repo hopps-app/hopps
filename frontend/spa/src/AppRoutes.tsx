@@ -3,12 +3,12 @@ import { Route, Routes } from 'react-router-dom';
 
 import { KontenSkeleton } from '@/components/BankAccounts/KontenSkeleton';
 import { CategoryGroupsSkeleton } from '@/components/CategoryGroups/CategoryGroupsSkeleton';
-import { ReportsSkeleton } from '@/components/Reports/ReportsSkeleton';
 import { LoadingState } from '@/components/common/LoadingState';
 import { DashboardSkeleton } from '@/components/Dashboard/DashboardSkeleton';
 import { OrganizationDetailsSkeleton } from '@/components/Organization/OrganizationDetailsSkeleton';
 import { ProfileSkeleton } from '@/components/Profile/ProfileSkeleton';
 import { ReceiptsSkeleton } from '@/components/Receipts/ReceiptsSkeleton';
+import { ReportsSkeleton } from '@/components/Reports/ReportsSkeleton';
 import { TransactionsSkeleton } from '@/components/Transactions/TransactionsSkeleton';
 import HomeView from '@/components/views/HomeView';
 import NotFoundView from '@/components/views/NotFoundView';

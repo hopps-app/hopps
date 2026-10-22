@@ -1,9 +1,8 @@
 import { CategoryGroupCreateRequest, CategoryGroupResponse, CategoryGroupUpdateRequest, CategoryGroupValueCreateRequest } from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import apiService from '@/services/ApiService';
-
 import { SETUP_PROGRESS_KEY } from '@/components/Dashboard/setupProgressKey';
+import apiService from '@/services/ApiService';
 
 export const categoryGroupKeys = {
     all: ['category-groups'] as const,
