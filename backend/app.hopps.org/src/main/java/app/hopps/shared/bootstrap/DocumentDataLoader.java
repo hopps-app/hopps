@@ -106,6 +106,16 @@ public class DocumentDataLoader implements EntityDataLoader<TestdataConfig.Docum
                         .setParameter("txId", document.getTransactionId())
                         .executeUpdate();
             }
+            // A split receipt: several transactions booked from it, in part order.
+            if (document.getTransactionIds() != null) {
+                for (Long transactionId : document.getTransactionIds()) {
+                    entityManager.createNativeQuery(
+                            "UPDATE transaction SET document_id = :docId WHERE id = :txId")
+                            .setParameter("docId", document.getId())
+                            .setParameter("txId", transactionId)
+                            .executeUpdate();
+                }
+            }
 
             Log.debugf("Loaded document: %s (id=%d)", document.getName(), document.getId());
         }

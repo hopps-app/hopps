@@ -352,6 +352,8 @@ public class TestdataConfig {
         private Boolean privatelyPaid;
         private String createdBy;
         private String senderName;
+        // Category-group values by group id, e.g. {1: "Aufführung"}. Raw map: SnakeYAML reads the keys as Integer.
+        private Map<?, ?> categoryValues;
 
         public Long getId() {
             return id;
@@ -440,18 +442,28 @@ public class TestdataConfig {
         public void setSenderName(String senderName) {
             this.senderName = senderName;
         }
+
+        public Map<?, ?> getCategoryValues() {
+            return categoryValues;
+        }
+
+        public void setCategoryValues(Map<?, ?> categoryValues) {
+            this.categoryValues = categoryValues;
+        }
     }
 
     /**
      * A test receipt (Document). Optionally linked to an existing transaction via {@code transactionId} so it appears
      * in the receipts view and the receipt-review drawer. No file is stored in S3 — the file endpoint simply returns
-     * 404 for these, which the UI handles gracefully (no preview).
+     * 404 for these, which the UI handles gracefully (no preview). A split receipt lists its parts in
+     * {@code transactionIds} instead.
      */
     public static class DocumentData {
         private Long id;
         private Long organizationId;
         private Long bommelId;
         private Long transactionId;
+        private List<Long> transactionIds;
         private String name;
         private String total;
         private String currencyCode;
@@ -619,6 +631,14 @@ public class TestdataConfig {
         public void setUploadedBy(String uploadedBy) {
             this.uploadedBy = uploadedBy;
         }
+
+        public List<Long> getTransactionIds() {
+            return transactionIds;
+        }
+
+        public void setTransactionIds(List<Long> transactionIds) {
+            this.transactionIds = transactionIds;
+        }
     }
 
     /**
@@ -768,6 +788,8 @@ public class TestdataConfig {
         private String transactionType;
         private String status;
         private String matchedAmount;
+        // Allocations to bookkeeping transactions; when present, status and matchedAmount are derived from them.
+        private List<MatchData> matches;
 
         public Long getId() {
             return id;
@@ -863,6 +885,36 @@ public class TestdataConfig {
 
         public void setMatchedAmount(String matchedAmount) {
             this.matchedAmount = matchedAmount;
+        }
+
+        public List<MatchData> getMatches() {
+            return matches;
+        }
+
+        public void setMatches(List<MatchData> matches) {
+            this.matches = matches;
+        }
+    }
+
+    /** Allocation of (part of) a bank transaction to a bookkeeping transaction. Amount is positive. */
+    public static class MatchData {
+        private Long transactionId;
+        private String amount;
+
+        public Long getTransactionId() {
+            return transactionId;
+        }
+
+        public void setTransactionId(Long transactionId) {
+            this.transactionId = transactionId;
+        }
+
+        public String getAmount() {
+            return amount;
+        }
+
+        public void setAmount(String amount) {
+            this.amount = amount;
         }
     }
 
