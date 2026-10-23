@@ -376,6 +376,20 @@
     "bookings_other": "{{count}} транзакції"
   },
   "menu": {
+    "badge": {
+      "receipts_one": "{{count}} документ на перевірку",
+      "receipts_few": "{{count}} документи на перевірку",
+      "receipts_many": "{{count}} документів на перевірку",
+      "receipts_other": "{{count}} документів на перевірку",
+      "transactions_one": "{{count}} непідтверджена транзакція",
+      "transactions_few": "{{count}} непідтверджені транзакції",
+      "transactions_many": "{{count}} непідтверджених транзакцій",
+      "transactions_other": "{{count}} непідтверджених транзакцій",
+      "bankAccounts_one": "{{count}} відкрита банківська операція",
+      "bankAccounts_few": "{{count}} відкриті банківські операції",
+      "bankAccounts_many": "{{count}} відкритих банківських операцій",
+      "bankAccounts_other": "{{count}} відкритих банківських операцій"
+    },
     "dashboard": "Панель керування",
     "receipts": "Документи",
     "upload-receipt": "Завантажити документ",

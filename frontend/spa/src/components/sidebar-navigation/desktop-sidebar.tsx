@@ -6,7 +6,9 @@ import { useLocation } from 'react-router-dom';
 
 import { SetupNavItem } from './setup-nav-item';
 import { menuConfig } from './shared/menu-config';
+import { MenuBadge } from './shared/MenuBadge';
 import type { MenuItem } from './shared/types';
+import { useMenuBadges } from './shared/use-menu-badges';
 
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx';
 import Icon from '@/components/ui/Icon';
@@ -27,6 +29,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
     const navigate = useGuardedNavigate();
     const { t } = useTranslation();
     const { user, isAuthenticated } = useStore();
+    const badges = useMenuBadges();
 
     const userMenuItems = React.useMemo<DropdownMenuItem[]>(
         () => [
@@ -50,6 +53,8 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
 
     const renderNavItem = (item: MenuItem) => {
         const active = isItemActive(item.path);
+        const count = badges[item.id] ?? 0;
+        const badge = item.badgeLabel ? <MenuBadge count={count} label={t(item.badgeLabel, { count })} collapsed={collapsed} /> : null;
 
         const button = (
             <button
@@ -63,8 +68,12 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
                     ${active ? 'bg-purple-100 dark:bg-purple-300 text-primary dark:text-purple-950' : 'text-grey-900 dark:text-grey-800 hover:bg-hover-effect dark:hover:bg-purple-200'}
                 `}
             >
-                <span className="flex-shrink-0">{typeof item.icon === 'string' ? <Icon icon={item.icon} size={18} /> : <item.icon size={18} />}</span>
+                <span className="relative flex-shrink-0">
+                    {typeof item.icon === 'string' ? <Icon icon={item.icon} size={18} /> : <item.icon size={18} />}
+                    {collapsed && badge}
+                </span>
                 {!collapsed && <span className="flex-1 text-left truncate">{t(item.label)}</span>}
+                {!collapsed && badge}
             </button>
         );
 
@@ -80,6 +89,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
                                 className="z-50 rounded-md bg-grey-black px-2.5 py-1.5 text-xs font-medium text-white shadow-lg animate-in fade-in-0 zoom-in-95"
                             >
                                 {t(item.label)}
+                                {count > 0 && item.badgeLabel && <span className="opacity-70"> · {t(item.badgeLabel, { count })}</span>}
                                 <Tooltip.Arrow className="fill-grey-black" />
                             </Tooltip.Content>
                         </Tooltip.Portal>

@@ -16,6 +16,7 @@ export const menuConfig: MenuItem[] = [
         label: 'menu.receipts',
         icon: ReceiptIcon,
         path: '/receipts',
+        badgeLabel: 'menu.badge.receipts',
     },
     {
         id: 'structure',
@@ -28,12 +29,14 @@ export const menuConfig: MenuItem[] = [
         label: 'menu.transactions',
         icon: ListIcon,
         path: '/transactions',
+        badgeLabel: 'menu.badge.transactions',
     },
     {
         id: 'bank-accounts',
         label: 'menu.bankAccounts',
         icon: LandmarkIcon,
         path: '/bank-accounts',
+        badgeLabel: 'menu.badge.bankAccounts',
     },
     {
         id: 'categories',

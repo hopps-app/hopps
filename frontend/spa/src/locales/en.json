@@ -539,6 +539,14 @@
         "bookings_other": "{{count}} transactions"
     },
     "menu": {
+        "badge": {
+            "receipts_one": "{{count}} receipt to review",
+            "receipts_other": "{{count}} receipts to review",
+            "transactions_one": "{{count}} unconfirmed transaction",
+            "transactions_other": "{{count}} unconfirmed transactions",
+            "bankAccounts_one": "{{count}} open bank transaction",
+            "bankAccounts_other": "{{count}} open bank transactions"
+        },
         "dashboard": "Dashboard",
         "receipts": "Receipts",
         "upload-receipt": "Upload Receipt",

@@ -538,6 +538,14 @@
         "bookings_other": "{{count}} Transaktionen"
     },
     "menu": {
+        "badge": {
+            "receipts_one": "{{count}} Beleg zu prüfen",
+            "receipts_other": "{{count}} Belege zu prüfen",
+            "transactions_one": "{{count}} unbestätigte Transaktion",
+            "transactions_other": "{{count}} unbestätigte Transaktionen",
+            "bankAccounts_one": "{{count}} offener Bankumsatz",
+            "bankAccounts_other": "{{count}} offene Bankumsätze"
+        },
         "dashboard": "Dashboard",
         "receipts": "Belege",
         "upload-receipt": "Beleg hochladen",

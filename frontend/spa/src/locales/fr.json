@@ -506,6 +506,14 @@
         "bookings_other": "{{count}} transactions"
     },
     "menu": {
+        "badge": {
+            "receipts_one": "{{count}} reçu à vérifier",
+            "receipts_other": "{{count}} reçus à vérifier",
+            "transactions_one": "{{count}} transaction non confirmée",
+            "transactions_other": "{{count}} transactions non confirmées",
+            "bankAccounts_one": "{{count}} opération bancaire ouverte",
+            "bankAccounts_other": "{{count}} opérations bancaires ouvertes"
+        },
         "dashboard": "Tableau de bord",
         "receipts": "Reçus",
         "upload-receipt": "Téléverser un reçu",

@@ -506,6 +506,14 @@
         "bookings_other": "{{count}} transazioni"
     },
     "menu": {
+        "badge": {
+            "receipts_one": "{{count}} ricevuta da verificare",
+            "receipts_other": "{{count}} ricevute da verificare",
+            "transactions_one": "{{count}} transazione non confermata",
+            "transactions_other": "{{count}} transazioni non confermate",
+            "bankAccounts_one": "{{count}} movimento bancario aperto",
+            "bankAccounts_other": "{{count}} movimenti bancari aperti"
+        },
         "dashboard": "Dashboard",
         "receipts": "Ricevute",
         "upload-receipt": "Carica ricevuta",
