@@ -5,6 +5,7 @@ import app.hopps.bankimport.domain.BankTransactionMatch;
 import app.hopps.bankimport.domain.BankTransactionMatchType;
 import app.hopps.bankimport.domain.BankTransactionStatus;
 import app.hopps.bankimport.repository.BankTransactionRepository;
+import app.hopps.document.domain.Document;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.audit.TransactionAuditor;
@@ -18,6 +19,7 @@ import jakarta.ws.rs.NotFoundException;
 
 import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,14 +77,7 @@ public class BankTransactionMatchService {
             adoptedTotal = true;
         }
 
-        boolean alreadyLinked = em.createQuery(
-                "SELECT COUNT(m) FROM BankTransactionMatch m WHERE m.bankTransaction.id = :bankTxId AND m.transaction.id = :txId",
-                Long.class)
-                .setParameter("bankTxId", bankTxId)
-                .setParameter("txId", transactionId)
-                .getSingleResult() > 0;
-
-        if (alreadyLinked) {
+        if (isLinked(bankTxId, transactionId)) {
             return;
         }
 
@@ -102,7 +97,78 @@ public class BankTransactionMatchService {
         em.persist(match);
         transactionAuditor.linked(tx, bankTxId, allocation, manual, adoptedTotal);
 
+        linkOtherReceiptParts(bankTx, tx, username);
+
         recomputeStatus(bankTx);
+    }
+
+    /**
+     * A split receipt paid in one go: when the movement is exactly the receipt's amount, it pays the receipt's other
+     * parts too, so they are linked right away, in part order, each with what it still needs, as far as the movement
+     * reaches. Parts already covered or already linked to this movement are left alone. Nothing gets confirmed; the
+     * user confirms the parts afterwards.
+     */
+    private void linkOtherReceiptParts(BankTransaction bankTx, Transaction linked, String username) {
+        Document document = linked.getDocument();
+        if (document == null || document.getTotal() == null || document.getTransactions().size() < 2
+                || bankTx.getAmount().abs().compareTo(document.getTotal().abs()) != 0) {
+            return;
+        }
+        BigDecimal remaining = bankTx.getAmount().abs().subtract(allocatedAmount(bankTx.getId()));
+        List<Transaction> otherParts = document.getTransactions()
+                .stream()
+                .filter(part -> !part.getId().equals(linked.getId()))
+                .sorted(Comparator.comparing(Transaction::getId))
+                .toList();
+        for (Transaction part : otherParts) {
+            if (remaining.signum() <= 0) {
+                break;
+            }
+            // Only parts booked in the movement's direction (an expense part for an outgoing payment).
+            if (part.getTotal() == null || part.getTotal().signum() != bankTx.getAmount().signum()
+                    || isLinked(bankTx.getId(), part.getId())) {
+                continue;
+            }
+            // Coverage is signed like the part's total when it covers it, so this is what the part still needs.
+            BigDecimal covered = getCoveredAmountForTransaction(part.getId())
+                    .multiply(BigDecimal.valueOf(part.getTotal().signum()));
+            BigDecimal open = part.getTotal().abs().subtract(covered);
+            if (open.signum() <= 0) {
+                continue;
+            }
+            BigDecimal allocation = open.min(remaining);
+            // A full allocation behaves like a default link (follows later amount changes), a partial one is kept.
+            boolean partial = allocation.compareTo(part.getTotal().abs()) != 0;
+
+            BankTransactionMatch match = new BankTransactionMatch();
+            match.setBankTransaction(bankTx);
+            match.setTransaction(part);
+            match.setMatchedAmount(allocation);
+            match.setAmountManual(partial);
+            match.setMatchType(BankTransactionMatchType.MANUAL);
+            match.setMatchedBy(username);
+            em.persist(match);
+            transactionAuditor.linked(part, bankTx.getId(), allocation, partial, false);
+            remaining = remaining.subtract(allocation);
+        }
+    }
+
+    private boolean isLinked(Long bankTxId, Long transactionId) {
+        return em.createQuery(
+                "SELECT COUNT(m) FROM BankTransactionMatch m WHERE m.bankTransaction.id = :bankTxId AND m.transaction.id = :txId",
+                Long.class)
+                .setParameter("bankTxId", bankTxId)
+                .setParameter("txId", transactionId)
+                .getSingleResult() > 0;
+    }
+
+    /** How much of the movement is allocated to transactions so far (sum of the positive allocations). */
+    private BigDecimal allocatedAmount(Long bankTxId) {
+        return em.createQuery(
+                "SELECT COALESCE(SUM(m.matchedAmount), 0) FROM BankTransactionMatch m WHERE m.bankTransaction.id = :bankTxId",
+                BigDecimal.class)
+                .setParameter("bankTxId", bankTxId)
+                .getSingleResult();
     }
 
     /**
