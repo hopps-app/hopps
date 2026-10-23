@@ -8,9 +8,8 @@
     },
     "categoryGroups": {
         "title": "Catégories",
-        "subtitle": "Les groupes de catégories classent les transactions — selon le bommel sélectionné.",
         "addButton": "Nouveau groupe",
-        "hint": "Un groupe s'applique à un bommel lorsqu'il est affecté à ce bommel ou à l'un de ses parents. Sans affectation, il ne s'applique à aucun bommel — affectez le bommel racine pour l'appliquer à tous.",
+        "hint": "Un groupe s'applique aux bommels que vous choisissez et automatiquement à tous les bommels en dessous. Exemple : si vous l'attribuez à « Jeunesse », il s'applique aussi à « Jeunesse U12 ». Pour toute l'organisation, choisissez le bommel le plus haut.",
         "required": "Obligatoire",
         "optional": "facultatif",
         "emptyState": {
@@ -21,7 +20,10 @@
             "appliesTo": "S'applique à",
             "allBommel": "Tous les bommels",
             "noBommel": "Aucun bommel",
-            "valueCount": "{{count}} valeurs"
+            "values": "Catégories",
+            "addValue": "Catégorie",
+            "valueCount_one": "{{count}} catégorie",
+            "valueCount_other": "{{count}} catégories"
         },
         "delete": {
             "title": "Supprimer le groupe de catégories",
@@ -33,19 +35,27 @@
         "modal": {
             "createTitle": "Nouveau groupe de catégories",
             "editTitle": "Modifier le groupe de catégories",
-            "subtitle": "Définissez le nom, l'indicateur obligatoire, les bommels affectés et les valeurs possibles.",
+            "subtitle": "Définissez le nom, le caractère obligatoire, les bommels attribués et les catégories.",
             "name": "Nom du groupe",
             "namePlaceholder": "p. ex. Centre de coûts",
             "required": "Obligatoire",
-            "requiredHint": "Doit être renseigné pour les bommels concernés avant qu'une transaction puisse être confirmée.",
+            "requiredHint": "Les transactions des bommels sélectionnés ne peuvent être confirmées qu'une fois une catégorie de ce groupe choisie.",
             "bommel": "S'applique aux bommels",
-            "bommelHint": "Aucune sélection = ne s'applique à aucun bommel. Affectez le bommel racine pour l'appliquer à tous.",
-            "bommelPlaceholder": "Sélectionner des bommels …",
-            "bommelSelected": "{{count}} bommels sélectionnés",
-            "values": "Valeurs possibles",
-            "valuePlaceholder": "Ajouter une valeur …",
+            "bommelHint": "Sélection multiple possible. Pour tous les bommels, choisissez le bommel racine.",
+            "values": "Catégories",
+            "valuePlaceholder": "Ajouter une catégorie …",
             "addValue": "Ajouter",
-            "noValues": "Aucune valeur pour le moment."
+            "noValues": "Aucune catégorie pour le moment.",
+            "templateTitle": "Utiliser le modèle",
+            "templateSubtitle": "Choisissez un ou plusieurs bommels auxquels le groupe s'applique. Le nom, le caractère obligatoire et les catégories sont préremplis depuis le modèle et peuvent être modifiés.",
+            "bommelSearch": "Rechercher un bommel …",
+            "bommelOpen": "Ouvrir la liste",
+            "bommelClose": "Fermer la liste",
+            "bommelRoot": "Racine",
+            "bommelNone": "Aucun bommel trouvé.",
+            "remove": "Retirer {{name}}",
+            "fromTemplate": "Partir d'un modèle",
+            "noTemplate": "Aucun modèle"
         },
         "toast": {
             "created": "Groupe de catégories créé",
@@ -55,15 +65,28 @@
         },
         "reopen": {
             "title": "Transactions confirmées concernées",
-            "description": "{{count}} transactions déjà confirmées sous ces bommels n'ont pas encore de valeur pour le groupe obligatoire « {{group}} ». Les remettre en brouillon afin d'ajouter la catégorie ?",
             "keep": "Non, enregistrer uniquement le groupe",
-            "confirm": "Oui, remettre en brouillon"
+            "confirm": "Oui, remettre en brouillon",
+            "description_one": "{{count}} transaction déjà confirmée sous ces bommels n'a pas encore de valeur pour le groupe obligatoire « {{group}} ». La remettre en brouillon afin d'ajouter la catégorie ?",
+            "description_other": "{{count}} transactions déjà confirmées sous ces bommels n'ont pas encore de valeur pour le groupe obligatoire « {{group}} ». Les remettre en brouillon afin d'ajouter la catégorie ?"
         },
         "fields": {
             "eyebrow": "Groupes de catégories",
             "valuePlaceholder": "— veuillez sélectionner —",
             "noValues": "Aucune valeur trouvée",
             "missing": "Veuillez renseigner : {{groups}}"
+        },
+        "setup": {
+            "title": "Configurer les catégories",
+            "templateEyebrow": "Modèle",
+            "previewEyebrow": "Ce qui sera créé",
+            "noTemplate": "Aucun modèle",
+            "applyTemplate": "Utiliser le modèle",
+            "createGroup": "Créer un groupe",
+            "moreValues": "+{{count}} de plus",
+            "noTemplatesTitle": "Créez votre premier groupe de catégories",
+            "ownGroupTitle": "Votre propre groupe de catégories",
+            "ownGroupText": "Pas encore de catégories, vous les créez vous-même."
         }
     },
     "banner": {
@@ -405,11 +428,17 @@
         "createNode": "Ajouter"
     },
     "profile": {
+        "description": "Paramètres personnels de ce compte.",
+        "appearance": "Apparence",
+        "browserOnly": "Enregistré dans ce navigateur.",
+        "languageLabel": "Langue de l'interface",
         "language": "Langue",
         "theme": "Thème",
         "themes": {
             "light": "Clair",
-            "dark": "Sombre"
+            "dark": "Sombre",
+            "auto": "Automatique",
+            "autoHint": "Comme le système d'exploitation"
         },
         "lang": {
             "english": "Anglais",
@@ -433,14 +462,14 @@
         "from": "Du (date de transaction)",
         "to": "Au (date de transaction)",
         "bommel": "Bommel",
-        "export": "Exporter en CSV",
         "total": "Total",
         "table": {
             "value": "Valeur",
             "count": "Nombre",
             "income": "Recettes",
             "expense": "Dépenses",
-            "net": "Net"
+            "net": "Net",
+            "distribution": "Répartition"
         },
         "emptyNoGroup": {
             "title": "Choisissez un groupe de catégories",
@@ -453,7 +482,28 @@
         "error": {
             "title": "Le rapport n'a pas pu être chargé",
             "description": "Veuillez réessayer plus tard."
-        }
+        },
+        "setup": {
+            "title": "Rien à analyser pour le moment",
+            "text": "Les rapports reposent sur vos catégories et les justificatifs et transactions qui leur sont attribués. Vous pourrez ajouter des bommels à tout moment.",
+            "action": "Créer des catégories",
+            "period": "Période",
+            "sampleTitle": "Exemple de rapport",
+            "previewLabel": "Aperçu exemple",
+            "spheres": {
+                "ideal": "Activité non lucrative",
+                "purpose": "Activité liée au but",
+                "assets": "Gestion du patrimoine",
+                "business": "Activité commerciale"
+            }
+        },
+        "allGroupBommels": "Tous les bommels du groupe",
+        "noGroupBommels": "Aucun bommel n'est attribué à ce groupe.",
+        "until": "au",
+        "exportCsv": "Exporter en CSV",
+        "periodHint": "C'est la date de la transaction qui compte, la colonne « Date » sous Transactions. Pas la date de téléversement ni la date de comptabilisation bancaire.",
+        "bookings_one": "{{count}} transaction",
+        "bookings_other": "{{count}} transactions"
     },
     "menu": {
         "dashboard": "Tableau de bord",
@@ -472,7 +522,9 @@
         "collapse": "Réduire",
         "expand": "Développer",
         "openMenu": "Ouvrir le menu",
-        "navigation": "Navigation"
+        "navigation": "Navigation",
+        "setup": "Premiers pas",
+        "setupCount": "{{done}}/{{total}}"
     },
     "transactions": {
         "title": "Transactions",
@@ -668,6 +720,12 @@
             "bulkDeleted": "{{count}} transaction(s) supprimée(s)",
             "bulkDeletePartial": "{{done}} transaction(s) supprimée(s), {{failed}} en échec",
             "bulkDeleteFailed": "Les transactions n'ont pas pu être supprimées"
+    },
+        "empty": {
+            "firstTitle": "Aucune transaction pour le moment",
+            "firstText": "Les transactions proviennent des justificatifs vérifiés et des opérations bancaires importées. Vous pouvez aussi saisir une transaction ci-dessus.",
+            "noMatchTitle": "Aucun résultat",
+            "noMatchText": "Modifiez votre recherche ou choisissez un autre filtre."
         }
     },
     "dashboard": {
@@ -724,7 +782,33 @@
         "timeRange": "Affichage des données du {{startDate}} au {{endDate}}",
         "allBommels": "Tous les bommels",
         "startDate": "Du",
-        "endDate": "Au"
+        "endDate": "Au",
+        "setup": {
+            "title": "Lancez-vous avec hopps",
+            "subtitle": "Quatre étapes et votre comptabilité est prête.",
+            "done": "terminé",
+            "dismiss": "Masquer",
+            "progress": "{{done}} étapes sur {{total}} terminées",
+            "stepDone": "Terminé",
+            "steps": {
+                "bommel": {
+                    "title": "Créer la structure de bommels",
+                    "text": "Sections, projets ou événements"
+                },
+                "categories": {
+                    "title": "Définir les catégories",
+                    "text": "À partir d'un modèle ou les vôtres"
+                },
+                "receipt": {
+                    "title": "Téléverser un justificatif",
+                    "text": "Facture, reçu ou ticket de caisse"
+                },
+                "bankImport": {
+                    "title": "Importer un relevé",
+                    "text": "Créer un compte bancaire et téléverser un CSV"
+                }
+            }
+        }
     },
     "categories": {
         "title": "Catégories",
@@ -782,10 +866,15 @@
     "receipts": {
         "draft": "Brouillon",
         "noDocument": "Aucun document",
-        "empty": "Aucun reçu trouvé",
+        "dueDate": "Échéance le",
+        "empty": {
+            "firstTitle": "Aucun justificatif pour le moment",
+            "firstText": "Factures, reçus et tickets de caisse arrivent ici. Téléversez votre premier justificatif ci-dessus.",
+            "noMatchTitle": "Aucun résultat",
+            "noMatchText": "Modifiez votre recherche ou choisissez un autre filtre."
+        },
         "searchPlaceholder": "Rechercher (nom, expéditeur, montant) …",
         "searchClear": "Effacer la recherche",
-        "noSearchResults": "Aucun reçu trouvé pour « {{search}} »",
         "newReceipt": "Nouveau reçu",
         "table": {
             "category": "Catégorie"
@@ -821,6 +910,7 @@
         },
         "upload": {
             "sectionTitle": "Téléverser des reçus",
+            "setupHint": "Téléversez ici : glissez vos justificatifs ou choisissez des fichiers.",
             "expand": "Développer la zone de téléversement",
             "collapse": "Réduire la zone de téléversement",
             "dropzone": "Déposez les fichiers ici ou cliquez pour les sélectionner",
@@ -979,8 +1069,8 @@
             "unreviewed": "Non vérifiés",
             "confirmed": "Confirmés"
         },
-        "noUnreviewed": "Tous les reçus ont été vérifiés",
-        "noUnreviewedDesc": "Téléversez de nouveaux reçus pour les vérifier.",
+        "noResultsOtherStatus_one": "{{count}} justificatif a un autre statut.",
+        "noResultsOtherStatus_other": "{{count}} justificatifs ont un autre statut.",
         "deleteConfirm": "Vraiment supprimer ce reçu ?",
         "analysisUnavailable": {
             "title": "Service d'analyse indisponible",
@@ -1255,7 +1345,6 @@
         "importAction": "Importer des transactions",
         "import": "Importer",
         "assign": "Affecter",
-        "noTransactions": "Aucune transaction trouvée.",
         "unknownCounterparty": "Inconnue",
         "tabs": {
             "abgleich": "Rapprochement",
@@ -1268,7 +1357,6 @@
             "ignored": "Ignoré"
         },
         "filter": {
-            "all": "Tous",
             "open": "Ouverts",
             "matched": "Rapprochés",
             "ignored": "Ignorés",
@@ -1279,8 +1367,7 @@
             "dateTo": "Date de fin",
             "minAmount": "Montant min.",
             "maxAmount": "Montant max.",
-            "clearAll": "Réinitialiser les filtres",
-            "noResults": "Aucune transaction ne correspond à la recherche/au filtre actuel"
+            "clearAll": "Réinitialiser les filtres"
         },
         "abgleich": {
             "allClear": "Tout est rapproché",
@@ -1305,7 +1392,7 @@
         },
         "imports": {
             "title": "Historique des imports",
-            "subtitle": "Suivez quels relevés bancaires ont été importés et quand.",
+            "subtitle": "Voyez quels relevés bancaires ont été importés, quand et pour quel compte.",
             "account": "Compte",
             "file": "Fichier",
             "imported": "Importées",
@@ -1323,8 +1410,12 @@
             "deleteMatchedWarning_other": "Remarque : <strong>{{count}} de ces transactions</strong> sont liées à des écritures comptables — ces liens seront supprimés."
         },
         "empty": {
-            "title": "Aucun compte bancaire pour le moment",
-            "desc": "Ajoutez votre premier compte bancaire pour commencer à importer des relevés bancaires."
+            "noMatchTitle": "Aucun résultat",
+            "noMatchText": "Modifiez votre recherche ou choisissez un autre filtre.",
+            "noTransactionsTitle": "Aucune opération pour le moment",
+            "noTransactionsText": "Importez un relevé bancaire pour rapprocher les opérations de ce compte.",
+            "otherStatus_one": "{{count}} opération a un autre statut.",
+            "otherStatus_other": "{{count}} opérations ont un autre statut."
         },
         "form": {
             "subtitle": "Données de base du compte",
@@ -1372,6 +1463,11 @@
             "coversExactly": "Couvre exactement le reste",
             "shouldBeIncome": "Cette transaction bancaire est une recette. Veuillez choisir « Recette ».",
             "shouldBeExpense": "Cette transaction bancaire est une dépense. Veuillez choisir « Dépense »."
+        },
+        "firstAccount": {
+            "title": "Créez d'abord un compte bancaire",
+            "text": "Les relevés bancaires sont toujours rattachés à un compte. Dès qu’un compte existe, vous pouvez importer et rapprocher les opérations.",
+            "action": "Ajouter un compte bancaire"
         }
     },
     "bankMatch": {

@@ -3,6 +3,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 
+import { SetupNavItem } from './setup-nav-item';
 import { menuConfig } from './shared/menu-config';
 import type { MenuItem } from './shared/types';
 
@@ -77,6 +78,11 @@ const MobileSidebar: React.FC = () => {
                         >
                             <Icon icon="Cross1" size={16} />
                         </button>
+                    </div>
+
+                    <div className="flex-shrink-0 px-2">
+                        <SetupNavItem collapsed={false} onNavigated={() => setIsOpen(false)} />
+                        <div className="mx-1 mt-2 border-t border-separator" />
                     </div>
 
                     <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-1">{mainItems.map(renderNavItem)}</nav>

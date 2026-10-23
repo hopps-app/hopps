@@ -1,8 +1,14 @@
 import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
+import { KontenSkeleton } from '@/components/BankAccounts/KontenSkeleton';
+import { CategoryGroupsSkeleton } from '@/components/CategoryGroups/CategoryGroupsSkeleton';
 import { LoadingState } from '@/components/common/LoadingState';
 import { DashboardSkeleton } from '@/components/Dashboard/DashboardSkeleton';
+import { OrganizationDetailsSkeleton } from '@/components/Organization/OrganizationDetailsSkeleton';
+import { ProfileSkeleton } from '@/components/Profile/ProfileSkeleton';
+import { ReceiptsSkeleton } from '@/components/Receipts/ReceiptsSkeleton';
+import { ReportsSkeleton } from '@/components/Reports/ReportsSkeleton';
 import { TransactionsSkeleton } from '@/components/Transactions/TransactionsSkeleton';
 import HomeView from '@/components/views/HomeView';
 import NotFoundView from '@/components/views/NotFoundView';
@@ -81,7 +87,7 @@ export default function AppRoutes() {
                 <Route
                     path="/profile"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<ProfileSkeleton />}>
                             <ProfileSettingsView />
                         </LazyRoute>
                     }
@@ -108,7 +114,7 @@ export default function AppRoutes() {
                 <Route
                     path="/receipts"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<ReceiptsSkeleton />}>
                             <ReceiptView />
                         </LazyRoute>
                     }
@@ -128,7 +134,7 @@ export default function AppRoutes() {
                 <Route
                     path="/reports"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<ReportsSkeleton />}>
                             <ReportsView />
                         </LazyRoute>
                     }
@@ -138,7 +144,7 @@ export default function AppRoutes() {
                 <Route
                     path="/bank-accounts"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<KontenSkeleton />}>
                             <KontenView />
                         </LazyRoute>
                     }
@@ -156,7 +162,7 @@ export default function AppRoutes() {
                 <Route
                     path="/admin/ngo-details"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<OrganizationDetailsSkeleton />}>
                             <OrganizationDetailsSettingsView />
                         </LazyRoute>
                     }
@@ -164,7 +170,7 @@ export default function AppRoutes() {
                 <Route
                     path="/admin/categories"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<CategoryGroupsSkeleton />}>
                             <CategoryGroupsView />
                         </LazyRoute>
                     }

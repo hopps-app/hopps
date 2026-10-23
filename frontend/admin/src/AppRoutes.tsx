@@ -8,6 +8,7 @@ import AdminLayout from '@/layouts/AdminLayout';
 const OverviewView = lazy(() => import('@/components/views/OverviewView'));
 const OrganizationsView = lazy(() => import('@/components/views/OrganizationsView'));
 const OrganizationDetailView = lazy(() => import('@/components/views/OrganizationDetailView'));
+const TemplatesView = lazy(() => import('@/components/views/TemplatesView'));
 
 function LazyRoute({ children }: { children: React.ReactNode }) {
     return <Suspense fallback={null}>{children}</Suspense>;
@@ -45,6 +46,14 @@ export default function AppRoutes() {
                     element={
                         <LazyRoute>
                             <OrganizationDetailView />
+                        </LazyRoute>
+                    }
+                />
+                <Route
+                    path="/templates"
+                    element={
+                        <LazyRoute>
+                            <TemplatesView />
                         </LazyRoute>
                     }
                 />

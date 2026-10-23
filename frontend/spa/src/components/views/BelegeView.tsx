@@ -26,11 +26,13 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import CategoryGroupFields from '@/components/CategoryGroups/CategoryGroupFields';
 import { buildBommelIndex, missingRequiredGroups } from '@/components/CategoryGroups/helpers';
-import { LoadingState } from '@/components/common/LoadingState';
+import { LoadingState, TableEmptyState } from '@/components/common';
 import { ALL_BOMMELS, BommelSelect } from '@/components/Dashboard/BommelSelect';
 import { flattenBommelTree } from '@/components/Dashboard/bommelTree';
 import { cacheBommelChoice, getCachedBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFormBommelSelector';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
+import { DOC_GRID, DOC_GRID_NARROW } from '@/components/Receipts/layout';
+import { ReceiptsTableSkeleton } from '@/components/Receipts/ReceiptsSkeleton';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { DirectionCards, Field, footerBtn, inputCls } from '@/components/Transactions/drawerParts';
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
@@ -40,7 +42,7 @@ import { TxIcon } from '@/components/Transactions/TxIcon';
 import { BulkActionBar } from '@/components/ui/BulkActionBar';
 import { CloseButton } from '@/components/ui/CloseButton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { DataTable, DataTableEmpty, DataTableHeader, DataTableRow, HeaderCell, RowCheckbox } from '@/components/ui/DataTable';
+import { DataTable, DataTableHeader, DataTableRow, HeaderCell, RowCheckbox } from '@/components/ui/DataTable';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
@@ -85,12 +87,6 @@ const RECEIPT_STATUS_SEGMENTS: { id: ReceiptStatus; labelKey: string; color: str
     { id: 'unreviewed', labelKey: 'receipts.filter.unreviewed', color: 'var(--info)', tint: 'var(--info-surface)' },
     { id: 'confirmed', labelKey: 'receipts.filter.confirmed', color: 'var(--positive)', tint: 'var(--positive-surface)' },
 ];
-
-// Shared column layout for the documents table header and rows (must stay in sync), same order as the transactions
-// table. Checkbox | Beleg | Bommel | Datum | Erstellt am | Status | Betrag
-const DOC_GRID = '20px minmax(0,2.3fr) 1.2fr 0.9fr 0.9fr 1.1fr 1.1fr';
-// Narrow screens drop the Bommel column, like the transactions table.
-const DOC_GRID_NARROW = '20px minmax(0,2.3fr) 0.9fr 0.9fr 1.1fr 1.1fr';
 
 // Stable marker set by the backend when the AI analysis service was unreachable (mirrors
 // DocumentAnalysisService.ANALYSIS_SERVICE_UNAVAILABLE). Mapped to a localized message + notification here.
@@ -1176,6 +1172,11 @@ type UploadItem = {
     duplicateOfId?: number;
 };
 
+// How long the upload card stays outlined, with the hint bubble below it, after the setup step pointed to it.
+const HIGHLIGHT_MS = 5000;
+// Fade-out of the hint bubble before it unmounts.
+const HINT_FADE_MS = 300;
+
 // How long finished rows stay visible after the last upload of a batch settled. Duplicates a bit longer, so there is
 // time to follow the link to the existing receipt.
 const FINISHED_ROW_MS = 3000;
@@ -1211,7 +1212,15 @@ function rejectionErrorKind(rejection: FileRejection): UploadErrorKind {
  * above the rows; uploaded rows disappear after {@link FINISHED_ROW_MS} and duplicates after {@link DUPLICATE_ROW_MS}, failed rows stay until the user
  * removes them, so they can see which file failed and why. The analysis itself runs afterwards and shows in the table.
  */
-function UploadZone({ onUploaded }: { onUploaded: () => void }) {
+function UploadZone({
+    onUploaded,
+    highlightRequested,
+    onHighlightHandled,
+}: {
+    onUploaded: () => void;
+    highlightRequested: boolean;
+    onHighlightHandled: () => void;
+}) {
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const uploadMutation = useUploadDocument({ toastErrors: false });
@@ -1313,6 +1322,22 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
         maxSize: MAX_UPLOAD_BYTES,
         multiple: true,
     });
+
+    // Setup step "Belege hochladen": expand the panel, outline it and show a hint bubble pointing at it for a few
+    // seconds, so it is clear where files go. 'leaving' keeps the bubble mounted while it fades out.
+    const [hint, setHint] = useState<'off' | 'on' | 'leaving'>('off');
+    const highlighted = hint === 'on';
+    useEffect(() => {
+        if (!highlightRequested) return;
+        expand();
+        setHint('on');
+        onHighlightHandled();
+    }, [highlightRequested, expand, onHighlightHandled]);
+    useEffect(() => {
+        if (hint === 'off') return;
+        const timer = setTimeout(() => setHint(hint === 'on' ? 'leaving' : 'off'), hint === 'on' ? HIGHLIGHT_MS : HINT_FADE_MS);
+        return () => clearTimeout(timer);
+    }, [hint]);
 
     // Drop target around the whole card while the dropzone itself is not shown: when collapsed, and while uploading
     // (files dropped then join the running batch). Click is disabled (noClick) so clicking the bar still toggles
@@ -1540,8 +1565,16 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
 
     return (
         <div
-            className="rounded-[18px] border border-[#E9E9EE] px-5 py-4"
-            style={{ background: '#FFFFFF', boxShadow: '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(20,20,40,.05)' }}
+            className={cn(
+                'relative rounded-[18px] border px-5 py-4 transition-[border-color,box-shadow] duration-700',
+                highlighted ? 'border-[#9955CC]' : 'border-[#E9E9EE]'
+            )}
+            style={{
+                background: '#FFFFFF',
+                boxShadow: highlighted
+                    ? '0 0 0 4px color-mix(in oklch, #9955CC 25%, transparent), 0 6px 22px rgba(20,20,40,.05)'
+                    : '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(20,20,40,.05)',
+            }}
         >
             {passive ? (
                 <div
@@ -1553,6 +1586,23 @@ function UploadZone({ onUploaded }: { onUploaded: () => void }) {
                 </div>
             ) : (
                 card
+            )}
+
+            {hint !== 'off' && (
+                <button
+                    type="button"
+                    role="status"
+                    onClick={() => setHint('leaving')}
+                    className={cn(
+                        'absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 rounded-xl px-4 py-2.5 text-left text-[13.5px] font-bold text-white shadow-lg',
+                        hint === 'on' ? 'animate-in fade-in slide-in-from-top-2 duration-300' : 'animate-out fade-out fill-mode-forwards duration-300'
+                    )}
+                    style={{ background: '#7E3FB4', fontFamily: FONT, width: 'max-content', maxWidth: 'min(360px, calc(100vw - 32px))' }}
+                >
+                    {/* Arrow pointing up at the upload card */}
+                    <span aria-hidden="true" className="absolute left-1/2 -top-1.5 h-3 w-3 -translate-x-1/2 rotate-45" style={{ background: '#7E3FB4' }} />
+                    {t('receipts.upload.setupHint')}
+                </button>
             )}
         </div>
     );
@@ -1666,6 +1716,22 @@ export function BelegeView() {
         if (found) setSelectedDoc(found);
     }, [idParam, allDocs, deepLinkedDoc]);
 
+    // ?upload=1 (setup step "Belege hochladen") scrolls to the upload area and outlines it once.
+    const uploadZoneRef = useRef<HTMLDivElement>(null);
+    const uploadRequested = searchParams.get('upload') === '1';
+    useEffect(() => {
+        if (uploadRequested) uploadZoneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, [uploadRequested]);
+    const clearUploadParam = useCallback(() => {
+        setSearchParams(
+            (prev) => {
+                prev.delete('upload');
+                return prev;
+            },
+            { replace: true }
+        );
+    }, [setSearchParams]);
+
     const closeDrawer = () => {
         setSelectedDoc(null);
         if (searchParams.has('id')) {
@@ -1684,18 +1750,19 @@ export function BelegeView() {
         return Number.isFinite(n) ? Math.abs(n) : null;
     })();
 
-    const filtered = docs.filter((doc) => {
-        if (statusFilter.length > 0 && !statusFilter.includes(receiptStatus(doc))) return false;
-        if (searchTerm) {
-            const matchesText =
-                (doc.name ?? '').toLowerCase().includes(searchTerm) ||
-                (doc.fileName ?? '').toLowerCase().includes(searchTerm) ||
-                (doc.senderName ?? '').toLowerCase().includes(searchTerm);
-            const matchesAmount = searchAmount != null && doc.total != null && Math.abs(Number(doc.total)) === searchAmount;
-            if (!matchesText && !matchesAmount) return false;
-        }
-        return true;
-    });
+    const matchesSearch = (doc: DocumentResponse) => {
+        if (!searchTerm) return true;
+        const matchesText =
+            (doc.name ?? '').toLowerCase().includes(searchTerm) ||
+            (doc.fileName ?? '').toLowerCase().includes(searchTerm) ||
+            (doc.senderName ?? '').toLowerCase().includes(searchTerm);
+        const matchesAmount = searchAmount != null && doc.total != null && Math.abs(Number(doc.total)) === searchAmount;
+        return matchesText || matchesAmount;
+    };
+    const searched = docs.filter(matchesSearch);
+    const filtered = statusFilter.length > 0 ? searched.filter((doc) => statusFilter.includes(receiptStatus(doc))) : searched;
+    // Receipts the search matches but the selected status segments hide.
+    const hiddenByStatus = searched.length - filtered.length;
 
     const sortValue = (d: DocumentResponse): number => {
         switch (sortBy) {
@@ -1765,7 +1832,31 @@ export function BelegeView() {
     const unreviewedCount = docs.filter((d) => receiptStatus(d) === 'unreviewed').length;
     const statusCounts: Record<ReceiptStatus, number> = { unreviewed: unreviewedCount, confirmed: docs.length - unreviewedCount };
     const toggleStatus = (id: ReceiptStatus) => setStatusFilter((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
-    const onlyUnreviewed = statusFilter.length === 1 && statusFilter[0] === 'unreviewed';
+
+    // Empty table, same cases as the transactions table: nothing uploaded yet, matches hidden by the status
+    // segments (offers to show all statuses), or the search finds nothing.
+    const emptyState =
+        docs.length === 0 ? (
+            <TableEmptyState icon={FileText} title={t('receipts.empty.firstTitle')} text={t('receipts.empty.firstText')} />
+        ) : hiddenByStatus > 0 ? (
+            <TableEmptyState
+                icon={FileText}
+                title={t('receipts.empty.noMatchTitle')}
+                text={t('receipts.noResultsOtherStatus', { count: hiddenByStatus })}
+                action={
+                    <BaseButton
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setStatusFilter([])}
+                        className="rounded-[var(--btn-radius)] text-[13.5px] font-bold text-primary"
+                    >
+                        {t('transactions.showAllStatuses')}
+                    </BaseButton>
+                }
+            />
+        ) : (
+            <TableEmptyState icon={FileText} title={t('receipts.empty.noMatchTitle')} text={t('receipts.empty.noMatchText')} />
+        );
 
     return (
         <div className="flex flex-col w-full" style={{ fontFamily: FONT, background: '#F3F4F6' }}>
@@ -1780,8 +1871,8 @@ export function BelegeView() {
             </div>
 
             {/* Upload zone */}
-            <div className="mb-4">
-                <UploadZone onUploaded={() => refetch()} />
+            <div ref={uploadZoneRef} className="mb-4">
+                <UploadZone onUploaded={() => refetch()} highlightRequested={uploadRequested} onHighlightHandled={clearUploadParam} />
             </div>
 
             {/* Filter tabs + bulk re-analyze action */}
@@ -1872,14 +1963,7 @@ export function BelegeView() {
             {/* Document list */}
             <div>
                 {isLoading ? (
-                    <LoadingState className="py-12" />
-                ) : filtered.length === 0 ? (
-                    <DataTableEmpty
-                        title={
-                            searchTerm ? t('receipts.noSearchResults', { search }) : onlyUnreviewed ? t('receipts.noUnreviewed') : t('transactions.noResults')
-                        }
-                        description={searchTerm ? undefined : onlyUnreviewed ? t('receipts.noUnreviewedDesc') : t('transactions.noResultsDesc')}
-                    />
+                    <ReceiptsTableSkeleton hideBommel={hideBommel} />
                 ) : (
                     <DataTable>
                         <DataTableHeader columns={hideBommel ? DOC_GRID_NARROW : DOC_GRID}>
@@ -1916,6 +2000,7 @@ export function BelegeView() {
                             />
                         </DataTableHeader>
 
+                        {sorted.length === 0 && emptyState}
                         {sorted.map((doc) => (
                             <DocumentRow
                                 key={doc.id}

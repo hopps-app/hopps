@@ -2,6 +2,7 @@ import { AlertTriangle } from 'lucide-react';
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import Button from '@/components/ui/Button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 
 type ReopenAffectedTransactionsDialogProps = {
@@ -24,36 +25,25 @@ const ReopenAffectedTransactionsDialog: FC<ReopenAffectedTransactionsDialogProps
 
     return (
         <Dialog open={open} onOpenChange={(o) => !o && onCancel()}>
-            <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg">
+            <DialogContent className="max-w-[calc(100vw-2rem)] rounded-[20px] border-none shadow-[0_2px_6px_rgba(20,20,40,0.12),0_24px_64px_rgba(20,20,40,0.32)] sm:max-w-[620px]">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
+                    <DialogTitle className="mb-4 flex items-center gap-2">
                         <AlertTriangle className="h-5 w-5 text-[#B47C18]" />
                         {t('categoryGroups.reopen.title')}
                     </DialogTitle>
                     <DialogDescription>{t('categoryGroups.reopen.description', { count, group: groupName })}</DialogDescription>
                 </DialogHeader>
-                <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
-                    <button
-                        type="button"
-                        onClick={onCancel}
-                        className="inline-flex h-10 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[#d1d5db] px-4 text-sm font-medium text-[var(--font-color)] transition-colors hover:bg-[#F1F1F4] sm:w-auto"
-                    >
+                {/* Cancel on the left, the two decisions together on the right; on narrow screens they stack. */}
+                <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
+                    <Button variant="outline" size="sm" className="h-10 sm:mr-auto" onClick={onCancel}>
                         {t('common.cancel')}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={onKeep}
-                        className="inline-flex h-10 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[#d1d5db] px-4 text-sm font-medium text-[var(--font-color)] transition-colors hover:bg-[#F1F1F4] sm:w-auto"
-                    >
+                    </Button>
+                    <Button variant="tonal" size="sm" className="h-10" onClick={onKeep}>
                         {t('categoryGroups.reopen.keep')}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={onReopen}
-                        className="inline-flex h-10 w-full items-center justify-center whitespace-nowrap rounded-xl bg-primary px-4 text-sm font-medium text-white transition-colors hover:bg-primary/90 sm:w-auto"
-                    >
+                    </Button>
+                    <Button size="sm" className="h-10" onClick={onReopen}>
                         {t('categoryGroups.reopen.confirm')}
-                    </button>
+                    </Button>
                 </div>
             </DialogContent>
         </Dialog>

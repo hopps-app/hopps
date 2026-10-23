@@ -1,23 +1,29 @@
 import { CategoryGroupResponse } from '@hopps/api-client';
-import { Lightbulb, Pencil, Plus, Tag, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Lightbulb, Plus } from 'lucide-react';
+import { ReactNode, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import CategoryGroupCard from '@/components/CategoryGroups/CategoryGroupCard';
 import CategoryGroupModal from '@/components/CategoryGroups/CategoryGroupModal';
+import CategoryGroupSetup from '@/components/CategoryGroups/CategoryGroupSetup';
+import { CategoryGroupsSkeleton } from '@/components/CategoryGroups/CategoryGroupsSkeleton';
 import { rootBommel } from '@/components/CategoryGroups/helpers';
-import { EmptyState } from '@/components/common/EmptyState';
-import { LoadingState } from '@/components/common/LoadingState/LoadingState';
+import Button from '@/components/ui/Button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
-import { useCategoryGroups, useCategoryGroupUsage, useDeleteCategoryGroup } from '@/hooks/queries/useCategoryGroups';
+import { useCategoryGroups, useCategoryGroupTemplates, useCategoryGroupUsage, useDeleteCategoryGroup } from '@/hooks/queries/useCategoryGroups';
+import { useEnsureBommels } from '@/hooks/use-ensure-bommels';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
 function CategoryGroupsView() {
     const { t } = useTranslation();
-    usePageTitle(t('categoryGroups.title'));
-
+    useEnsureBommels();
     const { data: groups = [], isLoading, refetch } = useCategoryGroups();
+    const { data: templates = [], isLoading: templatesLoading } = useCategoryGroupTemplates();
+    // First use: no group yet, so the page offers the templates instead of the overview.
+    const isSetup = !isLoading && groups.length === 0;
+    usePageTitle(isSetup ? t('categoryGroups.setup.title') : t('categoryGroups.title'));
     const deleteMutation = useDeleteCategoryGroup();
     const { showSuccess, showError } = useToast();
     const allBommels = useBommelsStore((s) => s.allBommels);
@@ -29,7 +35,6 @@ function CategoryGroupsView() {
     const linkedCount = deleteUsage?.transactionCount ?? 0;
 
     const rootId = useMemo(() => rootBommel(allBommels)?.id, [allBommels]);
-    const bommelName = (id: number) => allBommels.find((b) => b.id === id)?.name ?? `#${id}`;
 
     const openCreate = () => {
         setEditing(undefined);
@@ -54,111 +59,54 @@ function CategoryGroupsView() {
         }
     };
 
-    const renderScope = (group: CategoryGroupResponse) => {
-        const ids = group.bommelIds ?? [];
-        if (ids.length === 0) {
-            return <span className="text-[#9A9AA3]">{t('categoryGroups.card.noBommel')}</span>;
-        }
-        if (rootId != null && ids.includes(rootId)) {
-            return <span className="text-[#7E3FB4] font-medium">{t('categoryGroups.card.allBommel')}</span>;
-        }
-        return (
-            <div className="flex flex-wrap gap-1.5">
-                {ids.map((id) => (
-                    <span key={id} className="inline-flex items-center px-2.5 py-1 rounded-full text-[12.5px] font-medium bg-[#F3EAFB] text-[#7E3FB4]">
-                        {bommelName(id)}
-                    </span>
-                ))}
-            </div>
-        );
-    };
-
     return (
         <div className="flex flex-col gap-4 h-full">
-            <div className="flex items-center justify-between gap-2 mt-6">
-                <p className="text-sm text-[#6B6B76] max-w-2xl">{t('categoryGroups.subtitle')}</p>
-                <button
-                    type="button"
-                    onClick={openCreate}
-                    className="inline-flex items-center gap-2 h-10 px-4 rounded-[var(--btn-radius)] bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors whitespace-nowrap"
-                >
-                    <Plus className="h-4 w-4" />
-                    {t('categoryGroups.addButton')}
-                </button>
-            </div>
+            {/* A skeleton instead of a spinner while it is not yet known whether to show the setup or the overview. */}
+            {isLoading || templatesLoading ? (
+                <CategoryGroupsSkeleton />
+            ) : isSetup ? (
+                <>
+                    <PageHeader title={t('categoryGroups.setup.title')} />
+                    <CategoryGroupSetup templates={templates} onCreated={refetch} />
+                </>
+            ) : (
+                <>
+                    <PageHeader
+                        title={t('categoryGroups.title')}
+                        action={
+                            <Button size="sm" className="h-10" onClick={openCreate}>
+                                <Plus />
+                                {t('categoryGroups.addButton')}
+                            </Button>
+                        }
+                    />
 
-            <div className="flex items-start gap-2 rounded-2xl bg-[#F3EAFB] text-[#7E3FB4] px-4 py-3 text-sm">
-                <Lightbulb className="h-4 w-4 mt-0.5 shrink-0" />
-                <span>{t('categoryGroups.hint')}</span>
-            </div>
-
-            <div className="flex-1 min-h-0">
-                {isLoading ? (
-                    <div className="py-12">
-                        <LoadingState size="lg" />
+                    <div className="flex items-start gap-2.5 rounded-2xl bg-[var(--accent-surface)] px-[18px] py-[13px] text-purple-700">
+                        <Lightbulb size={17} className="mt-px shrink-0" />
+                        <p className="text-[13.5px] leading-snug">{t('categoryGroups.hint')}</p>
                     </div>
-                ) : groups.length === 0 ? (
-                    <EmptyState title={t('categoryGroups.emptyState.title')} description={t('categoryGroups.emptyState.description')} />
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+
+                    <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(320px,1fr))]">
                         {groups.map((group) => (
-                            <div key={group.id} className="rounded-[18px] border border-[#E9E9EE] bg-white p-5 flex flex-col gap-3">
-                                <div className="flex items-start justify-between gap-2">
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <span
-                                            className="inline-flex items-center justify-center shrink-0"
-                                            style={{ width: 42, height: 42, borderRadius: 12, background: '#F3EAFB', color: '#7E3FB4' }}
-                                        >
-                                            <Tag className="h-5 w-5" />
-                                        </span>
-                                        <div className="min-w-0">
-                                            <div className="font-semibold text-[var(--font-color)] truncate">{group.name}</div>
-                                            <div className="flex items-center gap-1.5 mt-0.5">
-                                                {group.required ? (
-                                                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#FBF1DD] text-[#B47C18]">
-                                                        {t('categoryGroups.required')}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#F1F1F4] text-[#6B6B76]">
-                                                        {t('categoryGroups.optional')}
-                                                    </span>
-                                                )}
-                                                <span className="text-[12px] text-[#9A9AA3]">
-                                                    {t('categoryGroups.card.valueCount', { count: group.valueCount ?? 0 })}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-1 shrink-0">
-                                        <button
-                                            type="button"
-                                            onClick={() => openEdit(group)}
-                                            className="p-1.5 rounded-lg text-[#6B6B76] hover:bg-[#F1F1F4] transition-colors"
-                                            aria-label={t('common.edit')}
-                                        >
-                                            <Pencil className="h-4 w-4" />
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setToDelete(group)}
-                                            className="p-1.5 rounded-lg text-[#6B6B76] hover:bg-[#FBEAEF] hover:text-[#B12C4C] transition-colors"
-                                            aria-label={t('common.delete')}
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="border-t border-[#E9E9EE] pt-3">
-                                    <div className="text-[11px] font-bold uppercase tracking-[0.07em] text-[#9A9AA3] mb-1.5">
-                                        {t('categoryGroups.card.appliesTo')}
-                                    </div>
-                                    {renderScope(group)}
-                                </div>
-                            </div>
+                            <CategoryGroupCard
+                                key={group.id}
+                                group={group}
+                                rootId={rootId}
+                                onEdit={() => openEdit(group)}
+                                onDelete={() => setToDelete(group)}
+                            />
                         ))}
+                        <button
+                            type="button"
+                            onClick={openCreate}
+                            className="flex min-h-[180px] flex-col items-center justify-center gap-2.5 rounded-[var(--r-card)] border-2 border-dashed border-[#E0E0E6] bg-[var(--surface-sunken)] text-[13.5px] font-bold text-purple-700 transition-colors hover:border-[var(--primary)] hover:bg-[var(--accent-surface)] dark:border-gray-700"
+                        >
+                            <Plus size={22} />
+                            {t('categoryGroups.addButton')}
+                        </button>
                     </div>
-                )}
-            </div>
+                </>
+            )}
 
             <CategoryGroupModal open={modalOpen} group={editing} onClose={() => setModalOpen(false)} onSaved={refetch} />
 
@@ -193,6 +141,19 @@ function CategoryGroupsView() {
                     </div>
                 </DialogContent>
             </Dialog>
+        </div>
+    );
+}
+
+/** Page title with an optional subtitle and an optional action on the right, shaped like the Transaktionen header. */
+function PageHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
+    return (
+        <div className="flex items-start justify-between gap-4">
+            <div>
+                <h1 className="text-[27px] font-extrabold leading-tight tracking-[-0.02em] text-foreground">{title}</h1>
+                {subtitle && <p className="mt-1 text-[14.5px] text-muted-foreground">{subtitle}</p>}
+            </div>
+            {action}
         </div>
     );
 }

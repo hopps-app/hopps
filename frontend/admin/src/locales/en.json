@@ -6,6 +6,7 @@
         "empty": "No menu items yet.",
         "overview": "Overview",
         "organizations": "Organizations",
+        "templates": "Templates",
         "collapse": "Collapse",
         "expand": "Expand",
         "logout": "Log out",
@@ -157,6 +158,65 @@
             "impersonateHint": "Open this user's view",
             "delete": "Delete",
             "deleteHint": "Remove access · cannot be undone"
+        }
+    },
+    "templates": {
+        "title": "Templates",
+        "subtitle": "Templates that organizations can copy into their own data.",
+        "new": "New template",
+        "filterLabel": "Templates by type",
+        "orderError": "Could not save the order. Please try again.",
+        "dragHandle": "Drag to change the order",
+        "orderHint": "Drag a template up or down by its dots to change the order. Organizations see the templates in this order too. Saved right away.",
+        "filterAll": "All",
+        "loadError": "Could not load templates. Please try again.",
+        "emptyTitle": "No templates yet",
+        "emptyText": "Create a template so organizations can add it with one click.",
+        "types": {
+            "CATEGORY_GROUP": "Category group"
+        },
+        "columns": {
+            "name": "Name",
+            "type": "Type",
+            "items": "Entries",
+            "usage": "Used by",
+            "updated": "Changed",
+            "status": "Status"
+        },
+        "usage_one": "{{formatted}} organization",
+        "usage_other": "{{formatted}} organizations",
+        "status": {
+            "active": "Active",
+            "inactive": "Inactive"
+        },
+        "editor": {
+            "newTitle": "New template",
+            "editTitle": "Edit template",
+            "loadError": "Could not load the template.",
+            "saveError": "Saving failed. Please try again.",
+            "deleteError": "Deleting failed. Please try again.",
+            "usageNote_one": "{{count}} organization already added this template. Changes only apply to future additions, existing copies stay as they are.",
+            "usageNote_other": "{{count}} organizations already added this template. Changes only apply to future additions, existing copies stay as they are.",
+            "name": "Group name",
+            "namePlaceholder": "e.g. Cost center",
+            "description": "Description",
+            "descriptionHint": "Shown to organizations when they pick a template.",
+            "values": "Values",
+            "valuePlaceholder": "New value, e.g. Youth work",
+            "addValue": "Add",
+            "searchValues": "Search values…",
+            "removeValue": "Remove {{value}}",
+            "noMatches": "No values found.",
+            "valueCount_one": "{{formatted}} value",
+            "valueCount_other": "{{formatted}} values",
+            "required": "Required",
+            "requiredHint": "Transactions can only be confirmed once a value is chosen.",
+            "active": "Active",
+            "activeHint": "Only active templates are offered to organizations.",
+            "save": "Save",
+            "saving": "Saving…",
+            "delete": "Delete",
+            "deleteConfirm": "Delete permanently"
         }
     },
     "home": {

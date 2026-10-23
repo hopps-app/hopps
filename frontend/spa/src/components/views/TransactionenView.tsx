@@ -6,6 +6,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
 import TransactionCategoryFilter, { type CategoryFilterRow } from '@/components/CategoryGroups/TransactionCategoryFilter';
+import { TableEmptyState } from '@/components/common';
 import { ALL_BOMMELS, BommelSelect, BommelSelection } from '@/components/Dashboard/BommelSelect';
 import { collectSubtreeIds, flattenBommelTree } from '@/components/Dashboard/bommelTree';
 import { DeleteTransactionDialog } from '@/components/Receipts/DeleteTransactionDialog';
@@ -16,7 +17,7 @@ import { TransactionDrawer } from '@/components/Transactions/TransactionDrawer';
 import { TableSkeleton } from '@/components/Transactions/TransactionsSkeleton';
 import { TxIcon } from '@/components/Transactions/TxIcon';
 import { BulkActionBar } from '@/components/ui/BulkActionBar';
-import { DataTable, DataTableEmpty, DataTableHeader, DataTableRow, HeaderCell, RowCheckbox } from '@/components/ui/DataTable';
+import { DataTable, DataTableHeader, DataTableRow, HeaderCell, RowCheckbox } from '@/components/ui/DataTable';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { StatusSegments } from '@/components/ui/StatusSegments';
@@ -280,6 +281,8 @@ export function TransactionenView() {
     // Count and income/expense sums across all pages (a single page cannot provide them). Refetches on filter change,
     // not on paging.
     const { data: aggregate } = useTransactionAggregate(filters);
+    // Without any filter: tells "no transaction exists yet" apart from "the filters find nothing" for the empty table.
+    const { data: totalAggregate } = useTransactionAggregate({});
     // Tab counts: the same filters as the list minus the status tab itself, so each tab reports how many
     // rows it would show under the filters that are actually active.
     const countFilters: TransactionFilters = {
@@ -714,23 +717,6 @@ export function TransactionenView() {
             <div>
                 {isLoading || !statusDecided ? (
                     <TableSkeleton hideBommel={hideBommel} />
-                ) : transactions.length === 0 ? (
-                    <DataTableEmpty
-                        title={t('transactions.noResults')}
-                        description={hiddenByStatus > 0 ? t('transactions.noResultsOtherStatus', { count: hiddenByStatus }) : t('transactions.noResultsDesc')}
-                        action={
-                            hiddenByStatus > 0 && (
-                                <BaseButton
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={showAllStatuses}
-                                    className="mt-3 rounded-[var(--btn-radius)] text-[13.5px] font-bold text-primary"
-                                >
-                                    {t('transactions.showAllStatuses')}
-                                </BaseButton>
-                            )
-                        }
-                    />
                 ) : (
                     <DataTable>
                         <DataTableHeader columns={hideBommel ? TX_GRID_NARROW : TX_GRID}>
@@ -772,6 +758,28 @@ export function TransactionenView() {
                             />
                         </DataTableHeader>
 
+                        {transactions.length === 0 &&
+                            (totalAggregate?.count === 0 ? (
+                                <TableEmptyState icon={FileText} title={t('transactions.empty.firstTitle')} text={t('transactions.empty.firstText')} />
+                            ) : hiddenByStatus > 0 ? (
+                                <TableEmptyState
+                                    icon={FileText}
+                                    title={t('transactions.empty.noMatchTitle')}
+                                    text={t('transactions.noResultsOtherStatus', { count: hiddenByStatus })}
+                                    action={
+                                        <BaseButton
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={showAllStatuses}
+                                            className="rounded-[var(--btn-radius)] text-[13.5px] font-bold text-primary"
+                                        >
+                                            {t('transactions.showAllStatuses')}
+                                        </BaseButton>
+                                    }
+                                />
+                            ) : (
+                                <TableEmptyState icon={FileText} title={t('transactions.empty.noMatchTitle')} text={t('transactions.empty.noMatchText')} />
+                            ))}
                         {transactions.map((tx) => (
                             <TransactionRow
                                 key={tx.id}

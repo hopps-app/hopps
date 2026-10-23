@@ -6,6 +6,8 @@ import app.hopps.category.api.dto.CategoryGroupCreateRequest;
 import app.hopps.category.api.dto.CategoryGroupReportResponse;
 import app.hopps.category.api.dto.CategoryGroupReportRow;
 import app.hopps.category.api.dto.CategoryGroupResponse;
+import app.hopps.category.api.dto.CategoryGroupTemplateDetail;
+import app.hopps.category.api.dto.CategoryGroupTemplateOption;
 import app.hopps.category.api.dto.CategoryGroupUpdateRequest;
 import app.hopps.category.api.dto.CategoryGroupUsageResponse;
 import app.hopps.category.api.dto.CategoryGroupValueCreateRequest;
@@ -20,6 +22,9 @@ import app.hopps.category.repository.CategoryGroupValueRepository;
 import app.hopps.category.service.CategoryGroupService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
+import app.hopps.template.domain.CategoryGroupTemplate;
+import app.hopps.template.domain.TemplateCategoryValue;
+import app.hopps.template.repository.CategoryGroupTemplateRepository;
 import io.quarkus.panache.common.Page;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
@@ -63,6 +68,8 @@ import java.util.Set;
 @Consumes(MediaType.APPLICATION_JSON)
 public class CategoryGroupResource {
 
+    private static final int TEMPLATE_PREVIEW_SIZE = 5;
+
     @Inject
     CategoryGroupRepository categoryGroupRepository;
 
@@ -77,6 +84,9 @@ public class CategoryGroupResource {
 
     @Inject
     OrganizationContext organizationContext;
+
+    @Inject
+    CategoryGroupTemplateRepository categoryGroupTemplateRepository;
 
     @GET
     @Operation(summary = "List category groups", description = "All category groups of the current organization, or only those applicable to a bommel when bommelId is given. Values are not included — fetch them via /{id}/values.")
@@ -98,6 +108,51 @@ public class CategoryGroupResource {
         return groups.stream()
                 .map(g -> CategoryGroupResponse.from(g, counts.getOrDefault(g.getId(), 0L)))
                 .toList();
+    }
+
+    @GET
+    @Path("/templates")
+    @Transactional
+    @Operation(operationId = "listCategoryGroupTemplates", summary = "List category group templates", description = "The templates the current organization can add as a category group, with a short value preview. Templates the organization already used carry the id of the group created from them; they can still be used again.")
+    @APIResponse(responseCode = "200", description = "Templates", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CategoryGroupTemplateOption[].class)))
+    @APIResponse(responseCode = "400", description = "User is not part of an organization")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    public List<CategoryGroupTemplateOption> templates() {
+        requireOrganization();
+        List<CategoryGroupTemplate> templates = categoryGroupTemplateRepository.listActive();
+        List<Long> ids = templates.stream().map(CategoryGroupTemplate::getId).toList();
+        Map<Long, Long> valueCounts = categoryGroupTemplateRepository.valueCounts(ids);
+        Map<Long, Long> added = categoryGroupRepository.groupIdsByTemplateForCurrentOrg();
+        return templates.stream()
+                .map(t -> new CategoryGroupTemplateOption(
+                        t.getId(),
+                        t.getName(),
+                        t.getDescription(),
+                        t.isRequired(),
+                        valueCounts.getOrDefault(t.getId(), 0L),
+                        categoryGroupTemplateRepository.firstValues(t.getId(), TEMPLATE_PREVIEW_SIZE),
+                        added.get(t.getId())))
+                .toList();
+    }
+
+    @GET
+    @Path("/templates/{templateId}")
+    @Transactional
+    @Operation(operationId = "getCategoryGroupTemplate", summary = "Get a category group template", description = "The template with all of its values, used to pre-fill the create dialog. Creating the group then goes through POST /category-groups with the templateId, so the usual checks (required flag, re-draft impact) apply.")
+    @APIResponse(responseCode = "200", description = "Template", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CategoryGroupTemplateDetail.class)))
+    @APIResponse(responseCode = "400", description = "User is not part of an organization")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "404", description = "Template not found or not active")
+    public CategoryGroupTemplateDetail template(
+            @PathParam("templateId") @org.eclipse.microprofile.openapi.annotations.parameters.Parameter(description = "The template id") Long templateId) {
+        requireOrganization();
+        CategoryGroupTemplate template = requireActiveTemplate(templateId);
+        return new CategoryGroupTemplateDetail(
+                template.getId(),
+                template.getName(),
+                template.getDescription(),
+                template.isRequired(),
+                template.getValues().stream().map(TemplateCategoryValue::getValue).toList());
     }
 
     @GET
@@ -132,6 +187,9 @@ public class CategoryGroupResource {
         group.setRequired(request.required());
         group.setOrganization(org);
         group.setBommels(resolveBommels(request.bommelIds(), org));
+        if (request.templateId() != null) {
+            group.setTemplateId(requireActiveTemplate(request.templateId()).getId());
+        }
         categoryGroupRepository.persist(group);
 
         addValues(group, request.values());
@@ -283,6 +341,14 @@ public class CategoryGroupResource {
             throw new BadRequestException("User is not part of an organization");
         }
         return org;
+    }
+
+    private CategoryGroupTemplate requireActiveTemplate(Long templateId) {
+        CategoryGroupTemplate template = categoryGroupTemplateRepository.findById(templateId);
+        if (template == null || !template.isActive()) {
+            throw new NotFoundException("Template " + templateId + " not found");
+        }
+        return template;
     }
 
     private CategoryGroup requireGroup(Long id) {

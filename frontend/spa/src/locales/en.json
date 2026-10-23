@@ -8,9 +8,8 @@
     },
     "categoryGroups": {
         "title": "Categories",
-        "subtitle": "Category groups classify transactions — depending on the selected bommel.",
         "addButton": "New group",
-        "hint": "A group applies to a bommel when it is assigned to that bommel or one of its parents. With no assignment it applies to no bommel — assign the root bommel to apply to all.",
+        "hint": "A group applies to the bommels you choose and automatically to every bommel below them. Example: if you assign it to \"Youth\", it also applies to \"Youth U12\". For the whole organization, choose the top bommel.",
         "required": "Required",
         "optional": "optional",
         "emptyState": {
@@ -21,7 +20,10 @@
             "appliesTo": "Applies to",
             "allBommel": "All bommels",
             "noBommel": "No bommel",
-            "valueCount": "{{count}} values"
+            "values": "Categories",
+            "addValue": "Category",
+            "valueCount_one": "{{count}} category",
+            "valueCount_other": "{{count}} categories"
         },
         "delete": {
             "title": "Delete category group",
@@ -33,19 +35,27 @@
         "modal": {
             "createTitle": "New category group",
             "editTitle": "Edit category group",
-            "subtitle": "Set the name, required flag, assigned bommels and possible values.",
+            "subtitle": "Set the name, required flag, assigned bommels and categories.",
             "name": "Group name",
             "namePlaceholder": "e.g. Cost center",
             "required": "Required",
-            "requiredHint": "Must be filled for matching bommels before a transaction can be confirmed.",
+            "requiredHint": "Transactions in the selected bommels can only be confirmed once a category of this group is chosen.",
             "bommel": "Applies to bommels",
-            "bommelHint": "No selection = applies to no bommel. Assign the root bommel to apply to all.",
-            "bommelPlaceholder": "Select bommels …",
-            "bommelSelected": "{{count}} bommels selected",
-            "values": "Possible values",
-            "valuePlaceholder": "Add a value …",
+            "bommelHint": "Multiple selection possible. Choose the root bommel for all bommels.",
+            "values": "Categories",
+            "valuePlaceholder": "Add category …",
             "addValue": "Add",
-            "noValues": "No values yet."
+            "noValues": "No categories yet.",
+            "templateTitle": "Use template",
+            "templateSubtitle": "Choose one or more bommels the group applies to. Name, required flag and categories are prefilled from the template and can be changed.",
+            "bommelSearch": "Search bommels …",
+            "bommelOpen": "Open list",
+            "bommelClose": "Close list",
+            "bommelRoot": "Root",
+            "bommelNone": "No bommel found.",
+            "remove": "Remove {{name}}",
+            "fromTemplate": "Start from template",
+            "noTemplate": "No template"
         },
         "toast": {
             "created": "Category group created",
@@ -55,15 +65,28 @@
         },
         "reopen": {
             "title": "Confirmed transactions affected",
-            "description": "{{count}} already-confirmed transactions under these bommels have no value for the required group \"{{group}}\" yet. Reset them to draft so the category can be added?",
             "keep": "No, just save the group",
-            "confirm": "Yes, reset to draft"
+            "confirm": "Yes, reset to draft",
+            "description_one": "{{count}} already-confirmed transaction under these bommels has no value for the required group \"{{group}}\" yet. Reset it to draft so the category can be added?",
+            "description_other": "{{count}} already-confirmed transactions under these bommels have no value for the required group \"{{group}}\" yet. Reset them to draft so the category can be added?"
         },
         "fields": {
             "eyebrow": "Category groups",
             "valuePlaceholder": "Please select",
             "noValues": "No values found",
             "missing": "Please fill in: {{groups}}"
+        },
+        "setup": {
+            "title": "Set up categories",
+            "templateEyebrow": "Template",
+            "previewEyebrow": "This will be created",
+            "noTemplate": "No template",
+            "applyTemplate": "Use template",
+            "createGroup": "Create group",
+            "moreValues": "+{{count}} more",
+            "noTemplatesTitle": "Create your first category group",
+            "ownGroupTitle": "Your own category group",
+            "ownGroupText": "No categories yet, you create them yourself."
         }
     },
     "banner": {
@@ -438,11 +461,17 @@
         "createNode": "Add new"
     },
     "profile": {
+        "description": "Personal settings for this account.",
+        "appearance": "Appearance",
+        "browserOnly": "Saved in this browser.",
+        "languageLabel": "Interface language",
         "language": "Language",
         "theme": "Theme",
         "themes": {
             "light": "Light",
-            "dark": "Dark"
+            "dark": "Dark",
+            "auto": "Automatic",
+            "autoHint": "Same as the operating system"
         },
         "lang": {
             "english": "English",
@@ -466,14 +495,14 @@
         "from": "From (transaction date)",
         "to": "To (transaction date)",
         "bommel": "Bommel",
-        "export": "Export CSV",
         "total": "Total",
         "table": {
             "value": "Value",
             "count": "Count",
             "income": "Income",
             "expense": "Expenses",
-            "net": "Net"
+            "net": "Net",
+            "distribution": "Distribution"
         },
         "emptyNoGroup": {
             "title": "Choose a category group",
@@ -486,7 +515,28 @@
         "error": {
             "title": "Report could not be loaded",
             "description": "Please try again later."
-        }
+        },
+        "setup": {
+            "title": "Nothing to report yet",
+            "text": "Reports are built from your categories and the receipts and transactions assigned to them. You can add bommels at any time later.",
+            "action": "Create categories",
+            "period": "Period",
+            "sampleTitle": "Sample report",
+            "previewLabel": "Sample preview",
+            "spheres": {
+                "ideal": "Non-profit activities",
+                "purpose": "Purpose-related business",
+                "assets": "Asset management",
+                "business": "Commercial business"
+            }
+        },
+        "allGroupBommels": "All bommels of the group",
+        "noGroupBommels": "No bommel is assigned to this group.",
+        "until": "to",
+        "exportCsv": "Export CSV",
+        "periodHint": "This uses the transaction date, the \"Date\" column under Transactions. Not the upload date or the bank booking date.",
+        "bookings_one": "{{count}} transaction",
+        "bookings_other": "{{count}} transactions"
     },
     "menu": {
         "dashboard": "Dashboard",
@@ -505,7 +555,9 @@
         "collapse": "Collapse",
         "expand": "Expand",
         "openMenu": "Open menu",
-        "navigation": "Navigation"
+        "navigation": "Navigation",
+        "setup": "Getting started",
+        "setupCount": "{{done}}/{{total}}"
     },
     "transactions": {
         "title": "Transactions",
@@ -701,6 +753,12 @@
             "bulkDeleted": "{{count}} transaction(s) deleted",
             "bulkDeletePartial": "{{done}} transaction(s) deleted, {{failed}} failed",
             "bulkDeleteFailed": "Transactions could not be deleted"
+    },
+        "empty": {
+            "firstTitle": "No transactions yet",
+            "firstText": "Transactions come from reviewed receipts and imported bank transactions. You can also record a transaction above.",
+            "noMatchTitle": "Nothing found",
+            "noMatchText": "Adjust your search or choose another filter."
         }
     },
     "dashboard": {
@@ -757,7 +815,33 @@
         "timeRange": "Showing data from {{startDate}} to {{endDate}}",
         "allBommels": "All Bommels",
         "startDate": "From",
-        "endDate": "To"
+        "endDate": "To",
+        "setup": {
+            "title": "Get started with hopps",
+            "subtitle": "Four steps and your bookkeeping is ready to go.",
+            "done": "done",
+            "dismiss": "Hide",
+            "progress": "{{done}} of {{total}} steps done",
+            "stepDone": "Done",
+            "steps": {
+                "bommel": {
+                    "title": "Set up bommel structure",
+                    "text": "Departments, projects or events"
+                },
+                "categories": {
+                    "title": "Define categories",
+                    "text": "From a template or your own"
+                },
+                "receipt": {
+                    "title": "Upload a receipt",
+                    "text": "Invoice, receipt or till slip"
+                },
+                "bankImport": {
+                    "title": "Import a bank statement",
+                    "text": "Create a bank account and upload a CSV"
+                }
+            }
+        }
     },
     "categories": {
         "title": "Categories",
@@ -815,10 +899,15 @@
     "receipts": {
         "draft": "Draft",
         "noDocument": "No document",
-        "empty": "No receipts found",
+        "dueDate": "Due on",
+        "empty": {
+            "firstTitle": "No receipts yet",
+            "firstText": "Invoices, receipts and till slips end up here. Upload your first receipt above.",
+            "noMatchTitle": "Nothing found",
+            "noMatchText": "Adjust your search or choose another filter."
+        },
         "searchPlaceholder": "Search (name, sender, amount) …",
         "searchClear": "Clear search",
-        "noSearchResults": "No receipts found for \"{{search}}\"",
         "newReceipt": "New receipt",
         "table": {
             "category": "Category"
@@ -854,6 +943,7 @@
         },
         "upload": {
             "sectionTitle": "Upload receipts",
+            "setupHint": "Upload here: drag your receipts in or choose files.",
             "expand": "Expand upload area",
             "collapse": "Collapse upload area",
             "dropzone": "Drop files here or click to select",
@@ -1012,8 +1102,8 @@
             "unreviewed": "Unreviewed",
             "confirmed": "Confirmed"
         },
-        "noUnreviewed": "All receipts have been reviewed",
-        "noUnreviewedDesc": "Upload new receipts to review them.",
+        "noResultsOtherStatus_one": "{{count}} receipt has a different status.",
+        "noResultsOtherStatus_other": "{{count}} receipts have a different status.",
         "deleteConfirm": "Really delete this receipt?",
         "analysisUnavailable": {
             "title": "Analysis service unavailable",
@@ -1288,7 +1378,6 @@
         "importAction": "Import transactions",
         "import": "Import",
         "assign": "Assign",
-        "noTransactions": "No transactions found.",
         "unknownCounterparty": "Unknown",
         "tabs": {
             "abgleich": "Reconciliation",
@@ -1301,7 +1390,6 @@
             "ignored": "Ignored"
         },
         "filter": {
-            "all": "All",
             "open": "Open",
             "matched": "Matched",
             "ignored": "Ignored",
@@ -1312,8 +1400,7 @@
             "dateTo": "Date to",
             "minAmount": "Min amount",
             "maxAmount": "Max amount",
-            "clearAll": "Clear filters",
-            "noResults": "No transactions match the current search/filter"
+            "clearAll": "Clear filters"
         },
         "abgleich": {
             "allClear": "All reconciled",
@@ -1338,7 +1425,7 @@
         },
         "imports": {
             "title": "Import history",
-            "subtitle": "Track which bank statements were imported and when.",
+            "subtitle": "See which bank statements were imported, when, and for which account.",
             "account": "Account",
             "file": "File",
             "imported": "Imported",
@@ -1356,8 +1443,12 @@
             "deleteMatchedWarning_other": "Note: <strong>{{count}} of these transactions</strong> are linked to bookkeeping entries — those links will be removed."
         },
         "empty": {
-            "title": "No bank accounts yet",
-            "desc": "Add your first bank account to start importing bank statements."
+            "noMatchTitle": "Nothing found",
+            "noMatchText": "Adjust your search or choose another filter.",
+            "noTransactionsTitle": "No bank transactions yet",
+            "noTransactionsText": "Import a bank statement to reconcile this account's transactions.",
+            "otherStatus_one": "{{count}} bank transaction has a different status.",
+            "otherStatus_other": "{{count}} bank transactions have a different status."
         },
         "form": {
             "subtitle": "Account master data",
@@ -1405,6 +1496,11 @@
             "coversExactly": "Covers the rest exactly",
             "shouldBeIncome": "This bank transaction is income. Please choose “Income”.",
             "shouldBeExpense": "This bank transaction is an expense. Please choose “Expense”."
+        },
+        "firstAccount": {
+            "title": "Create a bank account first",
+            "text": "Bank statements always belong to an account. Once an account exists, you can import and reconcile transactions.",
+            "action": "Add bank account"
         }
     },
     "bankMatch": {

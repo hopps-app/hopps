@@ -22,13 +22,22 @@ function OrganizationSettingsView() {
     usePageTitle(t('menu.structure'));
     const [searchParams, setSearchParams] = useSearchParams();
     const bommelId = searchParams.get('bommelId');
-    const [isEditMode, setIsEditMode] = useState(false);
+    // ?edit=1 (e.g. from the dashboard setup step) opens the structure straight in edit mode.
+    const [isEditMode, setIsEditMode] = useState(() => searchParams.get('edit') === '1');
     const [isDragDropMode, setIsDragDropMode] = useState(false);
     const [isDemoMode, setIsDemoMode] = useState(false);
     const [selectedBommel, setSelectedBommel] = useState<OrganizationTreeNodeModel | null>(null);
     const [bommelNotFound, setBommelNotFound] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const initialSelectionDone = useRef(false);
+
+    // Drop ?edit=1 from the URL once it has been applied, so a reload does not force edit mode again.
+    useEffect(() => {
+        if (searchParams.has('edit')) {
+            searchParams.delete('edit');
+            setSearchParams(searchParams, { replace: true });
+        }
+    }, [searchParams, setSearchParams]);
 
     const isLargeScreen = useMediaQuery('(min-width: 1024px)');
 

@@ -8,9 +8,8 @@
     },
     "categoryGroups": {
         "title": "Kategorien",
-        "subtitle": "Kategoriegruppen ordnen Transaktionen ein – kontextabhängig vom gewählten Bommel.",
         "addButton": "Neue Gruppe",
-        "hint": "Eine Gruppe gilt für einen Bommel, wenn sie ihm oder einem übergeordneten Bommel zugeordnet ist. Ohne Zuordnung gilt sie für keinen Bommel – für alle Bommel den Root-Bommel auswählen.",
+        "hint": "Eine Gruppe gilt für die ausgewählten Bommel und automatisch für alle Bommel darunter. Beispiel: Ist sie „Jugend“ zugeordnet, gilt sie auch für „Jugend U12“. Für die ganze Organisation den obersten Bommel wählen.",
         "required": "Pflicht",
         "optional": "optional",
         "emptyState": {
@@ -21,7 +20,10 @@
             "appliesTo": "Gilt für",
             "allBommel": "Alle Bommel",
             "noBommel": "Keine Bommel",
-            "valueCount": "{{count}} Werte"
+            "values": "Kategorien",
+            "addValue": "Kategorie",
+            "valueCount_one": "{{count}} Kategorie",
+            "valueCount_other": "{{count}} Kategorien"
         },
         "delete": {
             "title": "Kategoriegruppe löschen",
@@ -33,19 +35,27 @@
         "modal": {
             "createTitle": "Neue Kategoriegruppe",
             "editTitle": "Kategoriegruppe bearbeiten",
-            "subtitle": "Name, Pflicht, zugeordnete Bommel und mögliche Werte festlegen.",
+            "subtitle": "Name, Pflicht, zugeordnete Bommel und Kategorien festlegen.",
             "name": "Name der Gruppe",
             "namePlaceholder": "z. B. Kostenstelle",
             "required": "Pflichtfeld",
-            "requiredHint": "Muss bei passenden Bommeln ausgefüllt werden, bevor bestätigt werden kann.",
+            "requiredHint": "Transaktionen in den gewählten Bommeln lassen sich erst bestätigen, wenn eine Kategorie dieser Gruppe gewählt ist.",
             "bommel": "Gilt für Bommel",
-            "bommelHint": "Keine Auswahl = gilt für keinen Bommel. Für alle Bommel den Root-Bommel wählen.",
-            "bommelPlaceholder": "Bommel auswählen …",
-            "bommelSelected": "{{count}} Bommel ausgewählt",
-            "values": "Mögliche Werte",
-            "valuePlaceholder": "Wert hinzufügen …",
+            "bommelHint": "Mehrfachauswahl möglich. Für alle Bommel den Root-Bommel wählen.",
+            "values": "Kategorien",
+            "valuePlaceholder": "Kategorie hinzufügen …",
             "addValue": "Hinzufügen",
-            "noValues": "Noch keine Werte angelegt."
+            "noValues": "Noch keine Kategorien angelegt.",
+            "templateTitle": "Vorlage übernehmen",
+            "templateSubtitle": "Einen oder mehrere Bommel wählen, für die die Gruppe gilt. Name, Pflichtfeld und Kategorien sind aus der Vorlage vorausgefüllt und lassen sich ändern.",
+            "bommelSearch": "Bommel suchen …",
+            "bommelOpen": "Liste öffnen",
+            "bommelClose": "Liste schließen",
+            "bommelRoot": "Root",
+            "bommelNone": "Kein Bommel gefunden.",
+            "remove": "{{name}} entfernen",
+            "fromTemplate": "Aus Vorlage übernehmen",
+            "noTemplate": "Keine Vorlage"
         },
         "toast": {
             "created": "Kategoriegruppe angelegt",
@@ -55,15 +65,28 @@
         },
         "reopen": {
             "title": "Bestätigte Transaktionen betroffen",
-            "description": "{{count}} bereits bestätigte Transaktionen unter diesen Bommeln haben noch keinen Wert für die Pflichtgruppe „{{group}}“. Zurück auf Entwurf setzen, damit die Kategorie nachgetragen werden kann?",
             "keep": "Nein, nur Gruppe speichern",
-            "confirm": "Ja, auf Entwurf zurücksetzen"
+            "confirm": "Ja, auf Entwurf zurücksetzen",
+            "description_one": "{{count}} bereits bestätigte Transaktion unter diesen Bommeln hat noch keinen Wert für die Pflichtgruppe „{{group}}“. Zurück auf Entwurf setzen, damit die Kategorie nachgetragen werden kann?",
+            "description_other": "{{count}} bereits bestätigte Transaktionen unter diesen Bommeln haben noch keinen Wert für die Pflichtgruppe „{{group}}“. Zurück auf Entwurf setzen, damit die Kategorie nachgetragen werden kann?"
         },
         "fields": {
             "eyebrow": "Kategoriegruppen",
             "valuePlaceholder": "Bitte wählen",
             "noValues": "Keine Werte gefunden",
             "missing": "Bitte ausfüllen: {{groups}}"
+        },
+        "setup": {
+            "title": "Kategorien einrichten",
+            "templateEyebrow": "Vorlage",
+            "previewEyebrow": "Das wird angelegt",
+            "noTemplate": "Keine Vorlage",
+            "applyTemplate": "Vorlage übernehmen",
+            "createGroup": "Gruppe anlegen",
+            "moreValues": "+{{count}} weitere",
+            "noTemplatesTitle": "Erste Kategoriegruppe anlegen",
+            "ownGroupTitle": "Eigene Kategoriegruppe",
+            "ownGroupText": "Noch keine Kategorien, sie werden selbst angelegt."
         }
     },
     "banner": {
@@ -437,11 +460,17 @@
         "createNode": "Neu hinzufügen"
     },
     "profile": {
+        "description": "Persönliche Einstellungen für dieses Konto.",
+        "appearance": "Darstellung",
+        "browserOnly": "Wird in diesem Browser gespeichert.",
+        "languageLabel": "Sprache der Oberfläche",
         "language": "Sprache",
         "theme": "Thema",
         "themes": {
             "light": "Hell",
-            "dark": "Dunkel"
+            "dark": "Dunkel",
+            "auto": "Automatisch",
+            "autoHint": "Wie im Betriebssystem"
         },
         "lang": {
             "english": "Englisch",
@@ -465,14 +494,14 @@
         "from": "Von (Transaktionsdatum)",
         "to": "Bis (Transaktionsdatum)",
         "bommel": "Bommel",
-        "export": "CSV exportieren",
         "total": "Gesamt",
         "table": {
             "value": "Wert",
             "count": "Anzahl",
             "income": "Einnahmen",
             "expense": "Ausgaben",
-            "net": "Saldo"
+            "net": "Saldo",
+            "distribution": "Verteilung"
         },
         "emptyNoGroup": {
             "title": "Kategoriegruppe wählen",
@@ -485,7 +514,28 @@
         "error": {
             "title": "Bericht konnte nicht geladen werden",
             "description": "Bitte später erneut versuchen."
-        }
+        },
+        "setup": {
+            "title": "Noch nichts auszuwerten",
+            "text": "Berichte entstehen aus den Kategorien und den zugeordneten Belegen bzw. Transaktionen. Bommel lassen sich später jederzeit ergänzen.",
+            "action": "Kategorien anlegen",
+            "period": "Zeitraum",
+            "sampleTitle": "Beispielauswertung",
+            "previewLabel": "Beispielvorschau",
+            "spheres": {
+                "ideal": "Ideeller Bereich",
+                "purpose": "Zweckbetrieb",
+                "assets": "Vermögensverwaltung",
+                "business": "Wirtschaftl. Geschäftsbetrieb"
+            }
+        },
+        "allGroupBommels": "Alle Bommel der Gruppe",
+        "noGroupBommels": "Dieser Gruppe ist kein Bommel zugeordnet.",
+        "until": "bis",
+        "exportCsv": "CSV exportieren",
+        "periodHint": "Maßgeblich ist das Datum der Transaktion, also die Spalte „Datum“ unter Transaktionen. Nicht das Upload- oder Buchungsdatum der Bank.",
+        "bookings_one": "{{count}} Transaktion",
+        "bookings_other": "{{count}} Transaktionen"
     },
     "menu": {
         "dashboard": "Dashboard",
@@ -504,7 +554,9 @@
         "collapse": "Einklappen",
         "expand": "Ausklappen",
         "openMenu": "Menü öffnen",
-        "navigation": "Navigation"
+        "navigation": "Navigation",
+        "setup": "Erste Schritte",
+        "setupCount": "{{done}}/{{total}}"
     },
     "transactions": {
         "title": "Transaktionen",
@@ -700,15 +752,26 @@
             "bulkDeleted": "{{count}} Transaktion(en) gelöscht",
             "bulkDeletePartial": "{{done}} Transaktion(en) gelöscht, {{failed}} fehlgeschlagen",
             "bulkDeleteFailed": "Transaktionen konnten nicht gelöscht werden"
+    },
+        "empty": {
+            "firstTitle": "Noch keine Transaktionen",
+            "firstText": "Transaktionen entstehen aus geprüften Belegen und importierten Kontoumsätzen. Oben lässt sich auch direkt eine Transaktion erfassen.",
+            "noMatchTitle": "Nichts gefunden",
+            "noMatchText": "Suche anpassen oder einen anderen Filter wählen."
         }
     },
     "receipts": {
         "draft": "Entwurf",
         "noDocument": "Kein Dokument",
-        "empty": "Keine Belege gefunden",
+        "dueDate": "Fällig am",
+        "empty": {
+            "firstTitle": "Noch keine Belege",
+            "firstText": "Rechnungen, Quittungen und Kassenbons landen hier. Der erste Beleg wird oben hochgeladen.",
+            "noMatchTitle": "Nichts gefunden",
+            "noMatchText": "Suche anpassen oder einen anderen Filter wählen."
+        },
         "searchPlaceholder": "Suchen (Name, Absender, Betrag) …",
         "searchClear": "Suche löschen",
-        "noSearchResults": "Keine Belege für „{{search}}\" gefunden",
         "newReceipt": "Neuer Beleg",
         "table": {
             "category": "Kategorie"
@@ -744,6 +807,7 @@
         },
         "upload": {
             "sectionTitle": "Belege hochladen",
+            "setupHint": "Hier hochladen: Belege hineinziehen oder Dateien auswählen.",
             "expand": "Hochladebereich ausklappen",
             "collapse": "Hochladebereich einklappen",
             "dropzone": "Dateien hier ablegen oder klicken zum Auswählen",
@@ -902,8 +966,8 @@
             "unreviewed": "Ungeprüft",
             "confirmed": "Bestätigt"
         },
-        "noUnreviewed": "Alle Belege wurden geprüft",
-        "noUnreviewedDesc": "Neue Belege hochladen, um sie zu prüfen.",
+        "noResultsOtherStatus_one": "{{count}} Beleg hat einen anderen Status.",
+        "noResultsOtherStatus_other": "{{count}} Belege haben einen anderen Status.",
         "deleteConfirm": "Beleg wirklich löschen?",
         "analysisUnavailable": {
             "title": "Analyse-Service nicht erreichbar",
@@ -1021,7 +1085,33 @@
         "timeRange": "Daten von {{startDate}} bis {{endDate}}",
         "allBommels": "Alle Bommels",
         "startDate": "Von",
-        "endDate": "Bis"
+        "endDate": "Bis",
+        "setup": {
+            "title": "Jetzt mit hopps loslegen",
+            "subtitle": "In vier Schritten ist die Buchhaltung startklar.",
+            "done": "erledigt",
+            "dismiss": "Ausblenden",
+            "progress": "{{done}} von {{total}} Schritten erledigt",
+            "stepDone": "Erledigt",
+            "steps": {
+                "bommel": {
+                    "title": "Bommelstruktur anlegen",
+                    "text": "Abteilungen, Projekte oder Veranstaltungen"
+                },
+                "categories": {
+                    "title": "Kategorien festlegen",
+                    "text": "Aus einer Vorlage oder eigene"
+                },
+                "receipt": {
+                    "title": "Beleg hochladen",
+                    "text": "Rechnung, Quittung oder Kassenbon"
+                },
+                "bankImport": {
+                    "title": "Kontoauszug importieren",
+                    "text": "Bankkonto anlegen und CSV hochladen"
+                }
+            }
+        }
     },
     "categories": {
         "title": "Kategorien",
@@ -1287,7 +1377,6 @@
         "importAction": "Umsätze importieren",
         "import": "Importieren",
         "assign": "Zuordnen",
-        "noTransactions": "Keine Umsätze gefunden.",
         "unknownCounterparty": "Unbekannt",
         "tabs": {
             "abgleich": "Abgleich",
@@ -1300,7 +1389,6 @@
             "ignored": "Ignoriert"
         },
         "filter": {
-            "all": "Alle",
             "open": "Offen",
             "matched": "Zugeordnet",
             "ignored": "Ignoriert",
@@ -1311,8 +1399,7 @@
             "dateTo": "Datum bis",
             "minAmount": "Betrag min.",
             "maxAmount": "Betrag max.",
-            "clearAll": "Filter zurücksetzen",
-            "noResults": "Keine Transaktionen für die aktuelle Suche/Filter"
+            "clearAll": "Filter zurücksetzen"
         },
         "abgleich": {
             "allClear": "Alles abgeglichen",
@@ -1337,7 +1424,7 @@
         },
         "imports": {
             "title": "Import-Historie",
-            "subtitle": "Nachvollziehbar: welche Kontoauszüge wann importiert wurden.",
+            "subtitle": "Hier ist zu sehen, welche Kontoauszüge wann und für welches Konto importiert wurden.",
             "account": "Konto",
             "file": "Datei",
             "imported": "Importiert",
@@ -1355,8 +1442,12 @@
             "deleteMatchedWarning_other": "Achtung: <strong>{{count}} dieser Umsätze</strong> sind Buchungen zugeordnet – diese Zuordnungen gehen verloren."
         },
         "empty": {
-            "title": "Noch keine Bankkonten",
-            "desc": "Das erste Bankkonto hinzufügen, um Kontoauszüge zu importieren."
+            "noMatchTitle": "Nichts gefunden",
+            "noMatchText": "Suche anpassen oder einen anderen Filter wählen.",
+            "noTransactionsTitle": "Noch keine Umsätze",
+            "noTransactionsText": "Sobald ein Kontoauszug importiert ist, werden die Umsätze dieses Kontos hier abgeglichen.",
+            "otherStatus_one": "{{count}} Umsatz hat einen anderen Status.",
+            "otherStatus_other": "{{count}} Umsätze haben einen anderen Status."
         },
         "form": {
             "subtitle": "Stammdaten des Kontos",
@@ -1404,6 +1495,11 @@
             "coversExactly": "Deckt den Rest genau",
             "shouldBeIncome": "Diese Banktransaktion ist eine Einnahme. Bitte „Einnahme\" wählen.",
             "shouldBeExpense": "Diese Banktransaktion ist eine Ausgabe. Bitte „Ausgabe\" wählen."
+        },
+        "firstAccount": {
+            "title": "Zuerst ein Bankkonto anlegen",
+            "text": "Kontoauszüge werden immer einem Konto zugeordnet. Sobald ein Konto angelegt ist, können Umsätze importiert und abgeglichen werden.",
+            "action": "Bankkonto hinzufügen"
         }
     },
     "bankMatch": {

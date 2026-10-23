@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import { DateRange, currentYearToDate, monthKeysInRange, sameRangeLastYear } from './periods';
+import { SETUP_PROGRESS_KEY } from './setupProgressKey';
 
 import apiService from '@/services/ApiService';
 
@@ -77,6 +78,46 @@ export function useOpenReceiptsCount(organizationId: number | undefined) {
         },
         enabled: organizationId != null,
         refetchOnMount: 'always',
+    });
+}
+
+/** Which first-use steps an organization has done; drives the setup strip on top of the dashboard. */
+export type SetupProgress = {
+    categories: boolean;
+    receipt: boolean;
+    /** At least one bank statement imported (an account alone does not bring any data yet). */
+    bankImport: boolean;
+};
+
+/**
+ * First-use progress from real data: a category group, an uploaded receipt and a bank import. The bommel step is read
+ * from the bommel store by the caller. Imports exist per account, so accounts are checked one by one until one has an
+ * import.
+ */
+export function useSetupProgress(organizationId: number | undefined) {
+    return useQuery({
+        queryKey: [...SETUP_PROGRESS_KEY, organizationId],
+        queryFn: async (): Promise<SetupProgress> => {
+            const [groups, documents, accounts] = await Promise.all([
+                apiService.orgService.categoryGroupsAll(undefined),
+                apiService.orgService.documentsAll(undefined),
+                apiService.orgService.bankaccountsAll(true),
+            ]);
+            let bankImport = false;
+            for (const account of accounts) {
+                if (account.id == null) continue;
+                const imports = await apiService.orgService.importsAll(account.id, undefined);
+                if (imports.length > 0) {
+                    bankImport = true;
+                    break;
+                }
+            }
+            return { categories: groups.length > 0, receipt: documents.length > 0, bankImport };
+        },
+        enabled: organizationId != null,
+        refetchOnMount: 'always',
+        // Not covered by the 5-minute default: returning to the tab should show a step done elsewhere right away.
+        staleTime: 0,
     });
 }
 
