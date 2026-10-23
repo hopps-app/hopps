@@ -506,6 +506,14 @@
         "bookings_other": "{{count}} transazioni"
     },
     "menu": {
+        "badge": {
+            "receipts_one": "{{count}} ricevuta da verificare",
+            "receipts_other": "{{count}} ricevute da verificare",
+            "transactions_one": "{{count}} transazione non confermata",
+            "transactions_other": "{{count}} transazioni non confermate",
+            "bankAccounts_one": "{{count}} movimento bancario aperto",
+            "bankAccounts_other": "{{count}} movimenti bancari aperti"
+        },
         "dashboard": "Dashboard",
         "receipts": "Ricevute",
         "upload-receipt": "Carica ricevuta",
@@ -719,13 +727,17 @@
             "deleted": "Transazione eliminata",
             "bulkDeleted": "{{count}} transazione/i eliminata/e",
             "bulkDeletePartial": "{{done}} transazione/i eliminata/e, {{failed}} non riuscita/e",
-            "bulkDeleteFailed": "Impossibile eliminare le transazioni"
-    },
+            "bulkDeleteFailed": "Impossibile eliminare le transazioni",
+            "receiptBackToReview": "L’importo non corrisponde più alla ricevuta. La ricevuta è stata rimessa in verifica."
+        },
         "empty": {
             "firstTitle": "Ancora nessuna transazione",
             "firstText": "Le transazioni nascono dai giustificativi verificati e dai movimenti bancari importati. Puoi anche registrare una transazione qui sopra.",
             "noMatchTitle": "Nessun risultato",
             "noMatchText": "Modifica la ricerca o scegli un altro filtro."
+        },
+        "edit": {
+            "amountFromReceipt": "Questa transazione è stata creata dalla ricevuta «{{receipt}}». Modificare l’importo a mano può creare una differenza rispetto alla ricevuta. Se non corrisponde più alla ricevuta, la ricevuta torna in verifica."
         }
     },
     "dashboard": {
@@ -988,6 +1000,59 @@
             "actions": "Azioni",
             "createdAt": "Creata"
         },
+        "split": {
+            "link": "Suddividere l’importo su più bommel e categorie",
+            "eyebrowEdit": "Suddividere la ricevuta",
+            "date": "Data",
+            "counterparty": "Controparte",
+            "section": "Suddivisione",
+            "of": "di {{total}}",
+            "sumOk": "Gli importi corrispondono",
+            "unassigned": "{{amount}} non assegnati",
+            "over": "{{amount}} assegnati in eccesso",
+            "part": "Parte {{n}}",
+            "partOf": "Parte {{i}} di {{n}}",
+            "amount": "Importo",
+            "bommel": "Bommel",
+            "categories": "Gruppi di categorie",
+            "chooseBommel": "Scegli un bommel",
+            "chooseFirstBommel": "Scegli prima un bommel.",
+            "noGroups": "Questo bommel non ha gruppi di categorie.",
+            "noBommel": "Nessun bommel",
+            "pleaseChoose": "Seleziona",
+            "amountPositive": "L’importo deve essere maggiore di 0",
+            "addPart": "Aggiungi un’altra parte",
+            "addTransaction": "Aggiungi un’altra transazione",
+            "addTransactionLocked": "La transazione è già confermata. Riaprila per creare altre transazioni da questa ricevuta.",
+            "removePart": "Rimuovi parte",
+            "expand": "Espandi come scheda",
+            "collapse": "Comprimi",
+            "saveDraft": "Salva come bozza",
+            "createOne": "Crea transazione",
+            "createMany": "Crea {{n}} transazioni",
+            "incomplete": "Non ancora completo",
+            "editSplit": "Modifica suddivisione",
+            "editSplitLocked": "Le parti confermate non possono essere suddivise di nuovo.",
+            "tabTransactions": "Transazioni",
+            "tabTransaction": "Transazione",
+            "tabReceipt": "Ricevuta",
+            "fromReceipt": "Transazioni da questa ricevuta",
+            "fromReceiptOne": "Transazione da questa ricevuta",
+            "covered": "Completamente coperto",
+            "uncovered": "{{amount}} ancora scoperti",
+            "notBooked": "{{amount}} della ricevuta non sono contabilizzati",
+            "openTransaction": "Apri transazione",
+            "confirmPart": "Conferma",
+            "noTotal": "La ricevuta non ha ancora un importo. Inseriscilo prima durante la verifica.",
+            "noTotalShort": "Importo della ricevuta mancante",
+            "linkLater": "I movimenti bancari si collegano alle singole transazioni dopo la creazione.",
+            "toast": {
+                "draftSaved": "Suddivisione salvata come bozza",
+                "saveError": "Impossibile salvare la suddivisione",
+                "created": "{{n}} transazioni create"
+            },
+            "cancel": "Non suddividere"
+        },
         "review": {
             "title": "Revisiona ricevuta",
             "confirm": "Conferma come transazione",
@@ -1062,7 +1127,9 @@
             "discardTitle": "Annullare le modifiche?",
             "discardText": "Le tue correzioni a questa ricevuta non sono ancora salvate.",
             "discardConfirm": "Annulla modifiche",
-            "keepEditing": "Continua a modificare"
+            "keepEditing": "Continua a modificare",
+            "amountDeviates": "L’importo della transazione ({{transaction}}) è diverso da quello della ricevuta ({{receipt}}). Confermando, l’importo della ricevuta viene allineato a quello della transazione.",
+            "useReceiptAmount": "Usa l’importo della ricevuta ({{amount}})"
         },
         "filter": {
             "all": "Tutte",

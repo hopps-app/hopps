@@ -141,7 +141,9 @@ class DocumentAuditTest {
 
         AuditLog confirm = auditOf(id).get(1);
         assertEquals(AuditAction.CONFIRM, confirm.action);
-        assertEquals(transactionId.longValue(), ((Number) confirm.changes.get("transactionId")).longValue());
+        List<?> transactionIds = (List<?>) confirm.changes.get("transactionIds");
+        assertEquals(1, transactionIds.size());
+        assertEquals(transactionId.longValue(), ((Number) transactionIds.get(0)).longValue());
     }
 
     @Test

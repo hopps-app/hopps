@@ -506,6 +506,14 @@
         "bookings_other": "{{count}} transactions"
     },
     "menu": {
+        "badge": {
+            "receipts_one": "{{count}} reçu à vérifier",
+            "receipts_other": "{{count}} reçus à vérifier",
+            "transactions_one": "{{count}} transaction non confirmée",
+            "transactions_other": "{{count}} transactions non confirmées",
+            "bankAccounts_one": "{{count}} opération bancaire ouverte",
+            "bankAccounts_other": "{{count}} opérations bancaires ouvertes"
+        },
         "dashboard": "Tableau de bord",
         "receipts": "Reçus",
         "upload-receipt": "Téléverser un reçu",
@@ -719,13 +727,17 @@
             "deleted": "Transaction supprimée",
             "bulkDeleted": "{{count}} transaction(s) supprimée(s)",
             "bulkDeletePartial": "{{done}} transaction(s) supprimée(s), {{failed}} en échec",
-            "bulkDeleteFailed": "Les transactions n'ont pas pu être supprimées"
-    },
+            "bulkDeleteFailed": "Les transactions n'ont pas pu être supprimées",
+            "receiptBackToReview": "Le montant ne correspond plus au reçu. Le reçu a été remis en vérification."
+        },
         "empty": {
             "firstTitle": "Aucune transaction pour le moment",
             "firstText": "Les transactions proviennent des justificatifs vérifiés et des opérations bancaires importées. Vous pouvez aussi saisir une transaction ci-dessus.",
             "noMatchTitle": "Aucun résultat",
             "noMatchText": "Modifiez votre recherche ou choisissez un autre filtre."
+        },
+        "edit": {
+            "amountFromReceipt": "Cette transaction a été créée à partir du reçu « {{receipt}} ». Modifier le montant manuellement peut créer un écart avec le reçu. S’il ne correspond plus au reçu, celui-ci repasse en vérification."
         }
     },
     "dashboard": {
@@ -988,6 +1000,59 @@
             "actions": "Actions",
             "createdAt": "Créé le"
         },
+        "split": {
+            "link": "Répartir le montant sur plusieurs bommels et catégories",
+            "eyebrowEdit": "Répartir le justificatif",
+            "date": "Date",
+            "counterparty": "Contrepartie",
+            "section": "Répartition",
+            "of": "sur {{total}}",
+            "sumOk": "Les montants correspondent",
+            "unassigned": "{{amount}} non attribué",
+            "over": "{{amount}} attribué en trop",
+            "part": "Partie {{n}}",
+            "partOf": "Partie {{i}} sur {{n}}",
+            "amount": "Montant",
+            "bommel": "Bommel",
+            "categories": "Groupes de catégories",
+            "chooseBommel": "Choisir un bommel",
+            "chooseFirstBommel": "Choisissez d’abord un bommel.",
+            "noGroups": "Ce bommel n’a pas de groupes de catégories.",
+            "noBommel": "Aucun bommel",
+            "pleaseChoose": "Veuillez choisir",
+            "amountPositive": "Le montant doit être supérieur à 0",
+            "addPart": "Ajouter une partie",
+            "addTransaction": "Ajouter une autre transaction",
+            "addTransactionLocked": "La transaction est déjà confirmée. Rouvrez-la pour créer d’autres transactions à partir de ce reçu.",
+            "removePart": "Supprimer la partie",
+            "expand": "Afficher en carte",
+            "collapse": "Réduire",
+            "saveDraft": "Enregistrer comme brouillon",
+            "createOne": "Créer la transaction",
+            "createMany": "Créer {{n}} transactions",
+            "incomplete": "Pas encore complet",
+            "editSplit": "Modifier la répartition",
+            "editSplitLocked": "Les parties confirmées ne peuvent plus être réparties.",
+            "tabTransactions": "Transactions",
+            "tabTransaction": "Transaction",
+            "tabReceipt": "Justificatif",
+            "fromReceipt": "Transactions issues de ce justificatif",
+            "fromReceiptOne": "Transaction issue de ce justificatif",
+            "covered": "Entièrement couvert",
+            "uncovered": "{{amount}} encore non couvert",
+            "notBooked": "{{amount}} du justificatif ne sont pas comptabilisés",
+            "openTransaction": "Ouvrir la transaction",
+            "confirmPart": "Confirmer",
+            "noTotal": "Le justificatif n’a pas encore de montant. Saisissez-le d’abord lors de la vérification.",
+            "noTotalShort": "Montant du justificatif manquant",
+            "linkLater": "Les mouvements bancaires se rattachent aux transactions individuelles après la création.",
+            "toast": {
+                "draftSaved": "Répartition enregistrée comme brouillon",
+                "saveError": "La répartition n'a pas pu être enregistrée",
+                "created": "{{n}} transactions créées"
+            },
+            "cancel": "Ne pas répartir"
+        },
         "review": {
             "title": "Vérifier le reçu",
             "confirm": "Confirmer comme transaction",
@@ -1062,7 +1127,9 @@
             "discardTitle": "Abandonner les modifications ?",
             "discardText": "Vos corrections sur ce reçu ne sont pas encore enregistrées.",
             "discardConfirm": "Abandonner",
-            "keepEditing": "Continuer la modification"
+            "keepEditing": "Continuer la modification",
+            "amountDeviates": "Le montant de la transaction ({{transaction}}) diffère du reçu ({{receipt}}). La confirmation aligne le montant du reçu sur celui de la transaction.",
+            "useReceiptAmount": "Reprendre le montant du reçu ({{amount}})"
         },
         "filter": {
             "all": "Tous",

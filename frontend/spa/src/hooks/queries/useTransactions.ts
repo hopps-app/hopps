@@ -90,7 +90,7 @@ export function useTransactions(filters: TransactionFilters = {}) {
  * Total count and income/expense sums across the whole filtered result set (all pages) — used to drive pagination and
  * the overview totals, which a single page of results cannot provide.
  */
-export function useTransactionAggregate(filters: TransactionFilters = {}) {
+export function useTransactionAggregate(filters: TransactionFilters = {}, enabled = true) {
     return useQuery({
         queryKey: transactionKeys.aggregate(filters),
         queryFn: () =>
@@ -105,6 +105,7 @@ export function useTransactionAggregate(filters: TransactionFilters = {}) {
                 filters.startDate,
                 filters.status
             ),
+        enabled,
     });
 }
 
@@ -137,6 +138,8 @@ export function useUpdateTransaction() {
         onSuccess: (_data, vars) => {
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
             queryClient.invalidateQueries({ queryKey: transactionKeys.detail(vars.id) });
+            // A changed amount can send the receipt it was booked from back to review.
+            queryClient.invalidateQueries({ queryKey: ['documents'] });
         },
     });
 }

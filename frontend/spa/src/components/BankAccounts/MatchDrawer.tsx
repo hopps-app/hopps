@@ -12,6 +12,7 @@ import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { MatchAllocationControl } from '@/components/Transactions/MatchAllocationControl';
 import { DIRECTION_ICONS } from '@/components/Transactions/TxIcon';
 import { CloseButton } from '@/components/ui/CloseButton';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import {
     useBankTransaction,
     useAddBankTransactionMatch,
@@ -23,6 +24,7 @@ import {
     bankTransactionKeys,
 } from '@/hooks/queries/useBankAccounts';
 import { useDocument } from '@/hooks/queries/useDocuments';
+import { useReopenTransaction } from '@/hooks/queries/useTransactions';
 import { useCurrency } from '@/hooks/use-currency';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -195,6 +197,10 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
     const addMatch = useAddBankTransactionMatch();
     const removeMatch = useRemoveBankTransactionMatch();
     const updateMatchAmount = useUpdateBankTransactionMatchAmount();
+    const reopenTx = useReopenTransaction();
+    // A confirmed transaction whose link is about to be removed: confirming it requires full bank coverage, so unlinking
+    // sets it back to draft, and the user is told so first (same flow as on the transaction side, BankMatchSection).
+    const [unlinkPending, setUnlinkPending] = useState<TransactionResponse | null>(null);
     const { data: matchAllocs } = useBankTransactionMatches(bankTxId);
     const ignoreTx = useIgnoreBankTransaction();
     const unignoreTx = useMutation({
@@ -327,8 +333,20 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
         onClose();
     };
 
-    const handleUnlink = async (txId: number) => {
-        await removeMatch.mutateAsync({ bankTxId, transactionId: txId });
+    const handleUnlink = async (tx: TransactionResponse) => {
+        if (tx.status === 'CONFIRMED') {
+            setUnlinkPending(tx);
+            return;
+        }
+        await removeMatch.mutateAsync({ bankTxId, transactionId: tx.id! });
+    };
+
+    const confirmUnlinkAndReopen = async () => {
+        const tx = unlinkPending;
+        if (!tx?.id) return;
+        await removeMatch.mutateAsync({ bankTxId, transactionId: tx.id });
+        await reopenTx.mutateAsync(tx.id);
+        setUnlinkPending(null);
     };
 
     const handleUpdateAlloc = async (txId: number, amount: number) => {
@@ -480,7 +498,7 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
                                             <button
                                                 type="button"
                                                 className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex-shrink-0"
-                                                onClick={() => handleUnlink(tx.id!)}
+                                                onClick={() => handleUnlink(tx)}
                                                 title={t('konten.drawer.unlink')}
                                             >
                                                 <Unlink className="w-4 h-4" />
@@ -712,6 +730,17 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
                     setShowCreate(false);
                     onClose();
                 }}
+            />
+
+            <ConfirmDialog
+                open={unlinkPending != null}
+                onOpenChange={(o) => !o && setUnlinkPending(null)}
+                title={t('transactions.detail.unlinkReopen.title')}
+                description={t('transactions.detail.unlinkReopen.description')}
+                confirmLabel={t('transactions.detail.unlinkReopen.confirm')}
+                onConfirm={confirmUnlinkAndReopen}
+                destructive
+                loading={removeMatch.isPending || reopenTx.isPending}
             />
         </>
     );

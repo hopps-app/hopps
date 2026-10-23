@@ -1,6 +1,6 @@
 import { TransactionUpdateRequest } from '@hopps/api-client';
-import { Check, ExternalLink, FileText, Pencil, RotateCcw, Trash2 } from 'lucide-react';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { AlertTriangle, Check, ExternalLink, FileText, Pencil, RotateCcw, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -47,7 +47,7 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
     const { data: tx, isLoading } = useTransaction(txId ?? 0);
     // The receipt linked to this transaction (if any) — shown as a large preview to the left of the drawer,
     // mirroring the receipt detail view. Fetching is gated on documentId (the hook no-ops when it's undefined).
-    const { data: linkedDoc } = useDocument(tx?.documentId ?? undefined);
+    const { data: linkedDoc, refetch: refetchLinkedDoc } = useDocument(tx?.documentId ?? undefined);
     const deleteMutation = useDeleteTransaction();
     const deleteDocumentMutation = useDeleteDocument();
     const updateMutation = useUpdateTransaction();
@@ -83,14 +83,29 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
     const [categoryValues, setCategoryValues] = useState<Record<number, string>>({});
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
     const { data: categoryGroups = [] } = useCategoryGroups();
-    const { showError, showSuccess } = useToast();
+    const { showError, showSuccess, showWarning } = useToast();
 
-    // A transaction always opens in the read view; the edit form only appears after "Bearbeiten". Reset it whenever a
-    // different transaction is opened.
+    // A confirmed transaction opens in the read view; the edit form only appears after "Bearbeiten". Reset it whenever
+    // a different transaction is opened.
     useEffect(() => {
         setEditMode(false);
         setConfirmDeleteOpen(false);
     }, [txId]);
+
+    // A draft opens straight in the edit form, because that is where its work happens (fill in, link, confirm). Done
+    // once per opened transaction, as soon as its data is there.
+    const editSeededRef = useRef<number | null>(null);
+    useEffect(() => {
+        if (txId == null) {
+            editSeededRef.current = null;
+            return;
+        }
+        if (!tx || tx.id !== txId || editSeededRef.current === txId) return;
+        editSeededRef.current = txId;
+        if (tx.status === 'DRAFT') startEdit();
+        // startEdit only reads the loaded transaction; listing it would re-run this on every render.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [txId, tx]);
 
     function startEdit() {
         if (!tx) return;
@@ -144,7 +159,13 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
             tags,
             categoryValues,
         });
+        const receiptWasConfirmed = amountEdited && linkedDoc?.documentStatus === 'CONFIRMED';
         await updateMutation.mutateAsync({ id: tx.id, data });
+        // The receipt goes back to review when the new amount no longer agrees with it; say so, it happens elsewhere.
+        if (receiptWasConfirmed) {
+            const { data: receipt } = await refetchLinkedDoc();
+            if (receipt && receipt.documentStatus !== 'CONFIRMED') showWarning(t('transactions.toast.receiptBackToReview'));
+        }
     }
 
     async function handleSave() {
@@ -229,6 +250,10 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
     // Whether the transaction may be confirmed, plus the list of still-missing requirements for the tooltip. In edit
     // mode the live form values are used (so the button reacts to unsaved edits); otherwise the saved values.
     const parsedEditAmount = parseFloat(amountStr.replace(',', '.'));
+    // The amount of a transaction booked from a receipt was changed in the form: it may now differ from the receipt.
+    const savedMagnitude = tx?.total != null ? Math.abs(Number(tx.total)) : null;
+    const editedMagnitude = isNaN(parsedEditAmount) ? null : Math.abs(parsedEditAmount);
+    const amountEdited = editMode && tx?.documentId != null && editedMagnitude !== savedMagnitude;
     const confirmState = getTransactionConfirmState(
         editMode
             ? {
@@ -412,7 +437,14 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                                     >
                                         {receiptExt}
                                     </span>
-                                    <span className="min-w-0 flex-1 truncate text-[14px] font-semibold text-foreground">{receiptName}</span>
+                                    <span className="flex min-w-0 flex-1 flex-col">
+                                        <span className="truncate text-[14px] font-semibold text-foreground">{receiptName}</span>
+                                        {tx.splitIndex != null && tx.splitCount != null && (
+                                            <span className="text-[12px] text-muted-foreground">
+                                                {t('receipts.split.partOf', { i: tx.splitIndex + 1, n: tx.splitCount })}
+                                            </span>
+                                        )}
+                                    </span>
                                     <button
                                         type="button"
                                         onClick={() => navigate(`/receipts?id=${tx.documentId}`)}
@@ -463,6 +495,18 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                                     <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />
                                 </Field>
                             </div>
+                            {amountEdited && (
+                                <div
+                                    role="note"
+                                    className="-mt-2 flex items-start gap-2.5 rounded-[12px] px-3.5 py-2.5 text-[13px] leading-snug"
+                                    style={{ background: 'var(--warning-surface)', color: 'var(--warning)' }}
+                                >
+                                    <AlertTriangle size={15} className="mt-0.5 flex-shrink-0" />
+                                    <span className="font-semibold">
+                                        {t('transactions.edit.amountFromReceipt', { receipt: linkedDoc?.name || receiptName })}
+                                    </span>
+                                </div>
+                            )}
 
                             {/* Name */}
                             <Field label={t('transactions.create.name')}>

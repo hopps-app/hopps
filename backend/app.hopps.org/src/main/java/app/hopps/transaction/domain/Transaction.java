@@ -18,7 +18,8 @@ import java.util.Set;
 /**
  * Represents a financial transaction in the system. Transactions store the business data entered by users, while
  * Documents store analysis results. A Transaction may or may not be linked to a Document (manual entry vs. document
- * upload).
+ * upload). One document can be split into several transactions (one per bommel/category combination), so the link is
+ * many-to-one; the order of a document's transactions is their id order.
  */
 @Entity
 @Table(name = "transaction")
@@ -32,7 +33,7 @@ public class Transaction extends PanacheEntity {
     @JoinColumn(name = "bommel_id")
     private Bommel bommel;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id")
     private Document document;
 

@@ -16,7 +16,11 @@ import java.util.stream.Collectors;
  */
 public record DocumentResponse(
         Long id,
+        // The first linked transaction, or null. Kept for clients that know one transaction per document; a split
+        // document has several, see transactionIds.
         Long transactionId,
+        // All transactions booked from this document in part order ("Teil 1 von n" first); empty when none exists.
+        List<Long> transactionIds,
         String fileName,
         String fileContentType,
         Long fileSize,
@@ -61,6 +65,7 @@ public record DocumentResponse(
         return new DocumentResponse(
                 doc.getId(),
                 doc.getTransactionId(),
+                doc.getTransactionIds(),
                 doc.getFileName(),
                 doc.getFileContentType(),
                 doc.getFileSize(),

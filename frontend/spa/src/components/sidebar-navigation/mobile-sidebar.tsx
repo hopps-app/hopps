@@ -5,7 +5,9 @@ import { useLocation } from 'react-router-dom';
 
 import { SetupNavItem } from './setup-nav-item';
 import { menuConfig } from './shared/menu-config';
+import { MenuBadge } from './shared/MenuBadge';
 import type { MenuItem } from './shared/types';
+import { useMenuBadges } from './shared/use-menu-badges';
 
 import Icon from '@/components/ui/Icon';
 import { useGuardedNavigate } from '@/hooks/use-unsaved-changes-warning';
@@ -16,6 +18,7 @@ const MobileSidebar: React.FC = () => {
     const navigate = useGuardedNavigate();
     const { t } = useTranslation();
     const [isOpen, setIsOpen] = React.useState(false);
+    const badges = useMenuBadges();
 
     const isItemActive = (path: string) => {
         const cleanPath = path.split('?')[0];
@@ -32,6 +35,7 @@ const MobileSidebar: React.FC = () => {
 
     const renderNavItem = (item: MenuItem) => {
         const active = isItemActive(item.path);
+        const count = badges[item.id] ?? 0;
 
         return (
             <div key={item.id}>
@@ -47,6 +51,7 @@ const MobileSidebar: React.FC = () => {
                 >
                     <span className="flex-shrink-0">{typeof item.icon === 'string' ? <Icon icon={item.icon} size={18} /> : <item.icon size={18} />}</span>
                     <span className="flex-1 text-left">{t(item.label)}</span>
+                    {item.badgeLabel && <MenuBadge count={count} label={t(item.badgeLabel, { count })} />}
                 </button>
             </div>
         );

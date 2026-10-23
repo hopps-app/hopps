@@ -8,6 +8,7 @@ import app.hopps.document.domain.Document;
 import app.hopps.document.domain.DocumentChangedEvent;
 import app.hopps.document.domain.DocumentStatus;
 import app.hopps.document.domain.TradeParty;
+import app.hopps.document.service.DocumentTransactionService;
 import app.hopps.document.service.TradePartyService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
@@ -88,6 +89,9 @@ public class TransactionResource {
     Event<TransactionChangedEvent> transactionChangedEvent;
 
     @Inject
+    DocumentTransactionService documentTransactionService;
+
+    @Inject
     BankTransactionMatchService bankTransactionMatchService;
 
     @Inject
@@ -148,8 +152,14 @@ public class TransactionResource {
         // much of its amount still needs to be reconciled with bank movements.
         List<Long> ids = transactions.stream().map(Transaction::getId).toList();
         Map<Long, BigDecimal> covered = bankTransactionMatchService.getCoveredAmountsForTransactions(ids);
+        // Same for the position within a split document ("Teil 2 von 3"); one query for the page.
+        Map<Long, int[]> positions = transactionRepository.findSplitPositions(ids);
         return transactions.stream()
-                .map(tx -> TransactionResponse.from(tx, covered.getOrDefault(tx.getId(), BigDecimal.ZERO)))
+                .map(tx -> {
+                    int[] position = positions.get(tx.getId());
+                    return TransactionResponse.from(tx, covered.getOrDefault(tx.getId(), BigDecimal.ZERO),
+                            position != null ? position[0] : null, position != null ? position[1] : null);
+                })
                 .toList();
     }
 
@@ -210,8 +220,7 @@ public class TransactionResource {
         if (transaction == null) {
             throw new NotFoundException("Transaction not found");
         }
-        return TransactionResponse.from(transaction,
-                bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId()));
+        return toResponse(transaction);
     }
 
     @POST
@@ -239,8 +248,7 @@ public class TransactionResource {
         LOG.info("Transaction created: id={}", transaction.getId());
 
         return Response.status(Response.Status.CREATED)
-                .entity(TransactionResponse.from(transaction,
-                        bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId())))
+                .entity(toResponse(transaction))
                 .build();
     }
 
@@ -267,11 +275,17 @@ public class TransactionResource {
         // no longer stays FULLY_MATCHED (and the still-open amount reappears in the list).
         if (totalChanged(previousTotal, transaction.getTotal())) {
             transactionChangedEvent.fire(new TransactionChangedEvent(transaction.getId()));
+
+            // The amount was booked from a receipt: if it no longer agrees with it, the receipt goes back to review.
+            if (documentTransactionService.revertToReviewIfAmountsDiverge(transaction, previousTotal)) {
+                Document document = transaction.getDocument();
+                documentChangedEvent.fire(new DocumentChangedEvent(document.getId(),
+                        document.getOrganization() != null ? document.getOrganization().getId() : null));
+            }
         }
 
         LOG.info("Transaction updated: id={}", transaction.getId());
-        return TransactionResponse.from(transaction,
-                bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId()));
+        return toResponse(transaction);
     }
 
     /**
@@ -314,9 +328,11 @@ public class TransactionResource {
         transactionAuditor.statusChanged(transaction, previousStatus, AuditAction.CONFIRM);
 
         // Keep the linked receipt (Beleg) in sync: confirming the bookkeeping transaction also confirms its document,
-        // so it no longer lingers in the "needs manual review" state.
+        // so it no longer lingers in the "needs manual review" state. Not when the booked amounts disagree with the
+        // receipt: that deviation is exactly what the review is for (see revertToReviewIfAmountsDiverge).
         Document document = transaction.getDocument();
-        if (document != null && document.getDocumentStatus() != DocumentStatus.CONFIRMED) {
+        if (document != null && document.getDocumentStatus() != DocumentStatus.CONFIRMED
+                && documentTransactionService.bookedAmountsMatch(document)) {
             DocumentStatus previousDocumentStatus = document.getDocumentStatus();
             document.setDocumentStatus(DocumentStatus.CONFIRMED);
             documentAuditor.confirmed(document, previousDocumentStatus);
@@ -324,8 +340,7 @@ public class TransactionResource {
 
         LOG.info("Transaction confirmed: id={}", transaction.getId());
 
-        return TransactionResponse.from(transaction,
-                bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId()));
+        return toResponse(transaction);
     }
 
     /**
@@ -402,16 +417,16 @@ public class TransactionResource {
         transactionAuditor.statusChanged(transaction, previousStatus, AuditAction.REOPEN);
 
         // Mirror the document back to a reviewable state so it isn't shown as confirmed while its transaction is a
-        // draft.
+        // draft. Only for a document with this single transaction: a split document stays confirmed, the reopened
+        // part simply shows as a draft among its siblings.
         Document document = transaction.getDocument();
-        if (document != null) {
+        if (document != null && document.getTransactions().size() <= 1) {
             revertToReview(document);
         }
 
         LOG.info("Transaction reopened: id={}", transaction.getId());
 
-        return TransactionResponse.from(transaction,
-                bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId()));
+        return toResponse(transaction);
     }
 
     @DELETE
@@ -431,13 +446,14 @@ public class TransactionResource {
         // movement itself is kept and becomes matchable again.
         transactionDeletedEvent.fire(new TransactionDeletedEvent(transaction.getId()));
 
-        // send the document back to review so it can be corrected and confirmed again
+        // Detach from the document. The document only returns to review when this was its last transaction; a split
+        // document keeps its other parts and stays confirmed.
         Document document = transaction.getDocument();
         if (document != null) {
-            revertToReview(document);
-
-            // cleanup transaction from document
-            document.setTransaction(null);
+            document.getTransactions().remove(transaction);
+            if (document.getTransactions().isEmpty()) {
+                revertToReview(document);
+            }
             documentChangedEvent.fire(new DocumentChangedEvent(document.getId(),
                     document.getOrganization() != null ? document.getOrganization().getId() : null));
         }
@@ -452,6 +468,18 @@ public class TransactionResource {
         tradePartyService.deleteIfUnreferenced(recipient);
 
         LOG.info("Transaction deleted: id={}, receiptRevertedToReview={}", id, document != null);
+    }
+
+    /**
+     * The response of a single transaction: its bank coverage plus, when it is one part of a split document, its
+     * position among the siblings.
+     */
+    private TransactionResponse toResponse(Transaction transaction) {
+        int[] position = transactionRepository.findSplitPositions(List.of(transaction.getId()))
+                .get(transaction.getId());
+        return TransactionResponse.from(transaction,
+                bankTransactionMatchService.getCoveredAmountForTransaction(transaction.getId()),
+                position != null ? position[0] : null, position != null ? position[1] : null);
     }
 
     /**

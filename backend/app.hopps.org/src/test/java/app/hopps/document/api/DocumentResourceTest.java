@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -541,6 +542,557 @@ class DocumentResourceTest {
                 .then()
                 .statusCode(Response.Status.OK.getStatusCode());
         return documentId.longValue();
+    }
+
+    // ─── Splitting a document into several transactions (PUT /documents/{id}/transactions) ───
+
+    @Test
+    void shouldSplitDocumentIntoDraftTransactionsAndConfirmIt() {
+        long documentId = uploadReceiptWithTotal("700.00");
+
+        List<Integer> ids = given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": true, "parts": [
+                            { "name": "Bier", "amount": 500.00, "bommelId": 24 },
+                            { "name": "Pfand", "amount": 200.00, "bommelId": 24 } ] }
+                        """)
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("$", hasSize(2))
+                .body("[0].name", equalTo("Bier"))
+                // INCOMING (the default direction) is an expense: the part amounts are negative.
+                .body("[0].total", equalTo(-500.0f))
+                .body("[0].status", equalTo("DRAFT"))
+                .body("[0].bommelId", equalTo(24))
+                .body("[0].documentId", equalTo((int) documentId))
+                .body("[0].splitIndex", equalTo(0))
+                .body("[0].splitCount", equalTo(2))
+                .body("[1].name", equalTo("Pfand"))
+                .body("[1].total", equalTo(-200.0f))
+                .body("[1].splitIndex", equalTo(1))
+                .body("[1].splitCount", equalTo(2))
+                .extract()
+                .path("id");
+
+        // The document is confirmed and lists both parts in order; transactionId keeps pointing at the first one.
+        given()
+                .when()
+                .get("/{id}", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("documentStatus", equalTo(DocumentStatus.CONFIRMED.name()))
+                .body("transactionIds", equalTo(ids))
+                .body("transactionId", equalTo(ids.get(0)));
+
+        given()
+                .when()
+                .get("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("id", equalTo(ids))
+                .body("[1].splitCount", equalTo(2));
+
+        // The transaction endpoints know the position as well.
+        given()
+                .basePath("/transactions")
+                .when()
+                .get("/{id}", ids.get(1))
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("splitIndex", equalTo(1))
+                .body("splitCount", equalTo(2));
+    }
+
+    @Test
+    void shouldSaveSplitAsDraftWithoutEnforcingCompleteness() {
+        long documentId = uploadReceiptWithTotal("700.00");
+
+        // Incomplete on purpose: no bommels and the parts cover only part of the total.
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": false, "parts": [ { "amount": 100.00 }, { "amount": 50.00 } ] }
+                        """)
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("$", hasSize(2))
+                .body("[0].name", equalTo("Teil 1"))
+                .body("[0].bommelId", nullValue())
+                .body("[1].name", equalTo("Teil 2"));
+
+        given()
+                .when()
+                .get("/{id}", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("documentStatus", not(equalTo(DocumentStatus.CONFIRMED.name())))
+                .body("transactionIds", hasSize(2));
+    }
+
+    @Test
+    void shouldAllowPartsBelowTheDocumentTotalWhenFinalizing() {
+        long documentId = uploadReceiptWithTotal("700.00");
+
+        // A receipt may contain a private share that is not booked, so the parts may add up to less than the total.
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": true, "parts": [ { "amount": 500.00, "bommelId": 24 } ] }
+                        """)
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("$", hasSize(1))
+                // A single part is not a split: no position.
+                .body("[0].splitIndex", nullValue())
+                .body("[0].splitCount", nullValue())
+                // One part takes the document name.
+                .body("[0].name", equalTo("Getränke Sommerfest"));
+    }
+
+    @Test
+    void shouldRejectFinalizeWhenPartsExceedTheDocumentTotal() {
+        long documentId = uploadReceiptWithTotal("700.00");
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": true, "parts": [
+                            { "amount": 500.00, "bommelId": 24 }, { "amount": 300.00, "bommelId": 24 } ] }
+                        """)
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+
+        // Nothing was booked.
+        given()
+                .when()
+                .get("/{id}", documentId)
+                .then()
+                .body("documentStatus", not(equalTo(DocumentStatus.CONFIRMED.name())))
+                .body("transactionIds", hasSize(0));
+    }
+
+    @Test
+    void shouldRejectFinalizeWhenAPartHasNoBommelOrANonPositiveAmount() {
+        long documentId = uploadReceiptWithTotal("700.00");
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": true, "parts": [ { "amount": 500.00, "bommelId": 24 }, { "amount": 200.00 } ] }
+                        """)
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+
+        // A part without an amount is fine in a draft (the user fills it in later) but blocks confirming.
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": false, "parts": [ { "amount": 0, "bommelId": 24 } ] }
+                        """)
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": true, "parts": [ { "amount": 0, "bommelId": 24 } ] }
+                        """)
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": false, "parts": [ { "amount": -5, "bommelId": 24 } ] }
+                        """)
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    void shouldUpdateListedPartsInPlaceAndDeleteUnlistedOnes() {
+        long documentId = uploadReceiptWithTotal("700.00");
+        List<Integer> ids = splitAsDraft(documentId);
+
+        // Keep the first part (new amount), drop the second, add a third.
+        List<Integer> after = given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": true, "parts": [
+                            { "id": %d, "name": "Bier", "amount": 400.00, "bommelId": 24 },
+                            { "name": "Kühlmiete", "amount": 300.00, "bommelId": 24 } ] }
+                        """.formatted(ids.get(0)))
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("$", hasSize(2))
+                .body("[0].id", equalTo(ids.get(0)))
+                .body("[0].total", equalTo(-400.0f))
+                .body("[1].id", not(equalTo(ids.get(1))))
+                .body("[1].name", equalTo("Kühlmiete"))
+                .extract()
+                .path("id");
+
+        // The dropped part is gone, the kept one survived with its id.
+        given()
+                .basePath("/transactions")
+                .when()
+                .get("/{id}", ids.get(1))
+                .then()
+                .statusCode(Response.Status.NOT_FOUND.getStatusCode());
+        given()
+                .basePath("/transactions")
+                .when()
+                .get("/{id}", after.get(0))
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("total", equalTo(-400.0f));
+    }
+
+    @Test
+    void shouldAdoptASenderAddedAfterTheDraftWhenFinalizing() {
+        // Draft first, without a sender on the receipt ...
+        InputStream pdf = getClass().getClassLoader().getResourceAsStream("ZUGFeRD.pdf");
+        assertNotNull(pdf);
+        Integer documentId = given()
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .multiPart("file", "ZUGFeRD.pdf", pdf, "application/pdf")
+                .when()
+                .post()
+                .then()
+                .statusCode(Response.Status.CREATED.getStatusCode())
+                .extract()
+                .path("id");
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "name": "Getränke", "total": 700.00, "bommelId": 24, "privatelyPaid": false }
+                        """)
+                .when()
+                .patch("/{id}", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
+        List<Integer> ids = splitAsDraft(documentId);
+
+        // ... then the sender is added to the receipt and the split is finalized: the parts pick it up.
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "senderName": "%s", "privatelyPaid": false }
+                        """.formatted(SENDER_NAME))
+                .when()
+                .patch("/{id}", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": true, "parts": [
+                            { "id": %d, "amount": 500.00, "bommelId": 24 }, { "id": %d, "amount": 200.00, "bommelId": 24 } ] }
+                        """
+                        .formatted(ids.get(0), ids.get(1)))
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("[0].senderName", equalTo(SENDER_NAME))
+                .body("[1].senderName", equalTo(SENDER_NAME));
+    }
+
+    @Test
+    void shouldRejectChangingOrRemovingAConfirmedPart() {
+        long documentId = uploadReceiptWithTotal("700.00");
+        List<Integer> ids = splitAsDraft(documentId);
+        markTransactionConfirmed(ids.get(0));
+
+        // Removing the confirmed part (only the second is listed) ...
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": false, "parts": [ { "id": %d, "amount": 700.00 } ] }
+                        """.formatted(ids.get(1)))
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.CONFLICT.getStatusCode());
+
+        // ... and changing it are both refused.
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": false, "parts": [
+                            { "id": %d, "amount": 100.00 }, { "id": %d, "amount": 200.00 } ] }
+                        """.formatted(ids.get(0), ids.get(1)))
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.CONFLICT.getStatusCode());
+    }
+
+    @Test
+    void shouldRequireMandatoryCategoryGroupsPerPartWhenFinalizing() {
+        long groupId = createRequiredCategoryGroup();
+        long documentId = uploadReceiptWithTotal("700.00");
+
+        // Both parts sit on bommel 24, which carries the mandatory group; the second part has no value for it.
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": true, "parts": [
+                            { "amount": 500.00, "bommelId": 24, "categoryValues": { "%d": "KS-100" } },
+                            { "amount": 200.00, "bommelId": 24 } ] }
+                        """.formatted(groupId))
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+
+        // The same split as a draft is fine, and the value is stored on the part that has one.
+        List<Integer> ids = given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": false, "parts": [
+                            { "amount": 500.00, "bommelId": 24, "categoryValues": { "%d": "KS-100" } },
+                            { "amount": 200.00, "bommelId": 24 } ] }
+                        """.formatted(groupId))
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("[0].categoryValues", hasSize(1))
+                .body("[0].categoryValues[0].value", equalTo("KS-100"))
+                .body("[1].categoryValues", hasSize(0))
+                .extract()
+                .path("id");
+        assertEquals(2, ids.size());
+    }
+
+    @Test
+    void shouldKeepASplitDocumentConfirmedWhileOtherPartsRemain() {
+        long documentId = uploadReceiptWithTotal("700.00");
+        List<Integer> ids = splitAsDraft(documentId, true);
+
+        given()
+                .basePath("/transactions")
+                .when()
+                .delete("/{id}", ids.get(0))
+                .then()
+                .statusCode(Response.Status.NO_CONTENT.getStatusCode());
+
+        given()
+                .when()
+                .get("/{id}", documentId)
+                .then()
+                .body("documentStatus", equalTo(DocumentStatus.CONFIRMED.name()))
+                .body("transactionIds", equalTo(List.of(ids.get(1))));
+
+        // Deleting the last part sends the document back to review, as for a single transaction.
+        given()
+                .basePath("/transactions")
+                .when()
+                .delete("/{id}", ids.get(1))
+                .then()
+                .statusCode(Response.Status.NO_CONTENT.getStatusCode());
+
+        given()
+                .when()
+                .get("/{id}", documentId)
+                .then()
+                .body("documentStatus", equalTo(DocumentStatus.ANALYZED.name()))
+                .body("transactionIds", hasSize(0));
+    }
+
+    @Test
+    void shouldDeleteAllPartsWithTheDocument() {
+        long documentId = uploadReceiptWithTotal("700.00");
+        List<Integer> ids = splitAsDraft(documentId, true);
+
+        given()
+                .when()
+                .delete("/{id}", documentId)
+                .then()
+                .statusCode(Response.Status.NO_CONTENT.getStatusCode());
+
+        for (Integer id : ids) {
+            given()
+                    .basePath("/transactions")
+                    .when()
+                    .get("/{id}", id)
+                    .then()
+                    .statusCode(Response.Status.NOT_FOUND.getStatusCode());
+        }
+    }
+
+    @Test
+    void shouldListTheSingleTransactionOfAClassicallyConfirmedReceipt() {
+        ConfirmedReceipt receipt = uploadAndConfirmWithSender();
+
+        given()
+                .when()
+                .get("/{id}", receipt.documentId())
+                .then()
+                .body("transactionIds", equalTo(List.of((int) receipt.transactionId())));
+
+        given()
+                .when()
+                .get("/{id}/transactions", receipt.documentId())
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("$", hasSize(1))
+                .body("[0].id", equalTo((int) receipt.transactionId()))
+                .body("[0].splitCount", nullValue());
+    }
+
+    @Test
+    void shouldReturnReceiptToReviewWhenTheAmountOfItsTransactionIsChanged() {
+        ConfirmedReceipt receipt = uploadAndConfirmWithSender();
+
+        // Same amount (sign and scale aside) or other fields: receipt and booking still agree.
+        patchTransaction(receipt.transactionId(), "{ \"name\": \"Kassenbeleg Wien\", \"total\": -180.0 }");
+        assertDocumentStatus(receipt.documentId(), DocumentStatus.CONFIRMED);
+
+        // Raised by hand: the receipt (180,00) no longer matches the booking (200,00) and goes back to review.
+        patchTransaction(receipt.transactionId(), "{ \"total\": -200.00 }");
+        assertDocumentStatus(receipt.documentId(), DocumentStatus.ANALYZED);
+        assertNull(reviewedBy(receipt.documentId()), "reviewedBy should be cleared when a receipt returns to review");
+
+        // The receipt itself is the printed original and is not adjusted.
+        given()
+                .when()
+                .get("/{id}", receipt.documentId())
+                .then()
+                .body("total", equalTo(180.0f));
+    }
+
+    @Test
+    void shouldReturnASplitReceiptToReviewWhenAPartIsLoweredBelowAnExactMatch() {
+        long documentId = uploadReceiptWithTotal("700.00");
+        List<Integer> ids = splitAsDraft(documentId, true);
+
+        // 500 + 200 matched the receipt exactly; lowering a part leaves 50,00 unaccounted for.
+        patchTransaction(ids.get(1), "{ \"total\": -150.00 }");
+        assertDocumentStatus(documentId, DocumentStatus.ANALYZED);
+    }
+
+    @Test
+    void shouldKeepAPrivateShareSplitConfirmedUntilThePartsExceedTheReceipt() {
+        long documentId = uploadReceiptWithTotal("700.00");
+        Integer partId = given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": true, "parts": [
+                            { "amount": 500.00, "bommelId": 24 }, { "amount": 100.00, "bommelId": 24 } ] }
+                        """)
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .extract()
+                .path("[1].id");
+
+        // 650 of 700: still a private share, as before.
+        patchTransaction(partId, "{ \"total\": -150.00 }");
+        assertDocumentStatus(documentId, DocumentStatus.CONFIRMED);
+
+        // 750 of 700: more booked than the receipt shows.
+        patchTransaction(partId, "{ \"total\": -250.00 }");
+        assertDocumentStatus(documentId, DocumentStatus.ANALYZED);
+    }
+
+    private void patchTransaction(long transactionId, String body) {
+        given()
+                .basePath("/transactions")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(body)
+                .when()
+                .patch("/{id}", transactionId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
+    }
+
+    private void assertDocumentStatus(long documentId, DocumentStatus status) {
+        given()
+                .when()
+                .get("/{id}", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("documentStatus", equalTo(status.name()));
+    }
+
+    /** Uploads a receipt with the given total, booked on bommel 24 with a sender. */
+    private long uploadReceiptWithTotal(String total) {
+        InputStream pdf = getClass().getClassLoader().getResourceAsStream("ZUGFeRD.pdf");
+        assertNotNull(pdf);
+
+        Integer documentId = given()
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .multiPart("file", "ZUGFeRD.pdf", pdf, "application/pdf")
+                .when()
+                .post()
+                .then()
+                .statusCode(Response.Status.CREATED.getStatusCode())
+                .extract()
+                .path("id");
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "name": "Getränke Sommerfest", "total": %s, "senderName": "%s", "bommelId": 24, "privatelyPaid": false }
+                        """
+                        .formatted(total, SENDER_NAME))
+                .when()
+                .patch("/{id}", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
+        return documentId.longValue();
+    }
+
+    private List<Integer> splitAsDraft(long documentId) {
+        return splitAsDraft(documentId, false);
+    }
+
+    /** Splits the document into 500 + 200 on bommel 24 and returns the two transaction ids. */
+    private List<Integer> splitAsDraft(long documentId, boolean finalize) {
+        return given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
+                        { "confirmDocument": %b, "parts": [
+                            { "name": "Bier", "amount": 500.00, "bommelId": 24 },
+                            { "name": "Pfand", "amount": 200.00, "bommelId": 24 } ] }
+                        """.formatted(finalize))
+                .when()
+                .put("/{id}/transactions", documentId)
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .body("$", hasSize(2))
+                .extract()
+                .path("id");
+    }
+
+    /** Confirms a transaction directly in the database, bypassing the bank-coverage gate of the confirm endpoint. */
+    private void markTransactionConfirmed(long transactionId) {
+        QuarkusTransaction.requiringNew()
+                .run(() -> entityManager
+                        .createNativeQuery("update transaction set status = 'CONFIRMED' where id = :id")
+                        .setParameter("id", transactionId)
+                        .executeUpdate());
     }
 
     /**

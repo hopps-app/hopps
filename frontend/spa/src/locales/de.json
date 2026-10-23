@@ -538,6 +538,14 @@
         "bookings_other": "{{count}} Transaktionen"
     },
     "menu": {
+        "badge": {
+            "receipts_one": "{{count}} Beleg zu prüfen",
+            "receipts_other": "{{count}} Belege zu prüfen",
+            "transactions_one": "{{count}} unbestätigte Transaktion",
+            "transactions_other": "{{count}} unbestätigte Transaktionen",
+            "bankAccounts_one": "{{count}} offener Bankumsatz",
+            "bankAccounts_other": "{{count}} offene Bankumsätze"
+        },
         "dashboard": "Dashboard",
         "receipts": "Belege",
         "upload-receipt": "Beleg hochladen",
@@ -751,13 +759,17 @@
             "deleted": "Transaktion gelöscht",
             "bulkDeleted": "{{count}} Transaktion(en) gelöscht",
             "bulkDeletePartial": "{{done}} Transaktion(en) gelöscht, {{failed}} fehlgeschlagen",
-            "bulkDeleteFailed": "Transaktionen konnten nicht gelöscht werden"
-    },
+            "bulkDeleteFailed": "Transaktionen konnten nicht gelöscht werden",
+            "receiptBackToReview": "Der Betrag passt nicht mehr zum Beleg. Der Beleg wurde wieder zur Prüfung gestellt."
+        },
         "empty": {
             "firstTitle": "Noch keine Transaktionen",
             "firstText": "Transaktionen entstehen aus geprüften Belegen und importierten Kontoumsätzen. Oben lässt sich auch direkt eine Transaktion erfassen.",
             "noMatchTitle": "Nichts gefunden",
             "noMatchText": "Suche anpassen oder einen anderen Filter wählen."
+        },
+        "edit": {
+            "amountFromReceipt": "Diese Transaktion wurde aus dem Beleg „{{receipt}}“ erstellt. Ein manuell geänderter Betrag kann vom Beleg abweichen. Passt der Betrag danach nicht mehr zum Beleg, wird der Beleg wieder zur Prüfung gestellt."
         }
     },
     "receipts": {
@@ -885,6 +897,59 @@
             "actions": "Aktionen",
             "createdAt": "Erstellt am"
         },
+        "split": {
+            "link": "Betrag auf mehrere Bommel und Kategorien aufteilen",
+            "eyebrowEdit": "Beleg aufteilen",
+            "date": "Datum",
+            "counterparty": "Gegenpartei",
+            "section": "Aufteilung",
+            "of": "von {{total}}",
+            "sumOk": "Summe passt",
+            "unassigned": "{{amount}} nicht zugeordnet",
+            "over": "{{amount}} zu viel verteilt",
+            "part": "Teil {{n}}",
+            "partOf": "Teil {{i}} von {{n}}",
+            "amount": "Betrag",
+            "bommel": "Bommel",
+            "categories": "Kategoriegruppen",
+            "chooseBommel": "Bommel wählen",
+            "chooseFirstBommel": "Bitte zuerst einen Bommel wählen.",
+            "noGroups": "Für diesen Bommel gibt es keine Kategoriegruppen.",
+            "noBommel": "Kein Bommel",
+            "pleaseChoose": "Bitte wählen",
+            "amountPositive": "Betrag muss größer als 0 sein",
+            "addPart": "Weiteren Teil hinzufügen",
+            "addTransaction": "Weitere Transaktion hinzufügen",
+            "addTransactionLocked": "Die Transaktion ist bereits bestätigt. Öffne sie wieder, um weitere Transaktionen aus diesem Beleg zu erstellen.",
+            "removePart": "Teil entfernen",
+            "expand": "Als Karte aufklappen",
+            "collapse": "Zuklappen",
+            "saveDraft": "Als Entwurf speichern",
+            "createOne": "Transaktion erstellen",
+            "createMany": "{{n}} Transaktionen erstellen",
+            "incomplete": "Noch nicht vollständig",
+            "editSplit": "Aufteilung bearbeiten",
+            "editSplitLocked": "Bestätigte Teile können nicht neu aufgeteilt werden.",
+            "tabTransactions": "Transaktionen",
+            "tabTransaction": "Transaktion",
+            "tabReceipt": "Beleg",
+            "fromReceipt": "Transaktionen aus diesem Beleg",
+            "fromReceiptOne": "Transaktion aus diesem Beleg",
+            "covered": "Vollständig gedeckt",
+            "uncovered": "Noch {{amount}} ungedeckt",
+            "notBooked": "{{amount}} des Belegs sind nicht gebucht",
+            "openTransaction": "Transaktion öffnen",
+            "confirmPart": "Bestätigen",
+            "noTotal": "Der Beleg hat noch keinen Betrag. Bitte ihn zuerst beim Prüfen des Belegs eintragen.",
+            "noTotalShort": "Belegbetrag fehlt",
+            "linkLater": "Bankumsätze werden nach dem Erstellen an den einzelnen Transaktionen verknüpft.",
+            "toast": {
+                "draftSaved": "Aufteilung als Entwurf gespeichert",
+                "saveError": "Aufteilung konnte nicht gespeichert werden",
+                "created": "{{n}} Transaktionen erstellt"
+            },
+            "cancel": "Nicht aufteilen"
+        },
         "review": {
             "title": "Beleg prüfen",
             "confirm": "Als Transaktion bestätigen",
@@ -959,7 +1024,9 @@
             "discardTitle": "Änderungen verwerfen?",
             "discardText": "Die Korrekturen an diesem Beleg sind noch nicht gespeichert.",
             "discardConfirm": "Verwerfen",
-            "keepEditing": "Weiter bearbeiten"
+            "keepEditing": "Weiter bearbeiten",
+            "amountDeviates": "Der Betrag der Transaktion ({{transaction}}) weicht vom Beleg ({{receipt}}) ab. Beim Bestätigen wird der Belegbetrag auf den Transaktionsbetrag gesetzt.",
+            "useReceiptAmount": "Belegbetrag übernehmen ({{amount}})"
         },
         "filter": {
             "all": "Alle",

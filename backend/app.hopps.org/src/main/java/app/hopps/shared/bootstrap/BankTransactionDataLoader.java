@@ -57,7 +57,51 @@ public class BankTransactionDataLoader implements EntityDataLoader<TestdataConfi
                     "td-" + tx.getId());
         }
 
+        loadMatches(config, entityManager);
         generateAmountPriorityNoise(config, entityManager, accountContext);
+    }
+
+    /**
+     * Allocates bank transactions to bookkeeping transactions and derives each bank transaction's coverage and status
+     * from its matches, the same way the application does (coverage signed by the movement's own direction).
+     */
+    private void loadMatches(TestdataConfig config, EntityManager entityManager) {
+        long matchIdCounter = 1000;
+        for (TestdataConfig.BankTransactionData tx : config.getBankTransactions()) {
+            if (tx.getMatches() == null || tx.getMatches().isEmpty()) {
+                continue;
+            }
+            for (TestdataConfig.MatchData match : tx.getMatches()) {
+                // An allocation below the transaction's full amount is a hand-set partial one (amountManual).
+                entityManager
+                        .createNativeQuery(
+                                """
+                                        INSERT INTO BankTransactionMatch (id, bankTransaction_id, transaction_id, matchedAmount,
+                                                                          amountManual, matchType, matchedBy, matchedAt)
+                                        VALUES (:id, :bankTransactionId, :transactionId, CAST(:amount AS numeric),
+                                                CAST(:amount AS numeric) <> (SELECT abs(total) FROM transaction WHERE id = :transactionId),
+                                                'MANUAL', 'testdata@hopps.app', NOW())
+                                        """)
+                        .setParameter("id", matchIdCounter++)
+                        .setParameter("bankTransactionId", tx.getId())
+                        .setParameter("transactionId", match.getTransactionId())
+                        .setParameter("amount", match.getAmount())
+                        .executeUpdate();
+            }
+            entityManager
+                    .createNativeQuery(
+                            """
+                                    UPDATE BankTransaction bt
+                                    SET matchedAmount = (SELECT sum(CASE WHEN bt.amount < 0 THEN -m.matchedAmount ELSE m.matchedAmount END)
+                                                         FROM BankTransactionMatch m WHERE m.bankTransaction_id = bt.id),
+                                        status = CASE WHEN (SELECT sum(m.matchedAmount) FROM BankTransactionMatch m
+                                                            WHERE m.bankTransaction_id = bt.id) >= abs(bt.amount)
+                                                      THEN 'FULLY_MATCHED' ELSE 'PARTIALLY_MATCHED' END
+                                    WHERE bt.id = :id
+                                    """)
+                    .setParameter("id", tx.getId())
+                    .executeUpdate();
+        }
     }
 
     /**
