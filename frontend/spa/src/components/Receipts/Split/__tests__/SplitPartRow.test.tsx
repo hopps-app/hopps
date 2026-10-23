@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { SplitPartRow } from '../SplitPartRow';
 
-import { createPart, type SplitGroup } from '@/lib/splitParts';
+import { createPart, type SplitGroup, type SplitPart } from '@/lib/splitParts';
 import { fireEvent, renderWithProviders, screen } from '@/test/test-utils';
 
 // The pickers talk to the store and the server; the row only needs to wire them up.
@@ -27,6 +27,9 @@ const groups: SplitGroup[] = [
     { id: 11, name: 'Projekt', required: false },
 ];
 
+// Complete: bommel and a value for both groups.
+const completePart = () => createPart({ name: 'Bier', amount: '500,00', bommelId: 7, categoryValues: { 10: 'Getränke', 11: 'Sommerfest' } });
+
 function renderRow(overrides: Partial<Parameters<typeof SplitPartRow>[0]> = {}) {
     const handlers = {
         onAmountChange: vi.fn(),
@@ -35,12 +38,25 @@ function renderRow(overrides: Partial<Parameters<typeof SplitPartRow>[0]> = {}) 
         onTouch: vi.fn(),
         onRemove: vi.fn(),
     };
-    const part = overrides.part ?? createPart({ name: 'Bier', amount: '500,00', bommelId: 7, categoryValues: { 10: 'Getränke' } });
-    renderWithProviders(
-        <SplitPartRow part={part} index={0} amount={500} groups={groups} errors={[]} bommelItems={[]} bommelName="Bar" {...handlers} {...overrides} />
+    const row = (part: SplitPart) => (
+        <SplitPartRow
+            part={part}
+            index={0}
+            amount={500}
+            groups={groups}
+            errors={[]}
+            bommelItems={[]}
+            bommelName="Bar"
+            {...handlers}
+            {...overrides}
+            part={part}
+        />
     );
-    return handlers;
+    const { rerender } = renderWithProviders(row(overrides.part ?? completePart()));
+    return { ...handlers, rerenderWith: (part: SplitPart) => rerender(row(part)) };
 }
+
+const expanded = () => screen.getByRole('button', { name: /Collapse|Expand as card/ }).getAttribute('aria-expanded') === 'true';
 
 describe('SplitPartRow', () => {
     it('renders the number, the bommel, one field per applicable group and the amount', () => {
@@ -49,7 +65,7 @@ describe('SplitPartRow', () => {
         expect(screen.getByText('1')).toBeInTheDocument();
         expect(screen.getByTestId('bommel-select')).toHaveTextContent('bommel 7');
         expect(screen.getByTestId('category-10')).toHaveTextContent('Getränke');
-        expect(screen.getByTestId('category-11')).toHaveTextContent('empty');
+        expect(screen.getByTestId('category-11')).toHaveTextContent('Sommerfest');
         expect(screen.getByLabelText('Amount')).toHaveValue('500,00');
     });
 
@@ -87,14 +103,15 @@ describe('SplitPartRow', () => {
             errors: [{ field: 'amount' }, { field: 'bommel' }, { field: 'group:10', label: 'Kostenstelle' }],
         });
 
-        expect(screen.getByTestId('category-10')).toHaveAttribute('data-warn', 'true');
-        expect(screen.getByTestId('category-11')).toHaveAttribute('data-warn', 'false');
-
-        fireEvent.click(screen.getByLabelText('Expand as card'));
-        // Without a bommel the card asks for one instead of listing the groups.
+        // The card is open from the start. Without a bommel it asks for one instead of listing the groups.
+        expect(expanded()).toBe(true);
         expect(screen.getByText('Choose a bommel first.')).toBeInTheDocument();
         expect(screen.getByText('Amount must be greater than 0')).toBeInTheDocument();
         expect(screen.getByText('Please choose')).toBeInTheDocument();
+
+        fireEvent.click(screen.getByLabelText('Collapse'));
+        expect(screen.getByTestId('category-10')).toHaveAttribute('data-warn', 'true');
+        expect(screen.getByTestId('category-11')).toHaveAttribute('data-warn', 'false');
     });
 
     it('expands and collapses the card also from the number badge', () => {
@@ -102,23 +119,31 @@ describe('SplitPartRow', () => {
 
         const badge = screen.getByText('1').closest('button')!;
         fireEvent.click(badge);
-        expect(screen.getByLabelText('Collapse')).toHaveAttribute('aria-expanded', 'true');
-        expect(screen.getByText('Part 1')).toBeInTheDocument();
-
-        fireEvent.click(badge);
         expect(screen.getByLabelText('Expand as card')).toHaveAttribute('aria-expanded', 'false');
         expect(screen.queryByText('Part 1')).not.toBeInTheDocument();
+
+        fireEvent.click(badge);
+        expect(screen.getByLabelText('Collapse')).toHaveAttribute('aria-expanded', 'true');
+        expect(screen.getByText('Part 1')).toBeInTheDocument();
     });
 
     it('summarises bommel and values in the collapsed header of the expanded card', () => {
         renderRow();
 
-        fireEvent.click(screen.getByLabelText('Expand as card'));
-        expect(screen.getByText('Bar · Getränke')).toBeInTheDocument();
+        expect(screen.getByText('Bar · Getränke · Sommerfest')).toBeInTheDocument();
         expect(screen.getByText('Part 1')).toBeInTheDocument();
         // Both groups are listed in the card, the mandatory one tagged as such.
         expect(screen.getAllByTestId('category-10')).toHaveLength(1);
         expect(screen.getByText('Kostenstelle')).toBeInTheDocument();
         expect(screen.getByText('Projekt')).toBeInTheDocument();
+    });
+
+    it('stays unfolded, also once every value is filled in', () => {
+        const part = createPart({ amount: '500,00' });
+        const { rerenderWith } = renderRow({ part });
+        expect(expanded()).toBe(true);
+
+        rerenderWith({ ...part, bommelId: 7, categoryValues: { 10: 'Getränke', 11: 'Sommerfest' } });
+        expect(expanded()).toBe(true);
     });
 });

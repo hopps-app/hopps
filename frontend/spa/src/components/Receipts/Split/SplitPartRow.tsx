@@ -27,7 +27,7 @@ export function PartBadge({ index, colored = true }: { index: number; colored?: 
 /**
  * One part of the split as a row: number, bommel and category fields side by side (horizontally scrollable), the
  * amount fixed on the right and a remove button. The chevron unfolds the row into a card with the same fields in two
- * columns and inline error texts.
+ * columns and inline error texts. Parts start unfolded so no category is overlooked; the chevron folds them up.
  */
 export function SplitPartRow({
     part,
@@ -59,7 +59,7 @@ export function SplitPartRow({
     onRemove: () => void;
 }) {
     const { t } = useTranslation();
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(true);
     const scroller = useRef<HTMLDivElement>(null);
     const [edge, setEdge] = useState({ left: false, right: false });
 
