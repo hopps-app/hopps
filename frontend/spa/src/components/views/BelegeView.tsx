@@ -79,6 +79,7 @@ import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { useDocumentEvents } from '@/hooks/useDocumentEvents';
 import { usePersistedState } from '@/hooks/usePersistedState';
+import type { SplitPart } from '@/lib/splitParts';
 import { getTransactionConfirmState } from '@/lib/transactionConfirm';
 import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
@@ -484,10 +485,15 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
     // Back to a single booking: the first part's bommel and values go back into the form. On a confirmed receipt this
     // simply leaves the split without saving.
     function cancelSplit() {
-        const first = splitEditor.parts[0];
-        if (!locked && first) {
-            setBommelId(first.bommelId != null ? String(first.bommelId) : '');
-            setCategoryValues(first.categoryValues);
+        leaveSplit(splitEditor.parts[0]);
+    }
+
+    // Back to a single booking with the given part's bommel and values in the form, e.g. the one left after removing
+    // the others.
+    function leaveSplit(part: SplitPart | undefined) {
+        if (!locked && part) {
+            setBommelId(part.bommelId != null ? String(part.bommelId) : '');
+            setCategoryValues(part.categoryValues);
         }
         setSplitting(false);
     }
@@ -515,6 +521,10 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
             showSuccess(result.length > 1 ? t('receipts.split.toast.created', { n: result.length }) : t('receipts.toast.transactionCreated'));
             setSplitting(false);
             setDetailTab('transaction');
+        } else if (result.length <= 1) {
+            // Saved down to one transaction: back to the single booking, like a receipt that was never split.
+            leaveSplit(splitEditor.parts[0]);
+            showSuccess(t('receipts.toast.saved'));
         } else {
             // New parts have ids now: continue from what was saved, so saving again updates them instead of adding.
             splitEditor.seed(result.map(fromTransaction));
@@ -913,8 +923,15 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                         <BaseSwitch id="receipt-privately-paid" checked={privatelyPaid} onCheckedChange={setPrivatelyPaid} />
                                     </div>
 
+                                    {/* Not saved as a split yet: down to one part it goes back to the single booking right away.
+                                        A saved split first has to drop the removed transactions, so that happens on save. */}
                                     {splitting ? (
-                                        <SplitEditor editor={splitEditor} total={splitTotal} onCancel={!isSplitDoc && !locked ? cancelSplit : undefined} />
+                                        <SplitEditor
+                                            editor={splitEditor}
+                                            total={splitTotal}
+                                            onCancel={!isSplitDoc && !locked ? cancelSplit : undefined}
+                                            onSinglePart={!isSplitDoc && !locked ? leaveSplit : undefined}
+                                        />
                                     ) : (
                                         <>
                                             {/* Category groups belong to the transaction. Filtered by the chosen bommel; required ones

@@ -8,14 +8,25 @@ import type { SplitEditorState } from './useSplitEditor';
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { useCurrency } from '@/hooks/use-currency';
-import { segmentColor } from '@/lib/splitParts';
+import { segmentColor, type SplitPart } from '@/lib/splitParts';
 
 /**
  * The split of a receipt inside the review form, in place of the single bommel and category fields: how much of the
  * amount is assigned, one row per part (own amount, bommel and category values) and a button for another part.
- * `onCancel` offers to go back to a single booking.
+ * `onCancel` offers to go back to a single booking; `onSinglePart` gets the remaining part when removing parts leaves
+ * only one, so the form can go back to a single booking by itself.
  */
-export function SplitEditor({ editor, total, onCancel }: { editor: SplitEditorState; total: number; onCancel?: () => void }) {
+export function SplitEditor({
+    editor,
+    total,
+    onCancel,
+    onSinglePart,
+}: {
+    editor: SplitEditorState;
+    total: number;
+    onCancel?: () => void;
+    onSinglePart?: (part: SplitPart) => void;
+}) {
     const { t } = useTranslation();
     const { format } = useCurrency();
     const { sum, perPart, hasTotal } = editor;
@@ -77,7 +88,11 @@ export function SplitEditor({ editor, total, onCancel }: { editor: SplitEditorSt
                     onBommelChange={(id) => editor.setBommel(x.part.key, id)}
                     onCategoryChange={(groupId, value) => editor.setCategory(x.part.key, groupId, value)}
                     onTouch={(field) => editor.touch(x.part.key, field)}
-                    onRemove={() => editor.remove(x.part.key)}
+                    onRemove={() => {
+                        const remaining = editor.parts.filter((p) => p.key !== x.part.key);
+                        editor.remove(x.part.key);
+                        if (remaining.length === 1) onSinglePart?.(remaining[0]);
+                    }}
                 />
             ))}
             <BaseButton
