@@ -21,7 +21,17 @@ vi.mock('@/components/Dashboard/BommelSelect', () => ({
 }));
 
 /** Renders the editor like the review form does and exposes its state for the assertions. */
-function Harness({ total, initial, onState }: { total: number; initial: SplitPart[]; onState: (s: SplitEditorState) => void }) {
+function Harness({
+    total,
+    initial,
+    onState,
+    onSinglePart,
+}: {
+    total: number;
+    initial: SplitPart[];
+    onState: (s: SplitEditorState) => void;
+    onSinglePart?: (part: SplitPart) => void;
+}) {
     const editor = useSplitEditor(total);
     useEffect(() => {
         editor.seed(initial);
@@ -29,12 +39,12 @@ function Harness({ total, initial, onState }: { total: number; initial: SplitPar
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     onState(editor);
-    return <SplitEditor editor={editor} total={total} />;
+    return <SplitEditor editor={editor} total={total} onSinglePart={onSinglePart} />;
 }
 
-function renderEditor(total: number, initial: SplitPart[]) {
+function renderEditor(total: number, initial: SplitPart[], onSinglePart?: (part: SplitPart) => void) {
     const state: { current?: SplitEditorState } = {};
-    renderWithProviders(<Harness total={total} initial={initial} onState={(s) => (state.current = s)} />);
+    renderWithProviders(<Harness total={total} initial={initial} onState={(s) => (state.current = s)} onSinglePart={onSinglePart} />);
     return state;
 }
 
@@ -107,5 +117,25 @@ describe('SplitEditor', () => {
             expect.objectContaining({ id: undefined, amount: 120, bommelId: 7 }),
         ]);
         expect(state.current!.dirty).toBe(true);
+    });
+    it('reports the part that is left when removing parts leaves only one', () => {
+        const onSinglePart = vi.fn();
+        renderEditor(300, seedSplitParts([], 300, { bommelId: 7, categoryValues: { 10: 'Getränke' } }), onSinglePart);
+
+        fireEvent.click(screen.getAllByLabelText('Remove part')[1]);
+
+        expect(onSinglePart).toHaveBeenCalledTimes(1);
+        expect(onSinglePart.mock.calls[0][0]).toMatchObject({ bommelId: 7, categoryValues: { 10: 'Getränke' } });
+    });
+
+    it('keeps splitting while at least two parts are left', () => {
+        const onSinglePart = vi.fn();
+        renderEditor(300, seedSplitParts([], 300, noFallback), onSinglePart);
+
+        fireEvent.click(screen.getByRole('button', { name: /Add another part/ }));
+        fireEvent.click(screen.getAllByLabelText('Remove part')[2]);
+
+        expect(screen.getAllByLabelText('Remove part')).toHaveLength(2);
+        expect(onSinglePart).not.toHaveBeenCalled();
     });
 });
