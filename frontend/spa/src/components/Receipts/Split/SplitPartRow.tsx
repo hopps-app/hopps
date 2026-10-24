@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next';
 import CategoryValueCombobox from '@/components/CategoryGroups/CategoryValueCombobox';
 import { ALL_BOMMELS, BommelSelect } from '@/components/Dashboard/BommelSelect';
 import type { BommelTreeItem } from '@/components/Dashboard/bommelTree';
-import { hideWhileEditingCls, inputCls, pickerFocusCls } from '@/components/Transactions/drawerParts';
+import { errorInputCls, hideWhileEditingCls, inputCls, pickerFocusCls } from '@/components/Transactions/drawerParts';
+import { HintTooltip } from '@/components/ui/HintTooltip';
 import { RequiredTag } from '@/components/ui/RequiredTag';
 import { formatPartAmount, type SplitFieldId, type SplitGroup, type SplitPart, type SplitPartError, segmentColor } from '@/lib/splitParts';
 import { cn } from '@/lib/utils';
@@ -89,6 +90,7 @@ export function SplitPartRow({
     }, [open, part.bommelId, groups.length]);
 
     const empty = (field: SplitFieldId) => missing.some((e) => e.field === field);
+    const amountInvalid = missing.some((e) => e.field === 'amount' && e.invalid);
     const bad = (field: SplitFieldId) => errors.some((e) => e.field === field);
     const summary = [bommelName ?? t('receipts.split.noBommel'), ...groups.map((g) => part.categoryValues[g.id]).filter(Boolean)].join(' · ');
 
@@ -196,7 +198,17 @@ export function SplitPartRow({
                 )}
 
                 <div className="group/field flex flex-col gap-1 self-stretch border-l border-border-soft pl-3">
-                    <span className={cn(MINI_LABEL, 'justify-end')}>{t('receipts.split.amount')}</span>
+                    <span className={cn(MINI_LABEL, 'justify-end')}>
+                        {/* The rest part's amount follows the receipt amount and the other parts; the tag says why it changes. */}
+                        {part.rest && (
+                            <HintTooltip content={t('receipts.split.restHint')} align="end">
+                                <span className="inline-flex cursor-help items-center rounded-full bg-[var(--surface-track)] px-2 py-0.5 text-[10.5px] font-bold text-muted-foreground">
+                                    {t('receipts.split.rest')}
+                                </span>
+                            </HintTooltip>
+                        )}
+                        {t('receipts.split.amount')}
+                    </span>
                     <input
                         type="text"
                         inputMode="decimal"
@@ -204,10 +216,19 @@ export function SplitPartRow({
                         value={part.rest ? formatPartAmount(amount) : part.amount}
                         onChange={(e) => onAmountChange(e.target.value)}
                         onBlur={() => onTouch('amount')}
-                        className={cn(inputCls, 'text-right tabular-nums', empty('amount') && 'border-[var(--warning)]', bad('amount') && WARN_RING)}
+                        className={cn(
+                            inputCls,
+                            'text-right tabular-nums',
+                            amountInvalid ? errorInputCls : [empty('amount') && 'border-[var(--warning)]', bad('amount') && WARN_RING]
+                        )}
                     />
-                    {bad('amount') && (
-                        <span className={cn('text-right leading-tight', hideWhileEditingCls)}>{errorLine(t('receipts.split.amountRequired'))}</span>
+                    {/* Not a number: an error right away, also while typing. Missing: the orange hint after touch/attempt. */}
+                    {amountInvalid ? (
+                        <span className="text-right text-[12px] font-semibold leading-tight text-[var(--negative)]">{t('receipts.split.amountInvalid')}</span>
+                    ) : (
+                        bad('amount') && (
+                            <span className={cn('text-right leading-tight', hideWhileEditingCls)}>{errorLine(t('receipts.split.amountRequired'))}</span>
+                        )
                     )}
                 </div>
                 <button

@@ -50,13 +50,16 @@ export function SplitEditor({
                 value={format(sum.assigned)}
                 total={t('receipts.split.of', { total: format(total) })}
                 ok={!sum.over && sum.unassigned === 0 && hasTotal}
-                tone={sum.over ? 'warn' : 'neutral'}
+                // Without a receipt amount there is nothing to distribute; that, not the sum, is what to fix first.
+                tone={!hasTotal ? 'open' : sum.over ? 'warn' : sum.unassigned > 0 ? 'open' : 'neutral'}
                 message={
-                    sum.over
-                        ? t('receipts.split.over', { amount: format(-sum.diff) })
-                        : sum.unassigned > 0
-                          ? t('receipts.split.unassigned', { amount: format(sum.unassigned) })
-                          : t('receipts.split.sumOk')
+                    !hasTotal
+                        ? t('receipts.split.noTotalShort')
+                        : sum.over
+                          ? t('receipts.split.over', { amount: format(-sum.diff) })
+                          : sum.unassigned > 0
+                            ? t('receipts.split.unassigned', { amount: format(sum.unassigned) })
+                            : t('receipts.split.sumOk')
                 }
                 segments={perPart.map((x) => ({
                     key: x.part.key,

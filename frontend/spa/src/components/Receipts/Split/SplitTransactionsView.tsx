@@ -63,17 +63,16 @@ function ReadPart({ tx, index, groups, bommelName }: { tx: TransactionResponse; 
     );
     const missingGroups = groups.filter((g) => g.required && !values[g.id]);
     const canConfirm = confirmState.canConfirm && missingGroups.length === 0;
+    // What is missing, then where to fill it in: the fields belong to the transaction (opened with the button at the top
+    // right); the bank coverage is linked below, so the hint only shows when a field is missing.
+    const missingFields = confirmState.missing.some((m) => m !== 'coverage') || missingGroups.length > 0;
     const blockers = canConfirm ? null : (
         <>
             <span className="font-bold">{t('transactions.confirmBlockers.title')}</span>
             <span className="mt-0.5 block">
-                {[
-                    ...confirmState.missing.map((m) =>
-                        t(m === 'date' ? 'transactions.confirmBlockers.dateOnTransaction' : `transactions.confirmBlockers.${m}`)
-                    ),
-                    ...missingGroups.map((g) => g.name),
-                ].join(', ')}
+                {[...confirmState.missing.map((m) => t(`transactions.confirmBlockers.${m}`)), ...missingGroups.map((g) => g.name)].join(', ')}
             </span>
+            {missingFields && <span className="mt-1.5 block">{t('transactions.confirmBlockers.fixInTransactionPart')}</span>}
         </>
     );
 

@@ -17,6 +17,10 @@ export const inputCls =
 export const pickerFocusCls =
     'focus:outline-none focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-[var(--accent-surface)] focus-visible:ring-offset-0 data-[state=open]:border-primary data-[state=open]:ring-[3px] data-[state=open]:ring-[var(--accent-surface)]';
 
+// An input whose value is wrong, not just missing (e.g. an amount that is not a number): red, also while focused.
+export const errorInputCls =
+    'border-[var(--negative)] focus:border-[var(--negative)] ring-[3px] ring-[color-mix(in_oklch,var(--negative)_18%,transparent)] focus:ring-[color-mix(in_oklch,var(--negative)_18%,transparent)]';
+
 // A validation hint under a field hides while that field is being edited (focused input or open picker). The field and
 // its hint share a `group/field` wrapper.
 export const hideWhileEditingCls = 'group-has-[:focus-visible]/field:hidden group-has-[[data-state=open]]/field:hidden';
