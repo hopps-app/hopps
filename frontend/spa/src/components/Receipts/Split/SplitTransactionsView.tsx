@@ -22,9 +22,10 @@ import { useToast } from '@/hooks/use-toast';
 import { segmentColor, type SplitGroup } from '@/lib/splitParts';
 import { getTransactionConfirmState } from '@/lib/transactionConfirm';
 
+// Plain label/value rows: the part panel around them is the card already.
 function InfoRows({ rows }: { rows: [string, ReactNode][] }) {
     return (
-        <div className="rounded-[var(--r-card)] px-[18px] py-1.5" style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-md)' }}>
+        <div>
             {rows.map(([label, value]) => (
                 <div key={label} className="flex items-center justify-between gap-4 border-b border-border-soft py-[13px] last:border-b-0">
                     <span className="text-[13.5px] font-semibold text-muted-foreground">{label}</span>
@@ -66,7 +67,12 @@ function ReadPart({ tx, index, groups, bommelName }: { tx: TransactionResponse; 
         <>
             <span className="font-bold">{t('transactions.confirmBlockers.title')}</span>
             <span className="mt-0.5 block">
-                {[...confirmState.missing.map((m) => t(`transactions.confirmBlockers.${m}`)), ...missingGroups.map((g) => g.name)].join(', ')}
+                {[
+                    ...confirmState.missing.map((m) =>
+                        t(m === 'date' ? 'transactions.confirmBlockers.dateOnTransaction' : `transactions.confirmBlockers.${m}`)
+                    ),
+                    ...missingGroups.map((g) => g.name),
+                ].join(', ')}
             </span>
         </>
     );
@@ -88,6 +94,14 @@ function ReadPart({ tx, index, groups, bommelName }: { tx: TransactionResponse; 
                 {income ? '+ ' : '– '}
                 {format(Math.abs(total))}
             </span>,
+        ],
+        [
+            t('receipts.split.date'),
+            tx.transactionTime ? (
+                new Date(tx.transactionTime).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+            ) : (
+                <span className="text-[var(--ink-faint)]">—</span>
+            ),
         ],
         [t('receipts.split.bommel'), bommelName ?? <span className="text-[var(--ink-faint)]">—</span>],
         ...groups.map((g): [string, ReactNode] => [g.name, values[g.id] ?? <span className="text-[var(--ink-faint)]">—</span>]),
@@ -203,6 +217,7 @@ export function SplitTransactionsView({ parts, receiptTotal }: { parts: Transact
                     className="border border-border-soft px-4 pb-[18px] pt-4"
                     style={{
                         background: 'var(--background-secondary)',
+                        boxShadow: 'var(--shadow-md)',
                         borderRadius: activeIndex === 0 ? '0 var(--r-card) var(--r-card) var(--r-card)' : 'var(--r-card)',
                     }}
                 >

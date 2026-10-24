@@ -41,7 +41,7 @@ import { seedSplitParts, fromTransaction } from '@/components/Receipts/Split/spl
 import { SplitTransactionsView } from '@/components/Receipts/Split/SplitTransactionsView';
 import { useSplitEditor } from '@/components/Receipts/Split/useSplitEditor';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
-import { DirectionCards, Field, footerBtn, inputCls } from '@/components/Transactions/drawerParts';
+import { DirectionCards, Field, footerBtn, hideWhileEditingCls, inputCls, pickerFocusCls } from '@/components/Transactions/drawerParts';
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
 import { HIDE_BOMMEL_QUERY } from '@/components/Transactions/layout';
 import { Badge, type BadgeTone, StatusBadge as TxStatusBadge } from '@/components/Transactions/StatusBadge';
@@ -176,16 +176,25 @@ function DrawerInput({
     loading = false,
     type = 'text',
     inputMode,
+    warn = false,
 }: {
     value: string;
     onChange: (v: string) => void;
     loading?: boolean;
     type?: string;
     inputMode?: 'decimal' | 'text';
+    // Orange border for a value that is still missing, like the required fields of the split.
+    warn?: boolean;
 }) {
     return (
         <div className="relative">
-            <input type={type} inputMode={inputMode} value={value} onChange={(e) => onChange(e.target.value)} className={cn(inputCls, loading && 'pr-9')} />
+            <input
+                type={type}
+                inputMode={inputMode}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                className={cn(inputCls, loading && 'pr-9', warn && 'border-[var(--warning)]')}
+            />
             {loading && (
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-purple-700">
                     <Loader2 size={15} className="animate-spin" />
@@ -463,6 +472,17 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
     const splitTotal = isNaN(formAmount) ? 0 : Math.abs(formAmount);
     const splitEditor = useSplitEditor(splitTotal);
     const splitDirty = splitting && splitEditor.dirty;
+    // Parts with an id update their existing transaction, the others are created. Only a first split "creates"; editing
+    // a saved one confirms it and names how many transactions are added.
+    const newSplitParts = splitEditor.parts.filter((p) => p.id == null).length;
+    const splitConfirmLabel =
+        newSplitParts === splitEditor.parts.length
+            ? newSplitParts > 1
+                ? t('receipts.split.createMany', { n: newSplitParts })
+                : t('receipts.split.createOne')
+            : newSplitParts === 0
+              ? t('receipts.split.confirmSplit')
+              : t('receipts.split.confirmSplitNew', { count: newSplitParts });
 
     function startSplit() {
         splitEditor.seed(seedSplitParts(savedParts ?? [], splitTotal, { bommelId: bommelId ? Number(bommelId) : null, categoryValues }));
@@ -662,7 +682,12 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
         <>
             <span className="font-bold">{t('transactions.confirmBlockers.title')}</span>
             <span className="mt-0.5 block">
-                {[...txConfirmState.missing.map((m) => t(`transactions.confirmBlockers.${m}`)), ...txMissingGroups.map((g) => g.name)].join(', ')}
+                {[
+                    ...txConfirmState.missing.map((m) =>
+                        t(m === 'date' ? 'transactions.confirmBlockers.dateOnTransaction' : `transactions.confirmBlockers.${m}`)
+                    ),
+                    ...txMissingGroups.map((g) => g.name),
+                ].join(', ')}
             </span>
         </>
     );
@@ -882,7 +907,21 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                     </Field>
                                     <div className="grid grid-cols-2 gap-3.5">
                                         <Field label={`${t('receipts.review.amount')} (${symbol})`}>
-                                            <DrawerInput value={amount} onChange={setAmount} inputMode="decimal" loading={isAnalyzing && !amount} />
+                                            <div className="group/field contents">
+                                                <DrawerInput
+                                                    value={amount}
+                                                    onChange={setAmount}
+                                                    inputMode="decimal"
+                                                    loading={isAnalyzing && !amount}
+                                                    warn={splitting && !splitEditor.hasTotal}
+                                                />
+                                                {/* The split shares out this amount, so it is needed before parts can be created. */}
+                                                {splitting && !splitEditor.hasTotal && (
+                                                    <span className={cn('text-[12px] font-semibold text-[var(--warning)]', hideWhileEditingCls)}>
+                                                        {t('receipts.split.amountRequired')}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </Field>
                                         <Field label={t('receipts.review.date')}>
                                             <DrawerInput value={date} onChange={setDate} type="date" loading={isAnalyzing && !date} />
@@ -903,7 +942,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                                     cacheBommelChoice(id);
                                                     setBommelId(id ? String(id) : '');
                                                 }}
-                                                triggerClassName="sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none"
+                                                triggerClassName={cn('sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none', pickerFocusCls)}
                                                 matchTriggerWidth
                                             />
                                         </Field>
@@ -1222,11 +1261,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                             className={footerBtn}
                                         >
                                             <Check size={16} strokeWidth={2.5} />
-                                            {replaceParts.isPending
-                                                ? '…'
-                                                : splitEditor.parts.length > 1
-                                                  ? t('receipts.split.createMany', { n: splitEditor.parts.length })
-                                                  : t('receipts.split.createOne')}
+                                            {replaceParts.isPending ? '…' : splitConfirmLabel}
                                         </BaseButton>
                                     </HintTooltip>
                                 </>

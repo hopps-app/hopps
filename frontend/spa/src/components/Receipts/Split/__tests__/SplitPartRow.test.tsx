@@ -44,6 +44,7 @@ function renderRow(overrides: Partial<Parameters<typeof SplitPartRow>[0]> = {}) 
             index={0}
             amount={500}
             groups={groups}
+            missing={[]}
             errors={[]}
             bommelItems={[]}
             bommelName="Bar"
@@ -96,17 +97,27 @@ describe('SplitPartRow', () => {
         expect(handlers.onRemove).toHaveBeenCalled();
     });
 
+    it('marks missing fields right away but explains them only once errors are shown', () => {
+        renderRow({ missing: [{ field: 'group:10', label: 'Kostenstelle' }] });
+
+        expect(screen.getByTestId('category-10')).toHaveAttribute('data-warn', 'true');
+        expect(screen.getByTestId('category-11')).toHaveAttribute('data-warn', 'false');
+        expect(screen.queryByText('Please choose')).not.toBeInTheDocument();
+    });
+
     it('marks fields with errors and spells them out in the expanded card', () => {
+        const errors = [{ field: 'amount' }, { field: 'bommel' }, { field: 'group:10', label: 'Kostenstelle' }] as const;
         renderRow({
             part: createPart({ amount: '0,00' }),
             amount: 0,
-            errors: [{ field: 'amount' }, { field: 'bommel' }, { field: 'group:10', label: 'Kostenstelle' }],
+            missing: [...errors],
+            errors: [...errors],
         });
 
         // The card is open from the start. Without a bommel it asks for one instead of listing the groups.
         expect(expanded()).toBe(true);
         expect(screen.getByText('Choose a bommel first.')).toBeInTheDocument();
-        expect(screen.getByText('Amount must be greater than 0')).toBeInTheDocument();
+        expect(screen.getByText('Enter amount')).toBeInTheDocument();
         expect(screen.getByText('Please choose')).toBeInTheDocument();
 
         fireEvent.click(screen.getByLabelText('Collapse'));

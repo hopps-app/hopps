@@ -1,4 +1,4 @@
-import { Info, Plus, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { SplitPartRow } from './SplitPartRow';
@@ -46,15 +46,6 @@ export function SplitEditor({
                     </button>
                 )}
             </div>
-            {!hasTotal && (
-                <div
-                    className="flex items-start gap-3 rounded-[var(--r-card)] border px-4 py-3.5"
-                    style={{ background: 'var(--warning-surface)', borderColor: 'color-mix(in oklch, var(--warning) 25%, transparent)' }}
-                >
-                    <Info size={18} className="mt-px flex-shrink-0 text-[var(--warning)]" />
-                    <p className="text-[13.5px] font-semibold leading-snug text-[var(--warning)]">{t('receipts.split.noTotal')}</p>
-                </div>
-            )}
             <SumBar
                 value={format(sum.assigned)}
                 total={t('receipts.split.of', { total: format(total) })}
@@ -81,6 +72,7 @@ export function SplitEditor({
                     index={x.index}
                     amount={x.amount}
                     groups={x.groups}
+                    missing={x.errors}
                     errors={x.visible}
                     bommelItems={editor.bommelItems}
                     bommelName={editor.bommelNameOf(x.part.bommelId)}
