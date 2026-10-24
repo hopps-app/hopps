@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import CategoryValueCombobox from './CategoryValueCombobox';
 import { buildBommelIndex, groupsForBommel } from './helpers';
 
+import { RequiredTag } from '@/components/ui/RequiredTag';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
@@ -46,15 +47,7 @@ const CategoryGroupFields: FC<CategoryGroupFieldsProps> = ({ bommelId, values, o
                     <div key={groupId} className="grid gap-[7px]">
                         <label className="flex items-center gap-2 text-[12px] font-extrabold uppercase tracking-[0.04em] text-[var(--ink-faint)]">
                             {group.name}
-                            {group.required ? (
-                                <span className="text-[10.5px] font-bold normal-case tracking-normal px-2 py-0.5 rounded-full bg-[var(--warning-surface)] text-[var(--warning)]">
-                                    {t('categoryGroups.required')}
-                                </span>
-                            ) : (
-                                <span className="text-[10.5px] font-bold normal-case tracking-normal px-2 py-0.5 rounded-full bg-[var(--surface-track)] text-muted-foreground">
-                                    {t('categoryGroups.optional')}
-                                </span>
-                            )}
+                            {group.required && <RequiredTag />}
                         </label>
                         <CategoryValueCombobox groupId={groupId} value={value} warn={warn} onChange={(v) => onChange(groupId, v)} />
                     </div>

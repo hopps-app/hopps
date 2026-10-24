@@ -12,6 +12,15 @@ export const labelCls = 'text-[12px] font-extrabold uppercase tracking-[0.04em] 
 export const inputCls =
     'h-10 w-full rounded-xl border border-border-soft bg-[var(--background-secondary)] px-3.5 text-[14px] text-foreground placeholder:text-muted-foreground transition-shadow focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-surface)]';
 
+// Focus look of a picker trigger (bommel, category value): purple while its list is open or it has keyboard focus, not
+// after a mouse pick hands the focus back. Wins over the orange "missing" border, so the field being edited is purple.
+export const pickerFocusCls =
+    'focus:outline-none focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-[var(--accent-surface)] focus-visible:ring-offset-0 data-[state=open]:border-primary data-[state=open]:ring-[3px] data-[state=open]:ring-[var(--accent-surface)]';
+
+// A validation hint under a field hides while that field is being edited (focused input or open picker). The field and
+// its hint share a `group/field` wrapper.
+export const hideWhileEditingCls = 'group-has-[:focus-visible]/field:hidden group-has-[[data-state=open]]/field:hidden';
+
 // Footer buttons. Height and type size follow the design system's default button.
 export const footerBtn = 'h-[42px] gap-2 rounded-[var(--btn-radius)] px-5 text-[14.5px] font-bold';
 export const outlineBtn = 'border border-border-soft text-foreground hover:bg-[var(--background-secondary)]';
