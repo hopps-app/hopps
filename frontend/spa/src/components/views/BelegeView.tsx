@@ -992,7 +992,9 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                                 />
                                                 {/* The split shares out this amount, so it is needed before parts can be created. */}
                                                 {amountInvalid && (
-                                                    <span className="text-[12px] font-semibold text-[var(--negative)]">{t('receipts.split.amountInvalid')}</span>
+                                                    <span className="text-[12px] font-semibold text-[var(--negative)]">
+                                                        {t('receipts.split.amountInvalid')}
+                                                    </span>
                                                 )}
                                                 {!amountInvalid && splitting && !splitEditor.hasTotal && (
                                                     <span className={cn('text-[12px] font-semibold text-[var(--warning)]', hideWhileEditingCls)}>
@@ -1319,7 +1321,12 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                     {/* A draft keeps the receipt in review; on a confirmed receipt it takes the confirmation back,
                                         so the tooltip says so. */}
                                     <HintTooltip content={locked ? t('receipts.split.saveDraftReopenHint') : t('receipts.split.saveDraftHint')}>
-                                        <BaseButton variant="tonal" onClick={() => saveSplit(false)} disabled={busy || amountInvalid || splitAmountInvalid} className={footerBtn}>
+                                        <BaseButton
+                                            variant="tonal"
+                                            onClick={() => saveSplit(false)}
+                                            disabled={busy || amountInvalid || splitAmountInvalid}
+                                            className={footerBtn}
+                                        >
                                             {replaceParts.isPending ? '…' : t('receipts.review.save')}
                                         </BaseButton>
                                     </HintTooltip>
