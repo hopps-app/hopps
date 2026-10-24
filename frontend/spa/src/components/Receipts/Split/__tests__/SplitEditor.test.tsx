@@ -92,17 +92,19 @@ describe('SplitEditor', () => {
         expect(screen.getByText('Amounts add up')).toBeInTheDocument();
     });
 
-    it('marks untouched missing fields only once the user reaches for "create"', () => {
+    it('marks missing fields right away and explains them once the user reaches for "create"', () => {
         const state = renderEditor(300, seedSplitParts([], 300, noFallback));
         const warned = () => screen.getAllByTestId('bommel-select').map((s) => s.getAttribute('data-warn'));
 
-        expect(warned()).toEqual(['false', 'false']);
+        // The orange border shows at once, the text only after an attempt.
+        expect(warned()).toEqual(['true', 'true']);
+        expect(screen.queryByText('Please choose')).not.toBeInTheDocument();
         fireEvent.click(screen.getByRole('button', { name: /Add another part/ }));
-        expect(screen.getAllByTestId('bommel-select')).toHaveLength(3);
+        expect(warned()).toEqual(['true', 'true', 'true']);
 
         // Simulates hovering the disabled create button.
         act(() => state.current!.markAttempted());
-        expect(screen.getAllByTestId('bommel-select')[0]).toHaveAttribute('data-warn', 'true');
+        expect(screen.getAllByText('Please choose')).toHaveLength(3);
     });
 
     it('sends the existing transaction with its id and gives the rest of the amount to the first part', () => {

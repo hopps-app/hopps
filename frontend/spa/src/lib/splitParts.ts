@@ -6,7 +6,7 @@
 // "rest" part: its amount is not stored but derived as document total minus the other parts, so the user only types
 // n-1 amounts. Typing into the rest part turns it into a fixed part.
 
-import { parseAllocationAmount } from '@/utils/parseAmount';
+import { isInvalidAmount, parseAllocationAmount } from '@/utils/parseAmount';
 
 export interface SplitPart {
     // Client-side identity (stable across edits); the server id is set once the part has been saved.
@@ -35,6 +35,8 @@ export interface SplitPartError {
     field: SplitFieldId;
     // The group name for a missing mandatory group; the UI translates 'amount' and 'bommel' itself.
     label?: string;
+    // The amount was typed but is not a number (e.g. "4ßß"): an error to check, not just a missing value.
+    invalid?: boolean;
 }
 
 // Money is compared in integer cents so that rounding noise never counts as a difference.
@@ -71,10 +73,14 @@ export function createPart(init: Partial<Omit<SplitPart, 'key'>> = {}): SplitPar
     };
 }
 
-/** The amount of the rest part: the document total minus every fixed part. May be negative when over-distributed. */
+/**
+ * The amount of the rest part: the document total minus every fixed part, never below 0. When the fixed parts already
+ * exceed the total, the rest is empty and the excess shows as over-distribution instead of being cancelled out by a
+ * negative rest.
+ */
 export function restAmount(total: number, parts: SplitPart[]): number {
     const fixed = parts.filter((p) => !p.rest).reduce((sum, p) => sum + parsePartAmount(p.amount), 0);
-    return roundCents(total - fixed);
+    return Math.max(0, roundCents(total - fixed));
 }
 
 /** The effective amount of a part: derived for the rest part, parsed for every other. */
@@ -156,7 +162,8 @@ export function setPartBommel(part: SplitPart, bommelId: number | null, groupsFo
 /** The validation errors of one part: amount, bommel and every mandatory group without a value. */
 export function partErrors(part: SplitPart, amount: number, groups: SplitGroup[]): SplitPartError[] {
     const errors: SplitPartError[] = [];
-    if (amount <= 0) errors.push({ field: 'amount' });
+    if (!part.rest && isInvalidAmount(part.amount)) errors.push({ field: 'amount', invalid: true });
+    else if (amount <= 0) errors.push({ field: 'amount' });
     if (part.bommelId == null) errors.push({ field: 'bommel' });
     for (const group of groups) {
         const value = part.categoryValues[group.id];
