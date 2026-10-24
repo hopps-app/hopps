@@ -1022,7 +1022,6 @@
             "descriptionNoName": "Are you sure you want to delete this transaction ({{amount}})?"
         },
         "title": "Receipts",
-        "subtitle": "{{count}} unreviewed receipts",
         "reanalyzeAll": "Re-analyze receipts",
         "reanalyzeStarted": "Re-analysis started for {{count}} receipt(s).",
         "columns": {

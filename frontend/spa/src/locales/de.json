@@ -886,7 +886,6 @@
             "descriptionNoName": "Diese Transaktion ({{amount}}) wirklich löschen?"
         },
         "title": "Belege",
-        "subtitle": "{{count}} ungeprüfte Belege",
         "reanalyzeAll": "Belege erneut analysieren",
         "reanalyzeStarted": "Erneute Analyse für {{count}} Beleg(e) gestartet.",
         "columns": {

@@ -989,7 +989,6 @@
             "descriptionNoName": "Sei sicuro di voler eliminare questa transazione ({{amount}})?"
         },
         "title": "Ricevute",
-        "subtitle": "{{count}} ricevute non revisionate",
         "reanalyzeAll": "Rianalizza ricevute",
         "reanalyzeStarted": "Rianalisi avviata per {{count}} ricevuta/e.",
         "columns": {

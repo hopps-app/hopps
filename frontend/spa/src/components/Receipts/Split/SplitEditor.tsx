@@ -98,7 +98,7 @@ export function SplitEditor({
             <BaseButton
                 variant="outline"
                 onClick={editor.add}
-                className="h-[42px] w-full gap-2 rounded-[var(--btn-radius)] border-border-soft bg-[var(--background-secondary)] text-[14px] font-bold"
+                className="h-[42px] w-full gap-2 rounded-[var(--btn-radius)] border-border-soft bg-[var(--background-secondary)] text-[14px] font-bold shadow-none hover:shadow-none"
             >
                 <Plus size={16} />
                 {t('receipts.split.addPart')}

@@ -2125,7 +2125,6 @@ export function BelegeView() {
                     <h1 className="font-bold text-[#1B1B1F] leading-tight" style={{ fontSize: 26 }}>
                         {t('receipts.title')}
                     </h1>
-                    <p className="mt-1 text-[13.5px] text-[#6B6B76]">{t('receipts.subtitle', { count: unreviewedCount })}</p>
                 </div>
             </div>
 
@@ -2164,8 +2163,11 @@ export function BelegeView() {
                         </button>
                     )}
 
-                    {/* Search, same look as on the transactions page */}
-                    <div className="relative w-64 max-w-full">
+                    {/* Search, same look as on the transactions page; wide enough to show the whole placeholder (plus icon and clear button padding) */}
+                    <div
+                        className="relative max-w-full text-[14.5px]"
+                        style={{ width: `max(16rem, calc(${t('receipts.searchPlaceholder').length}ch + 74px))` }}
+                    >
                         <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--ink-faint)] pointer-events-none" />
                         <input
                             type="text"

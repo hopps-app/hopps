@@ -989,7 +989,6 @@
             "descriptionNoName": "Êtes-vous sûr de vouloir supprimer cette transaction ({{amount}}) ?"
         },
         "title": "Reçus",
-        "subtitle": "{{count}} reçus non vérifiés",
         "reanalyzeAll": "Réanalyser les reçus",
         "reanalyzeStarted": "Réanalyse lancée pour {{count}} reçu(s).",
         "columns": {
