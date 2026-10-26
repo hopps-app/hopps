@@ -61,7 +61,8 @@ class DocumentAuditTest {
 
     @Transactional
     List<AuditLog> auditOf(Long documentId) {
-        return AuditLog.list("entityType = ?1 and entityId = ?2 order by id", AuditEntityType.DOCUMENT, documentId);
+        return AuditLog.list("entityType = ?1 and entityId = ?2 order by occurredAt, id", AuditEntityType.DOCUMENT,
+                documentId);
     }
 
     private Long upload() {

@@ -50,7 +50,7 @@ class TransactionLinkAuditTest {
 
     @Transactional
     List<AuditLog> auditOf(Long transactionId) {
-        return AuditLog.list("entityType = ?1 and entityId = ?2 order by id", AuditEntityType.TRANSACTION,
+        return AuditLog.list("entityType = ?1 and entityId = ?2 order by occurredAt, id", AuditEntityType.TRANSACTION,
                 transactionId);
     }
 

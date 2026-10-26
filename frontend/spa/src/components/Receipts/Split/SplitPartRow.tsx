@@ -5,12 +5,15 @@ import { useTranslation } from 'react-i18next';
 import CategoryValueCombobox from '@/components/CategoryGroups/CategoryValueCombobox';
 import { ALL_BOMMELS, BommelSelect } from '@/components/Dashboard/BommelSelect';
 import type { BommelTreeItem } from '@/components/Dashboard/bommelTree';
-import { inputCls } from '@/components/Transactions/drawerParts';
+import { errorInputCls, hideWhileEditingCls, inputCls, pickerFocusCls } from '@/components/Transactions/drawerParts';
+import { HintTooltip } from '@/components/ui/HintTooltip';
+import { RequiredTag } from '@/components/ui/RequiredTag';
 import { formatPartAmount, type SplitFieldId, type SplitGroup, type SplitPart, type SplitPartError, segmentColor } from '@/lib/splitParts';
 import { cn } from '@/lib/utils';
 
 const MINI_LABEL = 'flex h-4 items-center gap-1.5 whitespace-nowrap text-[11.5px] font-bold text-muted-foreground';
-const WARN_RING = { borderColor: 'var(--warning)', boxShadow: '0 0 0 3px color-mix(in oklch, var(--warning) 18%, transparent)' } as const;
+// Stronger mark once the missing amount is spelled out; as classes so the focus ring of the input still wins.
+const WARN_RING = 'ring-[3px] ring-[color-mix(in_oklch,var(--warning)_18%,transparent)]';
 
 /** Numbered badge of a part, in the colour of its bar segment. */
 export function PartBadge({ index, colored = true }: { index: number; colored?: boolean }) {
@@ -34,6 +37,7 @@ export function SplitPartRow({
     index,
     amount,
     groups,
+    missing,
     errors,
     bommelItems,
     bommelName,
@@ -48,7 +52,9 @@ export function SplitPartRow({
     // The effective amount (derived for the rest part).
     amount: number;
     groups: SplitGroup[];
-    // The errors to show (already filtered by touched/attempted).
+    // Every field still missing: marked with the orange border right away, like the required fields of the single form.
+    missing: SplitPartError[];
+    // The errors to explain with a text (already filtered by touched/attempted).
     errors: SplitPartError[];
     bommelItems: BommelTreeItem[];
     bommelName: string | null;
@@ -83,6 +89,8 @@ export function SplitPartRow({
         };
     }, [open, part.bommelId, groups.length]);
 
+    const empty = (field: SplitFieldId) => missing.some((e) => e.field === field);
+    const amountInvalid = missing.some((e) => e.field === 'amount' && e.invalid);
     const bad = (field: SplitFieldId) => errors.some((e) => e.field === field);
     const summary = [bommelName ?? t('receipts.split.noBommel'), ...groups.map((g) => part.categoryValues[g.id]).filter(Boolean)].join(' · ');
 
@@ -97,7 +105,11 @@ export function SplitPartRow({
                 onBommelChange(next === ALL_BOMMELS ? null : Number(next));
                 onTouch('bommel');
             }}
-            triggerClassName={cn('w-full sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none', bad('bommel') && 'border-[var(--warning)]')}
+            triggerClassName={cn(
+                'w-full sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none',
+                empty('bommel') && 'border-[var(--warning)]',
+                pickerFocusCls
+            )}
             matchTriggerWidth={matchTriggerWidth}
         />
     );
@@ -106,7 +118,7 @@ export function SplitPartRow({
         <CategoryValueCombobox
             groupId={g.id}
             value={part.categoryValues[g.id]}
-            warn={bad(`group:${g.id}`)}
+            warn={empty(`group:${g.id}`)}
             placeholder={g.required ? t('receipts.split.pleaseChoose') : undefined}
             onChange={(v) => {
                 onCategoryChange(g.id, v);
@@ -115,8 +127,8 @@ export function SplitPartRow({
         />
     );
 
-    const requiredTag = <span className="text-[11px] font-bold text-[var(--ink-faint)]">{t('categoryGroups.required')}</span>;
-    const errorLine = (text: string) => <span className="text-[12px] font-semibold text-[var(--warning)]">{text}</span>;
+    const requiredTag = <RequiredTag />;
+    const errorLine = (text: string) => <span className={cn('text-[12px] font-semibold text-[var(--warning)]', hideWhileEditingCls)}>{text}</span>;
 
     return (
         <div className="rounded-[14px] border border-border-soft" style={{ background: 'var(--background-secondary)' }}>
@@ -185,8 +197,18 @@ export function SplitPartRow({
                     </div>
                 )}
 
-                <div className="flex flex-col gap-1 self-stretch border-l border-border-soft pl-3">
-                    <span className={cn(MINI_LABEL, 'justify-end')}>{t('receipts.split.amount')}</span>
+                <div className="group/field flex flex-col gap-1 self-stretch border-l border-border-soft pl-3">
+                    <span className={cn(MINI_LABEL, 'justify-end')}>
+                        {/* The rest part's amount follows the receipt amount and the other parts; the tag says why it changes. */}
+                        {part.rest && (
+                            <HintTooltip content={t('receipts.split.restHint')} align="end">
+                                <span className="inline-flex cursor-help items-center rounded-full bg-[var(--surface-track)] px-2 py-0.5 text-[10.5px] font-bold text-muted-foreground">
+                                    {t('receipts.split.rest')}
+                                </span>
+                            </HintTooltip>
+                        )}
+                        {t('receipts.split.amount')}
+                    </span>
                     <input
                         type="text"
                         inputMode="decimal"
@@ -194,9 +216,20 @@ export function SplitPartRow({
                         value={part.rest ? formatPartAmount(amount) : part.amount}
                         onChange={(e) => onAmountChange(e.target.value)}
                         onBlur={() => onTouch('amount')}
-                        className={cn(inputCls, 'text-right tabular-nums')}
-                        style={bad('amount') ? WARN_RING : undefined}
+                        className={cn(
+                            inputCls,
+                            'text-right tabular-nums',
+                            amountInvalid ? errorInputCls : [empty('amount') && 'border-[var(--warning)]', bad('amount') && WARN_RING]
+                        )}
                     />
+                    {/* Not a number: an error right away, also while typing. Missing: the orange hint after touch/attempt. */}
+                    {amountInvalid ? (
+                        <span className="text-right text-[12px] font-semibold leading-tight text-[var(--negative)]">{t('receipts.split.amountInvalid')}</span>
+                    ) : (
+                        bad('amount') && (
+                            <span className={cn('text-right leading-tight', hideWhileEditingCls)}>{errorLine(t('receipts.split.amountRequired'))}</span>
+                        )
+                    )}
                 </div>
                 <button
                     type="button"
@@ -215,7 +248,7 @@ export function SplitPartRow({
                     className="grid items-start gap-3.5 border-t border-border-soft px-3.5 pb-4 pt-3.5"
                     style={{ gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)' }}
                 >
-                    <div className="flex flex-col gap-1.5">
+                    <div className="group/field flex flex-col gap-1.5">
                         <span className={MINI_LABEL}>
                             {t('receipts.split.bommel')}
                             {requiredTag}
@@ -246,7 +279,7 @@ export function SplitPartRow({
                             </>
                         ) : (
                             groups.map((g) => (
-                                <div key={g.id} className="flex flex-col gap-1.5">
+                                <div key={g.id} className="group/field flex flex-col gap-1.5">
                                     <span className={MINI_LABEL}>
                                         <span className="truncate">{g.name}</span>
                                         {g.required && requiredTag}
@@ -257,7 +290,6 @@ export function SplitPartRow({
                             ))
                         )}
                     </div>
-                    {bad('amount') && <div className="col-span-2">{errorLine(t('receipts.split.amountPositive'))}</div>}
                 </div>
             )}
         </div>

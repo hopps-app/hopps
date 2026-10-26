@@ -31,7 +31,8 @@ export function SumBar({
     segments: SumSegment[];
     activeKey?: string | null;
     onSelect?: (key: string) => void;
-    tone?: 'neutral' | 'warn';
+    // warn: an error (over-distributed); open: something still open that is allowed, in gold like the bank coverage.
+    tone?: 'neutral' | 'open' | 'warn';
     footer?: ReactNode;
 }) {
     const sum = segments.reduce((s, x) => s + Math.max(0, x.value), 0);
@@ -47,7 +48,7 @@ export function SumBar({
                 </span>
                 <span
                     className="inline-flex items-center gap-1.5 text-[12.5px] font-extrabold"
-                    style={{ color: ok ? 'var(--positive)' : tone === 'warn' ? 'var(--warning)' : 'var(--muted-foreground)' }}
+                    style={{ color: ok ? 'var(--positive)' : tone === 'neutral' ? 'var(--muted-foreground)' : 'var(--warning)' }}
                 >
                     {ok && <Check size={14} />}
                     {message}
