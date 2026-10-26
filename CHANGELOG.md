@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.2.0](https://github.com/hopps-app/hopps/compare/v2.1.0...v2.2.0) (2026-10-26)
+
+
+### Features
+
+* first-use setup, category templates and unified empty and loading states ([#887](https://github.com/hopps-app/hopps/issues/887)) ([630fa5d](https://github.com/hopps-app/hopps/commit/630fa5d9a1a52762a7e23940656b2ee10ddb4b0d))
+* **receipts:** split a receipt into several transactions ([#889](https://github.com/hopps-app/hopps/issues/889)) ([2521434](https://github.com/hopps-app/hopps/commit/25214341df45513f1586de3ca75ed0b6da239a64))
+
+
+### Bug Fixes
+
+* **receipts:** a split down to one part goes back to the single booking ([#890](https://github.com/hopps-app/hopps/issues/890)) ([8e0dde4](https://github.com/hopps-app/hopps/commit/8e0dde467947e5cb25f9d72193a6864f5e2bcc4d))
+* **receipts:** split validation and receipts UI polish ([#891](https://github.com/hopps-app/hopps/issues/891)) ([d41bd44](https://github.com/hopps-app/hopps/commit/d41bd4495ca7b10a6de50dcccc668e26ec4e0d6f))
+
 ## [2.1.0](https://github.com/hopps-app/hopps/compare/v2.0.0...v2.1.0) (2026-10-21)
 
 
