@@ -59,7 +59,7 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 | Bank-Import Vorlagen (automatische Erkennung) | ✅ | Sparkasse (MT940, CAMT.052 v2/v8), Volksbanken / Raiffeisenbanken Umsatz-CSV (18 Spalten, Atruvia-Banken inkl. Deutsche Skatbank) | BE `SystemTemplateService`, `SchemaDetectionService` (Stand 2026-10-05) |
 | Bank-Import MT940 | ✅ | – | BE `bankimport/` |
 | Währungsprüfung beim Import | ✅ | Vor dem Import (Stand 2026-10-04): Beträge in anderer Währung als das Konto (oder gemischte Währungen) werden abgelehnt. Keine Prüfung, ob die Datei zum Konto (IBAN) passt | BE `bankimport/service/ImportFileCheckService.java`, SPA `BankAccounts/ImportWizard.tsx` |
-| Abgleich Bank ↔ Belege (inkl. Teilbeträge) | ✅ | Manuell; Auto-Matching erst Gerüst. Beleg direkt am Kontoumsatz hochladen: legt eine aus dem Umsatz vorausgefüllte Entwurfstransaktion an und verknüpft sie sofort, mehrere Belege pro Umsatz möglich | BE `BankTransactionMatch`, `BankTransactionReceiptService` (Stand 2026-10-11) |
+| Abgleich Bank ↔ Belege (inkl. Teilbeträge) | ✅ | Manuell; Auto-Matching erst Gerüst. Beleg direkt am Kontoumsatz hochladen: legt eine aus dem Umsatz vorausgefüllte Entwurfstransaktion an und verknüpft sie sofort; nach der Analyse übernimmt sie Steuer und Belegname, solange unverändert; mehrere Belege pro Umsatz möglich | BE `BankTransactionMatch`, `BankTransactionReceiptService` (Stand 2026-10-26) |
 | Automatischer Kontoabruf (FinTS/EBICS) | ❌ | – | – |
 | Doppelte Buchführung / EÜR / Jahresabschluss | ❌ | Siehe [04-roadmap.md](04-roadmap.md) | – |
 | Kassenbuch (Bargeld) | ❌ | – | – |
