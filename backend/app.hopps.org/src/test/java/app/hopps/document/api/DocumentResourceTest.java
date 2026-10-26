@@ -621,9 +621,10 @@ class DocumentResourceTest {
                 .then()
                 .statusCode(Response.Status.OK.getStatusCode())
                 .body("$", hasSize(2))
-                .body("[0].name", equalTo("Teil 1"))
-                .body("[0].bommelId", nullValue())
-                .body("[1].name", equalTo("Teil 2"));
+                // Parts are returned in id order. The tests reset the database sequence while Hibernate keeps its
+                // cached ids, so the two new parts may get their ids in either order here; only the set is checked.
+                .body("name", containsInAnyOrder("Teil 1", "Teil 2"))
+                .body("bommelId", everyItem(nullValue()));
 
         given()
                 .when()
