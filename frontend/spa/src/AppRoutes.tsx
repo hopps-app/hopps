@@ -2,8 +2,13 @@ import { lazy, Suspense } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import { KontenPageSkeleton } from '@/components/BankAccounts/KontenSkeleton';
+import { CategoryGroupsSkeleton } from '@/components/CategoryGroups/CategoryGroupsSkeleton';
 import { LoadingState } from '@/components/common/LoadingState';
 import { DashboardSkeleton } from '@/components/Dashboard/DashboardSkeleton';
+import { OrganizationDetailsSkeleton } from '@/components/Organization/OrganizationDetailsSkeleton';
+import { ProfileSkeleton } from '@/components/Profile/ProfileSkeleton';
+import { ReceiptsSkeleton } from '@/components/Receipts/ReceiptsSkeleton';
+import { ReportsSkeleton } from '@/components/Reports/ReportsSkeleton';
 import { TransactionsSkeleton } from '@/components/Transactions/TransactionsSkeleton';
 import HomeView from '@/components/views/HomeView';
 import NotFoundView from '@/components/views/NotFoundView';
@@ -19,9 +24,7 @@ const RegisterOrganizationView = lazy(() =>
     import('@/components/views/RegisterOrganizationView').then((module) => ({ default: module.RegisterOrganizationView }))
 );
 const DashboardView = lazy(() => import('@/components/views/DashboardView'));
-const SettingsView = lazy(() => import('@/components/views/SettingsView'));
 const OrganizationSettingsView = lazy(() => import('./components/views/OrganizationSettings').then((module) => ({ default: module.OrganizationSettingsView })));
-const ReceiptUploadView = lazy(() => import('./components/views/ReceiptUpload').then((module) => ({ default: module.ReceiptUploadView })));
 const ProfileSettingsView = lazy(() => import('./components/views/ProfileSettingsView'));
 const CategoryGroupsView = lazy(() => import('./components/views/CategoryGroupsView'));
 const OrganizationDetailsSettingsView = lazy(() => import('./components/views/OrganizationDetailsSettingsView'));
@@ -30,8 +33,6 @@ const DebugErrorView = lazy(() => import('@/components/views/DebugErrorView'));
 const KontenView = lazy(() => import('@/components/views/KontenView').then((m) => ({ default: m.KontenView })));
 const TransactionenView = lazy(() => import('@/components/views/TransactionenView').then((m) => ({ default: m.TransactionenView })));
 const ReportsView = lazy(() => import('@/components/views/ReportsView').then((m) => ({ default: m.ReportsView })));
-const BankAccountDetailView = lazy(() => import('@/components/views/BankAccountDetailView').then((m) => ({ default: m.BankAccountDetailView })));
-const BankImportView = lazy(() => import('@/components/views/BankImportView').then((m) => ({ default: m.BankImportView })));
 const BankSchemasView = lazy(() => import('@/components/views/BankSchemasView').then((m) => ({ default: m.BankSchemasView })));
 const LegalView = lazy(() => import('@/components/views/LegalView').then((m) => ({ default: m.LegalView })));
 
@@ -86,7 +87,7 @@ export default function AppRoutes() {
                 <Route
                     path="/profile"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<ProfileSkeleton />}>
                             <ProfileSettingsView />
                         </LazyRoute>
                     }
@@ -111,25 +112,9 @@ export default function AppRoutes() {
 
                 {/* receipts/invoices */}
                 <Route
-                    path="/receipts/new"
-                    element={
-                        <LazyRoute>
-                            <ReceiptUploadView />
-                        </LazyRoute>
-                    }
-                />
-                <Route
-                    path="/receipts/:id"
-                    element={
-                        <LazyRoute>
-                            <ReceiptUploadView />
-                        </LazyRoute>
-                    }
-                />
-                <Route
                     path="/receipts"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<ReceiptsSkeleton />}>
                             <ReceiptView />
                         </LazyRoute>
                     }
@@ -149,7 +134,7 @@ export default function AppRoutes() {
                 <Route
                     path="/reports"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<ReportsSkeleton />}>
                             <ReportsView />
                         </LazyRoute>
                     }
@@ -161,22 +146,6 @@ export default function AppRoutes() {
                     element={
                         <LazyRoute fallback={<KontenPageSkeleton />}>
                             <KontenView />
-                        </LazyRoute>
-                    }
-                />
-                <Route
-                    path="/bank-accounts/:id"
-                    element={
-                        <LazyRoute>
-                            <BankAccountDetailView />
-                        </LazyRoute>
-                    }
-                />
-                <Route
-                    path="/bank-accounts/:id/import"
-                    element={
-                        <LazyRoute>
-                            <BankImportView />
                         </LazyRoute>
                     }
                 />
@@ -193,7 +162,7 @@ export default function AppRoutes() {
                 <Route
                     path="/admin/ngo-details"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<OrganizationDetailsSkeleton />}>
                             <OrganizationDetailsSettingsView />
                         </LazyRoute>
                     }
@@ -201,17 +170,8 @@ export default function AppRoutes() {
                 <Route
                     path="/admin/categories"
                     element={
-                        <LazyRoute>
+                        <LazyRoute fallback={<CategoryGroupsSkeleton />}>
                             <CategoryGroupsView />
-                        </LazyRoute>
-                    }
-                />
-                {/* Old navigation logic */}
-                <Route
-                    path="/settings/*"
-                    element={
-                        <LazyRoute>
-                            <SettingsView />
                         </LazyRoute>
                     }
                 />

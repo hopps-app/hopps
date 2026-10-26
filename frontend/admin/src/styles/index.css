@@ -91,6 +91,28 @@
     --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.55);
 }
 
+/* Tokens for components/ui/Button, which mirrors the SPA's Button. Values copied from frontend/spa/src/styles/index.css. */
+:root {
+    --purple-100: #ece0f6;
+    --purple-200: #dac1ec;
+    --purple-300: #c7a2e3;
+    --purple-400: #b583da;
+    --purple-500: #9955cc;
+    --primary-active: #9333ea;
+    --destructive: #aa0000;
+    --destructive-foreground: #ffffff;
+}
+
+[data-theme='dark'] {
+    --purple-100: #391851;
+    --purple-200: #552479;
+    --purple-300: #7131a2;
+    --purple-400: #8d41c6;
+    --purple-500: #9955cc;
+    --destructive: #f87171;
+    --destructive-foreground: #000000;
+}
+
 /* ============================ base ============================ */
 @layer base {
     body {

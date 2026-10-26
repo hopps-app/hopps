@@ -13,10 +13,12 @@ import {
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
+import { SETUP_PROGRESS_KEY } from '@/components/Dashboard/setupProgressKey';
 import { documentKeys, showUploadError } from '@/hooks/queries/useDocuments';
 import { transactionKeys, type SortDirection } from '@/hooks/queries/useTransactions';
 import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
+import { getUserFriendlyErrorMessage } from '@/utils/errorUtils';
 
 // ─── Query Keys ─────────────────────────────────────────────────────────────
 
@@ -105,7 +107,7 @@ export function useCreateBankAccount() {
         },
         onError: (err) => {
             if (ApiException.isApiException(err) && err.status === 409) return;
-            showError(t('bankAccounts.toast.createError'));
+            showError(t('bankAccounts.toast.createError'), { description: getUserFriendlyErrorMessage(err) });
         },
     });
 }
@@ -125,7 +127,7 @@ export function useUpdateBankAccount() {
         },
         onError: (err) => {
             if (ApiException.isApiException(err) && err.status === 409) return;
-            showError(t('bankAccounts.toast.updateError'));
+            showError(t('bankAccounts.toast.updateError'), { description: getUserFriendlyErrorMessage(err) });
         },
     });
 }
@@ -141,8 +143,8 @@ export function useArchiveBankAccount() {
             queryClient.invalidateQueries({ queryKey: bankAccountKeys.lists() });
             showSuccess(t('bankAccounts.toast.archiveSuccess'));
         },
-        onError: () => {
-            showError(t('bankAccounts.toast.archiveError'));
+        onError: (err) => {
+            showError(t('bankAccounts.toast.archiveError'), { description: getUserFriendlyErrorMessage(err) });
         },
     });
 }
@@ -158,8 +160,8 @@ export function useRestoreBankAccount() {
             queryClient.invalidateQueries({ queryKey: bankAccountKeys.lists() });
             showSuccess(t('bankAccounts.toast.restoreSuccess'));
         },
-        onError: () => {
-            showError(t('bankAccounts.toast.restoreError'));
+        onError: (err) => {
+            showError(t('bankAccounts.toast.restoreError'), { description: getUserFriendlyErrorMessage(err) });
         },
     });
 }
@@ -198,8 +200,8 @@ export function useCreateBankSchema() {
             queryClient.invalidateQueries({ queryKey: bankSchemaKeys.lists() });
             showSuccess(t('bankSchema.toast.createSuccess'));
         },
-        onError: () => {
-            showError(t('bankSchema.toast.createError'));
+        onError: (err) => {
+            showError(t('bankSchema.toast.createError'), { description: getUserFriendlyErrorMessage(err) });
         },
     });
 }
@@ -223,8 +225,8 @@ export function useUpdateBankSchema() {
             queryClient.invalidateQueries({ queryKey: bankSchemaKeys.detail(variables.id) });
             showSuccess(t('bankSchema.toast.updateSuccess'));
         },
-        onError: () => {
-            showError(t('bankSchema.toast.updateError'));
+        onError: (err) => {
+            showError(t('bankSchema.toast.updateError'), { description: getUserFriendlyErrorMessage(err) });
         },
     });
 }
@@ -240,8 +242,8 @@ export function useDeleteBankSchema() {
             queryClient.invalidateQueries({ queryKey: bankSchemaKeys.lists() });
             showSuccess(t('bankSchema.toast.deleteSuccess'));
         },
-        onError: () => {
-            showError(t('bankSchema.toast.deleteError'));
+        onError: (err) => {
+            showError(t('bankSchema.toast.deleteError'), { description: getUserFriendlyErrorMessage(err) });
         },
     });
 }
@@ -257,8 +259,8 @@ export function useArchiveBankSchema() {
             queryClient.invalidateQueries({ queryKey: bankSchemaKeys.lists() });
             showSuccess(t('bankSchema.toast.archiveSuccess'));
         },
-        onError: () => {
-            showError(t('bankSchema.toast.archiveError'));
+        onError: (err) => {
+            showError(t('bankSchema.toast.archiveError'), { description: getUserFriendlyErrorMessage(err) });
         },
     });
 }
@@ -274,8 +276,8 @@ export function useRestoreBankSchema() {
             queryClient.invalidateQueries({ queryKey: bankSchemaKeys.lists() });
             showSuccess(t('bankSchema.toast.restoreSuccess'));
         },
-        onError: () => {
-            showError(t('bankSchema.toast.restoreError'));
+        onError: (err) => {
+            showError(t('bankSchema.toast.restoreError'), { description: getUserFriendlyErrorMessage(err) });
         },
     });
 }
@@ -307,9 +309,11 @@ export function useStartImport() {
     const queryClient = useQueryClient();
 
     return useMutation({
+        meta: { errorMessage: 'bankImport.toast.startError' },
         mutationFn: ({ accountId, file, schemaId }: { accountId: number; file: File; schemaId?: number }) =>
             apiService.orgService.importsPOST(accountId, schemaId, { data: file, fileName: file.name }),
         onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: SETUP_PROGRESS_KEY });
             queryClient.invalidateQueries({ queryKey: bankImportKeys.byAccount(variables.accountId) });
         },
     });
@@ -324,6 +328,7 @@ export function useRollbackImport() {
         mutationFn: ({ importId, accountId }: { importId: number; accountId: number }) =>
             apiService.orgService.importsDELETE(importId).then(() => ({ accountId })),
         onSuccess: ({ accountId }) => {
+            queryClient.invalidateQueries({ queryKey: SETUP_PROGRESS_KEY });
             queryClient.invalidateQueries({ queryKey: bankImportKeys.byAccount(accountId) });
             // The rollback deletes the import's bank transactions and their matches, so every list that shows them
             // goes stale: the reconciliation feeds, the account balances (computed from the transactions) and the
@@ -336,14 +341,15 @@ export function useRollbackImport() {
             }
             showSuccess(t('bankImport.toast.rollbackSuccess'));
         },
-        onError: () => {
-            showError(t('bankImport.toast.rollbackError'));
+        onError: (err) => {
+            showError(t('bankImport.toast.rollbackError'), { description: getUserFriendlyErrorMessage(err) });
         },
     });
 }
 
 export function useCsvPreview() {
     return useMutation({
+        meta: { silent: true },
         mutationFn: ({ accountId, file }: { accountId: number; file: File }) => apiService.orgService.preview(accountId, { data: file, fileName: file.name }),
     });
 }
@@ -392,6 +398,7 @@ export function useBankTransaction(id: number | null) {
 export function useAddBankTransactionMatch() {
     const queryClient = useQueryClient();
     return useMutation({
+        meta: { errorMessage: 'bankMatch.toast.linkError' },
         // `amount` is the portion of the bank movement used for this transaction (the allocation). Omit it for the full
         // amount; pass a value to split a collective transfer across several transactions.
         mutationFn: ({ bankTxId, transactionId, amount }: { bankTxId: number; transactionId: number; amount?: number }) =>
@@ -410,6 +417,7 @@ export function useAddBankTransactionMatch() {
 export function useUpdateBankTransactionMatchAmount() {
     const queryClient = useQueryClient();
     return useMutation({
+        meta: { errorMessage: 'bankMatch.toast.amountError' },
         mutationFn: ({ bankTxId, transactionId, amount }: { bankTxId: number; transactionId: number; amount: number }) =>
             apiService.orgService.matchesPATCH(bankTxId, transactionId, new MatchAmountRequest({ amount })),
         onSuccess: (_, vars) => {
@@ -432,6 +440,7 @@ export function useBankTransactionMatches(bankTxId: number | null) {
 export function useRemoveBankTransactionMatch() {
     const queryClient = useQueryClient();
     return useMutation({
+        meta: { errorMessage: 'bankMatch.toast.unlinkError' },
         mutationFn: ({ bankTxId, transactionId }: { bankTxId: number; transactionId: number }) => apiService.orgService.matchesDELETE(bankTxId, transactionId),
         onSuccess: (_, vars) => {
             queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
@@ -444,6 +453,7 @@ export function useRemoveBankTransactionMatch() {
 export function useIgnoreBankTransaction() {
     const queryClient = useQueryClient();
     return useMutation({
+        meta: { errorMessage: 'bankMatch.toast.ignoreError' },
         mutationFn: (bankTxId: number) => apiService.orgService.ignorePOST(bankTxId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });

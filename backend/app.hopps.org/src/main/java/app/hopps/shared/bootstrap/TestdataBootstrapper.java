@@ -28,6 +28,8 @@ import java.util.Optional;
  * <ul>
  * <li>{@code app.hopps.testdata.enabled} - Enable/disable testdata loading (default: true for dev/test)</li>
  * <li>{@code app.hopps.testdata.location} - Path to YAML file (default: testdata/testdata.yaml)</li>
+ * <li>{@code app.hopps.testdata.extra-location} - Optional second YAML file merged on top (dev only: more receipts to
+ * try things out without changing the counts the tests rely on)</li>
  * </ul>
  */
 @ApplicationScoped
@@ -44,6 +46,9 @@ public class TestdataBootstrapper {
 
     @ConfigProperty(name = "app.hopps.testdata.location", defaultValue = "testdata/testdata.yaml")
     String testdataLocation;
+
+    @ConfigProperty(name = "app.hopps.testdata.extra-location")
+    Optional<String> extraLocation;
 
     void onStart(@Observes StartupEvent event) {
         LaunchMode launchMode = LaunchMode.current();
@@ -79,7 +84,7 @@ public class TestdataBootstrapper {
                 return;
             }
 
-            Optional<TestdataConfig> configOpt = loadConfiguration();
+            Optional<TestdataConfig> configOpt = loadConfiguration(testdataLocation);
 
             if (configOpt.isEmpty()) {
                 Log.warn("No testdata configuration found, skipping");
@@ -87,6 +92,7 @@ public class TestdataBootstrapper {
             }
 
             TestdataConfig config = configOpt.get();
+            extraLocation.flatMap(this::loadConfiguration).ifPresent(config::merge);
 
             // Get all loaders sorted by order
             List<EntityDataLoader<?>> sortedLoaders = dataLoaders.stream()
@@ -112,15 +118,15 @@ public class TestdataBootstrapper {
         }
     }
 
-    private Optional<TestdataConfig> loadConfiguration() {
-        Log.infof("Loading testdata from: %s", testdataLocation);
+    private Optional<TestdataConfig> loadConfiguration(String location) {
+        Log.infof("Loading testdata from: %s", location);
 
         try (InputStream inputStream = Thread.currentThread()
                 .getContextClassLoader()
-                .getResourceAsStream(testdataLocation)) {
+                .getResourceAsStream(location)) {
 
             if (inputStream == null) {
-                Log.warnf("Testdata file not found: %s", testdataLocation);
+                Log.warnf("Testdata file not found: %s", location);
                 return Optional.empty();
             }
 

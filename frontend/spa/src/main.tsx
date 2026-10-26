@@ -5,7 +5,6 @@ import { Toaster } from './components/ui/shadecn/Toaster.tsx';
 import { QueryProvider } from './providers/QueryProvider.tsx';
 import './i18n';
 import './styles/index.css';
-import './styles/ag-grid-theme.scss';
 
 createRoot(document.getElementById('root')!).render(
     <QueryProvider>

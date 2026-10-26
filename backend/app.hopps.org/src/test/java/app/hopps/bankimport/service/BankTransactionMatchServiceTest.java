@@ -7,6 +7,7 @@ import app.hopps.bankimport.domain.BankTransactionMatch;
 import app.hopps.bankimport.domain.BankTransactionMatchType;
 import app.hopps.bankimport.domain.BankTransactionStatus;
 import app.hopps.bommel.domain.Bommel;
+import app.hopps.document.domain.Document;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.domain.Transaction;
@@ -24,6 +25,7 @@ import java.time.LocalDate;
 import jakarta.ws.rs.BadRequestException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -341,6 +343,81 @@ class BankTransactionMatchServiceTest {
     }
 
     // ── Test fixture ────────────────────────────────────────────────────────────
+
+    /**
+     * A split receipt paid with one movement of exactly the receipt's amount: linking one part links the other parts to
+     * the same movement too, each with its own amount. They are only linked, not confirmed.
+     */
+    @Test
+    @TestTransaction
+    void linkingAPartWithThePaymentOfTheWholeReceiptLinksTheOtherPartsToo() {
+        Fixture f = createUnmatchedFixture("-700.00", "-500.00", "split-whole");
+        Transaction otherPart = splitReceipt(f, "700.00", "-200.00");
+
+        matchService.addMatch(f.bankTx().getId(), f.transaction().getId(), "tester");
+
+        assertEquals(0, new BigDecimal("500.00").compareTo(allocation(f.bankTx(), f.transaction())));
+        assertEquals(0, new BigDecimal("200.00").compareTo(allocation(f.bankTx(), otherPart)));
+        assertFalse(match(f.bankTx(), otherPart).isAmountManual(), "a full allocation follows later amount changes");
+        assertEquals(BankTransactionStatus.FULLY_MATCHED,
+                em.find(BankTransaction.class, f.bankTx().getId()).getStatus());
+        assertEquals(TransactionStatus.DRAFT, em.find(Transaction.class, otherPart.getId()).getStatus());
+    }
+
+    @Test
+    @TestTransaction
+    void aPaymentOfAnotherAmountOnlyLinksThePartItself() {
+        Fixture f = createUnmatchedFixture("-500.00", "-500.00", "split-part");
+        Transaction otherPart = splitReceipt(f, "700.00", "-200.00");
+
+        matchService.addMatch(f.bankTx().getId(), f.transaction().getId(), "tester");
+
+        assertEquals(0, new BigDecimal("500.00").compareTo(allocation(f.bankTx(), f.transaction())));
+        Long otherMatches = em
+                .createQuery("SELECT COUNT(m) FROM BankTransactionMatch m WHERE m.transaction.id = :txId", Long.class)
+                .setParameter("txId", otherPart.getId())
+                .getSingleResult();
+        assertEquals(0L, otherMatches);
+    }
+
+    /**
+     * Makes the fixture's transaction the first part of a receipt over {@code receiptTotal}; returns the second part.
+     */
+    private Transaction splitReceipt(Fixture f, String receiptTotal, String otherPartTotal) {
+        Document document = new Document();
+        document.setOrganization(f.transaction().getOrganization());
+        document.setName("Getränke Sommerfest");
+        document.setTotal(new BigDecimal(receiptTotal));
+        em.persist(document);
+
+        Transaction otherPart = new Transaction();
+        otherPart.setOrganization(f.transaction().getOrganization());
+        otherPart.setCreatedBy("tester");
+        otherPart.setStatus(TransactionStatus.DRAFT);
+        otherPart.setName("Teil 2");
+        otherPart.setTotal(new BigDecimal(otherPartTotal));
+        otherPart.setDocument(document);
+        em.persist(otherPart);
+
+        f.transaction().setDocument(document);
+        document.getTransactions().add(f.transaction());
+        document.getTransactions().add(otherPart);
+        em.flush();
+        return otherPart;
+    }
+
+    private BankTransactionMatch match(BankTransaction bankTx, Transaction transaction) {
+        return em.createQuery(
+                "SELECT m FROM BankTransactionMatch m WHERE m.bankTransaction.id = :bankTxId AND m.transaction.id = :txId",
+                BankTransactionMatch.class)
+                .setParameter("bankTxId", bankTx.getId())
+                .setParameter("txId", transaction.getId())
+                .getSingleResult();
+    }
+
+    private BigDecimal allocation(BankTransaction bankTx, Transaction transaction) {
+        return match(bankTx, transaction).getMatchedAmount();
+    }
 
     private record Fixture(BankTransaction bankTx, Transaction transaction) {
     }

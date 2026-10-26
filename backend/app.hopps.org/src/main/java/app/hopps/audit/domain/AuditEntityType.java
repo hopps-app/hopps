@@ -9,5 +9,7 @@ public enum AuditEntityType {
     /** A bank movement: ignoring it and taking that back. */
     BANK_TRANSACTION,
     /** A bank statement import: deleting it, together with its bank movements. */
-    BANK_IMPORT
+    BANK_IMPORT,
+    /** A receipt (Beleg). */
+    DOCUMENT
 }

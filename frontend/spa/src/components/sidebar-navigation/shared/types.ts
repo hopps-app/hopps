@@ -13,4 +13,6 @@ export type MenuItem = {
     icon: RadixIcons | LucideIcon | ComponentType<{ size?: number | string }>;
     path: string;
     isAdmin?: boolean;
+    /** i18n key announcing the item's count badge (see useMenuBadges), with {{count}}. */
+    badgeLabel?: string;
 };

@@ -1,7 +1,15 @@
-import { DocumentDirection, DocumentResponse } from '@hopps/api-client';
+import {
+    DocumentConfirmRequest,
+    DocumentDirection,
+    DocumentResponse,
+    DocumentTransactionPartRequest,
+    DocumentTransactionsUpdateRequest,
+    TransactionResponse,
+} from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import i18n from 'i18next';
 
+import { SETUP_PROGRESS_KEY } from '@/components/Dashboard/setupProgressKey';
 import { toast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
 import { getErrorStatus, getUserFriendlyErrorMessage } from '@/utils/errorUtils';
@@ -26,10 +34,11 @@ export const documentKeys = {
     detail: (id: number) => [...documentKeys.details(), id] as const,
 };
 
-export function useDocuments(bommelId?: number) {
+export function useDocuments(bommelId?: number, enabled = true) {
     return useQuery({
         queryKey: documentKeys.list(bommelId),
         queryFn: () => apiService.orgService.documentsAll(bommelId),
+        enabled,
         // While any document is still being analysed, poll so freshly uploaded receipts progress from
         // analyzing → ready live, even if the document-change WebSocket is unavailable. Stops once nothing analyses.
         refetchInterval: (query) => {
@@ -61,15 +70,18 @@ export function useDocument(id: number | undefined, options?: { poll?: boolean }
     });
 }
 
-export function useUploadDocument() {
+/** `toastErrors: false` for callers that show each failed file themselves (e.g. the upload rows on the receipts page). */
+export function useUploadDocument({ toastErrors = true }: { toastErrors?: boolean } = {}) {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: ({ file, analyze, direction }: { file: File; analyze: boolean; direction: DocumentDirection }) =>
             apiService.orgService.documentsPOST(analyze, direction, { data: file, fileName: file.name }),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: SETUP_PROGRESS_KEY });
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
         },
-        onError: showUploadError,
+        // Defining onError (even a no-op) also keeps the global error toast away.
+        onError: toastErrors ? showUploadError : () => {},
     });
 }
 
@@ -80,6 +92,7 @@ export function useUploadDocument() {
 export function useReuploadDocumentFile() {
     const queryClient = useQueryClient();
     return useMutation({
+        meta: { errorMessage: 'receipts.toast.reuploadError' },
         mutationFn: ({ id, file }: { id: number; file: File }) => apiService.orgService.filePOST(id, true, { data: file, fileName: file.name }),
         onSuccess: (_data, vars) => {
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
@@ -91,8 +104,11 @@ export function useReuploadDocumentFile() {
 export function useConfirmDocument() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (id: number) => apiService.orgService.confirm(id),
-        onSuccess: (_data, id) => {
+        meta: { errorMessage: 'receipts.toast.createTransactionError' },
+        // categoryValues (groupId → value) are stored on the created transaction; required groups must be filled.
+        mutationFn: ({ id, categoryValues }: { id: number; categoryValues?: Record<number, string> }) =>
+            apiService.orgService.confirm(id, new DocumentConfirmRequest({ categoryValues })),
+        onSuccess: (_data, { id }) => {
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
             // Refetch the single document too, so a drawer kept open picks up the freshly linked transactionId
             // (the receipt then switches into the editable reconcile mode instead of closing).
@@ -106,6 +122,7 @@ export function useConfirmDocument() {
 export function useUpdateDocument() {
     const queryClient = useQueryClient();
     return useMutation({
+        meta: { errorMessage: 'receipts.toast.saveError' },
         mutationFn: ({ id, ...body }: Parameters<typeof apiService.orgService.documentsPATCH>[1] & { id: number }) =>
             apiService.orgService.documentsPATCH(id, body as Parameters<typeof apiService.orgService.documentsPATCH>[1]),
         onSuccess: (_data, vars) => {
@@ -115,15 +132,19 @@ export function useUpdateDocument() {
     });
 }
 
-export function useDeleteDocument() {
+/** `silent` for bulk deletes, which report one summary instead of an error per item. */
+export function useDeleteDocument({ silent = false }: { silent?: boolean } = {}) {
     const queryClient = useQueryClient();
     return useMutation({
+        meta: silent ? { silent: true } : { errorMessage: 'receipts.toast.deleteError' },
         mutationFn: (id: number) => apiService.orgService.documentsDELETE(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
             // Deleting a document also deletes its transaction, which may unmatch a bank transaction.
             queryClient.invalidateQueries({ queryKey: ['transactions'] });
             queryClient.invalidateQueries({ queryKey: ['bankTransactions'] });
+            // Deleting the last receipt reopens the "Beleg hochladen" setup step.
+            queryClient.invalidateQueries({ queryKey: SETUP_PROGRESS_KEY });
         },
     });
 }
@@ -131,6 +152,7 @@ export function useDeleteDocument() {
 export function useReanalyzeDocument() {
     const queryClient = useQueryClient();
     return useMutation({
+        meta: { errorMessage: 'receipts.toast.reanalyzeError' },
         mutationFn: (id: number) => apiService.orgService.reanalyze(id),
         onSuccess: (_data, id) => {
             queryClient.invalidateQueries({ queryKey: documentKeys.detail(id) });
@@ -156,10 +178,80 @@ export function useReanalyzeDocuments() {
 }
 
 // Derive a human-readable "review status" from documentStatus + analysisStatus
-export function getDocumentReviewStatus(doc: DocumentResponse): 'pending' | 'analyzing' | 'ready' | 'confirmed' | 'failed' {
+export function getDocumentReviewStatus(doc: DocumentResponse): 'pending' | 'analyzing' | 'ready' | 'confirmed' | 'failed' | 'skipped' {
     if (doc.documentStatus === 'CONFIRMED') return 'confirmed';
     if (doc.analysisStatus === 'FAILED' || doc.documentStatus === 'FAILED') return 'failed';
     if (doc.analysisStatus === 'ANALYZING' || doc.analysisStatus === 'PENDING') return 'analyzing';
-    if (doc.analysisStatus === 'COMPLETED' || doc.analysisStatus === 'SKIPPED') return 'ready';
+    if (doc.analysisStatus === 'COMPLETED') return 'ready';
+    // Not analyzed (analysis switched off, or created from a bank transaction): nothing was extracted to check.
+    if (doc.analysisStatus === 'SKIPPED') return 'skipped';
     return 'pending';
+}
+
+// ─── Document split: the transactions booked from one document ───────────────
+
+// Under the 'transactions' root on purpose: the parts are transactions, so every transaction mutation (confirm,
+// reopen, edit, delete, bank linking) refreshes them too. A separate root left the split drawer on stale parts, e.g.
+// offering "edit split" for parts confirmed meanwhile.
+export const documentTransactionKeys = {
+    all: ['transactions', 'byDocument'] as const,
+    byDocument: (documentId: number) => [...documentTransactionKeys.all, documentId] as const,
+};
+
+/** The transactions booked from a document, in part order ("Teil 1 von n" first), each with its bank coverage. */
+export function useDocumentTransactions(documentId: number | undefined) {
+    return useQuery({
+        queryKey: documentTransactionKeys.byDocument(documentId ?? 0),
+        queryFn: () => apiService.orgService.listDocumentTransactions(documentId!),
+        enabled: !!documentId,
+    });
+}
+
+export interface ReplaceDocumentTransactionsInput {
+    id: number;
+    parts: { id?: number; name: string; amount: number; bommelId: number | null; categoryValues: Record<number, string> }[];
+    // true marks the document as confirmed (requires complete parts); false saves the parts as a draft.
+    confirmDocument: boolean;
+}
+
+/**
+ * Replaces the set of transactions a document is split into (upsert: parts with an id are updated in place, new parts
+ * created, unlisted ones deleted). Refreshes the document, its parts and the transaction lists.
+ */
+export function useReplaceDocumentTransactions() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        meta: { errorMessage: 'receipts.split.toast.saveError' },
+        mutationFn: ({ id, parts, confirmDocument }: ReplaceDocumentTransactionsInput): Promise<TransactionResponse[]> =>
+            apiService.orgService.replaceDocumentTransactions(
+                id,
+                new DocumentTransactionsUpdateRequest({
+                    parts: parts.map(
+                        (p) =>
+                            new DocumentTransactionPartRequest({
+                                id: p.id,
+                                name: p.name,
+                                amount: p.amount,
+                                bommelId: p.bommelId ?? undefined,
+                                categoryValues: p.categoryValues,
+                            })
+                    ),
+                    confirmDocument,
+                })
+            ),
+        onSuccess: (_data, { id }) => {
+            queryClient.invalidateQueries({ queryKey: documentKeys.all });
+            queryClient.invalidateQueries({ queryKey: documentKeys.detail(id) });
+            queryClient.invalidateQueries({ queryKey: documentTransactionKeys.byDocument(id) });
+            queryClient.invalidateQueries({ queryKey: ['transactions'] });
+            // Deleted parts release their bank matches.
+            queryClient.invalidateQueries({ queryKey: ['bankTransactions'] });
+        },
+        // Rejected (e.g. 409: a part was confirmed meanwhile): show the parts as they really are now.
+        onSettled: (_data, error, { id }) => {
+            if (!error) return;
+            queryClient.invalidateQueries({ queryKey: documentKeys.detail(id) });
+            queryClient.invalidateQueries({ queryKey: documentTransactionKeys.byDocument(id) });
+        },
+    });
 }

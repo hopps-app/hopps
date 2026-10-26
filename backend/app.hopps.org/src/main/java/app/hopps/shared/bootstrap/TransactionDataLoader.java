@@ -1,5 +1,7 @@
 package app.hopps.shared.bootstrap;
 
+import java.util.Map;
+
 import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
@@ -34,6 +36,7 @@ public class TransactionDataLoader implements EntityDataLoader<TestdataConfig.Tr
 
         // Start sender ID counter high enough to avoid conflicts
         long senderIdCounter = 1000;
+        long categoryValueIdCounter = 1000;
 
         for (TestdataConfig.TransactionData transaction : config.getTransactions()) {
             // First, create a sender TradeParty if senderName is provided
@@ -70,12 +73,26 @@ public class TransactionDataLoader implements EntityDataLoader<TestdataConfig.Tr
                     .setParameter("total", transaction.getTotal())
                     .setParameter("currencyCode", transaction.getCurrencyCode())
                     .setParameter("transactionTime", transaction.getTransactionTime())
-                    .setParameter("privatelyPaid", transaction.getPrivatelyPaid())
+                    .setParameter("privatelyPaid", Boolean.TRUE.equals(transaction.getPrivatelyPaid()))
                     .setParameter("senderId", senderId)
                     .setParameter("status", transaction.getStatus() != null ? transaction.getStatus() : "DRAFT")
                     .setParameter("createdBy",
                             transaction.getCreatedBy() != null ? transaction.getCreatedBy() : "testdata@hopps.app")
                     .executeUpdate();
+
+            if (transaction.getCategoryValues() != null) {
+                for (Map.Entry<?, ?> value : transaction.getCategoryValues().entrySet()) {
+                    entityManager.createNativeQuery("""
+                            INSERT INTO transaction_category_value (id, transaction_id, category_group_id, value)
+                            VALUES (:id, :transactionId, :groupId, :value)
+                            """)
+                            .setParameter("id", categoryValueIdCounter++)
+                            .setParameter("transactionId", transaction.getId())
+                            .setParameter("groupId", Long.valueOf(String.valueOf(value.getKey())))
+                            .setParameter("value", String.valueOf(value.getValue()))
+                            .executeUpdate();
+                }
+            }
 
             Log.debugf("Loaded transaction: %s (id=%d)", transaction.getName(), transaction.getId());
         }

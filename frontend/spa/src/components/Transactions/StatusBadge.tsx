@@ -28,7 +28,17 @@ const SIZE = {
 /** Small status pill. */
 export function Badge({ tone = 'neutral', size = 'md', children }: { tone?: BadgeTone; size?: keyof typeof SIZE; children: ReactNode }) {
     return (
-        <span className={cn('inline-flex items-center gap-1.5 whitespace-nowrap rounded-full font-bold', SIZE[size], TONE[tone])} style={{ fontFamily: FONT }}>
+        <span
+            className={cn(
+                'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full font-bold',
+                SIZE[size],
+                TONE[tone],
+                // On a highlighted table row (purple) the tinted surface disappears; lift the badge onto the card colour
+                // with a faint ring in its text colour so it stays readable.
+                'group-data-[highlighted=true]/row:bg-[var(--background-secondary)] group-data-[highlighted=true]/row:ring-1 group-data-[highlighted=true]/row:ring-inset group-data-[highlighted=true]/row:ring-[color-mix(in_oklch,currentColor_20%,transparent)]'
+            )}
+            style={{ fontFamily: FONT }}
+        >
             {children}
         </span>
     );

@@ -1,5 +1,6 @@
 package app.hopps.organization.api;
 
+import app.hopps.bankimport.domain.BankAccount;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.organization.service.CurrencyLockedException;
@@ -145,6 +146,28 @@ class OrganizationCurrencyResourceTests {
     }
 
     @Test
+    @DisplayName("is locked once a bank account exists, because accounts are kept in the organization's currency")
+    void locksOnceBankAccountExists() {
+        createBankAccount();
+
+        given()
+                .when()
+                .get("my")
+                .then()
+                .statusCode(200)
+                .body("currencyLocked", is(true));
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"currency\": \"CHF\"}")
+                .when()
+                .put("my")
+                .then()
+                .statusCode(409)
+                .body("code", is(CurrencyLockedException.CODE));
+    }
+
+    @Test
     @DisplayName("still accepts a full-form save that re-sends the unchanged currency while locked")
     void acceptsUnchangedCurrencyWhileLocked() {
         createTransaction();
@@ -170,6 +193,19 @@ class OrganizationCurrencyResourceTests {
                 .put("my")
                 .then()
                 .statusCode(400);
+    }
+
+    private void createBankAccount() {
+        QuarkusTransaction.requiringNew().run(() -> {
+            Organization organization = organizationRepository.findById(ORGANIZATION_ID);
+            BankAccount account = new BankAccount();
+            account.setOrganization(organization);
+            account.setBommel(organization.getRootBommel());
+            account.setName("Girokonto");
+            account.setIban("DE89370400440532013000");
+            account.setCreatedBy("emanuel_urban@domain.none");
+            account.persist();
+        });
     }
 
     private void createTransaction() {

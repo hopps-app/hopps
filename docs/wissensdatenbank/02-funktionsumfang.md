@@ -15,7 +15,7 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 | Funktion | Status | Details | Beleg |
 |---|---|---|---|
 | Organisation registrieren / Stammdaten | ✅ | Name, Slug, Typ, Adresse, Website, Logo | BE `organization/`, SPA `/register`, `/admin/ngo-details` |
-| Rechtsformen | 🟡 | Nur deutsche Rechtsformen (e.V., gGmbH …) + `ANDERE` | BE `organization/domain/OrganizationType` |
+| Rechtsformen | 🟡 | Stand 2026-10-04: in Deutschland e.V., gGmbH, Stiftung, eG, gUG; in allen anderen Ländern Verein, gemeinnützige GmbH, Stiftung, Genossenschaft; jeweils + `ANDERE`. Registrierung nur für Länder des Euroraums sowie CH/LI, die Buchungswährung ergibt sich aus dem Land | BE `organization/domain/OrganizationType`, `Currency`, SPA `lib/organizationTypes.ts` |
 | Hierarchische Struktur (Abteilungen, Gruppen, Projekte, Anlässe) | ✅ | Beliebig tiefer Baum, anlegen/umbenennen/verschieben/löschen, Emoji | BE `bommel/`, SPA `/structure` |
 | Verantwortliche Person pro Bommel | 🟡 | Ein `responsibleMember` – rein informativ, **keine Rechte** | BE `bommel/domain/Bommel.java` |
 | Beschreibung, Zeitraum (Start/Ende) pro Bommel | ❌ / 💡 | Felder fehlen; kleine Erweiterung | – |
@@ -36,7 +36,7 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 | Beleg-Detailansicht mit Vorschau | ✅ | – | SPA `BelegeView` ReviewDrawer, `GET /documents/{id}/file` |
 | „Privat bezahlt" (Auslage) markieren | ✅ | Boolean `privatelyPaid`, filterbar | BE `document/domain/Document`, `GET /transactions?privatelyPaid=true` |
 | Auslagen-Erstattung (Empfänger, IBAN, Auszahlungsstatus) | ❌ / 💡 | Nur das Flag oben; keine Person/IBAN/Status/Summe pro Person | – |
-| Beleg auf mehrere Kategorien/Beträge aufteilen | ❌ | 1 Beleg = 1 Transaktion, 1 Wert pro Kategoriegruppe; Datenmodell-Änderung nötig | BE `transaction_category_value` Unique-Key |
+| Beleg auf mehrere Kategorien/Beträge aufteilen | ✅ | Beleg wird in mehrere Transaktionen geteilt (je Teil Betrag, Bommel, Kategoriewerte); Entwurf oder direkt erstellen, Teilsumme darf unter dem Belegbetrag liegen (Privatanteil); Bankabgleich je Teil (Stand 2026-10-12) | BE `PUT /documents/{id}/transactions`, SPA `Receipts/Split/SplitDrawer` |
 | Upload ohne Konto (Gast, z. B. per Link) | ❌ / 💡 | Alle Beleg-Endpoints erfordern Login | BE `application.properties` (öffentliche Pfade) |
 | „Meine Belege"-Ansicht für Einreichende | ❌ | Belege werden organisationsweit gelistet | BE `document/repository/DocumentRepository` |
 
@@ -46,7 +46,7 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 |---|---|---|---|
 | Kategoriegruppen mit Werten | ✅ | Pro Organisation frei definierbar, Pflichtfeld-Option | BE `/category-groups`, SPA `/admin/categories` |
 | Kategorien Bommeln zuordnen (mit Vererbung) | ✅ | Zuordnung vererbt sich auf Unter-Bommel | Migration `V1.0.22__category_groups.sql` |
-| Kategorie-Vorlagen (zum Kopieren) | ❌ / 💡 | Nur organisationsweite Gruppen + Vererbung | – |
+| Kategorie-Vorlagen (zum Kopieren) | ✅ | Hopps pflegt Vorlagen (Gruppenname, Kategorien, Pflichtfeld) zentral im Admin-Bereich. Ein neuer Verein wählt auf der leeren Kategorien-Seite eine Vorlage, später jederzeit über „Aus Vorlage übernehmen“ im Gruppen-Dialog. Die Vorlage befüllt den Dialog, Bommel wählt der Verein selbst, danach ist die Gruppe frei änderbar (Stand 2026-10-01) | BE `template/`, `GET /category-groups/templates[/{id}]`, Admin `/templates`, SPA `components/CategoryGroups/CategoryGroupSetup.tsx` |
 | Kontenrahmen (SKR49, Kontenplan) | ❌ | Siehe [04-roadmap.md](04-roadmap.md) | – |
 
 ## 4. Transaktionen, Bank & Buchhaltung
@@ -58,6 +58,7 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 | Bank-Import CSV mit Schema-Editor | ✅ | Delimiter, Encoding, Formate konfigurierbar | BE `bankimport/`, SPA `/bank-accounts`, `/bank-schemas` |
 | Bank-Import Vorlagen (automatische Erkennung) | ✅ | Sparkasse (MT940, CAMT.052 v2/v8), Volksbanken / Raiffeisenbanken Umsatz-CSV (18 Spalten, Atruvia-Banken inkl. Deutsche Skatbank) | BE `SystemTemplateService`, `SchemaDetectionService` (Stand 2026-10-05) |
 | Bank-Import MT940 | ✅ | – | BE `bankimport/` |
+| Währungsprüfung beim Import | ✅ | Vor dem Import (Stand 2026-10-04): Beträge in anderer Währung als das Konto (oder gemischte Währungen) werden abgelehnt. Keine Prüfung, ob die Datei zum Konto (IBAN) passt | BE `bankimport/service/ImportFileCheckService.java`, SPA `BankAccounts/ImportWizard.tsx` |
 | Abgleich Bank ↔ Belege (inkl. Teilbeträge) | ✅ | Manuell; Auto-Matching erst Gerüst. Beleg direkt am Kontoumsatz hochladen: legt eine aus dem Umsatz vorausgefüllte Entwurfstransaktion an und verknüpft sie sofort, mehrere Belege pro Umsatz möglich | BE `BankTransactionMatch`, `BankTransactionReceiptService` (Stand 2026-10-11) |
 | Automatischer Kontoabruf (FinTS/EBICS) | ❌ | – | – |
 | Doppelte Buchführung / EÜR / Jahresabschluss | ❌ | Siehe [04-roadmap.md](04-roadmap.md) | – |
@@ -106,14 +107,14 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 
 ## 9. Sprachen, Währungen, Regionales
 
-| Funktion | Status | Details | Beleg |
-|---|---|---|---|
-| Deutsch, Englisch | ✅ | Web-App, Login, Admin | SPA `locales/de.json`, `en.json` |
-| Ukrainisch | 🟡 | ca. ⅓ übersetzt | SPA `locales/uk.json` |
-| Französisch, Italienisch | ❌ / 💡 | Reine Übersetzungsarbeit (~1.260 Keys) + Realm-Locales; Keycloak bringt fr/it-Standardtexte mit | – |
-| Währungsfeld an Beleg/Transaktion | 🟡 | `currencyCode` wird gespeichert (KI-Extraktion) | BE `Document`, `Transaction` |
-| Andere Währung als EUR (z. B. CHF) in der Oberfläche | ❌ / 💡 | UI formatiert fest mit `EUR`/`de-DE`; Bankkonto-Default EUR; keine Umrechnung, Summen ignorieren Währung | SPA `BelegeView.tsx`, `TransactionenView.tsx`, `ReportsView.tsx` … |
-| Länderspezifika ausserhalb DE (Rechtsformen, Steuer, Kontenplan) | ❌ | Fachlich auf Deutschland ausgerichtet | – |
+| Funktion                                                          | Status | Details | Beleg |
+|-------------------------------------------------------------------|---|---|---|
+| Deutsch, Englisch                                                 | ✅ | Web-App, Login, Admin | SPA `locales/de.json`, `en.json` |
+| Ukrainisch                                                        | 🟡 | ca. ⅓ übersetzt | SPA `locales/uk.json` |
+| Französisch, Italienisch                                          | ❌ / 💡 | Reine Übersetzungsarbeit (~1.260 Keys) + Realm-Locales; Keycloak bringt fr/it-Standardtexte mit | – |
+| Währungsfeld an Beleg/Transaktion                                 | 🟡 | `currencyCode` wird gespeichert (KI-Extraktion) | BE `Document`, `Transaction` |
+| Andere Währung als EUR (z. B. CHF) in der Oberfläche              | 🟡 | Stand 2026-10-04: Buchhaltungswährung pro Organisation wählbar (EUR oder CHF), gesperrt sobald Transaktionen oder Bankkonten existieren; alle Beträge werden in dieser Währung angezeigt. Bankkonten werden immer in der Währung der Organisation geführt: CH/LI-IBANs nur in CHF-Organisationen, alle anderen nur in EUR-Organisationen. Konten in Fremdwährung (z. B. Euro-Konto bei einer Schweizer Bank) werden noch nicht unterstützt, es gibt keine Umrechnung | BE `organization/domain/Currency.java`, `bankimport/service/IbanCurrencies.java`, SPA `hooks/use-currency.ts` |
+| Länderspezifika ausserhalb DE (Rechtsf6ormen, Steuer, Kontenplan) | ❌ | Fachlich auf Deutschland ausgerichtet | – |
 
 ## 10. Mobile
 

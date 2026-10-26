@@ -90,7 +90,7 @@ export function useTransactions(filters: TransactionFilters = {}) {
  * Total count and income/expense sums across the whole filtered result set (all pages) — used to drive pagination and
  * the overview totals, which a single page of results cannot provide.
  */
-export function useTransactionAggregate(filters: TransactionFilters = {}) {
+export function useTransactionAggregate(filters: TransactionFilters = {}, enabled = true) {
     return useQuery({
         queryKey: transactionKeys.aggregate(filters),
         queryFn: () =>
@@ -105,6 +105,7 @@ export function useTransactionAggregate(filters: TransactionFilters = {}) {
                 filters.startDate,
                 filters.status
             ),
+        enabled,
     });
 }
 
@@ -120,6 +121,7 @@ export function useCreateTransaction() {
     const queryClient = useQueryClient();
 
     return useMutation({
+        meta: { errorMessage: 'transactions.toast.createError' },
         mutationFn: (data: TransactionCreateRequest) => apiService.orgService.transactionsPOST(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
@@ -131,10 +133,13 @@ export function useUpdateTransaction() {
     const queryClient = useQueryClient();
 
     return useMutation({
+        meta: { errorMessage: 'transactions.toast.saveError' },
         mutationFn: ({ id, data }: { id: number; data: TransactionUpdateRequest }) => apiService.orgService.transactionsPATCH(id, data),
         onSuccess: (_data, vars) => {
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
             queryClient.invalidateQueries({ queryKey: transactionKeys.detail(vars.id) });
+            // A changed amount can send the receipt it was booked from back to review.
+            queryClient.invalidateQueries({ queryKey: ['documents'] });
         },
     });
 }
@@ -143,6 +148,7 @@ export function useConfirmTransaction() {
     const queryClient = useQueryClient();
 
     return useMutation({
+        meta: { errorMessage: 'transactions.toast.confirmError' },
         mutationFn: (id: number) => apiService.orgService.confirm2(id),
         onSuccess: (_data, id) => {
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
@@ -157,6 +163,7 @@ export function useReopenTransaction() {
     const queryClient = useQueryClient();
 
     return useMutation({
+        meta: { errorMessage: 'transactions.toast.reopenError' },
         mutationFn: (id: number) => apiService.orgService.reopen(id),
         onSuccess: (_data, id) => {
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
@@ -167,10 +174,12 @@ export function useReopenTransaction() {
     });
 }
 
-export function useDeleteTransaction() {
+/** `silent` for bulk deletes, which report one summary instead of an error per item. */
+export function useDeleteTransaction({ silent = false }: { silent?: boolean } = {}) {
     const queryClient = useQueryClient();
 
     return useMutation({
+        meta: silent ? { silent: true } : { errorMessage: 'transactions.toast.deleteError' },
         mutationFn: (id: number) => apiService.orgService.transactionsDELETE(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });

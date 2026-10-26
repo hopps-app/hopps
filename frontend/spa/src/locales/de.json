@@ -8,20 +8,22 @@
     },
     "categoryGroups": {
         "title": "Kategorien",
-        "subtitle": "Kategoriegruppen ordnen Transaktionen ein – kontextabhängig vom gewählten Bommel.",
         "addButton": "Neue Gruppe",
-        "hint": "Eine Gruppe gilt für einen Bommel, wenn sie ihm oder einem übergeordneten Bommel zugeordnet ist. Ohne Zuordnung gilt sie für keinen Bommel – für alle Bommel den Root-Bommel auswählen.",
+        "hint": "Eine Gruppe gilt für die ausgewählten Bommel und automatisch für alle Bommel darunter. Beispiel: Ist sie „Jugend“ zugeordnet, gilt sie auch für „Jugend U12“. Für die ganze Organisation den obersten Bommel wählen.",
         "required": "Pflicht",
         "optional": "optional",
         "emptyState": {
             "title": "Noch keine Kategoriegruppen",
-            "description": "Lege eine Gruppe an, um Transaktionen nach eigenen Achsen einzuordnen."
+            "description": "Eine Gruppe anlegen, um Transaktionen nach eigenen Achsen einzuordnen."
         },
         "card": {
             "appliesTo": "Gilt für",
             "allBommel": "Alle Bommel",
             "noBommel": "Keine Bommel",
-            "valueCount": "{{count}} Werte"
+            "values": "Kategorien",
+            "addValue": "Kategorie",
+            "valueCount_one": "{{count}} Kategorie",
+            "valueCount_other": "{{count}} Kategorien"
         },
         "delete": {
             "title": "Kategoriegruppe löschen",
@@ -33,19 +35,27 @@
         "modal": {
             "createTitle": "Neue Kategoriegruppe",
             "editTitle": "Kategoriegruppe bearbeiten",
-            "subtitle": "Name, Pflicht, zugeordnete Bommel und mögliche Werte festlegen.",
+            "subtitle": "Name, Pflicht, zugeordnete Bommel und Kategorien festlegen.",
             "name": "Name der Gruppe",
             "namePlaceholder": "z. B. Kostenstelle",
             "required": "Pflichtfeld",
-            "requiredHint": "Muss bei passenden Bommeln ausgefüllt werden, bevor bestätigt werden kann.",
+            "requiredHint": "Transaktionen in den gewählten Bommeln lassen sich erst bestätigen, wenn eine Kategorie dieser Gruppe gewählt ist.",
             "bommel": "Gilt für Bommel",
-            "bommelHint": "Keine Auswahl = gilt für keinen Bommel. Für alle Bommel den Root-Bommel wählen.",
-            "bommelPlaceholder": "Bommel auswählen …",
-            "bommelSelected": "{{count}} Bommel ausgewählt",
-            "values": "Mögliche Werte",
-            "valuePlaceholder": "Wert hinzufügen …",
+            "bommelHint": "Mehrfachauswahl möglich. Für alle Bommel den Root-Bommel wählen.",
+            "values": "Kategorien",
+            "valuePlaceholder": "Kategorie hinzufügen …",
             "addValue": "Hinzufügen",
-            "noValues": "Noch keine Werte angelegt."
+            "noValues": "Noch keine Kategorien angelegt.",
+            "templateTitle": "Vorlage übernehmen",
+            "templateSubtitle": "Einen oder mehrere Bommel wählen, für die die Gruppe gilt. Name, Pflichtfeld und Kategorien sind aus der Vorlage vorausgefüllt und lassen sich ändern.",
+            "bommelSearch": "Bommel suchen …",
+            "bommelOpen": "Liste öffnen",
+            "bommelClose": "Liste schließen",
+            "bommelRoot": "Root",
+            "bommelNone": "Kein Bommel gefunden.",
+            "remove": "{{name}} entfernen",
+            "fromTemplate": "Aus Vorlage übernehmen",
+            "noTemplate": "Keine Vorlage"
         },
         "toast": {
             "created": "Kategoriegruppe angelegt",
@@ -55,15 +65,28 @@
         },
         "reopen": {
             "title": "Bestätigte Transaktionen betroffen",
-            "description": "{{count}} bereits bestätigte Transaktionen unter diesen Bommeln haben noch keinen Wert für die Pflichtgruppe „{{group}}“. Zurück auf Entwurf setzen, damit die Kategorie nachgetragen werden kann?",
             "keep": "Nein, nur Gruppe speichern",
-            "confirm": "Ja, auf Entwurf zurücksetzen"
+            "confirm": "Ja, auf Entwurf zurücksetzen",
+            "description_one": "{{count}} bereits bestätigte Transaktion unter diesen Bommeln hat noch keinen Wert für die Pflichtgruppe „{{group}}“. Zurück auf Entwurf setzen, damit die Kategorie nachgetragen werden kann?",
+            "description_other": "{{count}} bereits bestätigte Transaktionen unter diesen Bommeln haben noch keinen Wert für die Pflichtgruppe „{{group}}“. Zurück auf Entwurf setzen, damit die Kategorie nachgetragen werden kann?"
         },
         "fields": {
             "eyebrow": "Kategoriegruppen",
             "valuePlaceholder": "Bitte wählen",
             "noValues": "Keine Werte gefunden",
             "missing": "Bitte ausfüllen: {{groups}}"
+        },
+        "setup": {
+            "title": "Kategorien einrichten",
+            "templateEyebrow": "Vorlage",
+            "previewEyebrow": "Das wird angelegt",
+            "noTemplate": "Keine Vorlage",
+            "applyTemplate": "Vorlage übernehmen",
+            "createGroup": "Gruppe anlegen",
+            "moreValues": "+{{count}} weitere",
+            "noTemplatesTitle": "Erste Kategoriegruppe anlegen",
+            "ownGroupTitle": "Eigene Kategoriegruppe",
+            "ownGroupText": "Noch keine Kategorien, sie werden selbst angelegt."
         }
     },
     "banner": {
@@ -71,14 +94,10 @@
         "text2": "ohne Verpflichtung"
     },
     "common": {
-        "refresh": "Aktualisieren",
         "upload": "Hochladen",
         "addNew": "Neu hinzufügen",
         "close": "Schließen",
-        "expand": "Aufklappen",
         "collapse": "Zuklappen",
-        "noItems": "Keine Elemente zum Anzeigen",
-        "noResults": "Keine Ergebnisse",
         "search": "Suche",
         "goBack": "Zurück",
         "cancel": "Abbrechen",
@@ -86,8 +105,7 @@
         "edit": "Bearbeiten",
         "delete": "Löschen",
         "loading": "Wird geladen...",
-        "validationError": "Bitte füllen Sie alle Pflichtfelder aus",
-        "unsavedChangesWarning": "Sie haben ungespeicherte Änderungen. Möchten Sie diese Seite wirklich verlassen?",
+        "unsavedChangesWarning": "Es gibt ungespeicherte Änderungen. Seite wirklich verlassen?",
         "next": "Weiter",
         "confirm": "Bestätigen"
     },
@@ -99,39 +117,38 @@
     "errors": {
         "boundary": {
             "title": "Ein Fehler ist aufgetreten",
-            "description": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut oder kontaktieren Sie den Support.",
+            "description": "Ein unerwarteter Fehler ist aufgetreten. Bitte erneut versuchen oder den Support kontaktieren.",
             "tryAgain": "Erneut versuchen",
             "goHome": "Zum Dashboard"
         },
         "api": {
-            "networkError": "Verbindung zum Server nicht möglich. Bitte prüfen Sie Ihre Internetverbindung.",
-            "serverError": "Der Server hat einen Fehler festgestellt. Bitte versuchen Sie es später erneut.",
-            "notFound": "Die angeforderte Ressource wurde nicht gefunden.",
-            "unauthorized": "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
-            "forbidden": "Sie haben keine Berechtigung für diese Aktion.",
-            "conflict": "Ein Konflikt ist aufgetreten. Die Ressource wurde möglicherweise geändert.",
-            "badRequest": "Die Anfrage war ungültig. Bitte überprüfen Sie Ihre Eingabe.",
-            "unknown": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
-            "timeout": "Die Anfrage hat zu lange gedauert. Bitte versuchen Sie es erneut.",
+            "networkError": "Keine Verbindung zum Server. Bitte die Internetverbindung prüfen.",
+            "serverError": "Auf dem Server ist ein Fehler aufgetreten. Bitte später erneut versuchen.",
+            "notFound": "Der Eintrag wurde nicht gefunden.",
+            "unauthorized": "Die Sitzung ist abgelaufen. Bitte erneut anmelden.",
+            "forbidden": "Keine Berechtigung für diese Aktion.",
+            "conflict": "Der Eintrag wurde inzwischen geändert. Bitte die Seite neu laden.",
+            "badRequest": "Die Eingaben sind ungültig. Bitte überprüfen.",
+            "unknown": "Ein unerwarteter Fehler ist aufgetreten. Bitte erneut versuchen.",
+            "timeout": "Die Anfrage hat zu lange gedauert. Bitte erneut versuchen.",
             "retry": "Erneut versuchen",
-            "retryDescription": "Klicken Sie, um den fehlgeschlagenen Vorgang zu wiederholen."
+            "retryDescription": "Klicken, um den Vorgang zu wiederholen."
         },
         "network": {
             "title": "Verbindung verloren",
-            "description": "Der Server ist nicht erreichbar. Bitte prüfen Sie Ihre Internetverbindung.",
+            "description": "Der Server ist nicht erreichbar. Bitte die Internetverbindung prüfen.",
             "retry": "Erneut versuchen",
             "retrying": "Wird erneut versucht..."
         }
     },
     "validation": {
         "required": "Dieses Feld ist erforderlich",
-        "email": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+        "email": "Bitte eine gültige E-Mail-Adresse eingeben",
         "passwordMin": "Das Passwort muss mindestens 8 Zeichen lang sein",
         "passwordMatch": "Die Passwörter stimmen nicht überein",
         "organizationNameRequired": "Organisationsname ist erforderlich",
         "firstNameRequired": "Vorname ist erforderlich",
         "lastNameRequired": "Nachname ist erforderlich",
-        "invalidFileType": "Ungültiger Dateityp",
         "passwordStrength": {
             "label": "Passwortstärke",
             "weak": "Schwach",
@@ -148,72 +165,47 @@
     },
     "home": {
         "title": "Buchhaltung einfach gemacht",
-        "subtitle": "hopps ist eine kostenlose, Open-Source-Buchhaltungssoftware speziell für Vereine. Verwalten Sie Finanzen, Belege und Ausgaben einfach und effizient.",
+        "subtitle": "hopps ist eine kostenlose, Open-Source-Buchhaltungssoftware speziell für Vereine. Finanzen, Belege und Ausgaben einfach und effizient verwalten.",
         "register": "Organisation registrieren",
         "login": "Anmelden",
         "setup": "Ersteinrichtung starten",
-        "setupSubtitle": "Diese Installation ist noch nicht eingerichtet. Legen Sie Ihren Verein und das erste Administrator-Konto an.",
-        "singleTenantSubtitle": "Buchhaltung von {{organization}}. Melden Sie sich mit Ihrem Konto an."
+        "setupSubtitle": "Diese Installation ist noch nicht eingerichtet. Zuerst den Verein und das erste Administrator-Konto anlegen.",
+        "singleTenantSubtitle": "Buchhaltung von {{organization}}. Anmeldung mit dem eigenen Konto."
     },
     "invoiceUpload": {
         "title": "Neue Rechnung hochladen",
-        "assign": "Zuweisen zu",
-        "chooseFile": "Datei auswählen",
         "upload": "Hochladen",
         "uploadFailed": "Fehler beim Hochladen der Rechnung",
         "uploadSuccess": "Rechnung erfolgreich hochgeladen",
-        "dragDrop": "Ziehen & Ablegen von Dateien hier",
-        "dragFile": "Dateien hier ablegen...",
-        "fileTooLarge": "Datei ist zu groß, maximale Größe 5MB",
-        "invalidFileType": "Nicht unterstützter Dateityp. Bitte laden Sie PDF-, JPEG- oder PNG-Dateien hoch.",
-        "totalTooLarge": "Die gesamte Dateigröße überschreitet das Limit von 20MB.",
-        "maxFilesExceeded": "Es sind maximal 10 Dateien erlaubt.",
         "selectBommel": "Bommel wählen",
-        "privately": "Privat bezahlt",
         "invoice": "Rechnung",
         "receipt": "Quittung",
-        "docType": "Art des Vorgangs",
-        "pdfNavigation": {
-            "previousPage": "Vorherige Seite",
-            "nextPage": "Nächste Seite",
-            "pageIndicator": "{{current}} / {{total}}"
-        }
+        "docType": "Art des Vorgangs"
     },
     "invoices": {
-        "loadFailed": "Fehler beim Laden der Rechnungen",
-        "noInvoices": "Keine Rechnungen zum Anzeigen",
         "assignPopover": {
-            "assign": "Zuweisen",
-            "reassign": "Neu zuweisen",
-            "noBommels": "Keine verfügbaren Bommels",
-            "newBommel": "Neuer Bommel",
-            "successAssign": "Erfolgreich zugewiesen!",
-            "failedAssign": "Fehler beim Zuweisen des Bommels!"
-        },
-        "summary": {
-            "totalFirstPart": "Gesamt",
-            "invoicesPart": "Rechnungen mit Summe"
-        },
-        "table": {
-            "newInvoice": "Neue Rechnung",
-            "date": "Datum",
-            "bommel": "Bommel",
-            "amount": "Betrag",
-            "name": "Name"
+            "assign": "Zuweisen"
         }
     },
     "organization": {
         "registration": {
+            "organizationEmail": "E-Mail der Organisation (optional)",
+            "step": "Schritt {{current}} von {{total}}",
+            "stepOrganization": "Organisation",
+            "stepAdmin": "Administrator",
+            "country": "Land",
+            "legalForm": "Rechtsform",
+            "currencyInfo": "Buchungswährung: {{currency}}. Sie ergibt sich aus dem Land und lässt sich später in den Einstellungen ändern, solange noch keine Bankkonten und Transaktionen existieren.",
             "failed": "Fehler bei der Registrierung der Organisation",
             "emailAlreadyRegistered": "Diese E-Mail-Adresse ist bereits registriert",
             "organizationAlreadyExists": "Eine Organisation mit diesem Namen existiert bereits",
             "emailAndOrganizationAlreadyExist": "Diese E-Mail-Adresse und dieser Organisationsname sind bereits vergeben",
             "header": "Organisation registrieren",
-            "subtitle": "Erstellen Sie Ihre Organisation und Ihr Konto, um loszulegen.",
-            "alreadyHaveAccount": "Sie haben bereits ein Konto?",
+            "subtitle": "Organisation und Konto erstellen, um loszulegen.",
+            "alreadyHaveAccount": "Bereits ein Konto vorhanden?",
             "loginInstead": "Anmelden",
             "success": "Organisation erfolgreich erstellt",
-            "successHeading": "Ihre Organisation wurde erfolgreich registriert.",
+            "successHeading": "Die Organisation wurde erfolgreich registriert.",
             "organizationName": "Organisationsname",
             "firstName": "Vorname",
             "lastName": "Nachname",
@@ -234,7 +226,7 @@
             "treeView": "Baumstruktur",
             "tableView": "Tabelle",
             "noData": "Keine Daten verfügbar",
-            "addItems": "Bitte fügen Sie Elemente zu Ihrer Organisationsstruktur hinzu",
+            "addItems": "Bitte Elemente zur Organisationsstruktur hinzufügen",
             "transactionsLabel": "Transaktionen",
             "subBommelsLabel": "Unterbommel",
             "editName": "Name bearbeiten",
@@ -247,12 +239,11 @@
                 "nameMaxLength": "Der Name darf maximal 255 Zeichen lang sein"
             },
             "editModeHint": "Per Drag & Drop in der Tabelle oder mit dem Verschieben-Button in der Baumansicht",
-            "moveBommel": "Bommel verschieben",
             "includeDrafts": "Entwürfe einbeziehen",
             "aggregate": "Inkl. Unterbommel",
             "details": {
                 "title": "Details",
-                "selectBommel": "Wählen Sie einen Bommel aus, um Details anzuzeigen",
+                "selectBommel": "Einen Bommel auswählen, um Details anzuzeigen",
                 "total": "Gesamt",
                 "income": "Einnahmen",
                 "expenses": "Ausgaben",
@@ -268,21 +259,21 @@
             },
             "deleteDialog": {
                 "title": "Bommel löschen",
-                "description": "Sind Sie sicher, dass Sie '{{name}}' löschen möchten?",
-                "hasTransactionsWarning": "Dieser Bommel hat verknüpfte Transaktionen. Sie müssen wählen, wie damit umgegangen werden soll.",
+                "description": "'{{name}}' wirklich löschen?",
+                "hasTransactionsWarning": "Dieser Bommel hat verknüpfte Transaktionen. Bitte wählen, wie damit umgegangen werden soll.",
                 "hasChildrenWarning": "Dieser Bommel hat {{count}} Unterbommel. Das Löschen wird auch alle Unterbommel und deren verknüpfte Transaktionen entfernen.",
                 "transactionHandlingLabel": "Wie sollen verknüpfte Transaktionen behandelt werden?",
                 "unlinkOption": "Transaktionen entkoppeln",
                 "unlinkDescription": "Transaktionen bleiben erhalten, werden aber keinem Bommel zugeordnet",
                 "reassignOption": "Einem anderen Bommel zuweisen",
-                "reassignDescription": "Wählen Sie einen anderen Bommel, dem diese Transaktionen zugewiesen werden sollen",
+                "reassignDescription": "Einen anderen Bommel wählen, dem diese Transaktionen zugewiesen werden sollen",
                 "comingSoon": "(Demnächst verfügbar)",
                 "confirm": "Ja, löschen",
                 "cancel": "Abbrechen"
             },
             "moveDialog": {
                 "title": "Bommel verschieben",
-                "description": "Wählen Sie einen neuen Eltern-Bommel für '{{name}}':",
+                "description": "Neuen Eltern-Bommel für '{{name}}' wählen:",
                 "noTargets": "Keine gültigen Ziel-Bommels verfügbar",
                 "confirm": "Verschieben"
             },
@@ -305,11 +296,12 @@
                 "createChildError": "Fehler beim Erstellen des Unterbommels"
             },
             "demoMode": "Demodaten anzeigen",
-            "demoBanner": "Sie sehen Beispieldaten zur Orientierung. Diese Daten sind nicht bearbeitbar."
+            "demoBanner": "Beispieldaten zur Orientierung. Diese Daten sind nicht bearbeitbar."
         },
         "details": {
+            "typeVerein": "Verein",
             "title": "Organisationsdetails",
-            "description": "Verwalten Sie die grundlegenden Informationen Ihrer Organisation",
+            "description": "Grundlegende Informationen der Organisation verwalten",
             "name": "Organisationsname",
             "slug": "Slug",
             "type": "Organisationstyp",
@@ -334,7 +326,7 @@
             "typeGUG": "gemeinnützige UG (haftungsbeschränkt)",
             "typeAndere": "Andere",
             "nameRequired": "Organisationsname ist erforderlich",
-            "foundingDateFormat": "Bitte geben Sie das Datum im Format TT.MM.JJJJ ein",
+            "foundingDateFormat": "Bitte das Datum im Format TT.MM.JJJJ eingeben",
             "contactInfo": "Kontaktdaten",
             "legalInfo": "Rechtliche Informationen",
             "generalInfo": "Allgemeine Informationen",
@@ -344,10 +336,10 @@
             "currency": "Buchungswährung",
             "currencyEUR": "Euro (€)",
             "currencyCHF": "Schweizer Franken (CHF)",
-            "currencyHint": "Alle Beträge in hopps werden in dieser Währung angezeigt. Sie kann nur geändert werden, solange noch keine Transaktion angelegt wurde.",
+            "currencyHint": "Alle Beträge in hopps werden in dieser Währung angezeigt, auch die Bankkonten. Sie kann nur geändert werden, solange noch keine Transaktion und kein Bankkonto angelegt wurde.",
             "currencyLockedTitle": "Die Währung kann nicht mehr geändert werden",
-            "currencyLocked": "Für diese Organisation wurden bereits Transaktionen angelegt. Alle gespeicherten Beträge werden in der gewählten Währung geführt – ein Wechsel würde die vorhandenen Buchungen verfälschen. Um die Währung dennoch zu ändern, müssen zuerst alle Transaktionen gelöscht werden. Alternativ wenden Sie sich bitte an den Support.",
-            "currencyLockedError": "Die Währung kann nicht mehr geändert werden, da bereits Transaktionen vorhanden sind.",
+            "currencyLocked": "Für diese Organisation gibt es bereits Transaktionen oder Bankkonten. Alle gespeicherten Beträge werden in der gewählten Währung geführt, ein Wechsel würde sie verfälschen. Um die Währung dennoch zu ändern, bitte an den Support wenden.",
+            "currencyLockedError": "Die Währung kann nicht mehr geändert werden, da bereits Transaktionen oder Bankkonten vorhanden sind.",
             "loadError": "Fehler beim Laden der Organisationsdetails",
             "placeholder": {
                 "name": "z.B. Musterverein e.V.",
@@ -365,7 +357,7 @@
                 "additionalLine": "optional"
             },
             "legalInfoNote": "Angaben aus dem Vereinsregister-Auszug und dem Freistellungsbescheid.",
-            "contactInfoNote": "So erreichen Mitglieder und Spender Ihre Organisation.",
+            "contactInfoNote": "So erreichen Mitglieder und Spender die Organisation.",
             "unsavedChanges_one": "{{count}} ungespeicherte Änderung",
             "unsavedChanges_other": "{{count}} ungespeicherte Änderungen",
             "discard": "Verwerfen",
@@ -384,7 +376,7 @@
             },
             "users": {
                 "title": "Mitarbeiter",
-                "note": "Wer in hopps für Ihre Organisation mitarbeiten darf.",
+                "note": "Wer in hopps für die Organisation mitarbeiten darf.",
                 "name": "Name",
                 "position": "Position",
                 "email": "E-Mail",
@@ -399,7 +391,7 @@
                 "add": {
                     "button": "hinzufügen",
                     "title": "Mitarbeiter hinzufügen",
-                    "subtitle": "Wer soll in hopps für Ihre Organisation mitarbeiten dürfen?",
+                    "subtitle": "Wer soll in hopps für die Organisation mitarbeiten dürfen?",
                     "firstName": "Vorname",
                     "lastName": "Nachname",
                     "firstNamePlaceholder": "z.B. Anke",
@@ -408,7 +400,7 @@
                     "positionPlaceholder": "z.B. 1. Vorsitzende, Kassenwart",
                     "firstNameRequired": "Vorname ist erforderlich",
                     "lastNameRequired": "Nachname ist erforderlich",
-                    "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse an",
+                    "emailInvalid": "Bitte eine gültige E-Mail-Adresse angeben",
                     "submit": "Hinzufügen",
                     "success": "Benutzer hinzugefügt",
                     "duplicate": "Diese E-Mail-Adresse wird bereits verwendet.",
@@ -416,7 +408,7 @@
                 },
                 "setupLink": {
                     "title": "Einladungslink weitergeben",
-                    "description": "Die Einladung konnte nicht per E-Mail verschickt werden. Geben Sie diesen Link an {{name}} weiter. Damit legt die Person ihr Passwort fest und kann sich anmelden. Der Link ist nur begrenzt gültig.",
+                    "description": "Die Einladung konnte nicht per E-Mail verschickt werden. Diesen Link bitte an {{name}} weitergeben. Damit legt die Person ihr Passwort fest und kann sich anmelden. Der Link ist nur begrenzt gültig.",
                     "linkLabel": "Einladungslink",
                     "copy": "Link kopieren",
                     "copied": "Link kopiert",
@@ -434,33 +426,33 @@
         },
         "noOrganization": {
             "title": "Keine Organisation gefunden",
-            "message": "Sie haben keinen Zugang zu einer Organisation oder die Organisation existiert nicht.",
-            "suggestion": "Bitte wenden Sie sich an Ihren Administrator oder melden Sie sich ab und versuchen Sie es mit einem anderen Konto erneut."
+            "message": "Kein Zugang zu einer Organisation, oder die Organisation existiert nicht.",
+            "suggestion": "Bitte an die Administration wenden oder abmelden und mit einem anderen Konto erneut versuchen."
         },
         "buttons": {
             "addNew": "Neu hinzufügen"
         },
         "create": {
             "title": "Organisation erstellen",
-            "description": "Du bist angemeldet, hast aber noch keine Organisation. Erstelle jetzt eine, um loszulegen.",
+            "description": "Angemeldet, aber noch ohne Organisation. Jetzt eine erstellen, um loszulegen.",
             "nameLabel": "Name der Organisation",
             "namePlaceholder": "z. B. Mein Verein e.V.",
             "submit": "Organisation erstellen",
-            "error": "Die Organisation konnte nicht erstellt werden. Bitte versuche es erneut.",
-            "slugConflict": "Eine Organisation mit diesem Namen existiert bereits. Bitte wähle einen anderen Namen."
+            "error": "Die Organisation konnte nicht erstellt werden. Bitte erneut versuchen.",
+            "slugConflict": "Eine Organisation mit diesem Namen existiert bereits. Bitte einen anderen Namen wählen."
         },
         "setup": {
             "header": "Ersteinrichtung",
-            "subtitle": "Legen Sie Ihren Verein und das erste Administrator-Konto an. Weitere Mitglieder laden Sie anschließend in den Einstellungen ein.",
+            "subtitle": "Zuerst den Verein und das erste Administrator-Konto anlegen. Weitere Mitglieder lassen sich anschließend in den Einstellungen einladen.",
             "submit": "Einrichtung abschließen",
-            "successHeading": "Ihr Verein ist eingerichtet. Melden Sie sich jetzt mit dem gerade angelegten Konto an.",
-            "alreadyDone": "Diese Installation ist bereits eingerichtet. Bitte melden Sie sich an."
+            "successHeading": "Der Verein ist eingerichtet. Die Anmeldung ist jetzt mit dem gerade angelegten Konto möglich.",
+            "alreadyDone": "Diese Installation ist bereits eingerichtet. Bitte anmelden."
         },
         "noAccess": {
             "title": "Kein Zugriff",
-            "message": "Ihr Konto ist noch kein Mitglied von {{organization}}.",
-            "messageUnnamed": "Ihr Konto ist noch kein Mitglied dieser Organisation.",
-            "suggestion": "Bitten Sie eine Administratorin oder einen Administrator Ihres Vereins, Sie als Mitglied einzuladen. Danach können Sie sich erneut anmelden.",
+            "message": "Dieses Konto ist noch kein Mitglied von {{organization}}.",
+            "messageUnnamed": "Dieses Konto ist noch kein Mitglied dieser Organisation.",
+            "suggestion": "Eine Administratorin oder ein Administrator des Vereins kann dieses Konto als Mitglied einladen. Danach ist die Anmeldung möglich.",
             "signedInAs": "Angemeldet als {{email}}"
         }
     },
@@ -468,11 +460,17 @@
         "createNode": "Neu hinzufügen"
     },
     "profile": {
+        "description": "Persönliche Einstellungen für dieses Konto.",
+        "appearance": "Darstellung",
+        "browserOnly": "Wird in diesem Browser gespeichert.",
+        "languageLabel": "Sprache der Oberfläche",
         "language": "Sprache",
         "theme": "Thema",
         "themes": {
             "light": "Hell",
-            "dark": "Dunkel"
+            "dark": "Dunkel",
+            "auto": "Automatisch",
+            "autoHint": "Wie im Betriebssystem"
         },
         "lang": {
             "english": "Englisch",
@@ -485,35 +483,29 @@
     "settings": {
         "menu": {
             "account": "Mein Konto",
-            "invoices": "Rechnungen",
-            "organization": "Organisation",
-            "ngoDetails": "Organisationsdetails",
             "profile": "Profil"
         }
     },
-    "settingsPage": {
-        "menu": "Menü"
-    },
     "reports": {
         "title": "Berichte",
-        "subtitle": "Werten Sie Transaktionen nach Kategoriegruppenwerten für einen Zeitraum aus.",
+        "subtitle": "Einnahmen und Ausgaben eines Zeitraums nach Kategoriegruppe auswerten.",
         "group": "Kategoriegruppe",
         "selectGroup": "Kategoriegruppe wählen …",
         "from": "Von (Transaktionsdatum)",
         "to": "Bis (Transaktionsdatum)",
         "bommel": "Bommel",
-        "export": "CSV exportieren",
         "total": "Gesamt",
         "table": {
             "value": "Wert",
             "count": "Anzahl",
             "income": "Einnahmen",
             "expense": "Ausgaben",
-            "net": "Saldo"
+            "net": "Saldo",
+            "distribution": "Verteilung"
         },
         "emptyNoGroup": {
             "title": "Kategoriegruppe wählen",
-            "description": "Wählen Sie oben eine Kategoriegruppe, um die Auswertung anzuzeigen."
+            "description": "Oben eine Kategoriegruppe wählen, um die Auswertung anzuzeigen."
         },
         "emptyNoData": {
             "title": "Keine Daten",
@@ -521,10 +513,39 @@
         },
         "error": {
             "title": "Bericht konnte nicht geladen werden",
-            "description": "Bitte versuchen Sie es später erneut."
-        }
+            "description": "Bitte später erneut versuchen."
+        },
+        "setup": {
+            "title": "Noch nichts auszuwerten",
+            "text": "Berichte entstehen aus den Kategorien und den zugeordneten Belegen bzw. Transaktionen. Bommel lassen sich später jederzeit ergänzen.",
+            "action": "Kategorien anlegen",
+            "period": "Zeitraum",
+            "sampleTitle": "Beispielauswertung",
+            "previewLabel": "Beispielvorschau",
+            "spheres": {
+                "ideal": "Ideeller Bereich",
+                "purpose": "Zweckbetrieb",
+                "assets": "Vermögensverwaltung",
+                "business": "Wirtschaftl. Geschäftsbetrieb"
+            }
+        },
+        "allGroupBommels": "Alle Bommel der Gruppe",
+        "noGroupBommels": "Dieser Gruppe ist kein Bommel zugeordnet.",
+        "until": "bis",
+        "exportCsv": "CSV exportieren",
+        "periodHint": "Maßgeblich ist das Datum der Transaktion, also die Spalte „Datum“ unter Transaktionen. Nicht das Upload- oder Buchungsdatum der Bank.",
+        "bookings_one": "{{count}} Transaktion",
+        "bookings_other": "{{count}} Transaktionen"
     },
     "menu": {
+        "badge": {
+            "receipts_one": "{{count}} Beleg zu prüfen",
+            "receipts_other": "{{count}} Belege zu prüfen",
+            "transactions_one": "{{count}} unbestätigte Transaktion",
+            "transactions_other": "{{count}} unbestätigte Transaktionen",
+            "bankAccounts_one": "{{count}} offener Bankumsatz",
+            "bankAccounts_other": "{{count}} offene Bankumsätze"
+        },
         "dashboard": "Dashboard",
         "receipts": "Belege",
         "upload-receipt": "Beleg hochladen",
@@ -541,7 +562,9 @@
         "collapse": "Einklappen",
         "expand": "Ausklappen",
         "openMenu": "Menü öffnen",
-        "navigation": "Navigation"
+        "navigation": "Navigation",
+        "setup": "Erste Schritte",
+        "setupCount": "{{done}}/{{total}}"
     },
     "transactions": {
         "title": "Transaktionen",
@@ -605,7 +628,10 @@
         "income": "Einnahme",
         "expense": "Ausgabe",
         "noResults": "Keine Transaktionen gefunden",
-        "noResultsDesc": "Passe die Filter an oder erfasse eine neue Transaktion.",
+        "noResultsDesc": "Filter anpassen oder eine neue Transaktion erfassen.",
+        "noResultsOtherStatus_one": "{{count}} Transaktion hat einen anderen Status.",
+        "noResultsOtherStatus_other": "{{count}} Transaktionen haben einen anderen Status.",
+        "showAllStatuses": "Alle Status anzeigen",
         "detail": {
             "title": "Transaktion",
             "editTitle": "Transaktion bearbeiten",
@@ -640,7 +666,7 @@
             "unlink": "Verknüpfung lösen",
             "unlinkReopen": {
                 "title": "Verknüpfung lösen und auf Entwurf setzen?",
-                "description": "Diese Transaktion ist bestätigt und vollständig gedeckt. Wenn du diese Bankverknüpfung entfernst, ist sie nicht mehr vollständig gedeckt und wird wieder auf Entwurf gesetzt.",
+                "description": "Diese Transaktion ist bestätigt und vollständig gedeckt. Ohne diese Bankverknüpfung ist sie nicht mehr vollständig gedeckt und wird wieder auf Entwurf gesetzt.",
                 "confirm": "Lösen & auf Entwurf"
             },
             "deleteConfirmTitle": "Transaktion löschen?",
@@ -665,7 +691,7 @@
         },
         "create": {
             "title": "Neue Transaktion",
-            "subtitle": "Erfasse eine Ausgabe oder Einnahme",
+            "subtitle": "Ausgabe oder Einnahme erfassen",
             "direction": "Richtung",
             "expense": "Ausgabe",
             "income": "Einnahme",
@@ -716,54 +742,63 @@
             "clear": "Auswahl aufheben",
             "delete": "Löschen",
             "confirmTitle": "Ausgewählte Transaktionen löschen?",
-            "confirmDesc": "Möchtest du die ausgewählten Transaktionen ({{n}}) wirklich löschen? Das kann nicht rückgängig gemacht werden."
+            "confirmDesc": "Die ausgewählten Transaktionen ({{n}}) wirklich löschen? Das kann nicht rückgängig gemacht werden."
         },
         "linked": "Verknüpft",
-        "notLinked": "Nicht verknüpft"
+        "notLinked": "Nicht verknüpft",
+        "toast": {
+            "createError": "Transaktion konnte nicht erstellt werden",
+            "saveError": "Transaktion konnte nicht gespeichert werden",
+            "confirmError": "Transaktion konnte nicht bestätigt werden",
+            "reopenError": "Transaktion konnte nicht wieder geöffnet werden",
+            "deleteError": "Transaktion konnte nicht gelöscht werden",
+            "created": "Transaktion erstellt",
+            "saved": "Transaktion gespeichert",
+            "confirmed": "Transaktion bestätigt",
+            "reopened": "Transaktion wieder geöffnet",
+            "deleted": "Transaktion gelöscht",
+            "bulkDeleted": "{{count}} Transaktion(en) gelöscht",
+            "bulkDeletePartial": "{{done}} Transaktion(en) gelöscht, {{failed}} fehlgeschlagen",
+            "bulkDeleteFailed": "Transaktionen konnten nicht gelöscht werden",
+            "receiptBackToReview": "Der Betrag passt nicht mehr zum Beleg. Der Beleg wurde wieder zur Prüfung gestellt."
+        },
+        "empty": {
+            "firstTitle": "Noch keine Transaktionen",
+            "firstText": "Transaktionen entstehen aus geprüften Belegen und importierten Kontoumsätzen. Oben lässt sich auch direkt eine Transaktion erfassen.",
+            "noMatchTitle": "Nichts gefunden",
+            "noMatchText": "Suche anpassen oder einen anderen Filter wählen."
+        },
+        "edit": {
+            "amountFromReceipt": "Diese Transaktion wurde aus dem Beleg „{{receipt}}“ erstellt. Ein manuell geänderter Betrag kann vom Beleg abweichen. Passt der Betrag danach nicht mehr zum Beleg, wird der Beleg wieder zur Prüfung gestellt."
+        }
     },
     "receipts": {
         "draft": "Entwurf",
-        "unassigned": "Nicht zugewiesen",
-        "documentLinked": "Dokument angehängt",
-        "downloadDocument": "Dokument herunterladen",
-        "downloadFailed": "Dokument konnte nicht heruntergeladen werden",
         "noDocument": "Kein Dokument",
         "dueDate": "Fällig am",
-        "empty": "Keine Belege gefunden",
+        "empty": {
+            "firstTitle": "Noch keine Belege",
+            "firstText": "Rechnungen, Quittungen und Kassenbons landen hier. Der erste Beleg wird oben hochgeladen.",
+            "noMatchTitle": "Nichts gefunden",
+            "noMatchText": "Suche anpassen oder einen anderen Filter wählen."
+        },
         "searchPlaceholder": "Suchen (Name, Absender, Betrag) …",
         "searchClear": "Suche löschen",
-        "noSearchResults": "Keine Belege für „{{search}}\" gefunden",
         "newReceipt": "Neuer Beleg",
-        "statusBadge": {
-            "draft": "Entwurf",
-            "saved": "Gespeichert"
-        },
         "table": {
-            "issuer": "Vertragspartner",
-            "date": "Datum",
-            "project": "Bommel",
-            "category": "Kategorie",
-            "status": "Status",
-            "paid": "Bezahlt",
-            "amount": "Betrag",
-            "purpose": "Verwendungszweck",
-            "reference": "Referenz"
-        },
-        "paidLabel": {
-            "yes": "Ja",
-            "no": "Nein"
-        },
-        "emptyState": {
-            "title": "Noch keine Belege hochgeladen",
-            "description": "Hier können Belege gefiltert und verwaltet werden",
-            "action": "Ersten Beleg hochladen"
+            "category": "Kategorie"
         },
         "status": {
             "pending": "Ausstehend",
             "analyzing": "Wird analysiert",
-            "ready": "Prüfen",
+            "ready": "Zu prüfen",
             "confirmed": "Bestätigt",
-            "failed": "Manuelle Eingabe"
+            "failed": "Manuell ausfüllen",
+            "hint": {
+                "ready": "Die KI hat die Werte ausgelesen. Bitte prüfen und bestätigen.",
+                "failed": "Die Analyse ist fehlgeschlagen. Bitte die Werte selbst eintragen.",
+                "skipped": "Der Beleg wurde nicht analysiert. Bitte die Werte selbst eintragen."
+            }
         },
         "statusDescription": {
             "pending": "Beleg hochgeladen – die Analyse startet gleich.",
@@ -771,65 +806,62 @@
         },
         "filters": {
             "searchReceipt": "Beleg suchen",
-            "searchPlaceholder": "Suche",
             "receiptDate": "Belegdatum",
-            "startDate": "Belege ab",
-            "endDate": "Belege bis",
             "bommel": "Bommel",
             "category": "Kategorie",
             "type": "Belegart",
-            "income": "Einnahme",
-            "expense": "Ausgabe",
             "status": "Status",
-            "selectStatus": "Status wählen",
-            "all": "Alle",
-            "drafts": "Entwürfe",
-            "unassigned": "Nicht zugewiesen",
             "displayType": "Anzeigeart",
-            "displayAll": "Alles ausklappen",
-            "reset": "Zurücksetzen",
             "noResults": "Keine Ergebnisse",
             "area": "Bereich",
             "allAreas": "Bereich wählen",
-            "allCategories": "Kategorie wählen",
-            "showFilters": "Filter"
+            "allCategories": "Kategorie wählen"
         },
         "upload": {
             "sectionTitle": "Belege hochladen",
+            "setupHint": "Hier hochladen: Belege hineinziehen oder Dateien auswählen.",
             "expand": "Hochladebereich ausklappen",
             "collapse": "Hochladebereich einklappen",
-            "tooLargeTitle": "Datei zu groß",
-            "tooLargeDescription": "{{files}} überschreitet die maximale Größe von {{max}} MB und wurde nicht hochgeladen.",
-            "invalidTypeTitle": "Dateityp nicht unterstützt",
-            "invalidTypeDescription": "{{files}} hat einen nicht unterstützten Typ. Erlaubt sind PDF, PNG und JPEG.",
             "dropzone": "Dateien hier ablegen oder klicken zum Auswählen",
             "dropzoneActive": "Loslassen zum Hochladen",
             "hint": "PDF, PNG oder JPEG bis 10 MB",
-            "uploading": "Wird hochgeladen…",
-            "analyzeLabel": "Automatisch analysieren (KI)",
+            "analyzeLabel": "Beim Hochladen automatisch auslesen",
             "progress": "{{done}} von {{total}} hochgeladen",
             "itemUploading": "Wird hochgeladen …",
             "itemDone": "Hochgeladen",
-            "itemError": "Fehlgeschlagen",
-            "itemErrorDuplicate": "Doppelt – bereits verbucht",
+            "itemErrorDuplicate": "Datei bereits vorhanden",
             "viewExisting": "Beleg anzeigen",
             "analysis": {
-                "aiWarning": "Die per KI erkannten Daten können Fehler enthalten. Bitte prüfe alle Felder vor dem Speichern.",
+                "aiWarning": "Die per KI erkannten Daten können Fehler enthalten. Bitte alle Felder vor dem Speichern prüfen.",
                 "pending": "Analyse startet gleich …",
                 "analyzing": "Beleg wird analysiert …",
                 "completed": "Analyse abgeschlossen",
-                "completedDescription": "Bitte prüfe die erkannten Daten und korrigiere sie bei Bedarf.",
+                "completedDescription": "Bitte die erkannten Daten prüfen und bei Bedarf korrigieren.",
                 "extractedViaZugferd": "Daten aus ZUGFeRD-Rechnung übernommen",
                 "extractedViaDocumentAI": "Daten per KI-Analyse erkannt",
                 "failed": "Automatische Analyse nicht möglich – bitte manuell eingeben",
                 "serviceUnavailable": "Analyse-Service gerade nicht erreichbar – bitte manuell eingeben",
-                "pollingTimeout": "Die Analyse dauert länger als erwartet. Du kannst die Daten jederzeit selbst eingeben.",
+                "pollingTimeout": "Die Analyse dauert länger als erwartet. Die Daten lassen sich jederzeit selbst eingeben.",
                 "errorDetail": "Details: {{error}}",
                 "retry": "Analyse erneut starten",
-                "retryFailed": "Analyse konnte nicht erneut gestartet werden. Bitte versuche es später erneut."
+                "retryFailed": "Analyse konnte nicht erneut gestartet werden. Bitte später erneut versuchen."
             },
             "duplicate": "Dieser Beleg wurde bereits hochgeladen.",
-            "uploadFailed": "Fehler beim Hochladen des Belegs."
+            "uploadFailed": "Fehler beim Hochladen des Belegs.",
+            "failedCount": "{{count}} Datei(en) nicht hochgeladen",
+            "remove": "Entfernen",
+            "removeAll": "Alle entfernen",
+            "errors": {
+                "tooLarge": "Zu groß (max. {{max}} MB)",
+                "invalidType": "Dateityp nicht unterstützt",
+                "unauthorized": "Sitzung abgelaufen, bitte neu anmelden",
+                "network": "Keine Verbindung zum Server",
+                "server": "Serverfehler, bitte später erneut versuchen",
+                "unknown": "Fehlgeschlagen"
+            },
+            "dropzoneMore": "Weitere Belege hierher ziehen",
+            "chooseFiles": "Belege hochladen",
+            "analyzeHint": "Ein KI-Modell zur Dokumentenanalyse liest Absender, Datum und Betrag aus dem Beleg. Die Werte werden als Entwurf vorbefüllt und stehen zur Prüfung bereit."
         },
         "areas": {
             "ideell": "Ideeller Bereich",
@@ -838,29 +870,20 @@
             "wirtschaftlich": "Wirtschaftlicher Geschäftsbetrieb",
             "unknown": "Unbekannt"
         },
-        "types": {
-            "income": "Einnahme",
-            "expense": "Ausgabe"
-        },
         "pagination": {
-            "page": "Seite",
             "previous": "Zurück",
             "next": "Weiter"
         },
         "deleteDialog": {
             "title": "Beleg löschen",
-            "description": "Sind Sie sicher, dass Sie '{{name}}' ({{amount}}) löschen möchten?",
+            "description": "'{{name}}' ({{amount}}) wirklich löschen?",
             "warning": "Diese Aktion kann nicht rückgängig gemacht werden. Der Beleg wird dauerhaft gelöscht.",
             "confirm": "Ja, löschen",
-            "error": "Fehler beim Löschen des Belegs",
-            "success": "Beleg erfolgreich gelöscht",
             "optionTransactionOnly": "Nur die Buchung wird entfernt. Der Beleg bleibt erhalten und wartet wieder auf Prüfung.",
             "optionWithReceipt": "Buchung und Beleg werden dauerhaft gelöscht, inklusive der hochgeladenen Datei.",
             "confirmTransactionOnly": "Nur Transaktion löschen",
             "confirmWithReceipt": "Mit Beleg löschen",
-            "successTransactionOnly": "Transaktion gelöscht – der Beleg wartet wieder auf Prüfung",
-            "successWithReceipt": "Beleg und Transaktion gelöscht",
-            "descriptionNoName": "Sind Sie sicher, dass Sie diese Transaktion ({{amount}}) löschen möchten?"
+            "descriptionNoName": "Diese Transaktion ({{amount}}) wirklich löschen?"
         },
         "title": "Belege",
         "subtitle": "{{count}} ungeprüfte Belege",
@@ -874,13 +897,66 @@
             "actions": "Aktionen",
             "createdAt": "Erstellt am"
         },
+        "split": {
+            "link": "Betrag auf mehrere Bommel und Kategorien aufteilen",
+            "eyebrowEdit": "Beleg aufteilen",
+            "date": "Datum",
+            "counterparty": "Gegenpartei",
+            "section": "Aufteilung",
+            "of": "von {{total}}",
+            "sumOk": "Summe passt",
+            "unassigned": "{{amount}} nicht zugeordnet",
+            "over": "{{amount}} zu viel verteilt",
+            "part": "Teil {{n}}",
+            "partOf": "Teil {{i}} von {{n}}",
+            "amount": "Betrag",
+            "bommel": "Bommel",
+            "categories": "Kategoriegruppen",
+            "chooseBommel": "Bommel wählen",
+            "chooseFirstBommel": "Bitte zuerst einen Bommel wählen.",
+            "noGroups": "Für diesen Bommel gibt es keine Kategoriegruppen.",
+            "noBommel": "Kein Bommel",
+            "pleaseChoose": "Bitte wählen",
+            "amountPositive": "Betrag muss größer als 0 sein",
+            "addPart": "Weiteren Teil hinzufügen",
+            "addTransaction": "Weitere Transaktion hinzufügen",
+            "addTransactionLocked": "Die Transaktion ist bereits bestätigt. Öffne sie wieder, um weitere Transaktionen aus diesem Beleg zu erstellen.",
+            "removePart": "Teil entfernen",
+            "expand": "Als Karte aufklappen",
+            "collapse": "Zuklappen",
+            "saveDraft": "Als Entwurf speichern",
+            "createOne": "Transaktion erstellen",
+            "createMany": "{{n}} Transaktionen erstellen",
+            "incomplete": "Noch nicht vollständig",
+            "editSplit": "Aufteilung bearbeiten",
+            "editSplitLocked": "Bestätigte Teile können nicht neu aufgeteilt werden.",
+            "tabTransactions": "Transaktionen",
+            "tabTransaction": "Transaktion",
+            "tabReceipt": "Beleg",
+            "fromReceipt": "Transaktionen aus diesem Beleg",
+            "fromReceiptOne": "Transaktion aus diesem Beleg",
+            "covered": "Vollständig gedeckt",
+            "uncovered": "Noch {{amount}} ungedeckt",
+            "notBooked": "{{amount}} des Belegs sind nicht gebucht",
+            "openTransaction": "Transaktion öffnen",
+            "confirmPart": "Bestätigen",
+            "noTotal": "Der Beleg hat noch keinen Betrag. Bitte ihn zuerst beim Prüfen des Belegs eintragen.",
+            "noTotalShort": "Belegbetrag fehlt",
+            "linkLater": "Bankumsätze werden nach dem Erstellen an den einzelnen Transaktionen verknüpft.",
+            "toast": {
+                "draftSaved": "Aufteilung als Entwurf gespeichert",
+                "saveError": "Aufteilung konnte nicht gespeichert werden",
+                "created": "{{n}} Transaktionen erstellt"
+            },
+            "cancel": "Nicht aufteilen"
+        },
         "review": {
             "title": "Beleg prüfen",
             "confirm": "Als Transaktion bestätigen",
             "confirmHint": "Erstellt eine ENTWURF-Transaktion mit den Belegdaten",
             "reanalyze": "Neu analysieren",
             "delete": "Beleg löschen",
-            "deleteConfirmText": "Der Beleg und – falls vorhanden – die daraus erstellte Transaktion werden dauerhaft gelöscht.",
+            "deleteConfirmText": "Der Beleg und die daraus erstellte Transaktion, falls vorhanden, werden dauerhaft gelöscht.",
             "name": "Bezeichnung",
             "amount": "Betrag",
             "date": "Datum",
@@ -894,17 +970,17 @@
             "cancel": "Abbrechen",
             "alreadyConfirmed": "Bereits bestätigt — Transaktion wurde erstellt",
             "analyzing": "Beleg wird analysiert …",
-            "analyzingHint": "Die erkannten Daten erscheinen automatisch. Du kannst Felder schon jetzt selbst ausfüllen.",
+            "analyzingHint": "Die erkannten Daten erscheinen automatisch. Felder lassen sich schon jetzt ausfüllen.",
             "completed": "Analyse abgeschlossen",
-            "completedHint": "Bitte prüfe die erkannten Daten und korrigiere sie bei Bedarf.",
+            "completedHint": "Bitte die erkannten Daten prüfen und bei Bedarf korrigieren.",
             "failedTitle": "Analyse fehlgeschlagen",
-            "failedHint": "Bitte gib die Daten manuell ein oder starte die Analyse neu.",
+            "failedHint": "Bitte die Daten manuell eingeben oder die Analyse neu starten.",
             "serviceUnavailableTitle": "Analyse-Service nicht erreichbar",
-            "serviceUnavailableHint": "Der Beleg konnte technisch gerade nicht automatisch analysiert werden. Du kannst alle Felder jederzeit selbst ausfüllen und den Beleg manuell erfassen.",
+            "serviceUnavailableHint": "Der Beleg konnte technisch gerade nicht automatisch analysiert werden. Alle Felder lassen sich jederzeit selbst ausfüllen, um den Beleg manuell zu erfassen.",
             "linkedTransaction": "Verknüpfte Transaktion",
             "openTransaction": "Zur Transaktion wechseln",
             "bankReconcileTitle": "Aus Kontoumsatz erstellt",
-            "bankReconcileHint": "Die Transaktion ist bereits mit den Bankdaten vorbefüllt. Prüfe den Beleg und übernimm bei Bedarf die erkannten Werte.",
+            "bankReconcileHint": "Die Transaktion ist bereits mit den Bankdaten vorbefüllt. Bitte den Beleg prüfen und bei Bedarf die erkannten Werte übernehmen.",
             "aiSuggestion": "Beleg",
             "applySuggestion": "Übernehmen",
             "tabTransaction": "Transaktion",
@@ -914,28 +990,61 @@
             "purpose": "Verwendungszweck",
             "extractedBy": "Erkannt durch {{source}}",
             "noReceiptDataTitle": "Keine Belegdaten",
-            "noReceiptDataHint": "Es wurden keine Daten automatisch aus dem Beleg extrahiert. Du kannst die Werte im Tab „Transaktion“ manuell eingeben.",
+            "noReceiptDataHint": "Es wurden keine Daten automatisch aus dem Beleg extrahiert. Die Werte lassen sich im Tab „Transaktion“ manuell eingeben.",
             "saveDraft": "Als Entwurf speichern",
             "finalize": "Bestätigen",
-            "createTransaction": "Als Transaktion bestätigen"
+            "createTransaction": "Als Transaktion bestätigen",
+            "eyebrowView": "Beleg",
+            "unsaved": "Nicht gespeichert",
+            "confirmReceipt": "Beleg bestätigen",
+            "confirmTransaction": "Transaktion bestätigen",
+            "masterData": "Stammdaten",
+            "tax": "Enthaltene USt.",
+            "receiptDate": "Belegdatum",
+            "createdTransaction": "Erstellte Transaktion",
+            "noTransaction": "Zu diesem Beleg ist keine Transaktion mehr vorhanden.",
+            "paymentMatching": "Zahlungsabgleich",
+            "linkAfterCreate": "Sobald die Transaktion erstellt ist, lassen sich hier Bankumsätze verknüpfen.",
+            "uploadedOn": "Hochgeladen am {{date}}",
+            "fileInfo": "Datei",
+            "fileName": "Dateiname",
+            "fileType": "Dateityp",
+            "fileSize": "Größe",
+            "uploadedAt": "Hochgeladen am",
+            "uploadedBy": "Hochgeladen von",
+            "documentNumber": "Belegnummer",
+            "extraction": "Datenquelle",
+            "extractionSource": {
+                "ZUGFERD": "E-Rechnung (ZUGFeRD)",
+                "AI": "KI erkannt",
+                "MANUAL": "Manuell erfasst",
+                "NONE": "Nicht ausgelesen"
+            },
+            "extractedValues": "Erkannte Werte",
+            "discardTitle": "Änderungen verwerfen?",
+            "discardText": "Die Korrekturen an diesem Beleg sind noch nicht gespeichert.",
+            "discardConfirm": "Verwerfen",
+            "keepEditing": "Weiter bearbeiten",
+            "amountDeviates": "Der Betrag der Transaktion ({{transaction}}) weicht vom Beleg ({{receipt}}) ab. Beim Bestätigen wird der Belegbetrag auf den Transaktionsbetrag gesetzt.",
+            "useReceiptAmount": "Belegbetrag übernehmen ({{amount}})"
         },
         "filter": {
             "all": "Alle",
             "unreviewed": "Ungeprüft",
             "confirmed": "Bestätigt"
         },
-        "noUnreviewed": "Alle Belege wurden geprüft",
-        "noUnreviewedDesc": "Lade neue Belege hoch, um sie zu prüfen.",
+        "noResultsOtherStatus_one": "{{count}} Beleg hat einen anderen Status.",
+        "noResultsOtherStatus_other": "{{count}} Belege haben einen anderen Status.",
         "deleteConfirm": "Beleg wirklich löschen?",
         "analysisUnavailable": {
             "title": "Analyse-Service nicht erreichbar",
-            "description": "Der Beleg konnte technisch gerade nicht automatisch analysiert werden. Du kannst alle Informationen jederzeit auch manuell eingeben."
+            "description": "Der Beleg konnte technisch gerade nicht automatisch analysiert werden. Alle Informationen lassen sich jederzeit auch manuell eingeben."
         },
         "preview": {
             "loading": "Beleg wird geladen …",
             "error": "Vorschau konnte nicht geladen werden.",
             "missingTitle": "Datei nicht mehr verfügbar",
-            "missingHint": "Die hochgeladene Datei ist im Speicher nicht mehr vorhanden. Bitte lade den Beleg erneut hoch.",
+            "missingHint": "Die hochgeladene Datei ist im Speicher nicht mehr vorhanden. Bitte den Beleg erneut hochladen.",
             "reupload": "Beleg hierher ziehen oder klicken, um ihn erneut hochzuladen",
             "reuploadDrop": "Beleg hier ablegen …",
             "reuploading": "Wird hochgeladen …",
@@ -964,18 +1073,30 @@
             "selectRow": "Beleg auswählen",
             "selectedCount": "{{n}} ausgewählt",
             "clear": "Auswahl aufheben",
+            "reanalyze": "Neu analysieren ({{n}})",
             "delete": "Löschen",
             "confirmTitle": "Ausgewählte Belege löschen?",
-            "confirmDesc": "Möchtest du die ausgewählten Belege ({{n}}) wirklich löschen? Das kann nicht rückgängig gemacht werden."
+            "confirmDesc": "Die ausgewählten Belege ({{n}}) wirklich löschen? Das kann nicht rückgängig gemacht werden."
         },
-        "rowAction": "Prüfen"
+        "toast": {
+            "reuploadError": "Datei konnte nicht ersetzt werden",
+            "createTransactionError": "Transaktion konnte nicht erstellt werden",
+            "saveError": "Beleg konnte nicht gespeichert werden",
+            "deleteError": "Beleg konnte nicht gelöscht werden",
+            "reanalyzeError": "Analyse konnte nicht gestartet werden",
+            "saved": "Beleg gespeichert",
+            "transactionCreated": "Transaktion erstellt",
+            "receiptConfirmed": "Beleg bestätigt",
+            "deleted": "Beleg gelöscht",
+            "reanalyzeStarted": "Erneute Analyse gestartet",
+            "bulkDeleted": "{{count}} Beleg(e) gelöscht",
+            "bulkDeletePartial": "{{done}} Beleg(e) gelöscht, {{failed}} fehlgeschlagen",
+            "bulkDeleteFailed": "Belege konnten nicht gelöscht werden"
+        }
     },
     "bommel": {
         "empty": "Keine Bommels gefunden",
         "select": "Bommel auswählen"
-    },
-    "datePicker": {
-        "selectDate": "Datum auswählen"
     },
     "dashboard": {
         "title": "Dashboard",
@@ -1026,12 +1147,38 @@
         },
         "loadError": "Diagrammdaten konnten nicht geladen werden",
         "noData": "Keine Daten verfügbar",
-        "noDataHint": "Laden Sie Ihren ersten Beleg hoch, um Einnahmen- und Ausgabendaten hier zu sehen.",
+        "noDataHint": "Den ersten Beleg hochladen, um Einnahmen- und Ausgabendaten hier zu sehen.",
         "uploadFirst": "Beleg hochladen",
-        "timeRange": "Zeige Daten von {{startDate}} bis {{endDate}}",
+        "timeRange": "Daten von {{startDate}} bis {{endDate}}",
         "allBommels": "Alle Bommels",
         "startDate": "Von",
-        "endDate": "Bis"
+        "endDate": "Bis",
+        "setup": {
+            "title": "Jetzt mit hopps loslegen",
+            "subtitle": "In vier Schritten ist die Buchhaltung startklar.",
+            "done": "erledigt",
+            "dismiss": "Ausblenden",
+            "progress": "{{done}} von {{total}} Schritten erledigt",
+            "stepDone": "Erledigt",
+            "steps": {
+                "bommel": {
+                    "title": "Bommelstruktur anlegen",
+                    "text": "Abteilungen, Projekte oder Veranstaltungen"
+                },
+                "categories": {
+                    "title": "Kategorien festlegen",
+                    "text": "Aus einer Vorlage oder eigene"
+                },
+                "receipt": {
+                    "title": "Beleg hochladen",
+                    "text": "Rechnung, Quittung oder Kassenbon"
+                },
+                "bankImport": {
+                    "title": "Kontoauszug importieren",
+                    "text": "Bankkonto anlegen und CSV hochladen"
+                }
+            }
+        }
     },
     "categories": {
         "title": "Kategorien",
@@ -1042,16 +1189,16 @@
         "dialog": {
             "creation": {
                 "title": "Neue Kategorie erstellen",
-                "description": "Geben Sie die Details der neuen Kategorie ein."
+                "description": "Details der neuen Kategorie eingeben."
             },
             "deletion": {
                 "title": "Diese Kategorie löschen",
-                "description_1": "Sind Sie sicher, dass Sie diese Kategorie löschen möchten?",
+                "description_1": "Diese Kategorie wirklich löschen?",
                 "description_2": "Belege, die der Kategorie zugeordnet werden, werden der Kategorie 'unbekannt' zugeordnet."
             },
             "update": {
                 "title": "Kategorie bearbeiten",
-                "description": "Ändern Sie die Details der Kategorie."
+                "description": "Details der Kategorie ändern."
             }
         },
         "form": {
@@ -1076,8 +1223,8 @@
         },
         "emptyState": {
             "title": "Noch keine Kategorien",
-            "description": "Erstellen Sie Ihre erste Kategorie, um Belege und Transaktionen zu organisieren.",
-            "noSearchResults": "Keine Kategorien entsprechen Ihrer Suchanfrage."
+            "description": "Die erste Kategorie erstellen, um Belege und Transaktionen zu organisieren.",
+            "noSearchResults": "Keine Kategorien entsprechen der Suchanfrage."
         }
     },
     "connectivity": {
@@ -1098,18 +1245,6 @@
         "yes": "Ja"
     },
     "bankAccounts": {
-        "title": "Bankkonten",
-        "subtitle": "Verwalten Sie Ihre Bankkonten und importieren Sie Kontoauszüge.",
-        "newAccount": "Neues Konto",
-        "manageSchemas": "Schemas verwalten",
-        "notFound": "Bankkonto nicht gefunden",
-        "card": {
-            "schema": "Schema"
-        },
-        "emptyState": {
-            "title": "Noch keine Bankkonten",
-            "description": "Fügen Sie Ihr erstes Bankkonto hinzu, um Kontoauszüge zu importieren."
-        },
         "form": {
             "createTitle": "Bankkonto erstellen",
             "editTitle": "Bankkonto bearbeiten",
@@ -1129,9 +1264,10 @@
             "noSchema": "Kein Schema",
             "description": "Beschreibung",
             "validation": {
+                "ibanOtherCurrency": "Ein Konto mit {{country}}-IBAN wird in {{ibanCurrency}} geführt, die Organisation aber in {{organizationCurrency}}. Konten in Fremdwährung werden noch nicht unterstützt. Die Währung der Organisation lässt sich in den Einstellungen ändern, solange noch kein Bankkonto und keine Transaktion existiert.",
                 "nameRequired": "Kontoname ist erforderlich",
                 "currencyRequired": "Währung ist erforderlich",
-                "colorInvalid": "Ungültige Farbe. Bitte verwenden Sie ein #RRGGBB-Format",
+                "colorInvalid": "Ungültige Farbe. Bitte das Format #RRGGBB verwenden",
                 "ibanRequired": "IBAN ist erforderlich",
                 "ibanTooShort": "IBAN muss mindestens 15 Zeichen lang sein",
                 "ibanTooLong": "IBAN darf maximal 34 Zeichen lang sein",
@@ -1139,43 +1275,28 @@
                 "bicTooLong": "BIC darf maximal 11 Zeichen lang sein",
                 "openingBalanceDateRequired": "Datum des Eröffnungssaldos ist erforderlich, wenn ein Saldo angegeben wird",
                 "openingBalanceRequired": "Eröffnungssaldo ist erforderlich, wenn ein Datum angegeben wird",
-                "duplicateIban": "Ein Konto mit dieser IBAN existiert bereits in Ihrer Organisation"
+                "duplicateIban": "Ein Konto mit dieser IBAN existiert bereits in der Organisation"
             }
         },
-        "table": {
-            "bookingDate": "Buchungsdatum",
-            "counterpartyName": "Auftraggeber/Empfänger",
-            "purpose": "Verwendungszweck",
-            "amount": "Betrag",
-            "status": "Status"
-        },
-        "transactions": {
-            "title": "Transaktionen",
-            "empty": "Keine Transaktionen vorhanden",
-            "export": "Exportieren"
-        },
         "toast": {
-            "createSuccess": "Bankkonto erfolgreich erstellt",
-            "createError": "Fehler beim Erstellen des Bankkontos",
-            "updateSuccess": "Bankkonto erfolgreich aktualisiert",
-            "updateError": "Fehler beim Aktualisieren des Bankkontos",
+            "createSuccess": "Bankkonto erstellt",
+            "createError": "Bankkonto konnte nicht erstellt werden",
+            "updateSuccess": "Bankkonto gespeichert",
+            "updateError": "Bankkonto konnte nicht gespeichert werden",
             "archiveSuccess": "Bankkonto archiviert",
-            "archiveError": "Fehler beim Archivieren des Bankkontos",
+            "archiveError": "Bankkonto konnte nicht archiviert werden",
             "restoreSuccess": "Bankkonto wiederhergestellt",
-            "restoreError": "Fehler beim Wiederherstellen des Bankkontos"
+            "restoreError": "Bankkonto konnte nicht wiederhergestellt werden"
         }
     },
     "bankImport": {
-        "title": "Kontoauszug importieren",
-        "startImport": "Importieren",
-        "status": {
-            "QUEUED": "In Warteschlange",
-            "PROCESSING": "Wird verarbeitet",
-            "COMPLETED": "Abgeschlossen",
-            "PARTIAL": "Teilweise importiert",
-            "FAILED": "Fehlgeschlagen",
-            "UNKNOWN": "Unbekannt"
+        "check": {
+            "currencyMismatchTitle": "Falsche Währung",
+            "currencyMismatch": "Die Datei enthält Beträge in {{fileCurrencies}}, das Konto wird aber in {{accountCurrency}} geführt. Die Datei bitte in ein Konto mit dieser Währung importieren.",
+            "mixedCurrencies": "Die Datei enthält Beträge in mehreren Währungen ({{fileCurrencies}}). Ein Konto kann nur eine Währung führen, deshalb kann die Datei nicht importiert werden.",
+            "startError": "Der Import konnte nicht gestartet werden."
         },
+        "title": "Kontoauszug importieren",
         "wizard": {
             "stepFile": "Datei",
             "stepSchema": "Schema",
@@ -1188,7 +1309,7 @@
             "dropSubtitle": "Sparkasse, GLS, DKB, VR-Bank … hopps erkennt das Format automatisch.",
             "mt940Detected": "MT940 erkannt · {{count}} Umsätze gefunden · kein Schema nötig",
             "detecting": "Format wird erkannt…",
-            "noFormatDetected": "Format konnte nicht automatisch erkannt werden. Bitte wähle unten ein Schema aus.",
+            "noFormatDetected": "Format konnte nicht automatisch erkannt werden. Bitte unten ein Schema auswählen.",
             "formatDetected": "Format erkannt: {{schema}} · Konto {{account}} · {{lines}} Zeilen gelesen",
             "schemaRequired": "Import-Schema auswählen",
             "schemaLabelChange": "Schema",
@@ -1234,31 +1355,15 @@
             "backToAccount": "Zurück zum Konto",
             "viewTransactions": "Transaktionen anzeigen"
         },
-        "history": {
-            "title": "Import-Verlauf",
-            "empty": "Noch keine Importe",
-            "fileName": "Dateiname",
-            "status": "Status",
-            "progress": "Fortschritt",
-            "imported": "Importiert",
-            "duplicates": "Duplikate",
-            "errors": "Fehler",
-            "finishedAt": "Abgeschlossen",
-            "actions": "Aktionen"
-        },
-        "rollback": {
-            "title": "Import rückgängig machen?",
-            "button": "Rückgängig",
-            "confirm": "Möchten Sie diesen Import wirklich rückgängig machen? Alle importierten Transaktionen werden gelöscht."
-        },
         "toast": {
-            "rollbackSuccess": "Import erfolgreich rückgängig gemacht",
-            "rollbackError": "Fehler beim Rückgängigmachen des Imports"
+            "rollbackSuccess": "Import rückgängig gemacht",
+            "rollbackError": "Import konnte nicht rückgängig gemacht werden",
+            "startError": "Import konnte nicht gestartet werden"
         }
     },
     "bankSchema": {
         "title": "Import-Schemas",
-        "subtitle": "Definieren Sie CSV-Importschemas für verschiedene Banken.",
+        "subtitle": "CSV-Importschemas für verschiedene Banken definieren.",
         "newSchema": "Neues Schema",
         "showArchived": "Archivierte anzeigen",
         "hideArchived": "Archivierte ausblenden",
@@ -1268,13 +1373,13 @@
         "archive": "Archivieren",
         "restore": "Wiederherstellen",
         "deleteTitle": "Schema löschen?",
-        "deleteConfirm": "Möchten Sie das Schema '{{name}}' wirklich löschen?",
+        "deleteConfirm": "Schema '{{name}}' wirklich löschen?",
         "card": {
             "delimiter": "Trennzeichen"
         },
         "emptyState": {
             "title": "Noch keine Schemas",
-            "description": "Erstellen Sie ein Import-Schema für Ihre Bank, um Kontoauszüge zu importieren."
+            "description": "Ein Import-Schema für die Bank erstellen, um Kontoauszüge zu importieren."
         },
         "amountStrategy": {
             "SIGNED_SINGLE_COLUMN": "Vorzeichenbehaftete Einzelspalte",
@@ -1314,16 +1419,16 @@
             }
         },
         "toast": {
-            "createSuccess": "Schema erfolgreich erstellt",
-            "createError": "Fehler beim Erstellen des Schemas",
-            "updateSuccess": "Schema erfolgreich aktualisiert",
-            "updateError": "Fehler beim Aktualisieren des Schemas",
-            "deleteSuccess": "Schema erfolgreich gelöscht",
-            "deleteError": "Fehler beim Löschen des Schemas",
+            "createSuccess": "Schema erstellt",
+            "createError": "Schema konnte nicht erstellt werden",
+            "updateSuccess": "Schema gespeichert",
+            "updateError": "Schema konnte nicht gespeichert werden",
+            "deleteSuccess": "Schema gelöscht",
+            "deleteError": "Schema konnte nicht gelöscht werden",
             "archiveSuccess": "Schema archiviert",
-            "archiveError": "Fehler beim Archivieren des Schemas",
+            "archiveError": "Schema konnte nicht archiviert werden",
             "restoreSuccess": "Schema wiederhergestellt",
-            "restoreError": "Fehler beim Wiederherstellen des Schemas"
+            "restoreError": "Schema konnte nicht wiederhergestellt werden"
         }
     },
     "konten": {
@@ -1336,7 +1441,6 @@
         "importAction": "Umsätze importieren",
         "import": "Importieren",
         "assign": "Zuordnen",
-        "noTransactions": "Keine Umsätze gefunden.",
         "unknownCounterparty": "Unbekannt",
         "tabs": {
             "abgleich": "Abgleich",
@@ -1349,6 +1453,9 @@
             "ignored": "Ignoriert"
         },
         "filter": {
+            "open": "Offen",
+            "matched": "Zugeordnet",
+            "ignored": "Ignoriert",
             "searchPlaceholder": "Suchen (Gegenpartei, Verwendungszweck, Betrag) …",
             "clearSearch": "Suche löschen",
             "filters": "Filter",
@@ -1356,15 +1463,14 @@
             "dateTo": "Datum bis",
             "minAmount": "Betrag min.",
             "maxAmount": "Betrag max.",
-            "clearAll": "Filter zurücksetzen",
-            "noResults": "Keine Transaktionen für die aktuelle Suche/Filter"
+            "clearAll": "Filter zurücksetzen"
         },
         "abgleich": {
-            "noData": "Noch keine Umsätze",
-            "noDataDesc": "Importiere einen Kontoauszug, um den Abgleich zu starten.",
             "allMatched": "Alles zugeordnet.",
             "openTitle_one": "offener Umsatz",
-            "openTitle_other": "offene Umsätze"
+            "openTitle_other": "offene Umsätze",
+            "noData": "Noch keine Umsätze",
+            "noDataDesc": "Einen Kontoauszug importieren, um den Abgleich zu starten."
         },
         "table": {
             "date": "Datum",
@@ -1382,7 +1488,8 @@
             "imported": "Importiert",
             "duplicates": "Duplikate",
             "matched": "Zugeordnet",
-            "empty": "Noch keine Importe.",
+            "empty": "Noch keine Importe",
+            "emptyDesc": "Einen Kontoauszug importieren, um die Historie zu füllen.",
             "actions": "Aktionen",
             "delete": "Import löschen",
             "deleteTitle": "Import löschen?",
@@ -1401,8 +1508,12 @@
             }
         },
         "empty": {
-            "title": "Noch keine Bankkonten",
-            "desc": "Füge dein erstes Bankkonto hinzu, um Kontoauszüge zu importieren."
+            "noMatchTitle": "Nichts gefunden",
+            "noMatchText": "Suche anpassen oder einen anderen Filter wählen.",
+            "noTransactionsTitle": "Noch keine Umsätze",
+            "noTransactionsText": "Sobald ein Kontoauszug importiert ist, werden die Umsätze dieses Kontos hier abgeglichen.",
+            "otherStatus_one": "{{count}} Umsatz hat einen anderen Status.",
+            "otherStatus_other": "{{count}} Umsätze haben einen anderen Status."
         },
         "form": {
             "subtitle": "Stammdaten des Kontos",
@@ -1411,7 +1522,7 @@
         },
         "drawer": {
             "title": "Kontoumsatz zuordnen",
-            "noOpenTx": "Keine offene Transaktion passt. Lade einen Beleg hoch oder erstelle eine Transaktion ohne Beleg.",
+            "noOpenTx": "Keine offene Transaktion passt. Einen Beleg hochladen oder eine Transaktion ohne Beleg erstellen.",
             "unlink": "Verknüpfung lösen",
             "openTransactionNewTab": "Transaktion in neuem Tab öffnen",
             "bankAmount": "Betrag",
@@ -1431,9 +1542,9 @@
             "sumOpen": "Offen",
             "readingTitle": "Beleg wird ausgelesen …",
             "readingHint": "{{file}} · Absender, Datum und Betrag werden erkannt",
-            "aiCreatedHint": "Von der KI aus dem Beleg erstellt. Kategorie und Bommel prüfst du in der Transaktion.",
-            "receiptHigherHint": "Der Beleg ist {{amount}} höher als der Umsatz. Die Transaktion bleibt teilverknüpft, bis du einen weiteren Kontoumsatz zuordnest, z. B. eine zweite Rate.",
-            "restOpen": "Noch <b>{{amount}}</b> des Umsatzes sind offen. Ordne den Rest zu oder speichere den Umsatz als teilverknüpft.",
+            "aiCreatedHint": "Von der KI aus dem Beleg erstellt. Kategorie und Bommel lassen sich in der Transaktion prüfen.",
+            "receiptHigherHint": "Der Beleg ist {{amount}} höher als der Umsatz. Die Transaktion bleibt teilverknüpft, bis ein weiterer Kontoumsatz zugeordnet ist, z. B. eine zweite Rate.",
+            "restOpen": "Noch <b>{{amount}}</b> des Umsatzes sind offen. Den Rest zuordnen oder den Umsatz als teilverknüpft speichern.",
             "uploadMore": "Weiteren Beleg hochladen",
             "restWithoutReceipt": "Rest ohne Beleg erfassen",
             "linkTransaction": "Transaktion verknüpfen",
@@ -1446,7 +1557,7 @@
             "confidence": "{{pct}} % sicher",
             "review": "Prüfen",
             "assignPartial": "Teilweise zuordnen",
-            "zugferdCreatedHint": "Aus den ZUGFeRD-Daten der E-Rechnung erstellt. Kategorie und Bommel prüfst du in der Transaktion."
+            "zugferdCreatedHint": "Aus den ZUGFeRD-Daten der E-Rechnung erstellt. Kategorie und Bommel lassen sich in der Transaktion prüfen."
         },
         "createTx": {
             "title": "Transaktion aus Banktransaktion",
@@ -1462,6 +1573,23 @@
             "shouldBeExpense": "Diese Banktransaktion ist eine Ausgabe. Bitte „Ausgabe\" wählen."
         },
         "view": "Ansehen",
-        "accountPillHint": "Klicken zum Ausklappen und Bearbeiten"
+        "accountPillHint": "Klicken zum Ausklappen und Bearbeiten",
+        "firstAccount": {
+            "title": "Zuerst ein Bankkonto anlegen",
+            "text": "Kontoauszüge werden immer einem Konto zugeordnet. Sobald ein Konto angelegt ist, können Umsätze importiert und abgeglichen werden.",
+            "action": "Bankkonto hinzufügen"
+        }
+    },
+    "bankMatch": {
+        "toast": {
+            "linkError": "Bankumsatz konnte nicht verknüpft werden",
+            "amountError": "Betrag konnte nicht geändert werden",
+            "unlinkError": "Verknüpfung konnte nicht gelöst werden",
+            "ignoreError": "Bankumsatz konnte nicht ignoriert werden",
+            "linked": "Bankumsatz verknüpft",
+            "ignored": "Bankumsatz ignoriert",
+            "unignored": "Bankumsatz wieder aufgenommen",
+            "unignoreError": "Bankumsatz konnte nicht wieder aufgenommen werden"
+        }
     }
 }

@@ -34,6 +34,7 @@ import {
 import { useDocument } from '@/hooks/queries/useDocuments';
 import { useReopenTransaction, useTransaction } from '@/hooks/queries/useTransactions';
 import { useCurrency } from '@/hooks/use-currency';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
@@ -305,6 +306,7 @@ interface MatchDrawerProps {
 export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     const { t } = useTranslation();
     const { format } = useCurrency();
+    const { showSuccess } = useToast();
     const queryClient = useQueryClient();
 
     const { data: bankTx } = useBankTransaction(bankTxId);
@@ -317,8 +319,12 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     const ignoreTx = useIgnoreBankTransaction();
     const reopenTx = useReopenTransaction();
     const unignoreTx = useMutation({
+        meta: { errorMessage: 'bankMatch.toast.unignoreError' },
         mutationFn: (id: number) => apiService.orgService.ignoreDELETE(id),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
+            showSuccess(t('bankMatch.toast.unignored'));
+        },
     });
 
     const [pickerOpen, setPickerOpen] = useState(false);
@@ -405,6 +411,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
 
     async function link(transactionId: number, amount: number | undefined) {
         await addMatch.mutateAsync({ bankTxId, transactionId, amount });
+        showSuccess(t('bankMatch.toast.linked'));
         setPickerOpen(false);
         setPreview(0);
     }
@@ -434,7 +441,13 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     }
 
     async function handleIgnore() {
-        await ignoreTx.mutateAsync(bankTxId);
+        try {
+            await ignoreTx.mutateAsync(bankTxId);
+        } catch {
+            // Shown by the global mutation error handler.
+            return;
+        }
+        showSuccess(t('bankMatch.toast.ignored'));
         onClose();
     }
 

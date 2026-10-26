@@ -28,6 +28,25 @@ public class CategoryGroupRepository implements PanacheRepository<CategoryGroup>
     }
 
     /**
+     * For each template, the current organization's group copied from it. Templates the organization has not added are
+     * absent from the map; when several groups share a template, the oldest wins.
+     */
+    public Map<Long, Long> groupIdsByTemplateForCurrentOrg() {
+        Long orgId = organizationContext.getCurrentOrganizationId();
+        Map<Long, Long> result = new HashMap<>();
+        List<Object[]> rows = getEntityManager()
+                .createQuery("select g.templateId, min(g.id) from CategoryGroup g "
+                        + "where g.organization.id = :orgId and g.templateId is not null group by g.templateId",
+                        Object[].class)
+                .setParameter("orgId", orgId)
+                .getResultList();
+        for (Object[] row : rows) {
+            result.put((Long) row[0], (Long) row[1]);
+        }
+        return result;
+    }
+
+    /**
      * Groups that apply to a bommel, given the set of that bommel's id and all of its ancestor ids. A group applies
      * when at least one assigned bommel is in the set. Groups with no bommel assignment never match (empty assignment =
      * "no bommel"). Returns an empty list when the id set is empty.

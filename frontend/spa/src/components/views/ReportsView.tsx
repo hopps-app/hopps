@@ -1,15 +1,34 @@
-import { Download, TrendingUp } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { AlertTriangle, Download, Sheet, Tag } from 'lucide-react';
+import { ReactNode, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import BommelMultiSelector from '@/components/CategoryGroups/BommelMultiSelector';
-import { EmptyState } from '@/components/common/EmptyState';
-import { LoadingState } from '@/components/common/LoadingState/LoadingState';
+import { buildBommelIndex, selfAndAncestorIds } from '@/components/CategoryGroups/helpers';
+import { TableEmptyState } from '@/components/common';
+import { ReportsSetup } from '@/components/Reports/ReportsSetup';
+import { ReportResultSkeleton, ReportsSkeleton } from '@/components/Reports/ReportsSkeleton';
+import Button from '@/components/ui/Button';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
+import Select from '@/components/ui/Select';
 import { useCategoryGroups, useCategoryGroupReport } from '@/hooks/queries/useCategoryGroups';
 import { useCurrency } from '@/hooks/use-currency';
+import { useEnsureBommels } from '@/hooks/use-ensure-bommels';
 import { usePageTitle } from '@/hooks/use-page-title';
+import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
+
+/** "No group" entry of the group select; the Select component does not allow an empty value, group ids are positive. */
+const NO_GROUP = '0';
+
+const EMPTY_CARD = 'rounded-[16px] border border-[var(--border-soft)] bg-[var(--background-secondary)]';
+
+/**
+ * Native date field like the other date filters in the app (Transaktionen, Konten), with the border and background of
+ * the bommel and group fields next to it so the filter card stays uniform.
+ */
+const DATE_FIELD =
+    'h-10 rounded-xl border border-[#E0E0E6] bg-white px-3.5 text-[14px] text-gray-800 transition-colors focus:border-[var(--purple-300)] focus:outline-none focus:ring-2 focus:ring-[var(--purple-50)] dark:border-gray-700 dark:bg-[var(--purple-50)] dark:text-gray-100';
 
 const num = (v: unknown): number => (v == null ? 0 : Number(v));
 
@@ -21,12 +40,29 @@ export function ReportsView() {
     const { format } = useCurrency();
     const { t } = useTranslation();
     usePageTitle(t('reports.title'));
+    useEnsureBommels();
 
     const { data: groups = [], isLoading: groupsLoading } = useCategoryGroups();
-    const [groupId, setGroupId] = useState<number | undefined>(undefined);
+    // undefined = nothing chosen yet, so the first group is shown; null = the user explicitly cleared the selection.
+    const [chosenGroupId, setChosenGroupId] = useState<number | null | undefined>(undefined);
+    const groupId = chosenGroupId === undefined ? groups[0]?.id : (chosenGroupId ?? undefined);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [bommelIds, setBommelIds] = useState<number[]>([]);
+    const allBommels = useBommelsStore((st) => st.allBommels);
+
+    // The bommels the chosen group applies to: those assigned to it and everything below them (with the root, all).
+    const groupBommelIds = useMemo(() => {
+        const assigned = new Set(groups.find((g) => g.id === groupId)?.bommelIds ?? []);
+        const byId = buildBommelIndex(allBommels);
+        return new Set(allBommels.filter((b) => b.id != null && [...selfAndAncestorIds(b.id, byId)].some((id) => assigned.has(id))).map((b) => b.id as number));
+    }, [groups, groupId, allBommels]);
+
+    // A bommel selection only makes sense within one group's scope, so changing the group starts from all its bommels.
+    const pickGroup = (id: number | null) => {
+        setChosenGroupId(id);
+        setBommelIds([]);
+    };
 
     const { data: report, isLoading, isError } = useCategoryGroupReport(groupId, startDate, endDate, bommelIds);
     const rows = report?.rows ?? [];
@@ -36,10 +72,7 @@ export function ReportsView() {
         const expense = num(report?.totalExpense);
         return { income, expense, net: income - expense, count: report?.totalCount ?? 0 };
     }, [report]);
-
-    const inputCls =
-        'rounded-[10px] border border-[#E9E9EE] bg-white px-3 py-2 text-[13.5px] text-[#1B1B1F] focus:outline-none focus:ring-2 focus:ring-[#F3EAFB] focus:border-[#9955CC] transition-colors';
-    const labelCls = 'text-[11px] font-bold text-[#9A9AA3] uppercase tracking-[0.06em]';
+    const maxRowValue = Math.max(1, ...rows.map((r) => Math.max(num(r.income), num(r.expense))));
 
     function exportCsv() {
         if (!report || rows.length === 0) {
@@ -64,134 +97,143 @@ export function ReportsView() {
         URL.revokeObjectURL(url);
     }
 
+    // Until the groups are known it is unclear whether the setup or the report applies, so show the page shape.
+    if (groupsLoading) {
+        return <ReportsSkeleton />;
+    }
+
+    // First use: without a category group there is nothing to group the report by yet.
+    if (groups.length === 0) {
+        return (
+            <div className="flex flex-col h-full min-h-0" style={{ fontFamily: FONT }}>
+                <ReportsHeader />
+                <ReportsSetup />
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col h-full min-h-0" style={{ fontFamily: FONT }}>
-            {/* Header */}
-            <div className="mb-5">
-                <h1 className="font-bold text-[#1B1B1F] leading-tight" style={{ fontSize: 26 }}>
-                    {t('reports.title')}
-                </h1>
-                <p className="mt-1 text-[13.5px] text-[#6B6B76] max-w-2xl">{t('reports.subtitle')}</p>
-            </div>
+            <ReportsHeader />
 
-            {/* Controls */}
-            <div className="rounded-[16px] border border-[#E9E9EE] bg-white p-4 flex flex-col gap-3">
-                <div className="flex flex-wrap items-end gap-3">
-                    <div className="flex flex-col gap-1.5 min-w-[220px] flex-1">
-                        <label className={labelCls}>{t('reports.group')}</label>
-                        <select value={groupId ?? ''} onChange={(e) => setGroupId(e.target.value ? Number(e.target.value) : undefined)} className={inputCls}>
-                            <option value="">{t('reports.selectGroup')}</option>
-                            {groups.map((g) => (
-                                <option key={g.id} value={g.id ?? ''}>
-                                    {g.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                        <label className={labelCls}>{t('reports.from')}</label>
-                        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className={inputCls} />
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                        <label className={labelCls}>{t('reports.to')}</label>
-                        <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className={inputCls} />
-                    </div>
-                    <button
-                        type="button"
-                        onClick={exportCsv}
-                        disabled={!report || rows.length === 0}
-                        className="inline-flex items-center gap-2 h-[38px] px-4 rounded-[10px] border border-[#E0E0E6] text-[13.5px] font-bold text-[#7E3FB4] hover:bg-[#F3EAFB] hover:border-[#C7A2E3] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                        <Download size={15} />
-                        {t('reports.export')}
-                    </button>
+            {/* Filters, laid out as in the design: Bommel and Kategoriegruppe, then the period with the export on the right. All
+                fields share the BaseInput look and height, like the bommel picker next to them. */}
+            <div className="flex flex-col gap-[18px] rounded-[var(--r-card)] border border-[var(--border-soft)] bg-[var(--background-secondary)] px-[22px] py-5">
+                <div className="grid gap-4 [grid-template-columns:repeat(auto-fit,minmax(230px,1fr))]">
+                    <FilterField label={t('reports.bommel')}>
+                        <BommelMultiSelector
+                            value={bommelIds}
+                            onChange={setBommelIds}
+                            allowedIds={groupBommelIds}
+                            placeholder={t('reports.allGroupBommels')}
+                            emptyText={t('reports.noGroupBommels')}
+                        />
+                    </FilterField>
+                    <FilterField label={t('reports.group')}>
+                        <Select
+                            value={groupId != null ? String(groupId) : NO_GROUP}
+                            onValueChanged={(v) => pickGroup(v === NO_GROUP ? null : Number(v))}
+                            items={[{ label: t('reports.selectGroup'), value: NO_GROUP }, ...groups.map((g) => ({ label: g.name ?? '', value: String(g.id) }))]}
+                        />
+                    </FilterField>
                 </div>
-                <div className="flex flex-col gap-1.5 sm:max-w-md">
-                    <label className={labelCls}>{t('reports.bommel')}</label>
-                    <BommelMultiSelector value={bommelIds} onChange={setBommelIds} />
+                {/* Same columns as the row above: the period sits under Bommel with each date taking half, the export under the group. */}
+                <div className="grid items-end gap-4 [grid-template-columns:repeat(auto-fit,minmax(230px,1fr))]">
+                    <FilterField label={t('reports.setup.period')} info={t('reports.periodHint')}>
+                        <div className="flex items-center gap-2.5">
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                aria-label={t('reports.from')}
+                                className={`${DATE_FIELD} min-w-0 flex-1`}
+                            />
+                            <span className="shrink-0 text-[13px] text-[var(--ink-faint)]">{t('reports.until')}</span>
+                            <input
+                                type="date"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                aria-label={t('reports.to')}
+                                className={`${DATE_FIELD} min-w-0 flex-1`}
+                            />
+                        </div>
+                    </FilterField>
+                    <Button size="sm" className="h-10 justify-self-end" onClick={exportCsv} disabled={!report || rows.length === 0}>
+                        <Download />
+                        {t('reports.exportCsv')}
+                    </Button>
                 </div>
             </div>
 
             {/* Results */}
             <div className="flex-1 min-h-0 mt-4">
-                {groupsLoading ? (
-                    <div className="py-12">
-                        <LoadingState size="lg" />
+                {!groupId ? (
+                    <div className={EMPTY_CARD}>
+                        <TableEmptyState icon={Tag} title={t('reports.emptyNoGroup.title')} text={t('reports.emptyNoGroup.description')} />
                     </div>
-                ) : !groupId ? (
-                    <EmptyState title={t('reports.emptyNoGroup.title')} description={t('reports.emptyNoGroup.description')} />
                 ) : isLoading ? (
-                    <div className="py-12">
-                        <LoadingState size="lg" />
-                    </div>
+                    <ReportResultSkeleton />
                 ) : isError ? (
-                    <EmptyState title={t('reports.error.title')} description={t('reports.error.description')} />
+                    <div className={EMPTY_CARD}>
+                        <TableEmptyState icon={AlertTriangle} title={t('reports.error.title')} text={t('reports.error.description')} />
+                    </div>
                 ) : rows.length === 0 ? (
-                    <EmptyState title={t('reports.emptyNoData.title')} description={t('reports.emptyNoData.description')} />
+                    <div className={EMPTY_CARD}>
+                        <TableEmptyState icon={Sheet} title={t('reports.emptyNoData.title')} text={t('reports.emptyNoData.description')} />
+                    </div>
                 ) : (
-                    <div className="rounded-[16px] border border-[#E9E9EE] bg-white overflow-hidden">
-                        {/* summary cards */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-[#E9E9EE]">
-                            <SummaryCell label={t('reports.table.income')} value={format(totals.income)} color="#1F7A50" />
-                            <SummaryCell label={t('reports.table.expense')} value={format(totals.expense)} color="#B12C4C" />
-                            <SummaryCell label={t('reports.table.net')} value={format(totals.net)} color={totals.net >= 0 ? '#1F7A50' : '#B12C4C'} />
-                            <SummaryCell label={t('reports.table.count')} value={String(totals.count)} color="#1B1B1F" />
+                    <div className="overflow-hidden rounded-[var(--r-card)] border border-[var(--border-soft)] bg-[var(--background-secondary)]">
+                        {/* The totals live once, in this header, each above its own column (same widths as the table below). */}
+                        <div className="overflow-x-auto border-b border-[var(--border-soft)]">
+                            <table className="w-full table-fixed border-collapse">
+                                <tbody>
+                                    <tr>
+                                        <td className="w-[55%] px-4 py-4">
+                                            <div className="text-[15.5px] font-extrabold text-foreground">{report?.groupName}</div>
+                                            <div className="mt-0.5 text-[13px] text-muted-foreground">{t('reports.bookings', { count: totals.count })}</div>
+                                        </td>
+                                        <HeaderFigure label={t('reports.table.income')} value={format(totals.income)} className="text-[var(--positive)]" />
+                                        <HeaderFigure label={t('reports.table.expense')} value={format(totals.expense)} />
+                                        <HeaderFigure label={t('reports.table.net')} value={format(totals.net)} className={netColor(totals.net)} last />
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
 
                         <div className="overflow-x-auto">
-                            <table className="w-full text-[13.5px]">
+                            <table className="w-full table-fixed border-collapse text-sm">
                                 <thead>
-                                    <tr className="text-left text-[#9A9AA3]">
-                                        <th className="font-bold uppercase tracking-[0.05em] text-[11px] px-4 py-2.5">{t('reports.table.value')}</th>
-                                        <th className="font-bold uppercase tracking-[0.05em] text-[11px] px-4 py-2.5 text-right">{t('reports.table.count')}</th>
-                                        <th className="font-bold uppercase tracking-[0.05em] text-[11px] px-4 py-2.5 text-right">
-                                            {t('reports.table.income')}
-                                        </th>
-                                        <th className="font-bold uppercase tracking-[0.05em] text-[11px] px-4 py-2.5 text-right">
-                                            {t('reports.table.expense')}
-                                        </th>
-                                        <th className="font-bold uppercase tracking-[0.05em] text-[11px] px-4 py-2.5 text-right">{t('reports.table.net')}</th>
+                                    <tr className="text-xs uppercase tracking-[0.04em] text-[var(--ink-faint)]">
+                                        <th className="w-[24%] px-4 py-[11px] text-left font-extrabold">{t('reports.table.value')}</th>
+                                        <th className="w-[20%] px-2.5 py-[11px] text-left font-extrabold">{t('reports.table.distribution')}</th>
+                                        <th className="w-[11%] px-2.5 py-[11px] text-right font-extrabold">{t('reports.table.count')}</th>
+                                        <th className="w-[15%] px-2.5 py-[11px] text-right font-extrabold">{t('reports.table.income')}</th>
+                                        <th className="w-[15%] px-2.5 py-[11px] text-right font-extrabold">{t('reports.table.expense')}</th>
+                                        <th className="w-[15%] px-4 py-[11px] text-right font-extrabold">{t('reports.table.net')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {rows.map((r, i) => {
-                                        const net = num(r.income) - num(r.expense);
+                                        const income = num(r.income);
+                                        const expense = num(r.expense);
+                                        const net = income - expense;
                                         return (
-                                            <tr key={r.value ?? i} className="border-t border-[#F1F1F4]">
-                                                <td className="px-4 py-2.5 font-semibold text-[#1B1B1F]">{r.value}</td>
-                                                <td className="px-4 py-2.5 text-right tabular-nums text-[#6B6B76]">{r.count}</td>
-                                                <td className="px-4 py-2.5 text-right tabular-nums" style={{ color: num(r.income) ? '#1F7A50' : '#9A9AA3' }}>
-                                                    {format(num(r.income))}
+                                            <tr key={r.value ?? i} className="border-t border-[var(--border-soft)]">
+                                                <td className="truncate px-4 py-[13px] font-bold text-foreground">{r.value}</td>
+                                                <td className="px-2.5 py-[13px]">
+                                                    <div className="flex flex-col gap-1">
+                                                        <Bar value={income} max={maxRowValue} className="bg-[var(--positive)]" />
+                                                        <Bar value={expense} max={maxRowValue} className="bg-[var(--primary)]" />
+                                                    </div>
                                                 </td>
-                                                <td className="px-4 py-2.5 text-right tabular-nums" style={{ color: num(r.expense) ? '#B12C4C' : '#9A9AA3' }}>
-                                                    {format(num(r.expense))}
-                                                </td>
-                                                <td
-                                                    className="px-4 py-2.5 text-right tabular-nums font-bold"
-                                                    style={{ color: net >= 0 ? '#1F7A50' : '#B12C4C' }}
-                                                >
-                                                    {format(net)}
-                                                </td>
+                                                <td className="px-2.5 py-[13px] text-right tabular-nums text-muted-foreground">{r.count}</td>
+                                                <td className="px-2.5 py-[13px] text-right tabular-nums text-foreground">{income ? format(income) : '—'}</td>
+                                                <td className="px-2.5 py-[13px] text-right tabular-nums text-foreground">{expense ? format(expense) : '—'}</td>
+                                                <td className={`px-4 py-[13px] text-right font-extrabold tabular-nums ${netColor(net)}`}>{format(net)}</td>
                                             </tr>
                                         );
                                     })}
                                 </tbody>
-                                <tfoot>
-                                    <tr className="border-t-2 border-[#E9E9EE] bg-[#FAFAFC]">
-                                        <td className="px-4 py-3 font-bold text-[#1B1B1F]">
-                                            <span className="inline-flex items-center gap-1.5">
-                                                <TrendingUp size={14} className="text-[#7E3FB4]" />
-                                                {t('reports.total')}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3 text-right tabular-nums font-bold text-[#1B1B1F]">{totals.count}</td>
-                                        <td className="px-4 py-3 text-right tabular-nums font-bold text-[#1F7A50]">{format(totals.income)}</td>
-                                        <td className="px-4 py-3 text-right tabular-nums font-bold text-[#B12C4C]">{format(totals.expense)}</td>
-                                        <td className="px-4 py-3 text-right tabular-nums font-bold" style={{ color: totals.net >= 0 ? '#1F7A50' : '#B12C4C' }}>
-                                            {format(totals.net)}
-                                        </td>
-                                    </tr>
-                                </tfoot>
                             </table>
                         </div>
                     </div>
@@ -201,15 +243,49 @@ export function ReportsView() {
     );
 }
 
-function SummaryCell({ label, value, color }: { label: string; value: string; color: string }) {
+/** Balance colour: green when positive, red only when negative. Expenses themselves stay neutral. */
+function netColor(net: number): string {
+    return net < 0 ? 'text-[var(--negative)]' : 'text-[var(--positive)]';
+}
+
+/** One total in the header of the result card, as a cell lined up with its column in the table below. */
+function HeaderFigure({ label, value, className, last }: { label: string; value: string; className?: string; last?: boolean }) {
     return (
-        <div className="bg-white px-4 py-3">
-            <div className="text-[11px] font-bold uppercase tracking-[0.05em] text-[#9A9AA3]">{label}</div>
-            <div className="mt-0.5 text-[17px] font-bold tabular-nums" style={{ color }}>
-                {value}
-            </div>
-        </div>
+        <td className={`w-[15%] py-4 text-right ${last ? 'px-4' : 'px-2.5'}`}>
+            <div className="text-xs font-bold text-[var(--ink-faint)]">{label}</div>
+            <div className={`text-base font-extrabold tabular-nums ${className ?? 'text-foreground'}`}>{value}</div>
+        </td>
     );
 }
 
+/** Distribution bar relative to the largest income or expense of the report; a non-zero value stays visible. */
+function Bar({ value, max, className }: { value: number; max: number; className: string }) {
+    const width = value > 0 ? Math.max(4, (value / max) * 100) : 0;
+    return <div className={`h-[7px] rounded-full ${className}`} style={{ width: `${width}%` }} />;
+}
+
 export default ReportsView;
+
+/** Page title; what the page does is explained in a tooltip next to it. */
+function ReportsHeader() {
+    const { t } = useTranslation();
+    return (
+        <h1 className="mb-5 flex items-center gap-2 font-bold leading-tight text-foreground" style={{ fontSize: 26 }}>
+            {t('reports.title')}
+            <InfoTooltip content={t('reports.subtitle')} label={t('reports.subtitle')} size={17} />
+        </h1>
+    );
+}
+
+/** Filter label above its control, as in the design (12px, extra bold, uppercase). */
+function FilterField({ label, info, children }: { label: string; info?: string; children: ReactNode }) {
+    return (
+        <div className="flex min-w-0 flex-col gap-[7px]">
+            <span className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-[0.04em] text-[var(--ink-faint)]">
+                {label}
+                {info && <InfoTooltip content={info} label={info} size={14} className="normal-case tracking-normal" />}
+            </span>
+            {children}
+        </div>
+    );
+}

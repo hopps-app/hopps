@@ -1,6 +1,6 @@
 import { BankTransactionResponse } from '@hopps/api-client';
 import { Check, ChevronUp, FileText, Landmark, Link2, Loader2, Search } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { fmtDate } from '@/components/Transactions/format';
@@ -59,17 +59,25 @@ interface BankTransactionPickerProps {
 
 /**
  * Picker for the open bank movements of a transaction. A movement is selected first; the amount to use (prefilled with
- * what the transaction still needs) is then confirmed with "Verknüpfen". Exact matches are listed first.
+ * what the transaction still needs) is then confirmed with "Verknüpfen" right in the selected row, so the action is
+ * where the user clicked instead of below a long list. Exact matches are listed first.
  */
 export function BankTransactionPicker({ txTotal, txDate, open, linkedIds, pending, onLink, onPreview, onClose }: BankTransactionPickerProps) {
     const { t } = useTranslation();
-    const { format } = useCurrency();
+    const { format, symbol } = useCurrency();
     const [search, setSearch] = useState('');
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [useText, setUseText] = useState('');
     // The purpose ("Verwendungszweck") is often long, so it is hidden by default; the user can reveal it per row to check
     // the assignment (e.g. that the reference contains the invoice number). Tracks which rows are expanded.
     const [purposeShown, setPurposeShown] = useState<Set<number>>(new Set());
+    // The amount field and link button of the selected row: brought into view on selection, also when the row is the
+    // last visible one of the list or the list itself sits low in the drawer.
+    const actionRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        // jsdom (tests) has no scrollIntoView.
+        actionRef.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+    }, [selectedId]);
 
     const typed = search.trim();
     // Movements of exactly the open amount are fetched on their own, so they are in the list however many other open
@@ -268,60 +276,62 @@ export function BankTransactionPicker({ txTotal, txDate, open, linkedIds, pendin
                                         </p>
                                     </div>
                                 )}
+                                {/* Confirm the selection: how much of the movement to use, and link */}
+                                {on && (
+                                    <div ref={actionRef} className="bg-[var(--accent-surface)] px-4 pb-3.5 pt-1">
+                                        <div className="flex items-center gap-3">
+                                            <span className="inline-flex flex-shrink-0 items-center gap-1.5 text-[13.5px] font-semibold text-muted-foreground">
+                                                {t('transactions.detail.partialAmountLabel')}
+                                                <InfoTooltip
+                                                    content={t('transactions.detail.partialAmountHint')}
+                                                    label={t('transactions.detail.partialAmountLabel')}
+                                                />
+                                            </span>
+                                            <div
+                                                className={cn(
+                                                    'flex h-10 w-[132px] min-w-0 items-center gap-1.5 rounded-[12px] border bg-[var(--background-secondary)] px-3 transition-shadow focus-within:ring-[3px]',
+                                                    useValid
+                                                        ? 'border-border-soft focus-within:border-primary focus-within:ring-[var(--accent-surface)]'
+                                                        : 'border-[var(--negative-border)] focus-within:ring-[var(--negative-surface)]'
+                                                )}
+                                            >
+                                                <input
+                                                    type="text"
+                                                    inputMode="decimal"
+                                                    value={useText}
+                                                    onChange={(e) => changeUse(e.target.value)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') submit();
+                                                    }}
+                                                    aria-invalid={!useValid}
+                                                    aria-label={t('transactions.detail.partialAmountLabel')}
+                                                    className="min-w-0 flex-1 bg-transparent p-0 text-right text-[15px] font-extrabold tabular-nums outline-none"
+                                                />
+                                                <span className="text-[15px] font-extrabold text-muted-foreground">{symbol}</span>
+                                            </div>
+                                            <div className="flex-1" />
+                                            <button
+                                                type="button"
+                                                onClick={submit}
+                                                disabled={!useValid || pending}
+                                                className="inline-flex h-10 flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-[var(--btn-radius)] bg-primary px-5 text-[14.5px] font-bold text-white transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+                                            >
+                                                {pending ? <Loader2 size={16} className="animate-spin" /> : <Link2 size={16} />}
+                                                {t('transactions.detail.link')}
+                                            </button>
+                                        </div>
+                                        {useValid && useValue != null && useValue < selectedMag - EPS && (
+                                            <div className="mt-1.5 text-[12.5px] tabular-nums text-muted-foreground">
+                                                {t('transactions.detail.partialAmountOf', { used: format(useValue), total: format(selectedMag) })}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         );
                     })
                 )}
             </div>
-
-            {/* Confirm the selection: how much of the movement to use, and link */}
-            {selected && (
-                <div className="border-t border-border-soft px-4 py-3.5">
-                    <div className="flex items-center gap-3">
-                        <span className="inline-flex flex-shrink-0 items-center gap-1.5 text-[13.5px] font-semibold text-muted-foreground">
-                            {t('transactions.detail.partialAmountLabel')}
-                            <InfoTooltip content={t('transactions.detail.partialAmountHint')} label={t('transactions.detail.partialAmountLabel')} />
-                        </span>
-                        <div
-                            className={cn(
-                                'flex h-10 w-[132px] min-w-0 items-center gap-1.5 rounded-[12px] border bg-[var(--background-secondary)] px-3 transition-shadow focus-within:ring-[3px]',
-                                useValid
-                                    ? 'border-border-soft focus-within:border-primary focus-within:ring-[var(--accent-surface)]'
-                                    : 'border-[var(--negative-border)] focus-within:ring-[var(--negative-surface)]'
-                            )}
-                        >
-                            <input
-                                type="text"
-                                inputMode="decimal"
-                                value={useText}
-                                onChange={(e) => changeUse(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') submit();
-                                }}
-                                aria-invalid={!useValid}
-                                aria-label={t('transactions.detail.partialAmountLabel')}
-                                className="min-w-0 flex-1 bg-transparent p-0 text-right text-[15px] font-extrabold tabular-nums outline-none"
-                            />
-                            <span className="text-[15px] font-extrabold text-muted-foreground">€</span>
-                        </div>
-                        <div className="flex-1" />
-                        <button
-                            type="button"
-                            onClick={submit}
-                            disabled={!useValid || pending}
-                            className="inline-flex h-10 flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-[var(--btn-radius)] bg-primary px-5 text-[14.5px] font-bold text-white transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
-                        >
-                            {pending ? <Loader2 size={16} className="animate-spin" /> : <Link2 size={16} />}
-                            {t('transactions.detail.link')}
-                        </button>
-                    </div>
-                    {useValid && useValue != null && useValue < selectedMag - EPS && (
-                        <div className="mt-1.5 text-[12.5px] tabular-nums text-muted-foreground">
-                            {t('transactions.detail.partialAmountOf', { used: format(useValue), total: format(selectedMag) })}
-                        </div>
-                    )}
-                </div>
-            )}
         </div>
     );
 }

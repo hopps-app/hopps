@@ -2,6 +2,7 @@ package app.hopps.organization.api;
 
 import app.hopps.member.domain.Member;
 import app.hopps.member.domain.Permission;
+import app.hopps.organization.domain.Currency;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.model.NewMemberInput;
 import app.hopps.organization.model.NewOrganizationInput;
@@ -126,12 +127,12 @@ public class OrganizationResource {
     @Transactional
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Update my organization", description = "Updates the details of the current user's organization. Fields like name, address, website, and type can be changed. The currency can only be changed while the organization has no transactions; afterwards a different currency is rejected with 409 and code CURRENCY_LOCKED.")
+    @Operation(summary = "Update my organization", description = "Updates the details of the current user's organization. Fields like name, address, website, and type can be changed. The currency can only be changed while the organization has no transactions and no bank accounts; afterwards a different currency is rejected with 409 and code CURRENCY_LOCKED.")
     @APIResponse(responseCode = "200", description = "Organization updated successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
     @APIResponse(responseCode = "400", description = "Validation of fields failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "404", description = "Organization not found for user")
-    @APIResponse(responseCode = "409", description = "Currency change rejected because transactions exist (code "
+    @APIResponse(responseCode = "409", description = "Currency change rejected because transactions or bank accounts exist (code "
             + CurrencyLockedException.CODE + ")")
     public Response updateMyOrganization(@Context SecurityContext securityContext, OrganizationInput input) {
         Organization organization = securityUtils.getUserOrganization(securityContext);
@@ -162,6 +163,7 @@ public class OrganizationResource {
             organization.setRegistrationNumber(input.registrationNumber());
         }
         if (input.country() != null) {
+            requireSupportedCountry(input.country());
             organization.setCountry(input.country());
         }
         if (input.taxNumber() != null) {
@@ -257,6 +259,7 @@ public class OrganizationResource {
     @APIResponse(responseCode = "403", description = "Single-tenant installation, organizations cannot be created by users (code SINGLE_TENANT)")
     @APIResponse(responseCode = "409", description = "Slug already exists, or the user is already assigned to an organization")
     public Response createMyOrganization(OrganizationInput input) {
+        requireSupportedCountry(input.country());
         Organization organization = input.toOrganization();
 
         String keycloakId = jwt.getSubject();
@@ -331,6 +334,7 @@ public class OrganizationResource {
     @APIResponse(responseCode = "403", description = "Single-tenant installation that is already set up (code SETUP_COMPLETE)")
     @APIResponse(responseCode = "409", description = "Email or slug already exists", content = @Content(mediaType = MediaType.APPLICATION_JSON))
     public Response create(NewOrganizationInput input) {
+        requireSupportedCountry(input.organization().country());
         Organization organization = input.toOrganization();
         Member owner = input.toOwner();
 
@@ -452,5 +456,15 @@ public class OrganizationResource {
         }
 
         return result;
+    }
+
+    /**
+     * Organizations can only be registered in a euro or Swiss franc country (see {@link Currency}). A missing country
+     * is accepted for older clients; the organization then keeps the default currency.
+     */
+    private static void requireSupportedCountry(String country) {
+        if (country != null && !Currency.isSupportedCountry(country)) {
+            throw new BadRequestException("Organizations can only be registered in a euro or Swiss franc country");
+        }
     }
 }

@@ -13,14 +13,7 @@ public record NewOrganizationInput(@NotNull OwnerInput owner, @NotNull String ne
      * @return a new Organization entity populated with the input data
      */
     public Organization toOrganization() {
-        Organization jpaOrg = new Organization();
-        jpaOrg.setSlug(organization().slug());
-        jpaOrg.setName(organization().name());
-        jpaOrg.setType(organization().type());
-        jpaOrg.setWebsite(organization().website());
-        jpaOrg.setAddress(organization().address());
-        jpaOrg.setProfilePicture(organization().profilePicture());
-        return jpaOrg;
+        return organization().toOrganization();
     }
 
     /**

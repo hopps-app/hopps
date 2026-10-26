@@ -1,6 +1,6 @@
 import { TransactionUpdateRequest } from '@hopps/api-client';
-import { ArrowDownRight, ArrowUpRight, Check, ExternalLink, FileText, Pencil, RotateCcw, Trash2 } from 'lucide-react';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { AlertTriangle, Check, ExternalLink, FileText, Pencil, RotateCcw, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,6 +12,7 @@ import { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFor
 import { DeleteTransactionDialog } from '@/components/Receipts/DeleteTransactionDialog';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
+import { DirectionCards, Field, footerBtn, inputCls, outlineBtn } from '@/components/Transactions/drawerParts';
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
 import { fmtDate } from '@/components/Transactions/format';
 import { FONT } from '@/components/Transactions/layout';
@@ -35,30 +36,6 @@ import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
 
-// Field label above an input: small, heavy, uppercase.
-const labelCls = 'text-[12px] font-extrabold uppercase tracking-[0.04em] text-[var(--ink-faint)]';
-const inputCls =
-    'h-10 w-full rounded-xl border border-border-soft bg-[var(--background-secondary)] px-3.5 text-[14px] text-foreground placeholder:text-muted-foreground transition-shadow focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-surface)]';
-
-// Footer buttons. Height and type size follow the design system's default button.
-const footerBtn = 'h-[42px] gap-2 rounded-[var(--btn-radius)] px-5 text-[14.5px] font-bold';
-const outlineBtn = 'border border-border-soft text-foreground hover:bg-[var(--background-secondary)]';
-
-function Field({ label, children }: { label: ReactNode; children: ReactNode }) {
-    return (
-        <div className="flex min-w-0 flex-col gap-[7px]">
-            <span className={labelCls}>{label}</span>
-            {children}
-        </div>
-    );
-}
-
-// Direction options of the edit form: an expense leaves the account (up), an income arrives (down).
-const DIRECTIONS = [
-    { id: 'expense', Icon: ArrowUpRight, ink: 'var(--negative)', tint: 'var(--negative-surface)' },
-    { id: 'income', Icon: ArrowDownRight, ink: 'var(--positive)', tint: 'var(--positive-surface)' },
-] as const;
-
 /**
  * Detail drawer of a transaction: read view with the reconciliation of linked bank movements, and an edit form.
  * A transaction stays editable and deletable in every status.
@@ -70,7 +47,7 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
     const { data: tx, isLoading } = useTransaction(txId ?? 0);
     // The receipt linked to this transaction (if any) — shown as a large preview to the left of the drawer,
     // mirroring the receipt detail view. Fetching is gated on documentId (the hook no-ops when it's undefined).
-    const { data: linkedDoc } = useDocument(tx?.documentId ?? undefined);
+    const { data: linkedDoc, refetch: refetchLinkedDoc } = useDocument(tx?.documentId ?? undefined);
     const deleteMutation = useDeleteTransaction();
     const deleteDocumentMutation = useDeleteDocument();
     const updateMutation = useUpdateTransaction();
@@ -80,9 +57,9 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
     const { data: linkedBankTxns = [] } = useBankTransactionsForTransaction(txId ?? undefined);
     const { organization } = useStore();
     const allBommels = useBommelsStore((s) => s.allBommels);
-    const drawerRootBommel = useBommelsStore((s) => s.rootBommel);
     const loadBommels = useBommelsStore((s) => s.loadBommels);
-    const drawerBommelItems = useMemo(() => flattenBommelTree(allBommels, drawerRootBommel?.id), [allBommels, drawerRootBommel?.id]);
+    // Without a root id the tree keeps the root bommel itself, so a transaction can be booked on the whole organization.
+    const drawerBommelItems = useMemo(() => flattenBommelTree(allBommels), [allBommels]);
     const [editMode, setEditMode] = useState(false);
     const open = txId !== null;
 
@@ -106,21 +83,36 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
     const [categoryValues, setCategoryValues] = useState<Record<number, string>>({});
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
     const { data: categoryGroups = [] } = useCategoryGroups();
-    const { showError } = useToast();
+    const { showError, showSuccess, showWarning } = useToast();
 
-    // A transaction always opens in the read view; the edit form only appears after "Bearbeiten". Reset it whenever a
-    // different transaction is opened.
+    // A confirmed transaction opens in the read view; the edit form only appears after "Bearbeiten". Reset it whenever
+    // a different transaction is opened.
     useEffect(() => {
         setEditMode(false);
         setConfirmDeleteOpen(false);
     }, [txId]);
+
+    // A draft opens straight in the edit form, because that is where its work happens (fill in, link, confirm). Done
+    // once per opened transaction, as soon as its data is there.
+    const editSeededRef = useRef<number | null>(null);
+    useEffect(() => {
+        if (txId == null) {
+            editSeededRef.current = null;
+            return;
+        }
+        if (!tx || tx.id !== txId || editSeededRef.current === txId) return;
+        editSeededRef.current = txId;
+        if (tx.status === 'DRAFT') startEdit();
+        // startEdit only reads the loaded transaction; listing it would re-run this on every render.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [txId, tx]);
 
     function startEdit() {
         if (!tx) return;
         const total = tx.total != null ? Number(tx.total) : 0;
         setKind(total < 0 ? 'expense' : 'income');
         setName(tx.name ?? '');
-        setAmountStr(tx.total != null ? String(Math.abs(total)) : '');
+        setAmountStr(tx.total != null ? Math.abs(total).toFixed(2).replace('.', ',') : '');
         setDate(tx.transactionTime ? new Date(tx.transactionTime).toISOString().slice(0, 10) : '');
         setSenderName(tx.senderName ?? '');
         // Keep the transaction's own bommel; if it has none, default to the last picked one (batch assignment).
@@ -167,12 +159,24 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
             tags,
             categoryValues,
         });
+        const receiptWasConfirmed = amountEdited && linkedDoc?.documentStatus === 'CONFIRMED';
         await updateMutation.mutateAsync({ id: tx.id, data });
+        // The receipt goes back to review when the new amount no longer agrees with it; say so, it happens elsewhere.
+        if (receiptWasConfirmed) {
+            const { data: receipt } = await refetchLinkedDoc();
+            if (receipt && receipt.documentStatus !== 'CONFIRMED') showWarning(t('transactions.toast.receiptBackToReview'));
+        }
     }
 
     async function handleSave() {
         // Draft save: required category groups are not enforced here (only at confirm), like the other fields.
-        await persistEdits();
+        try {
+            await persistEdits();
+        } catch {
+            // Shown by the global mutation error handler.
+            return;
+        }
+        showSuccess(t('transactions.toast.saved'));
         setEditMode(false);
         // Return to the transactions table instead of the read-only detail view — collapse the drawer.
         onClose();
@@ -183,8 +187,14 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
     async function handleSaveAndConfirm() {
         if (!tx?.id) return;
         if (!categoriesComplete()) return;
-        await persistEdits();
-        await confirmMutation.mutateAsync(tx.id);
+        try {
+            await persistEdits();
+            await confirmMutation.mutateAsync(tx.id);
+        } catch {
+            // Shown by the global mutation error handler.
+            return;
+        }
+        showSuccess(t('transactions.toast.confirmed'));
         // Close the drawer and go back to the transactions list instead of showing the read-only detail view.
         setEditMode(false);
         onClose();
@@ -193,11 +203,18 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
     // Deleting the document takes its transaction with it, so "with receipt" is a single call to the document endpoint.
     async function handleDelete(withReceipt: boolean) {
         if (!txId) return;
-        if (withReceipt && tx?.documentId != null) {
-            await deleteDocumentMutation.mutateAsync(tx.documentId);
-        } else {
-            await deleteMutation.mutateAsync(txId);
+        try {
+            if (withReceipt && tx?.documentId != null) {
+                await deleteDocumentMutation.mutateAsync(tx.documentId);
+            } else {
+                await deleteMutation.mutateAsync(txId);
+            }
+        } catch {
+            // Shown by the global mutation error handler.
+            setConfirmDeleteOpen(false);
+            return;
         }
+        showSuccess(t('transactions.toast.deleted'));
         setConfirmDeleteOpen(false);
         onDeleted();
         onClose();
@@ -205,14 +222,26 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
 
     async function handleConfirm() {
         if (!tx?.id) return;
-        await confirmMutation.mutateAsync(tx.id);
+        try {
+            await confirmMutation.mutateAsync(tx.id);
+        } catch {
+            // Shown by the global mutation error handler.
+            return;
+        }
+        showSuccess(t('transactions.toast.confirmed'));
         // Back to the list after confirming, rather than staying in the detail view.
         onClose();
     }
 
     async function handleReopen() {
         if (!tx?.id) return;
-        await reopenMutation.mutateAsync(tx.id);
+        try {
+            await reopenMutation.mutateAsync(tx.id);
+        } catch {
+            // Shown by the global mutation error handler.
+            return;
+        }
+        showSuccess(t('transactions.toast.reopened'));
     }
 
     const amount = tx?.total ? Number(tx.total) : 0;
@@ -221,6 +250,10 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
     // Whether the transaction may be confirmed, plus the list of still-missing requirements for the tooltip. In edit
     // mode the live form values are used (so the button reacts to unsaved edits); otherwise the saved values.
     const parsedEditAmount = parseFloat(amountStr.replace(',', '.'));
+    // The amount of a transaction booked from a receipt was changed in the form: it may now differ from the receipt.
+    const savedMagnitude = tx?.total != null ? Math.abs(Number(tx.total)) : null;
+    const editedMagnitude = isNaN(parsedEditAmount) ? null : Math.abs(parsedEditAmount);
+    const amountEdited = editMode && tx?.documentId != null && editedMagnitude !== savedMagnitude;
     const confirmState = getTransactionConfirmState(
         editMode
             ? {
@@ -377,8 +410,8 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
 
                         {/* Master data */}
                         <div
-                            className="mt-[22px] rounded-[var(--r-card)] border border-border-soft px-[18px] py-1.5"
-                            style={{ background: 'var(--background-secondary)' }}
+                            className="mt-[22px] rounded-[var(--r-card)] px-[18px] py-1.5"
+                            style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-md)' }}
                         >
                             {detailRows.map(([label, value]) => (
                                 <div key={label} className="flex items-center justify-between gap-4 border-b border-border-soft py-[13px] last:border-b-0">
@@ -395,8 +428,8 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                                     {t('transactions.detail.receipt')}
                                 </Eyebrow>
                                 <div
-                                    className="flex items-center gap-[13px] rounded-[var(--r-card)] border border-border-soft px-[15px] py-3"
-                                    style={{ background: 'var(--background-secondary)' }}
+                                    className="flex items-center gap-[13px] rounded-[var(--r-card)] px-[15px] py-3"
+                                    style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-md)' }}
                                 >
                                     <span
                                         className="flex-shrink-0 rounded-full px-[11px] py-[7px] text-[12px] font-extrabold tracking-[0.03em]"
@@ -404,7 +437,14 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                                     >
                                         {receiptExt}
                                     </span>
-                                    <span className="min-w-0 flex-1 truncate text-[14px] font-semibold text-foreground">{receiptName}</span>
+                                    <span className="flex min-w-0 flex-1 flex-col">
+                                        <span className="truncate text-[14px] font-semibold text-foreground">{receiptName}</span>
+                                        {tx.splitIndex != null && tx.splitCount != null && (
+                                            <span className="text-[12px] text-muted-foreground">
+                                                {t('receipts.split.partOf', { i: tx.splitIndex + 1, n: tx.splitCount })}
+                                            </span>
+                                        )}
+                                    </span>
                                     <button
                                         type="button"
                                         onClick={() => navigate(`/receipts?id=${tx.documentId}`)}
@@ -425,33 +465,13 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                     <div className="flex-1 overflow-y-auto p-6">
                         <div className="flex flex-col gap-4">
                             {/* Direction */}
-                            <div className="grid grid-cols-2 gap-2.5">
-                                {DIRECTIONS.map(({ id, Icon, ink, tint }) => {
-                                    const on = kind === id;
-                                    return (
-                                        <button
-                                            key={id}
-                                            type="button"
-                                            onClick={() => setKind(id)}
-                                            className="flex items-center gap-[11px] rounded-[var(--r-md)] border-[1.5px] px-3.5 py-[11px] text-left transition-colors"
-                                            style={{ borderColor: on ? ink : 'var(--border-soft)', background: on ? tint : 'var(--background-secondary)' }}
-                                        >
-                                            <span
-                                                className="grid h-[34px] w-[34px] flex-shrink-0 place-items-center rounded-full"
-                                                style={{
-                                                    background: on ? 'var(--background-secondary)' : 'var(--surface-sunken)',
-                                                    color: on ? ink : 'var(--ink-faint)',
-                                                }}
-                                            >
-                                                <Icon size={17} />
-                                            </span>
-                                            <span className="text-[15px] font-extrabold" style={{ color: on ? ink : 'var(--muted-foreground)' }}>
-                                                {t(`transactions.create.${id}`)}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                            <DirectionCards
+                                value={kind}
+                                onChange={setKind}
+                                labels={{ expense: t('transactions.create.expense'), income: t('transactions.create.income') }}
+                                hints={{ expense: t('receipts.direction.incomingHint'), income: t('receipts.direction.outgoingHint') }}
+                                ariaLabel={t('transactions.create.direction')}
+                            />
 
                             {/* Amount + Date */}
                             <div className="grid grid-cols-2 gap-3.5">
@@ -468,13 +488,25 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                                             className="min-w-0 flex-1 bg-transparent p-0 text-right text-[15px] font-extrabold tabular-nums outline-none"
                                             style={{ color: amountColor }}
                                         />
-                                        <span className="text-[15px] font-extrabold tabular-nums text-muted-foreground">€</span>
+                                        <span className="text-[15px] font-extrabold tabular-nums text-muted-foreground">{symbol}</span>
                                     </div>
                                 </Field>
                                 <Field label={t('transactions.detail.date')}>
                                     <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />
                                 </Field>
                             </div>
+                            {amountEdited && (
+                                <div
+                                    role="note"
+                                    className="-mt-2 flex items-start gap-2.5 rounded-[12px] px-3.5 py-2.5 text-[13px] leading-snug"
+                                    style={{ background: 'var(--warning-surface)', color: 'var(--warning)' }}
+                                >
+                                    <AlertTriangle size={15} className="mt-0.5 flex-shrink-0" />
+                                    <span className="font-semibold">
+                                        {t('transactions.edit.amountFromReceipt', { receipt: linkedDoc?.name || receiptName })}
+                                    </span>
+                                </div>
+                            )}
 
                             {/* Name */}
                             <Field label={t('transactions.create.name')}>
@@ -494,6 +526,7 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                                     emptyLabel={t('invoiceUpload.selectBommel')}
                                     onChange={(next) => setBommelId(next === ALL_BOMMELS ? '' : String(next))}
                                     triggerClassName="sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none"
+                                    matchTriggerWidth
                                 />
                             </Field>
 

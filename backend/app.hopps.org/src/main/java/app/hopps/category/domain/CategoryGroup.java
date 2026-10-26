@@ -5,6 +5,7 @@ import app.hopps.organization.domain.Organization;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -41,6 +42,14 @@ public class CategoryGroup extends PanacheEntity {
     private String name;
 
     private boolean required;
+
+    /**
+     * The template this group was copied from, or null for a group the organization created itself. Soft reference: the
+     * template can be deleted while the group lives on.
+     */
+    @Column(name = "template_id")
+    @JsonIgnore
+    private Long templateId;
 
     @NotNull
     @ManyToOne(optional = false)
@@ -79,6 +88,14 @@ public class CategoryGroup extends PanacheEntity {
 
     public void setRequired(boolean required) {
         this.required = required;
+    }
+
+    public Long getTemplateId() {
+        return templateId;
+    }
+
+    public void setTemplateId(Long templateId) {
+        this.templateId = templateId;
     }
 
     public Organization getOrganization() {

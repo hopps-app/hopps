@@ -6,6 +6,7 @@
         "empty": "Noch keine Menüeinträge.",
         "overview": "Übersicht",
         "organizations": "Vereine",
+        "templates": "Vorlagen",
         "collapse": "Einklappen",
         "expand": "Ausklappen",
         "logout": "Abmelden",
@@ -157,6 +158,65 @@
             "impersonateHint": "Ansicht dieses Nutzers öffnen",
             "delete": "Löschen",
             "deleteHint": "Zugang entfernen · nicht umkehrbar"
+        }
+    },
+    "templates": {
+        "title": "Vorlagen",
+        "subtitle": "Vorlagen, die Vereine in ihre eigenen Daten übernehmen können.",
+        "new": "Neue Vorlage",
+        "filterLabel": "Vorlagen nach Art",
+        "orderError": "Die Reihenfolge konnte nicht gespeichert werden. Bitte erneut versuchen.",
+        "dragHandle": "Ziehen, um die Reihenfolge zu ändern",
+        "orderHint": "Zieh eine Vorlage an den Punkten nach oben oder unten, um die Reihenfolge zu ändern. In dieser Reihenfolge sehen auch die Vereine die Vorlagen. Wird sofort gespeichert.",
+        "filterAll": "Alle",
+        "loadError": "Die Vorlagen konnten nicht geladen werden. Bitte erneut versuchen.",
+        "emptyTitle": "Noch keine Vorlagen",
+        "emptyText": "Lege eine Vorlage an, damit Vereine sie mit einem Klick übernehmen können.",
+        "types": {
+            "CATEGORY_GROUP": "Kategoriegruppe"
+        },
+        "columns": {
+            "name": "Name",
+            "type": "Art",
+            "items": "Einträge",
+            "usage": "Verwendet von",
+            "updated": "Geändert",
+            "status": "Status"
+        },
+        "usage_one": "{{formatted}} Verein",
+        "usage_other": "{{formatted}} Vereinen",
+        "status": {
+            "active": "Aktiv",
+            "inactive": "Inaktiv"
+        },
+        "editor": {
+            "newTitle": "Neue Vorlage",
+            "editTitle": "Vorlage bearbeiten",
+            "loadError": "Die Vorlage konnte nicht geladen werden.",
+            "saveError": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
+            "deleteError": "Löschen fehlgeschlagen. Bitte erneut versuchen.",
+            "usageNote_one": "{{count}} Verein hat diese Vorlage bereits übernommen. Änderungen gelten nur für künftige Übernahmen, bestehende Kopien bleiben unverändert.",
+            "usageNote_other": "{{count}} Vereine haben diese Vorlage bereits übernommen. Änderungen gelten nur für künftige Übernahmen, bestehende Kopien bleiben unverändert.",
+            "name": "Name der Gruppe",
+            "namePlaceholder": "z. B. Kostenstelle",
+            "description": "Beschreibung",
+            "descriptionHint": "Wird Vereinen bei der Auswahl angezeigt.",
+            "values": "Werte",
+            "valuePlaceholder": "Neuer Wert, z. B. Jugendarbeit",
+            "addValue": "Hinzufügen",
+            "searchValues": "Werte durchsuchen…",
+            "removeValue": "{{value}} entfernen",
+            "noMatches": "Keine Werte gefunden.",
+            "valueCount_one": "{{formatted}} Wert",
+            "valueCount_other": "{{formatted}} Werte",
+            "required": "Pflichtfeld",
+            "requiredHint": "Buchungen lassen sich erst bestätigen, wenn ein Wert gewählt ist.",
+            "active": "Aktiv",
+            "activeHint": "Nur aktive Vorlagen werden Vereinen angeboten.",
+            "save": "Speichern",
+            "saving": "Wird gespeichert…",
+            "delete": "Löschen",
+            "deleteConfirm": "Endgültig löschen"
         }
     },
     "home": {

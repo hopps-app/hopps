@@ -1,6 +1,7 @@
 import { CategoryGroupCreateRequest, CategoryGroupResponse, CategoryGroupUpdateRequest, CategoryGroupValueCreateRequest } from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { SETUP_PROGRESS_KEY } from '@/components/Dashboard/setupProgressKey';
 import apiService from '@/services/ApiService';
 
 export const categoryGroupKeys = {
@@ -14,6 +15,23 @@ export function useCategoryGroups() {
     return useQuery({
         queryKey: categoryGroupKeys.lists(),
         queryFn: () => apiService.orgService.categoryGroupsAll(undefined),
+    });
+}
+
+/** Templates the organization can start a group from (maintained in the admin app), with a short value preview. */
+export function useCategoryGroupTemplates() {
+    return useQuery({
+        queryKey: [...categoryGroupKeys.all, 'templates'],
+        queryFn: () => apiService.orgService.listCategoryGroupTemplates(),
+    });
+}
+
+/** One template with all of its values, to pre-fill the group dialog. */
+export function useCategoryGroupTemplate(templateId: number | undefined) {
+    return useQuery({
+        queryKey: [...categoryGroupKeys.all, 'templates', templateId ?? 0],
+        queryFn: () => apiService.orgService.getCategoryGroupTemplate(templateId as number),
+        enabled: !!templateId,
     });
 }
 
@@ -57,6 +75,7 @@ export function useCreateCategoryGroup() {
     return useMutation({
         mutationFn: (body: CategoryGroupCreateRequest) => apiService.orgService.categoryGroupsPOST(body),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: SETUP_PROGRESS_KEY });
             queryClient.invalidateQueries({ queryKey: categoryGroupKeys.all });
             queryClient.invalidateQueries({ queryKey: ['transactions'] });
         },
@@ -79,6 +98,7 @@ export function useDeleteCategoryGroup() {
     return useMutation({
         mutationFn: (id: number) => apiService.orgService.categoryGroupsDELETE(id),
         onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: SETUP_PROGRESS_KEY });
             queryClient.invalidateQueries({ queryKey: categoryGroupKeys.all });
             queryClient.invalidateQueries({ queryKey: ['transactions'] });
         },

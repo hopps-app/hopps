@@ -1,0 +1,578 @@
+# Dev-only test data, merged on top of testdata.yaml (see app.hopps.testdata.extra-location, set for %dev only).
+# The tests never load this file, so the document counts they assert on stay as they are.
+#
+# Receipts awaiting review for Bühnefrei e.V. (organization 4, user alice), each covering a case worth trying in the
+# review and split drawers. Most have a bank movement on the test account with the same amount, so confirming and
+# linking can be tried end to end. Like the other seeded receipts they carry no file (no preview).
+# Bommels of the organization: 24 Kiosk, 25 Räumlichkeiten, 26 Workshops, 27 Projekte with the productions
+# 28 Der kleine Lord, 29 Das Hässliche Entlein, 30 König der Löwen.
+#
+# Split scenarios (211-216): each comes twice, once open to try the split and the bank linking by hand (211, 213, 215)
+# and once already split into draft parts and linked as a reference (212, 214, 216, confirmed receipts).
+#   1. One bank movement covers the whole receipt, the receipt is split across bommels/categories (211, 212).
+#   2. Every part has a bank movement of its own (213, 214).
+#   3. The bank movements cut across the parts: one movement covers several parts, a part is paid by two movements,
+#      a part is still unpaid (215, 216).
+
+documents:
+  # Classic split: one wholesale receipt for the summer party, shared by the kiosk and two productions.
+  - id: 201
+    organizationId: 4
+    name: "Metro Großeinkauf Sommerfest"
+    senderName: "METRO Deutschland GmbH"
+    total: 842.60
+    transactionTime: "2026-09-02T10:15:00Z"
+    fileName: "metro-grosseinkauf.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+
+  # Split with a private share: only part of the hardware store receipt belongs to the club.
+  - id: 202
+    organizationId: 4
+    bommelId: 30
+    name: "Baumarkt Bühnenbau König der Löwen"
+    senderName: "Hornbach Baumarkt AG"
+    total: 186.40
+    transactionTime: "2026-09-03T16:40:00Z"
+    fileName: "hornbach-buehnenbau.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+
+  # Ready to confirm as is: bommel, amount and vendor are filled.
+  - id: 203
+    organizationId: 4
+    bommelId: 24
+    name: "Getränkelieferung Kiosk"
+    senderName: "Getränke Huber"
+    total: 412.00
+    transactionTime: "2026-09-04T08:30:00Z"
+    fileName: "getraenke-huber-lieferung.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+
+  # No bommel recognised: has to be chosen before confirming.
+  - id: 204
+    organizationId: 4
+    name: "Plakate und Flyer Premiere"
+    senderName: "Druckerei Schmid"
+    total: 238.00
+    transactionTime: "2026-09-05T11:00:00Z"
+    fileName: "druckerei-schmid-plakate.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+
+  # Income: box office takings, can be split across the productions.
+  - id: 205
+    organizationId: 4
+    name: "Abendkasse Premiere Der kleine Lord"
+    senderName: "Abendkasse"
+    total: 1260.00
+    transactionTime: "2026-09-06T22:00:00Z"
+    fileName: "abendkasse-premiere.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "MANUAL"
+    direction: "OUTGOING"
+    monthsAgo: 1
+
+  # Income: donation, booked on the club as a whole.
+  - id: 206
+    organizationId: 4
+    bommelId: 23
+    name: "Spende Sparkasse"
+    senderName: "Sparkasse Pfaffenhofen"
+    total: 500.00
+    transactionTime: "2026-09-08T09:00:00Z"
+    fileName: "spende-sparkasse.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "OUTGOING"
+    monthsAgo: 1
+
+  # Paid privately by a member: no bank movement of the club.
+  - id: 207
+    organizationId: 4
+    bommelId: 26
+    name: "Tankquittung Transporter"
+    senderName: "Aral Tankstelle"
+    total: 78.45
+    privatelyPaid: true
+    transactionTime: "2026-09-09T07:45:00Z"
+    fileName: "tankquittung-aral.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+
+  # Paid in two instalments: two bank movements (200,00 + 150,00) cover the receipt together.
+  - id: 208
+    organizationId: 4
+    bommelId: 29
+    name: "Kostümverleih Das Hässliche Entlein"
+    senderName: "Kostümfundus Bayern"
+    total: 350.00
+    transactionTime: "2026-09-10T13:20:00Z"
+    fileName: "kostuemverleih.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+
+  # Large split candidate across productions and workshops (guest performance).
+  - id: 209
+    organizationId: 4
+    name: "Hotel Gastspiel Regensburg"
+    senderName: "Hotel Goldenes Kreuz"
+    total: 1120.00
+    transactionTime: "2026-09-11T12:00:00Z"
+    fileName: "hotel-gastspiel.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+
+  # Not analysed: everything has to be entered by hand.
+  - id: 210
+    organizationId: 4
+    name: "scan-0815.pdf"
+    transactionTime: "2026-09-12T18:30:00Z"
+    fileName: "scan-0815.pdf"
+    documentStatus: "UPLOADED"
+    analysisStatus: "SKIPPED"
+    extractionSource: "MANUAL"
+    direction: "INCOMING"
+    monthsAgo: 1
+
+  # Scenario 1, open: one card payment for the whole receipt. To try: Kiosk/Getränke 142,30, Kiosk/Snacks 64,20,
+  # Der kleine Lord/Probe 180,00, then link bank movement 310 to the parts.
+  - id: 211
+    organizationId: 4
+    name: "Edeka Einkauf Probenwochenende"
+    senderName: "EDEKA Center Pfaffenhofen"
+    total: 386.50
+    transactionTime: "2026-09-15T17:20:00Z"
+    fileName: "edeka-probenwochenende.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+
+  # Scenario 1, reference: split into three parts, one card payment (311) spread over them.
+  - id: 212
+    organizationId: 4
+    name: "Selgros Einkauf Premierenfeier"
+    senderName: "Selgros Cash & Carry"
+    total: 624.80
+    transactionTime: "2026-09-17T15:05:00Z"
+    fileName: "selgros-premierenfeier.pdf"
+    documentStatus: "CONFIRMED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+    transactionIds: [601, 602, 603]
+
+  # Scenario 2, open: collective invoice, each production pays its own position (312-314). To try: Der kleine
+  # Lord/Aufführung 420,00, König der Löwen/Aufführung 380,00, Workshops/Improvisation 250,00.
+  - id: 213
+    organizationId: 4
+    name: "Sammelrechnung Ton- und Lichtverleih"
+    senderName: "Bühnentechnik Ingolstadt GmbH"
+    total: 1050.00
+    transactionTime: "2026-09-19T09:00:00Z"
+    fileName: "buehnentechnik-sammelrechnung.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+
+  # Scenario 2, reference: three parts, each linked to its own transfer (315-317).
+  - id: 214
+    organizationId: 4
+    name: "Sammelrechnung Druckerei Herbstprogramm"
+    senderName: "Druckerei Schmid"
+    total: 690.00
+    transactionTime: "2026-09-20T10:30:00Z"
+    fileName: "druckerei-schmid-herbstprogramm.pdf"
+    documentStatus: "CONFIRMED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+    transactionIds: [604, 605, 606]
+
+  # Scenario 3, open: paid as down payment (318) and final payment (319), which do not line up with the parts. To try:
+  # Der kleine Lord/Aufführung 700,00, König der Löwen/Aufführung 500,00, Workshops/Kindertheater 280,00; the down
+  # payment covers only part of the first part, the final payment the rest of it plus the other two.
+  - id: 215
+    organizationId: 4
+    name: "Reisebus Gastspiel Nürnberg"
+    senderName: "Omnibus Gruber"
+    total: 1480.00
+    transactionTime: "2026-09-22T08:00:00Z"
+    fileName: "omnibus-gruber-gastspiel.pdf"
+    documentStatus: "ANALYZED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+
+  # Scenario 3, reference: four parts paid in instalments. 320 covers the first part and part of the second, 321 the
+  # rest of the second and the kiosk part; the workshop part is still open, its payment (322) is not linked yet.
+  - id: 216
+    organizationId: 4
+    name: "Kostüm- und Maskenbedarf Spielzeit"
+    senderName: "Theaterbedarf Weber"
+    total: 1340.00
+    transactionTime: "2026-09-24T14:00:00Z"
+    fileName: "theaterbedarf-weber-spielzeit.pdf"
+    documentStatus: "CONFIRMED"
+    analysisStatus: "COMPLETED"
+    extractionSource: "AI"
+    direction: "INCOMING"
+    monthsAgo: 1
+    transactionIds: [607, 608, 609, 610]
+
+# Draft parts of the split reference receipts (212, 214, 216): negative = expense, category values by group id
+# (1 Produktionsbereich, 2 Warengruppe, 3 Workshop-Reihe, 4 Förderprojekt).
+transactions:
+  # 212 Selgros Einkauf Premierenfeier
+  - id: 601
+    organizationId: 4
+    bommelId: 24
+    name: "Getränke Premierenfeier"
+    senderName: "Selgros Cash & Carry"
+    total: -298.40
+    currencyCode: "EUR"
+    transactionTime: "2026-09-17T15:05:00Z"
+    categoryValues: { 2: "Getränke" }
+
+  - id: 602
+    organizationId: 4
+    bommelId: 24
+    name: "Snacks Premierenfeier"
+    senderName: "Selgros Cash & Carry"
+    total: -116.40
+    currencyCode: "EUR"
+    transactionTime: "2026-09-17T15:05:00Z"
+    categoryValues: { 2: "Snacks" }
+
+  - id: 603
+    organizationId: 4
+    bommelId: 30
+    name: "Empfang Premiere König der Löwen"
+    senderName: "Selgros Cash & Carry"
+    total: -210.00
+    currencyCode: "EUR"
+    transactionTime: "2026-09-17T15:05:00Z"
+    categoryValues: { 1: "Aufführung", 4: "Kulturfonds Bayern 2026" }
+
+  # 214 Sammelrechnung Druckerei Herbstprogramm
+  - id: 604
+    organizationId: 4
+    bommelId: 28
+    name: "Plakate Der kleine Lord"
+    senderName: "Druckerei Schmid"
+    total: -260.00
+    currencyCode: "EUR"
+    transactionTime: "2026-09-20T10:30:00Z"
+    categoryValues: { 1: "Werbung", 4: "Jugendkultur Pfaffenhofen" }
+
+  - id: 605
+    organizationId: 4
+    bommelId: 29
+    name: "Plakate Das Hässliche Entlein"
+    senderName: "Druckerei Schmid"
+    total: -230.00
+    currencyCode: "EUR"
+    transactionTime: "2026-09-20T10:30:00Z"
+    categoryValues: { 1: "Werbung" }
+
+  - id: 606
+    organizationId: 4
+    bommelId: 26
+    name: "Flyer Workshop-Programm"
+    senderName: "Druckerei Schmid"
+    total: -200.00
+    currencyCode: "EUR"
+    transactionTime: "2026-09-20T10:30:00Z"
+    categoryValues: { 3: "Kindertheater" }
+
+  # 216 Kostüm- und Maskenbedarf Spielzeit
+  - id: 607
+    organizationId: 4
+    bommelId: 29
+    name: "Kostüme Das Hässliche Entlein"
+    senderName: "Theaterbedarf Weber"
+    total: -540.00
+    currencyCode: "EUR"
+    transactionTime: "2026-09-24T14:00:00Z"
+    categoryValues: { 1: "Kostüme" }
+
+  - id: 608
+    organizationId: 4
+    bommelId: 30
+    name: "Kostüme König der Löwen"
+    senderName: "Theaterbedarf Weber"
+    total: -480.00
+    currencyCode: "EUR"
+    transactionTime: "2026-09-24T14:00:00Z"
+    categoryValues: { 1: "Kostüme", 4: "Jugendkultur Pfaffenhofen" }
+
+  - id: 609
+    organizationId: 4
+    bommelId: 26
+    name: "Schminkmaterial Workshops"
+    senderName: "Theaterbedarf Weber"
+    total: -200.00
+    currencyCode: "EUR"
+    transactionTime: "2026-09-24T14:00:00Z"
+    categoryValues: { 3: "Kindertheater" }
+
+  - id: 610
+    organizationId: 4
+    bommelId: 24
+    name: "Verbrauchsmaterial Kiosk"
+    senderName: "Theaterbedarf Weber"
+    total: -120.00
+    currencyCode: "EUR"
+    transactionTime: "2026-09-24T14:00:00Z"
+    categoryValues: { 2: "Verbrauchsmaterial" }
+
+# Bank movements on the test account matching the receipts above (negative = expense, positive = income).
+bankTransactions:
+  - id: 301
+    bankAccountId: 1
+    bookingDate: "2026-09-04"
+    amount: -842.60
+    counterpartyName: "METRO Deutschland GmbH"
+    purpose: "Metro Kartenzahlung Einkauf 02.09."
+
+  - id: 302
+    bankAccountId: 1
+    bookingDate: "2026-09-05"
+    amount: -186.40
+    counterpartyName: "Hornbach Baumarkt AG"
+    purpose: "Hornbach Filiale Ingolstadt"
+
+  - id: 303
+    bankAccountId: 1
+    bookingDate: "2026-09-08"
+    amount: -412.00
+    counterpartyName: "Getränke Huber"
+    purpose: "Rechnung Getränkelieferung Kiosk"
+
+  - id: 304
+    bankAccountId: 1
+    bookingDate: "2026-09-09"
+    amount: -238.00
+    counterpartyName: "Druckerei Schmid"
+    purpose: "Plakate und Flyer"
+
+  - id: 305
+    bankAccountId: 1
+    bookingDate: "2026-09-08"
+    amount: 1260.00
+    counterpartyName: "Theatervereine Bühnefrei e.V."
+    purpose: "Bareinzahlung Abendkasse"
+
+  - id: 306
+    bankAccountId: 1
+    bookingDate: "2026-09-09"
+    amount: 500.00
+    counterpartyName: "Sparkasse Pfaffenhofen"
+    purpose: "Spende Kulturförderung"
+
+  - id: 307
+    bankAccountId: 1
+    bookingDate: "2026-09-12"
+    amount: -200.00
+    counterpartyName: "Kostümfundus Bayern"
+    purpose: "Anzahlung Kostümverleih"
+
+  - id: 308
+    bankAccountId: 1
+    bookingDate: "2026-09-26"
+    amount: -150.00
+    counterpartyName: "Kostümfundus Bayern"
+    purpose: "Restzahlung Kostümverleih"
+
+  - id: 309
+    bankAccountId: 1
+    bookingDate: "2026-09-14"
+    amount: -1120.00
+    counterpartyName: "Hotel Goldenes Kreuz"
+    purpose: "Übernachtungen Gastspiel Regensburg"
+
+  # Scenario 1 (211 open, 212 reference): one card payment per receipt.
+  - id: 310
+    bankAccountId: 1
+    bookingDate: "2026-09-16"
+    amount: -386.50
+    counterpartyName: "EDEKA Center Pfaffenhofen"
+    purpose: "EDEKA SAGT DANKE Kartenzahlung 15.09."
+
+  - id: 311
+    bankAccountId: 1
+    bookingDate: "2026-09-18"
+    amount: -624.80
+    counterpartyName: "Selgros Cash & Carry"
+    purpose: "SELGROS Kartenzahlung 17.09."
+    matches:
+      - { transactionId: 601, amount: 298.40 }
+      - { transactionId: 602, amount: 116.40 }
+      - { transactionId: 603, amount: 210.00 }
+
+  # Scenario 2 (213 open, 214 reference): one transfer per position of the collective invoice.
+  - id: 312
+    bankAccountId: 1
+    bookingDate: "2026-09-24"
+    amount: -420.00
+    counterpartyName: "Bühnentechnik Ingolstadt GmbH"
+    purpose: "RE 2026-118 Pos. 1 Der kleine Lord"
+
+  - id: 313
+    bankAccountId: 1
+    bookingDate: "2026-09-24"
+    amount: -380.00
+    counterpartyName: "Bühnentechnik Ingolstadt GmbH"
+    purpose: "RE 2026-118 Pos. 2 König der Löwen"
+
+  - id: 314
+    bankAccountId: 1
+    bookingDate: "2026-09-25"
+    amount: -250.00
+    counterpartyName: "Bühnentechnik Ingolstadt GmbH"
+    purpose: "RE 2026-118 Pos. 3 Workshops"
+
+  - id: 315
+    bankAccountId: 1
+    bookingDate: "2026-09-23"
+    amount: -260.00
+    counterpartyName: "Druckerei Schmid"
+    purpose: "RE 4471 Plakate Der kleine Lord"
+    matches:
+      - { transactionId: 604, amount: 260.00 }
+
+  - id: 316
+    bankAccountId: 1
+    bookingDate: "2026-09-23"
+    amount: -230.00
+    counterpartyName: "Druckerei Schmid"
+    purpose: "RE 4471 Plakate Das Hässliche Entlein"
+    matches:
+      - { transactionId: 605, amount: 230.00 }
+
+  - id: 317
+    bankAccountId: 1
+    bookingDate: "2026-09-29"
+    amount: -200.00
+    counterpartyName: "Druckerei Schmid"
+    purpose: "RE 4471 Flyer Workshops"
+    matches:
+      - { transactionId: 606, amount: 200.00 }
+
+  # Scenario 3 (215 open, 216 reference): instalments that cut across the parts.
+  - id: 318
+    bankAccountId: 1
+    bookingDate: "2026-09-23"
+    amount: -600.00
+    counterpartyName: "Omnibus Gruber"
+    purpose: "Anzahlung Busreise Gastspiel Nürnberg"
+
+  - id: 319
+    bankAccountId: 1
+    bookingDate: "2026-10-06"
+    amount: -880.00
+    counterpartyName: "Omnibus Gruber"
+    purpose: "Restzahlung Busreise Gastspiel Nürnberg"
+
+  - id: 320
+    bankAccountId: 1
+    bookingDate: "2026-09-26"
+    amount: -700.00
+    counterpartyName: "Theaterbedarf Weber"
+    purpose: "RE 2026-0931 Abschlag 1"
+    matches:
+      - { transactionId: 607, amount: 540.00 }
+      - { transactionId: 608, amount: 160.00 }
+
+  - id: 321
+    bankAccountId: 1
+    bookingDate: "2026-10-08"
+    amount: -440.00
+    counterpartyName: "Theaterbedarf Weber"
+    purpose: "RE 2026-0931 Abschlag 2"
+    matches:
+      - { transactionId: 608, amount: 320.00 }
+      - { transactionId: 610, amount: 120.00 }
+
+  # Not linked yet: belongs to the open workshop part (609) of receipt 216.
+  - id: 322
+    bankAccountId: 1
+    bookingDate: "2026-10-20"
+    amount: -200.00
+    counterpartyName: "Theaterbedarf Weber"
+    purpose: "RE 2026-0931 Restzahlung"
+
+# Category groups of Bühnefrei e.V., each applying only to some bommels (a group applies to an assigned bommel and its
+# descendants). Räumlichkeiten (25) and the club itself (23) have none, so receipts there need no category values.
+categoryGroups:
+  # Required for every production: Projekte (27) and below (28, 29, 30).
+  - id: 1
+    organizationId: 4
+    name: "Produktionsbereich"
+    required: true
+    bommelIds: [27]
+    values: ["Probe", "Aufführung", "Bühnenbild", "Kostüme", "Werbung"]
+
+  # Required at the kiosk only.
+  - id: 2
+    organizationId: 4
+    name: "Warengruppe"
+    required: true
+    bommelIds: [24]
+    values: ["Getränke", "Snacks", "Pfand", "Verbrauchsmaterial"]
+
+  # Optional, workshops only.
+  - id: 3
+    organizationId: 4
+    name: "Workshop-Reihe"
+    required: false
+    bommelIds: [26]
+    values: ["Kindertheater", "Improvisation", "Sprechtechnik"]
+
+  # Optional, only the two funded productions (not "Das Hässliche Entlein").
+  - id: 4
+    organizationId: 4
+    name: "Förderprojekt"
+    required: false
+    bommelIds: [28, 30]
+    values: ["Kulturfonds Bayern 2026", "Jugendkultur Pfaffenhofen"]
+
+sequences:
+  Document_SEQ: 300
+  BankTransaction_SEQ: 400
+  Transaction_SEQ: 700
+  BankTransactionMatch_SEQ: 2000
+  transaction_category_value_seq: 2000
+  category_group_seq: 100
+  category_group_value_seq: 1000

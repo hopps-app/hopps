@@ -1,23 +1,26 @@
 import { TransactionDisplayStatus, TransactionResponse } from '@hopps/api-client';
-import { ChevronLeft, ChevronRight, X, Plus, Search, FileText, Trash2, Check, Minus, Filter, Wallet, Unlink } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Plus, Search, FileText, Trash2, Filter, Wallet, Unlink } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
 import TransactionCategoryFilter, { type CategoryFilterRow } from '@/components/CategoryGroups/TransactionCategoryFilter';
+import { TableEmptyState } from '@/components/common';
 import { ALL_BOMMELS, BommelSelect, BommelSelection } from '@/components/Dashboard/BommelSelect';
 import { collectSubtreeIds, flattenBommelTree } from '@/components/Dashboard/bommelTree';
 import { DeleteTransactionDialog } from '@/components/Receipts/DeleteTransactionDialog';
 import { fmtDate } from '@/components/Transactions/format';
-import { FONT, HIDE_BOMMEL_QUERY, TX_GRID, TX_GRID_GAP, TX_GRID_NARROW } from '@/components/Transactions/layout';
+import { FONT, HIDE_BOMMEL_QUERY, TX_GRID, TX_GRID_NARROW } from '@/components/Transactions/layout';
 import { StatusBadge } from '@/components/Transactions/StatusBadge';
 import { TransactionDrawer } from '@/components/Transactions/TransactionDrawer';
 import { TableSkeleton } from '@/components/Transactions/TransactionsSkeleton';
 import { TxIcon } from '@/components/Transactions/TxIcon';
+import { BulkActionBar } from '@/components/ui/BulkActionBar';
+import { DataTable, DataTableHeader, DataTableRow, HeaderCell, RowCheckbox } from '@/components/ui/DataTable';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { SortHeader } from '@/components/ui/SortHeader';
-import { StatusFilterBar } from '@/components/ui/StatusFilterBar';
+import { StatusSegments } from '@/components/ui/StatusSegments';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import { useDeleteDocument } from '@/hooks/queries/useDocuments';
 import {
@@ -31,8 +34,8 @@ import {
 import { useCurrency } from '@/hooks/use-currency';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
+import { useToast } from '@/hooks/use-toast';
 import { usePersistedState } from '@/hooks/usePersistedState';
-import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
 
@@ -51,15 +54,6 @@ import { useStore } from '@/store/store';
 
 // Small heavy uppercase label above a filter control.
 const FILTER_LABEL = 'text-[12px] font-extrabold uppercase tracking-[0.04em] text-[var(--ink-faint)]';
-
-// Table column header text (static columns; the sortable ones use SortHeader's `klar` variant, which matches this).
-const HEADER_CELL = {
-    fontSize: 12,
-    fontWeight: 700,
-    color: 'var(--muted-foreground)',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-} as const;
 
 // The status segments. Independently toggleable; none selected means every row. Colour of the count badge while the
 // segment is on, the same colours as the status badge in the rows.
@@ -120,50 +114,10 @@ function TransactionRow({
         .join(', ');
     const amount = tx.total ? Number(tx.total) : 0;
     const incoming = amount >= 0;
-    const highlighted = selected || bulkSelected;
 
     return (
-        <button
-            onClick={onClick}
-            className={cn('w-full grid items-center text-left border-b border-border-soft last:border-b-0 transition-colors')}
-            style={{
-                gridTemplateColumns: hideBommel ? TX_GRID_NARROW : TX_GRID,
-                columnGap: TX_GRID_GAP,
-                padding: '14px 20px',
-                background: highlighted ? 'var(--accent-surface)' : undefined,
-                fontFamily: FONT,
-            }}
-            onMouseEnter={(e) => {
-                if (!highlighted) (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-sunken)';
-            }}
-            onMouseLeave={(e) => {
-                if (!highlighted) (e.currentTarget as HTMLButtonElement).style.background = '';
-            }}
-        >
-            {/* Bulk-select checkbox — stops propagation so ticking a row doesn't open the drawer */}
-            <span
-                role="checkbox"
-                aria-checked={bulkSelected}
-                aria-label={t('transactions.bulk.selectRow')}
-                tabIndex={0}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleBulk();
-                }}
-                onKeyDown={(e) => {
-                    if (e.key === ' ' || e.key === 'Enter') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        onToggleBulk();
-                    }
-                }}
-                className={cn(
-                    'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors',
-                    bulkSelected ? 'bg-primary border-primary' : 'border-[var(--border-strong)] hover:border-primary'
-                )}
-            >
-                {bulkSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
-            </span>
+        <DataTableRow columns={hideBommel ? TX_GRID_NARROW : TX_GRID} highlighted={selected || bulkSelected} onClick={onClick}>
+            <RowCheckbox checked={bulkSelected} onToggle={onToggleBulk} ariaLabel={t('transactions.bulk.selectRow')} />
 
             {/* Transaktion */}
             <span className="flex items-center gap-3 min-w-0">
@@ -173,7 +127,15 @@ function TransactionRow({
                         <span className="truncate">{tx.name ?? '—'}</span>
                         {tx.documentId && <FileText size={13} className="text-purple-700 flex-shrink-0" />}
                     </span>
-                    <span className="text-[12px] text-muted-foreground truncate leading-snug">{tx.senderName ?? ''}</span>
+                    {/* Counterparty, plus the position when the transaction is one part of a split receipt. */}
+                    <span className="text-[12px] text-muted-foreground truncate leading-snug">
+                        {[
+                            tx.senderName,
+                            tx.splitIndex != null && tx.splitCount != null ? t('receipts.split.partOf', { i: tx.splitIndex + 1, n: tx.splitCount }) : null,
+                        ]
+                            .filter(Boolean)
+                            .join(' · ')}
+                    </span>
                 </span>
             </span>
 
@@ -218,7 +180,7 @@ function TransactionRow({
             >
                 {incoming ? '+' : '–'} {format(Math.abs(amount))}
             </span>
-        </button>
+        </DataTableRow>
     );
 }
 
@@ -228,6 +190,7 @@ export function TransactionenView() {
     const { t } = useTranslation();
     const { format } = useCurrency();
     usePageTitle(t('transactions.title'));
+    const { showSuccess, showWarning, showError } = useToast();
     const hideBommel = useMediaQuery(HIDE_BOMMEL_QUERY);
 
     const [search, setSearch] = usePersistedState<string>('hopps.transactions.search', '');
@@ -252,8 +215,8 @@ export function TransactionenView() {
     const [createOpen, setCreateOpen] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
-    const bulkDelete = useDeleteTransaction();
-    const deleteDocumentBulk = useDeleteDocument();
+    const bulkDelete = useDeleteTransaction({ silent: true });
+    const deleteDocumentBulk = useDeleteDocument({ silent: true });
     const PAGE_SIZE = 30;
 
     // Open a specific transaction when navigated to with ?id= (e.g. from a linked receipt)
@@ -326,6 +289,8 @@ export function TransactionenView() {
     // Count and income/expense sums across all pages (a single page cannot provide them). Refetches on filter change,
     // not on paging.
     const { data: aggregate } = useTransactionAggregate(filters);
+    // Without any filter: tells "no transaction exists yet" apart from "the filters find nothing" for the empty table.
+    const { data: totalAggregate } = useTransactionAggregate({});
     // Tab counts: the same filters as the list minus the status tab itself, so each tab reports how many
     // rows it would show under the filters that are actually active.
     const countFilters: TransactionFilters = {
@@ -337,7 +302,11 @@ export function TransactionenView() {
         detached: filters.detached,
         categoryValues: filters.categoryValues,
     };
-    const { data: countDraft } = useTransactionAggregate({ ...countFilters, displayStatuses: ['DRAFT'] });
+    const {
+        data: countDraft,
+        isFetching: countDraftFetching,
+        isError: countDraftFailed,
+    } = useTransactionAggregate({ ...countFilters, displayStatuses: ['DRAFT'] });
     const { data: countPartial } = useTransactionAggregate({ ...countFilters, displayStatuses: ['PARTIAL'] });
     const { data: countLinked } = useTransactionAggregate({ ...countFilters, displayStatuses: ['LINKED'] });
     const { data: countConfirmed } = useTransactionAggregate({ ...countFilters, displayStatuses: ['CONFIRMED'] });
@@ -347,6 +316,28 @@ export function TransactionenView() {
         LINKED: countLinked?.count ?? 0,
         CONFIRMED: countConfirmed?.count ?? 0,
     };
+    // The drafts are only a useful start while there are any: with none, open on every status instead of an empty table
+    // Until that is decided the table stays on its skeleton and no segment is marked, so the page does not visibly
+    // switch filters after loading.
+    const [statusDecided, setStatusDecided] = useState(false);
+    useEffect(() => {
+        if (statusDecided || countDraftFetching || (!countDraft && !countDraftFailed)) return;
+        setStatusDecided(true);
+        if (countDraft?.count === 0) setStatusFilter([]);
+    }, [statusDecided, countDraft, countDraftFetching, countDraftFailed]);
+    const toggleStatus = (id: TransactionDisplayStatus) => {
+        setStatusDecided(true);
+        setStatusFilter((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
+        setPage(0);
+    };
+    const showAllStatuses = () => {
+        setStatusDecided(true);
+        setStatusFilter([]);
+        setPage(0);
+    };
+    // Transactions the other filters match but the selected status segments hide.
+    const hiddenByStatus =
+        statusFilter.length > 0 ? STATUS_SEGMENTS.filter((seg) => !statusFilter.includes(seg.id)).reduce((sum, seg) => sum + statusCounts[seg.id], 0) : 0;
     const allBommels = useBommelsStore((s) => s.allBommels);
     const rootBommel = useBommelsStore((s) => s.rootBommel);
     const loadBommelsForFilter = useBommelsStore((s) => s.loadBommels);
@@ -422,13 +413,19 @@ export function TransactionenView() {
     const handleBulkDelete = async (withReceipts: boolean) => {
         const ids = Array.from(selectedIds);
         // allSettled so one failed delete doesn't abort the rest; the list refetches via query invalidation.
-        await Promise.allSettled(
+        const results = await Promise.allSettled(
             ids.map((id) => {
                 const documentId = withReceipts ? selectedDocumentIds.get(id) : null;
                 // Deleting the document removes its transaction too, so rows with a receipt need only that one call.
                 return documentId != null ? deleteDocumentBulk.mutateAsync(documentId) : bulkDelete.mutateAsync(id);
             })
         );
+        const failed = results.filter((r) => r.status === 'rejected').length;
+        const done = results.length - failed;
+        // One summary instead of a toast per transaction.
+        if (failed === 0) showSuccess(t('transactions.toast.bulkDeleted', { count: done }));
+        else if (done === 0) showError(t('transactions.toast.bulkDeleteFailed'));
+        else showWarning(t('transactions.toast.bulkDeletePartial', { done, failed }));
         if (selectedTxId != null && selectedIds.has(selectedTxId)) setSelectedTxId(null);
         clearSelection();
         setBulkDeleteOpen(false);
@@ -551,20 +548,11 @@ export function TransactionenView() {
                         />
                     </div>
 
-                    <StatusFilterBar
+                    <StatusSegments
                         ariaLabel={t('transactions.columns.status')}
-                        items={STATUS_SEGMENTS.map((seg) => ({
-                            id: seg.id,
-                            label: t(seg.labelKey),
-                            count: statusCounts[seg.id],
-                            color: seg.color,
-                            tint: seg.tint,
-                        }))}
-                        value={statusFilter}
-                        onChange={(next) => {
-                            setStatusFilter(next);
-                            setPage(0);
-                        }}
+                        segments={STATUS_SEGMENTS.map((seg) => ({ ...seg, label: t(seg.labelKey), count: statusCounts[seg.id] }))}
+                        selected={statusDecided ? statusFilter : []}
+                        onToggle={toggleStatus}
                     />
 
                     {/* Advanced filter toggle */}
@@ -713,97 +701,45 @@ export function TransactionenView() {
 
                 {/* Bulk selection toolbar */}
                 {selectedIds.size > 0 && (
-                    <div
-                        className="flex items-center gap-3 rounded-[14px] border px-4 py-2.5 mt-1"
-                        style={{ background: 'var(--accent-surface)', borderColor: 'var(--purple-200)' }}
+                    <BulkActionBar
+                        className="mt-1"
+                        label={t('transactions.bulk.selectedCount', { n: selectedIds.size })}
+                        clearLabel={t('transactions.bulk.clear')}
+                        onClear={clearSelection}
                     >
-                        <span className="text-[13.5px] font-bold text-foreground">{t('transactions.bulk.selectedCount', { n: selectedIds.size })}</span>
-                        <button
-                            type="button"
-                            onClick={clearSelection}
-                            className="text-[13px] font-semibold text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                            {t('transactions.bulk.clear')}
-                        </button>
-                        <div className="flex-1" />
-                        <button
-                            type="button"
+                        <BaseButton
+                            variant="destructive"
+                            size="sm"
                             onClick={() => setBulkDeleteOpen(true)}
                             disabled={bulkDelete.isPending}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-[var(--btn-radius)] text-[13.5px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                            style={{ background: 'var(--negative-solid)' }}
+                            className="gap-1.5 font-bold"
                         >
-                            <Trash2 size={14} />
+                            <Trash2 />
                             {t('transactions.bulk.delete')}
-                        </button>
-                    </div>
+                        </BaseButton>
+                    </BulkActionBar>
                 )}
             </div>
 
             {/* ── Table ── */}
             <div>
-                {isLoading ? (
+                {isLoading || !statusDecided ? (
                     <TableSkeleton hideBommel={hideBommel} />
-                ) : transactions.length === 0 ? (
-                    <div
-                        className="flex flex-col items-center justify-center py-20 text-center rounded-[var(--r-card)] border border-border-soft"
-                        style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-sm)' }}
-                    >
-                        <div className="w-14 h-14 rounded-full flex items-center justify-center mb-3" style={{ background: 'var(--accent-surface)' }}>
-                            <FileText size={26} className="text-primary" />
-                        </div>
-                        <p className="font-bold text-foreground" style={{ fontSize: 16 }}>
-                            {t('transactions.noResults')}
-                        </p>
-                        <p className="mt-1 text-[13.5px] text-muted-foreground">{t('transactions.noResultsDesc')}</p>
-                    </div>
                 ) : (
-                    <div
-                        className="rounded-[var(--r-card)] border border-border-soft overflow-hidden"
-                        style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-md)' }}
-                    >
-                        {/* Table header */}
-                        <div
-                            className="grid items-center border-b border-border-soft"
-                            style={{
-                                gridTemplateColumns: hideBommel ? TX_GRID_NARROW : TX_GRID,
-                                columnGap: TX_GRID_GAP,
-                                padding: '12px 20px',
-                                fontFamily: FONT,
-                            }}
-                        >
+                    <DataTable>
+                        <DataTableHeader columns={hideBommel ? TX_GRID_NARROW : TX_GRID}>
                             {/* Select-all checkbox (current page) */}
-                            <span
-                                role="checkbox"
-                                aria-checked={allPageSelected ? 'true' : somePageSelected ? 'mixed' : 'false'}
-                                aria-label={t('transactions.bulk.selectAll')}
-                                tabIndex={0}
-                                onClick={toggleSelectAll}
-                                onKeyDown={(e) => {
-                                    if (e.key === ' ' || e.key === 'Enter') {
-                                        e.preventDefault();
-                                        toggleSelectAll();
-                                    }
-                                }}
-                                className={cn(
-                                    'w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-colors',
-                                    allPageSelected || somePageSelected ? 'bg-primary border-primary' : 'border-[var(--border-strong)] hover:border-primary'
-                                )}
-                            >
-                                {allPageSelected ? (
-                                    <Check className="w-3 h-3 text-white" strokeWidth={3} />
-                                ) : somePageSelected ? (
-                                    <Minus className="w-3 h-3 text-white" strokeWidth={3} />
-                                ) : null}
-                            </span>
+                            <RowCheckbox
+                                checked={allPageSelected ? true : somePageSelected ? 'mixed' : false}
+                                onToggle={toggleSelectAll}
+                                ariaLabel={t('transactions.bulk.selectAll')}
+                            />
                             {[
                                 t('transactions.columns.transaction'),
                                 t('transactions.columns.category'),
                                 ...(hideBommel ? [] : [t('transactions.columns.bommel')]),
                             ].map((col) => (
-                                <span key={col} style={HEADER_CELL}>
-                                    {col}
-                                </span>
+                                <HeaderCell key={col}>{col}</HeaderCell>
                             ))}
                             <SortHeader
                                 label={t('transactions.columns.date')}
@@ -819,7 +755,7 @@ export function TransactionenView() {
                                 onClick={() => handleSort('createdAt')}
                                 variant="klar"
                             />
-                            <span style={HEADER_CELL}>{t('transactions.columns.status')}</span>
+                            <HeaderCell>{t('transactions.columns.status')}</HeaderCell>
                             <SortHeader
                                 label={t('transactions.columns.amount')}
                                 active={sortBy === 'total'}
@@ -828,8 +764,30 @@ export function TransactionenView() {
                                 align="right"
                                 variant="klar"
                             />
-                        </div>
+                        </DataTableHeader>
 
+                        {transactions.length === 0 &&
+                            (totalAggregate?.count === 0 ? (
+                                <TableEmptyState icon={FileText} title={t('transactions.empty.firstTitle')} text={t('transactions.empty.firstText')} />
+                            ) : hiddenByStatus > 0 ? (
+                                <TableEmptyState
+                                    icon={FileText}
+                                    title={t('transactions.empty.noMatchTitle')}
+                                    text={t('transactions.noResultsOtherStatus', { count: hiddenByStatus })}
+                                    action={
+                                        <BaseButton
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={showAllStatuses}
+                                            className="rounded-[var(--btn-radius)] text-[13.5px] font-bold text-primary"
+                                        >
+                                            {t('transactions.showAllStatuses')}
+                                        </BaseButton>
+                                    }
+                                />
+                            ) : (
+                                <TableEmptyState icon={FileText} title={t('transactions.empty.noMatchTitle')} text={t('transactions.empty.noMatchText')} />
+                            ))}
                         {transactions.map((tx) => (
                             <TransactionRow
                                 key={tx.id}
@@ -840,7 +798,7 @@ export function TransactionenView() {
                                 onToggleBulk={() => tx.id != null && toggleSelect(tx.id)}
                             />
                         ))}
-                    </div>
+                    </DataTable>
                 )}
             </div>
 

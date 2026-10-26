@@ -1,5 +1,7 @@
 package app.hopps.shared.bootstrap;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +17,7 @@ public class TestdataConfig {
     private List<DocumentData> documents;
     private List<BankAccountData> bankAccounts;
     private List<BankTransactionData> bankTransactions;
+    private List<CategoryGroupData> categoryGroups;
     private Map<String, Long> sequences;
 
     public List<OrganizationData> getOrganizations() {
@@ -71,6 +74,43 @@ public class TestdataConfig {
 
     public void setBankTransactions(List<BankTransactionData> bankTransactions) {
         this.bankTransactions = bankTransactions;
+    }
+
+    public List<CategoryGroupData> getCategoryGroups() {
+        return categoryGroups;
+    }
+
+    public void setCategoryGroups(List<CategoryGroupData> categoryGroups) {
+        this.categoryGroups = categoryGroups;
+    }
+
+    /**
+     * Adds the entries of another configuration (e.g. the dev-only extras) to this one: lists are appended, sequence
+     * values of {@code extra} win.
+     */
+    public void merge(TestdataConfig extra) {
+        organizations = concat(organizations, extra.organizations);
+        members = concat(members, extra.members);
+        bommels = concat(bommels, extra.bommels);
+        transactions = concat(transactions, extra.transactions);
+        documents = concat(documents, extra.documents);
+        bankAccounts = concat(bankAccounts, extra.bankAccounts);
+        bankTransactions = concat(bankTransactions, extra.bankTransactions);
+        categoryGroups = concat(categoryGroups, extra.categoryGroups);
+        if (extra.sequences != null) {
+            Map<String, Long> merged = new HashMap<>(sequences != null ? sequences : Map.of());
+            merged.putAll(extra.sequences);
+            sequences = merged;
+        }
+    }
+
+    private static <T> List<T> concat(List<T> base, List<T> extra) {
+        if (extra == null || extra.isEmpty()) {
+            return base;
+        }
+        List<T> merged = new ArrayList<>(base != null ? base : List.of());
+        merged.addAll(extra);
+        return merged;
     }
 
     public Map<String, Long> getSequences() {
@@ -312,6 +352,8 @@ public class TestdataConfig {
         private Boolean privatelyPaid;
         private String createdBy;
         private String senderName;
+        // Category-group values by group id, e.g. {1: "Aufführung"}. Raw map: SnakeYAML reads the keys as Integer.
+        private Map<?, ?> categoryValues;
 
         public Long getId() {
             return id;
@@ -400,18 +442,28 @@ public class TestdataConfig {
         public void setSenderName(String senderName) {
             this.senderName = senderName;
         }
+
+        public Map<?, ?> getCategoryValues() {
+            return categoryValues;
+        }
+
+        public void setCategoryValues(Map<?, ?> categoryValues) {
+            this.categoryValues = categoryValues;
+        }
     }
 
     /**
      * A test receipt (Document). Optionally linked to an existing transaction via {@code transactionId} so it appears
      * in the receipts view and the receipt-review drawer. No file is stored in S3 — the file endpoint simply returns
-     * 404 for these, which the UI handles gracefully (no preview).
+     * 404 for these, which the UI handles gracefully (no preview). A split receipt lists its parts in
+     * {@code transactionIds} instead.
      */
     public static class DocumentData {
         private Long id;
         private Long organizationId;
         private Long bommelId;
         private Long transactionId;
+        private List<Long> transactionIds;
         private String name;
         private String total;
         private String currencyCode;
@@ -425,6 +477,24 @@ public class TestdataConfig {
         private String extractionSource;
         private String uploadedBy;
         private Long monthsAgo;
+        private String senderName;
+        private Boolean privatelyPaid;
+
+        public String getSenderName() {
+            return senderName;
+        }
+
+        public void setSenderName(String senderName) {
+            this.senderName = senderName;
+        }
+
+        public Boolean getPrivatelyPaid() {
+            return privatelyPaid;
+        }
+
+        public void setPrivatelyPaid(Boolean privatelyPaid) {
+            this.privatelyPaid = privatelyPaid;
+        }
 
         public Long getMonthsAgo() {
             return monthsAgo;
@@ -560,6 +630,14 @@ public class TestdataConfig {
 
         public void setUploadedBy(String uploadedBy) {
             this.uploadedBy = uploadedBy;
+        }
+
+        public List<Long> getTransactionIds() {
+            return transactionIds;
+        }
+
+        public void setTransactionIds(List<Long> transactionIds) {
+            this.transactionIds = transactionIds;
         }
     }
 
@@ -710,6 +788,8 @@ public class TestdataConfig {
         private String transactionType;
         private String status;
         private String matchedAmount;
+        // Allocations to bookkeeping transactions; when present, status and matchedAmount are derived from them.
+        private List<MatchData> matches;
 
         public Long getId() {
             return id;
@@ -805,6 +885,97 @@ public class TestdataConfig {
 
         public void setMatchedAmount(String matchedAmount) {
             this.matchedAmount = matchedAmount;
+        }
+
+        public List<MatchData> getMatches() {
+            return matches;
+        }
+
+        public void setMatches(List<MatchData> matches) {
+            this.matches = matches;
+        }
+    }
+
+    /** Allocation of (part of) a bank transaction to a bookkeeping transaction. Amount is positive. */
+    public static class MatchData {
+        private Long transactionId;
+        private String amount;
+
+        public Long getTransactionId() {
+            return transactionId;
+        }
+
+        public void setTransactionId(Long transactionId) {
+            this.transactionId = transactionId;
+        }
+
+        public String getAmount() {
+            return amount;
+        }
+
+        public void setAmount(String amount) {
+            this.amount = amount;
+        }
+    }
+
+    /**
+     * A category group of an organization with its allowed values and the bommels it is assigned to. It applies to an
+     * assigned bommel and all of its descendants; without bommels it applies to none.
+     */
+    public static class CategoryGroupData {
+        private Long id;
+        private Long organizationId;
+        private String name;
+        private boolean required;
+        private List<Long> bommelIds;
+        private List<String> values;
+
+        public Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        public Long getOrganizationId() {
+            return organizationId;
+        }
+
+        public void setOrganizationId(Long organizationId) {
+            this.organizationId = organizationId;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public boolean isRequired() {
+            return required;
+        }
+
+        public void setRequired(boolean required) {
+            this.required = required;
+        }
+
+        public List<Long> getBommelIds() {
+            return bommelIds;
+        }
+
+        public void setBommelIds(List<Long> bommelIds) {
+            this.bommelIds = bommelIds;
+        }
+
+        public List<String> getValues() {
+            return values;
+        }
+
+        public void setValues(List<String> values) {
+            this.values = values;
         }
     }
 }

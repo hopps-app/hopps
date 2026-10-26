@@ -7,11 +7,11 @@ import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
-import { LoadingState } from '@/components/common/LoadingState';
 import { AddUserDialog, type NewUserValues } from '@/components/Organization/AddUserDialog';
+import { CARD } from '@/components/Organization/layout';
+import { OrganizationDetailsSkeleton, OrganizationUsersSkeleton } from '@/components/Organization/OrganizationDetailsSkeleton';
 import { SetupLinkDialog } from '@/components/Organization/SetupLinkDialog';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
 import Select from '@/components/ui/Select';
 import TextField from '@/components/ui/TextField';
 import { useHasPermission } from '@/hooks/queries';
@@ -20,16 +20,13 @@ import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { useUnsavedChangesWarning } from '@/hooks/use-unsaved-changes-warning';
 import { SUPPORTED_CURRENCIES, organizationCurrency } from '@/lib/currency';
+import { organizationTypeLabelKey, organizationTypesForCountry } from '@/lib/organizationTypes';
 import apiService from '@/services/ApiService';
 import { useStore } from '@/store/store';
+import { getErrorBody } from '@/utils/errorUtils';
 
 /** Design system: "Klar" — see the hopps design system tokens (colors.css / typography.css). */
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
-
-/** In dark mode the drop shadow is invisible, so a hairline ring separates the card from the page instead. */
-const CARD =
-    'rounded-[18px] bg-white shadow-[0_1px_2px_rgba(20,20,40,0.05),0_6px_22px_rgba(20,20,40,0.05)] ' +
-    'dark:bg-[#1C1C21] dark:shadow-none dark:ring-1 dark:ring-[#2E2E36]';
 
 /** Field widths follow the design's 6-column grid; everything collapses to full width on small screens. */
 const SPAN: Record<number, string> = {
@@ -253,7 +250,7 @@ function LogoCard({
                 type="button"
                 onClick={() => inputRef.current?.click()}
                 disabled={disabled}
-                className="inline-flex items-center gap-2 rounded-full border border-[#E0E0E6] bg-white px-4 py-2 text-[13.5px] font-bold text-[#1B1B1F] hover:border-[#9A9AA3] dark:border-[#3A3A44] dark:bg-[#26262D] dark:text-[#F2F2F5] dark:hover:border-[#5A5A66] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 rounded-[var(--btn-radius)] border border-[#E0E0E6] bg-white px-4 py-2 text-[13.5px] font-bold text-[#1B1B1F] hover:border-[#9A9AA3] dark:border-[#3A3A44] dark:bg-[#26262D] dark:text-[#F2F2F5] dark:hover:border-[#5A5A66] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 <Upload size={16} />
                 {hasLogo || pendingFile ? t('organization.details.logo.replace') : t('organization.details.logo.upload')}
@@ -272,19 +269,6 @@ function OrganizationDetailsSettingsView() {
     const countryOptions = useCountries();
     const setOrganization = useStore((state) => state.setOrganization);
     const queryClient = useQueryClient();
-
-    // Order mirrors app.hopps.organization.domain.OrganizationType — most common legal form first, fallback last.
-    const typeOptions = useMemo(
-        () => [
-            { label: t('organization.details.typeEV'), value: 'EINGETRAGENER_VEREIN' },
-            { label: t('organization.details.typeGGmbH'), value: 'GEMEINNUETZIGE_GMBH' },
-            { label: t('organization.details.typeStiftung'), value: 'STIFTUNG' },
-            { label: t('organization.details.typeEG'), value: 'GEMEINNUETZIGE_GENOSSENSCHAFT' },
-            { label: t('organization.details.typeGUG'), value: 'GEMEINNUETZIGE_UG' },
-            { label: t('organization.details.typeAndere'), value: 'ANDERE' },
-        ],
-        [t]
-    );
 
     // Same order as app.hopps.organization.domain.Currency; euro first because it is the default.
     const currencyOptions = useMemo(() => SUPPORTED_CURRENCIES.map((code) => ({ label: t(`organization.details.currency${code}`), value: code })), [t]);
@@ -326,6 +310,8 @@ function OrganizationDetailsSettingsView() {
         handleSubmit,
         reset,
         control,
+        watch,
+        setValue,
         formState: { errors, isSubmitting, isDirty, dirtyFields },
     } = useForm<FormValues>({
         resolver: zodResolver(schema),
@@ -348,6 +334,13 @@ function OrganizationDetailsSettingsView() {
             phoneNumber: '',
         },
     });
+
+    // The legal forms depend on the country (an e.V. only exists in Germany), most common one first.
+    const watchedCountry = watch('country');
+    const typeOptions = useMemo(
+        () => organizationTypesForCountry(watchedCountry).map((type) => ({ label: t(organizationTypeLabelKey(type)), value: type })),
+        [watchedCountry, t]
+    );
 
     // A logo picked but not yet uploaded. It counts towards the unsaved changes and goes up on submit.
     const [pendingLogo, setPendingLogo] = useState<File | null>(null);
@@ -553,7 +546,7 @@ function OrganizationDetailsSettingsView() {
                 console.error('Failed to save organization details:', error);
                 // A transaction was created (by someone else) since this page loaded: explain, and reload the
                 // organization so the select shows up as locked.
-                const currencyLockedByNow = ApiException.isApiException(error) && error.status === 409 && error.result?.code === 'CURRENCY_LOCKED';
+                const currencyLockedByNow = ApiException.isApiException(error) && error.status === 409 && getErrorBody(error)?.code === 'CURRENCY_LOCKED';
                 toast({
                     title: t(currencyLockedByNow ? 'organization.details.currencyLockedError' : 'organization.details.saveError'),
                     variant: 'error',
@@ -570,12 +563,15 @@ function OrganizationDetailsSettingsView() {
     );
 
     if (!organization) {
-        return <LoadingOverlay />;
+        return <OrganizationDetailsSkeleton />;
     }
 
     return (
         <>
-            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col min-h-full" style={{ fontFamily: FONT }}>
+            {/* `relative`: inside a form, Radix Select renders an absolutely positioned hidden native <select>. Without a
+                positioned ancestor it sits relative to the viewport, escapes the scrolling <main> and stretches the
+                document, which shows a second, empty scrollbar. */}
+            <form onSubmit={handleSubmit(onSubmit)} className="relative flex flex-col min-h-full" style={{ fontFamily: FONT }}>
                 {/* Sticky page header — the save action only appears once something changed */}
                 <header className="sticky top-0 z-10 -mx-4 sm:-mx-7 mb-[18px] px-4 sm:px-7 pt-1 pb-[18px] border-b border-[#E9E9EE] bg-[#F3F4F6]/85 dark:border-[#2E2E36] dark:bg-[#131317]/85 backdrop-blur-[10px]">
                     <div className="mx-auto w-full max-w-[940px] flex flex-wrap items-start justify-between gap-4">
@@ -597,7 +593,7 @@ function OrganizationDetailsSettingsView() {
                                     type="button"
                                     onClick={discardChanges}
                                     disabled={isSubmitting}
-                                    className="inline-flex items-center gap-2 rounded-full px-4 py-[9px] text-[13.5px] font-bold text-[#6B6B76] hover:bg-[#F1F1F4] hover:text-[#1B1B1F] dark:text-[#A0A0AC] dark:hover:bg-[#26262D] dark:hover:text-[#F2F2F5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="inline-flex items-center gap-2 rounded-[var(--btn-radius)] px-4 py-[9px] text-[13.5px] font-bold text-[#6B6B76] hover:bg-[#F1F1F4] hover:text-[#1B1B1F] dark:text-[#A0A0AC] dark:hover:bg-[#26262D] dark:hover:text-[#F2F2F5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <Undo2 size={15} />
                                     {t('organization.details.discard')}
@@ -605,7 +601,7 @@ function OrganizationDetailsSettingsView() {
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="inline-flex items-center gap-2 rounded-full bg-[#9955CC] px-5 py-[10px] text-[14px] font-bold text-white shadow-[0_1px_2px_rgba(120,60,180,0.25)] hover:bg-[#7E3FB4] dark:shadow-none dark:hover:bg-[#AE73DC] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="inline-flex items-center gap-2 rounded-[var(--btn-radius)] bg-[#9955CC] px-5 py-[10px] text-[14px] font-bold text-white shadow-[0_1px_2px_rgba(120,60,180,0.25)] hover:bg-[#7E3FB4] dark:shadow-none dark:hover:bg-[#AE73DC] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <Check size={16} />
                                     {isSubmitting ? t('common.loading') : t('organization.details.saveChanges')}
@@ -688,7 +684,14 @@ function OrganizationDetailsSettingsView() {
                                                 label={t('organization.details.country')}
                                                 items={countryOptions}
                                                 value={field.value}
-                                                onValueChanged={field.onChange}
+                                                onValueChanged={(country) => {
+                                                    field.onChange(country);
+                                                    // Keep the legal form valid for the new country.
+                                                    const allowed = organizationTypesForCountry(country);
+                                                    if (!allowed.includes(watch('type') as OrganizationType)) {
+                                                        setValue('type', allowed[0], { shouldDirty: true });
+                                                    }
+                                                }}
                                             />
                                         )}
                                     />
@@ -814,7 +817,7 @@ function OrganizationDetailsSettingsView() {
                                     <button
                                         type="button"
                                         onClick={() => setAddUserOpen(true)}
-                                        className="inline-flex flex-shrink-0 items-center gap-2 rounded-full bg-[#ECE0F6] px-4 py-2 text-[13.5px] font-bold text-[#7E3FB4] transition-colors hover:bg-[#F3EAFB] dark:bg-[#33204A] dark:text-[#D2AEEE] dark:hover:bg-[#3E2859]"
+                                        className="inline-flex flex-shrink-0 items-center gap-2 rounded-[var(--btn-radius)] bg-[#ECE0F6] px-4 py-2 text-[13.5px] font-bold text-[#7E3FB4] transition-colors hover:bg-[#F3EAFB] dark:bg-[#33204A] dark:text-[#D2AEEE] dark:hover:bg-[#3E2859]"
                                     >
                                         <UserPlus size={15} aria-hidden="true" />
                                         {t('organization.details.users.add.button')}
@@ -823,9 +826,7 @@ function OrganizationDetailsSettingsView() {
                             }
                         >
                             {usersLoading ? (
-                                <div className="py-6">
-                                    <LoadingState />
-                                </div>
+                                <OrganizationUsersSkeleton />
                             ) : users.length === 0 ? (
                                 <p className="py-4 text-[13.5px] text-[#9A9AA3] dark:text-[#7A7A86]">{t('organization.details.users.empty')}</p>
                             ) : (
@@ -873,7 +874,7 @@ function OrganizationDetailsSettingsView() {
                                                                 onClick={() => setMemberToRemove(user)}
                                                                 aria-label={t('organization.details.users.remove.button', { name })}
                                                                 title={t('organization.details.users.remove.button', { name })}
-                                                                className="grid h-8 w-8 place-items-center rounded-full text-[#9A9AA3] transition-colors hover:bg-[#FBE9E7] hover:text-[#B4342A] dark:text-[#7A7A86] dark:hover:bg-[#3A1D19] dark:hover:text-[#F0958A]"
+                                                                className="grid h-8 w-8 place-items-center rounded-[var(--btn-radius)] text-[#9A9AA3] transition-colors hover:bg-[#FBE9E7] hover:text-[#B4342A] dark:text-[#7A7A86] dark:hover:bg-[#3A1D19] dark:hover:text-[#F0958A]"
                                                             >
                                                                 <Trash2 size={16} aria-hidden="true" />
                                                             </button>

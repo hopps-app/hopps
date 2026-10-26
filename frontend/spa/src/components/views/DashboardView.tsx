@@ -6,6 +6,7 @@ import { useOpenReceiptsCount } from '@/components/Dashboard/hooks';
 import { IncomeExpenseCard } from '@/components/Dashboard/IncomeExpenseCard';
 import { KpiSection } from '@/components/Dashboard/KpiSection';
 import { OpenReceiptsBanner } from '@/components/Dashboard/OpenReceiptsBanner';
+import { SetupStrip } from '@/components/Dashboard/SetupStrip';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
@@ -35,6 +36,8 @@ function DashboardView() {
     return (
         <div className="flex h-full w-full min-w-0 flex-col">
             <h1 className="sr-only">{t('dashboard.title')}</h1>
+
+            {organization?.id != null && <SetupStrip organizationId={organization.id} />}
 
             {/* Failing to count open receipts is not worth a banner of its own — the section simply
                 stays away rather than shouting at a treasurer who cannot act on it. */}

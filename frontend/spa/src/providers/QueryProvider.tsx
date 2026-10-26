@@ -1,4 +1,5 @@
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import i18n from 'i18next';
 import { ReactNode, useState } from 'react';
 
 import { toast } from '@/hooks/use-toast';
@@ -33,15 +34,18 @@ export function QueryProvider({ children }: QueryProviderProps) {
                     },
                 }),
                 mutationCache: new MutationCache({
+                    // One error toast per failed mutation. The hook names the action in `meta.errorMessage` (title), the
+                    // cause goes below it; without it the cause is the title. Components don't toast mutation errors.
                     onError: (error, _variables, _context, mutation) => {
-                        // Skip global handler if mutation has its own onError
-                        if (mutation.options.onError) return;
-
-                        const message = getUserFriendlyErrorMessage(error);
                         console.error('Mutation error:', error);
+                        // Skip global handler if mutation has its own onError, or handles the failure itself
+                        if (mutation.options.onError || mutation.meta?.silent) return;
 
+                        const cause = getUserFriendlyErrorMessage(error);
+                        const errorKey = mutation.meta?.errorMessage;
                         toast({
-                            title: message,
+                            title: errorKey ? i18n.t(errorKey) : cause,
+                            description: errorKey ? cause : undefined,
                             variant: 'error',
                         });
                     },

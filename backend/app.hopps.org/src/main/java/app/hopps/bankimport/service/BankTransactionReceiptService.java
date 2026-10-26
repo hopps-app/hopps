@@ -1,5 +1,6 @@
 package app.hopps.bankimport.service;
 
+import app.hopps.document.audit.DocumentAuditor;
 import app.hopps.bankimport.domain.BankTransaction;
 import app.hopps.bankimport.domain.BankTransactionStatus;
 import app.hopps.bankimport.repository.BankTransactionRepository;
@@ -52,6 +53,9 @@ public class BankTransactionReceiptService {
 
     @Inject
     BankTransactionRepository bankTransactionRepository;
+
+    @Inject
+    DocumentAuditor documentAuditor;
 
     @Inject
     DocumentRepository documentRepository;
@@ -146,8 +150,9 @@ public class BankTransactionReceiptService {
         transactionRepository.persist(transaction);
         transactionAuditor.created(transaction);
 
-        // 3. Wire up the relationships.
-        document.setTransaction(transaction);
+        // 3. Wire up the relationships (the transaction owns the FK; mirror it on the inverse side for the response).
+        document.getTransactions().add(transaction);
+        documentAuditor.created(document);
         matchService.addMatch(bankTxId, transaction.getId(), username);
 
         // 4. Kick off (or skip) the async AI analysis of the document.
