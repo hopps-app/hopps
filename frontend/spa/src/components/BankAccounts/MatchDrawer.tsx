@@ -14,7 +14,6 @@ import { Eyebrow } from '@/components/Transactions/Eyebrow';
 import { FONT } from '@/components/Transactions/layout';
 import { MatchAllocationControl } from '@/components/Transactions/MatchAllocationControl';
 import { segmentColor, segmentTint } from '@/components/Transactions/segmentColors';
-import { Badge } from '@/components/Transactions/StatusBadge';
 import { CloseButton } from '@/components/ui/CloseButton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
