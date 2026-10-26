@@ -272,7 +272,7 @@ function LinkedTxCard({
                 {receiptToReview ? (
                     <RowAction onClick={() => onReview(doc)}>{t('konten.drawer.review')}</RowAction>
                 ) : (
-                    <HintTooltip content={t('konten.drawer.openTransactionNewTab')}>
+                    <HintTooltip content={t('konten.drawer.openTransactionNewTab')} align="end">
                         <button
                             type="button"
                             onClick={() => window.open(`/transactions?id=${tx.id}`, '_blank', 'noopener,noreferrer')}
@@ -530,11 +530,9 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                                 {t('konten.drawer.matchSection')}
                             </Eyebrow>
                             <div className="flex flex-col gap-[11px]">
-                                {/* Summary: amount, linked parts, open rest, with the progress bar */}
-                                <div
-                                    className="rounded-[var(--r-card)] px-4 py-[13px]"
-                                    style={{ background: 'var(--surface-track)', boxShadow: 'var(--shadow-lg)' }}
-                                >
+                                {/* Summary: amount, linked parts, open rest, with the progress bar. Flat, like the summary
+                                    tile of the transaction drawer. */}
+                                <div className="rounded-[var(--r-card)] px-4 py-[13px]" style={{ background: 'var(--surface-track)' }}>
                                     <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${summary.length}, minmax(0, 1fr))` }}>
                                         {summary.map((col) => (
                                             <div key={col.key} className="min-w-0">

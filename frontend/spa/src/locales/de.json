@@ -1044,7 +1044,7 @@
             "discardText": "Die Korrekturen an diesem Beleg sind noch nicht gespeichert.",
             "discardConfirm": "Verwerfen",
             "keepEditing": "Weiter bearbeiten",
-            "amountDeviates": "Der Betrag der Transaktion ({{transaction}}) weicht vom Beleg ({{receipt}}) ab. Beim Bestätigen wird der Belegbetrag auf den Transaktionsbetrag gesetzt.",
+            "amountDeviates": "Der Betrag der Transaktion ({{transaction}}) weicht vom Beleg ({{receipt}}) ab.",
             "useReceiptAmount": "Belegbetrag übernehmen ({{amount}})"
         },
         "filter": {
@@ -1562,7 +1562,7 @@
             "readingTitle": "Beleg wird ausgelesen …",
             "readingHint": "{{file}} · Absender, Datum und Betrag werden erkannt",
             "aiCreatedHint": "Von der KI aus dem Beleg erstellt. Kategorie und Bommel lassen sich in der Transaktion prüfen.",
-            "receiptHigherHint": "Der Beleg ist {{amount}} höher als der Umsatz. Die Transaktion bleibt teilverknüpft, bis ein weiterer Kontoumsatz zugeordnet ist, z. B. eine zweite Rate.",
+            "receiptHigherHint": "Der Beleg ist {{amount}} höher als der Umsatz. Die Transaktion bleibt teilverknüpft, bis ein weiterer Kontoumsatz zugeordnet ist.",
             "restOpen": "Noch <b>{{amount}}</b> des Umsatzes sind offen. Den Rest zuordnen oder den Umsatz als teilverknüpft speichern.",
             "uploadMore": "Weiteren Beleg hochladen",
             "restWithoutReceipt": "Rest ohne Beleg erfassen",
@@ -1570,9 +1570,7 @@
             "searchOpenTx": "Offene Transaktionen durchsuchen ({{count}})",
             "clearSearch": "Suche leeren",
             "noSearchHit": "Kein Treffer. Suche anpassen.",
-            "partialAmount": "Teilbetrag",
             "partialAmountRange": "Zwischen {{min}} und {{max}} möglich.",
-            "link": "Verknüpfen",
             "confidence": "{{pct}} % sicher",
             "review": "Prüfen",
             "assignPartial": "Teilweise zuordnen",

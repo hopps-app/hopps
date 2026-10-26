@@ -1147,7 +1147,7 @@
             "discardText": "Le tue correzioni a questa ricevuta non sono ancora salvate.",
             "discardConfirm": "Annulla modifiche",
             "keepEditing": "Continua a modificare",
-            "amountDeviates": "L’importo della transazione ({{transaction}}) è diverso da quello della ricevuta ({{receipt}}). Confermando, l’importo della ricevuta viene allineato a quello della transazione.",
+            "amountDeviates": "L’importo della transazione ({{transaction}}) è diverso da quello della ricevuta ({{receipt}}).",
             "useReceiptAmount": "Usa l’importo della ricevuta ({{amount}})"
         },
         "filter": {

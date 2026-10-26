@@ -72,7 +72,7 @@ import {
     getDocumentReviewStatus,
     documentKeys,
 } from '@/hooks/queries/useDocuments';
-import { useTransaction, useUpdateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
+import { transactionKeys, useTransaction, useUpdateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
 import { useCurrency } from '@/hooks/use-currency';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
@@ -433,14 +433,27 @@ export function ReviewDrawer({
             direction !== baseline.direction ||
             !sameCategoryValues(categoryValues, baseline.categoryValues));
 
-    // Refresh the list once analysis finishes so the row's status/amount update too.
+    // Refresh the list once analysis finishes so the row's status/amount update too. A bank-origin draft is updated by
+    // the analysis as well (tax, name), so it is reloaded with it.
     const prevAnalyzingRef = useRef(false);
     useEffect(() => {
         if (prevAnalyzingRef.current && !isAnalyzing) {
             queryClient.invalidateQueries({ queryKey: documentKeys.lists() });
+            if (linkedTransactionId != null) {
+                queryClient.invalidateQueries({ queryKey: transactionKeys.detail(linkedTransactionId) });
+            }
         }
         prevAnalyzingRef.current = isAnalyzing;
-    }, [isAnalyzing, queryClient]);
+    }, [isAnalyzing, queryClient, linkedTransactionId]);
+
+    // The analysis replaces the bank purpose of a bank-origin draft with the receipt's name. Take that over while the
+    // name field still holds the loaded value; a name the user typed meanwhile is kept.
+    useEffect(() => {
+        if (!isBankReconcile || !baseline || !linkedTx?.name || linkedTx.name === baseline.name) return;
+        if (name === baseline.name) setName(linkedTx.name);
+        setBaseline({ ...baseline, name: linkedTx.name });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [linkedTx?.name]);
 
     // AI-extracted values from the analysed document, shown in the "Beleg" tab.
     const aiName = liveDoc?.name ?? undefined;
@@ -482,7 +495,7 @@ export function ReviewDrawer({
     }
 
     // The receipt already has its transaction but is in review: when its amount differs from the receipt total (e.g. the
-    // transaction was edited by hand afterwards), the deviation is shown, and confirming aligns the receipt with it.
+    // bank movement is one installment of the invoice), the deviation is shown with a way to take over the receipt total.
     const receiptTotal = doc?.total != null ? Math.abs(Number(doc.total)) : null;
     const formAmount = parseAllocationAmount(amount) ?? NaN;
     // Typed but not an amount (e.g. "4ßß"): an error that blocks saving, rather than being read as 4 or dropped.
@@ -633,11 +646,8 @@ export function ReviewDrawer({
         }
         try {
             if (isBankReconcile && linkedTransactionId) {
+                // The receipt keeps its own total: a transaction may book less than the receipt (e.g. one installment).
                 await updateTransaction.mutateAsync({ id: linkedTransactionId, data: buildTransactionPayload() });
-                // Confirming accepts the transaction amount for the receipt as well, so both agree again.
-                if (amountDeviates) {
-                    await updateMutation.mutateAsync(Object.assign(new DocumentUpdateRequest({ total: Math.abs(formAmount) }), { id: doc.id }));
-                }
                 await confirmMutation.mutateAsync({ id: doc.id, categoryValues });
                 showSuccess(t('receipts.toast.receiptConfirmed'));
             } else {

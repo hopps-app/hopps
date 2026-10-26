@@ -1147,7 +1147,7 @@
             "discardText": "Vos corrections sur ce reçu ne sont pas encore enregistrées.",
             "discardConfirm": "Abandonner",
             "keepEditing": "Continuer la modification",
-            "amountDeviates": "Le montant de la transaction ({{transaction}}) diffère du reçu ({{receipt}}). La confirmation aligne le montant du reçu sur celui de la transaction.",
+            "amountDeviates": "Le montant de la transaction ({{transaction}}) diffère du reçu ({{receipt}}).",
             "useReceiptAmount": "Reprendre le montant du reçu ({{amount}})"
         },
         "filter": {

@@ -1180,7 +1180,7 @@
             "discardText": "Your corrections to this receipt are not saved yet.",
             "discardConfirm": "Discard",
             "keepEditing": "Keep editing",
-            "amountDeviates": "The transaction amount ({{transaction}}) differs from the receipt ({{receipt}}). Confirming sets the receipt amount to the transaction amount.",
+            "amountDeviates": "The transaction amount ({{transaction}}) differs from the receipt ({{receipt}}).",
             "useReceiptAmount": "Use the receipt amount ({{amount}})"
         },
         "filter": {
@@ -1562,7 +1562,7 @@
             "readingTitle": "Reading receipt …",
             "readingHint": "{{file}} · Detecting sender, date and amount",
             "aiCreatedHint": "Created from the receipt by the AI. You check category and Bommel in the transaction.",
-            "receiptHigherHint": "The receipt is {{amount}} higher than the bank transaction. The transaction stays partially linked until you assign another bank transaction, for example a second instalment.",
+            "receiptHigherHint": "The receipt is {{amount}} higher than the bank transaction. The transaction stays partially linked until you assign another bank transaction.",
             "restOpen": "<b>{{amount}}</b> of the bank transaction is still open. Assign the rest or save the bank transaction as partially linked.",
             "uploadMore": "Upload another receipt",
             "restWithoutReceipt": "Record the rest without a receipt",
@@ -1570,9 +1570,7 @@
             "searchOpenTx": "Search open transactions ({{count}})",
             "clearSearch": "Clear search",
             "noSearchHit": "No match. Adjust your search.",
-            "partialAmount": "Partial amount",
             "partialAmountRange": "Between {{min}} and {{max}}.",
-            "link": "Link",
             "confidence": "{{pct}} % sure",
             "review": "Review",
             "assignPartial": "Assign partially",

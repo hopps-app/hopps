@@ -1,11 +1,12 @@
 import { TransactionResponse } from '@hopps/api-client';
 import { useQuery } from '@tanstack/react-query';
 import { Check, ChevronUp, ExternalLink, FileText, Link2, Loader2, Receipt, Search, Sparkles, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { fmtDate } from '@/components/BankAccounts/format';
 import { Badge, type BadgeTone } from '@/components/Transactions/StatusBadge';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { useCurrency } from '@/hooks/use-currency';
 import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService';
@@ -13,6 +14,7 @@ import { parseAllocationAmount } from '@/utils/parseAmount';
 
 const EPS = 0.005;
 const round2 = (n: number) => Math.round(n * 100) / 100;
+const fmtInput = (n: number) => n.toFixed(2).replace('.', ',');
 const DAY_MS = 86_400_000;
 // A candidate gets the confidence pill from this score on (and only while not searching).
 const STRONG_MATCH = 0.7;
@@ -62,7 +64,8 @@ interface Props {
 /**
  * Inline picker for the open (unconfirmed) transactions that can cover a bank movement. Mirrors the bank movement picker
  * of the transaction drawer: a row is selected first, then the amount to use ("Teilbetrag", prefilled with what fits) is
- * confirmed with "Verknüpfen". Rows are sorted by match quality.
+ * confirmed with "Verknüpfen" right in the selected row, so the action is where the user clicked instead of below a long
+ * list. Rows are sorted by match quality.
  */
 export function TransactionMatchPicker({
     bankAmount,
@@ -77,10 +80,17 @@ export function TransactionMatchPicker({
     onTogglePreview,
 }: Props) {
     const { t } = useTranslation();
-    const { format } = useCurrency();
+    const { format, symbol } = useCurrency();
     const [search, setSearch] = useState('');
     const [selectedId, setSelectedId] = useState<number | null>(null);
     const [useText, setUseText] = useState('');
+    // The amount field and link button of the selected row: brought into view on selection, also when the row is the
+    // last visible one of the list or the list itself sits low in the drawer.
+    const actionRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        // jsdom (tests) has no scrollIntoView.
+        actionRef.current?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+    }, [selectedId]);
 
     const { data: drafts = [], isFetching } = useQuery({
         queryKey: ['transactions', 'forMatch', 'drafts'],
@@ -118,33 +128,32 @@ export function TransactionMatchPicker({
     // The amount that fits: what the transaction still needs, capped by what is open on the movement. A transaction
     // without an amount yet takes the open rest.
     const fit = selected ? round2(selectedAmount > EPS ? Math.min(openOf(selected) || selectedAmount, rest) : rest) : 0;
-    const typed = parseAllocationAmount(useText);
-    const useValue = useText.trim() ? typed : fit;
+    const useValue = parseAllocationAmount(useText);
     const useValid = selected != null && useValue != null && useValue > 0 && useValue <= fit + EPS;
 
     function select(tx: TransactionResponse) {
         if (tx.id == null) return;
-        setUseText('');
         if (selectedId === tx.id) {
             setSelectedId(null);
             onPreview(0);
             return;
         }
-        setSelectedId(tx.id);
         const nextFit = round2(Math.abs(tx.total ?? 0) > EPS ? Math.min(openOf(tx) || Math.abs(tx.total ?? 0), rest) : rest);
+        setSelectedId(tx.id);
+        setUseText(fmtInput(nextFit));
         onPreview(nextFit);
     }
 
     function changeUse(text: string) {
         setUseText(text);
-        const v = text.trim() ? parseAllocationAmount(text) : fit;
+        const v = parseAllocationAmount(text);
         onPreview(v != null && v > 0 && v <= fit + EPS ? v : 0);
     }
 
     function changeSearch(text: string) {
         setSearch(text);
+        // The list changes under the selection, so start over.
         setSelectedId(null);
-        setUseText('');
         onPreview(0);
     }
 
@@ -162,161 +171,175 @@ export function TransactionMatchPicker({
             className="overflow-hidden rounded-[var(--r-card)] border border-border-soft"
             style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-md)' }}
         >
-            {/* Search, clear and collapse */}
-            <div className="flex items-center gap-2.5 border-b border-border-soft px-3.5 py-3">
-                <Search size={16} className="flex-shrink-0 text-[var(--ink-faint)]" />
-                <input
-                    autoFocus
-                    type="text"
-                    value={search}
-                    onChange={(e) => changeSearch(e.target.value)}
-                    placeholder={t('konten.drawer.searchOpenTx', { count: candidates.length })}
-                    className="min-w-0 flex-1 bg-transparent text-[14px] font-semibold text-foreground outline-none placeholder:font-medium placeholder:text-muted-foreground"
-                />
-                {search && (
-                    <button
-                        type="button"
-                        onClick={() => changeSearch('')}
-                        aria-label={t('konten.drawer.clearSearch')}
-                        className="grid p-[3px] text-[var(--ink-faint)] hover:text-foreground"
-                    >
-                        <X size={16} />
-                    </button>
-                )}
+            {/* Search over the open transactions, with clear and collapse */}
+            <div className="flex items-stretch border-b border-border-soft">
+                <label className="flex min-w-0 flex-1 items-center gap-2.5 px-4 py-3.5">
+                    <Search size={17} className="flex-shrink-0 text-[var(--ink-faint)]" />
+                    <input
+                        autoFocus
+                        type="text"
+                        value={search}
+                        onChange={(e) => changeSearch(e.target.value)}
+                        placeholder={t('konten.drawer.searchOpenTx', { count: candidates.length })}
+                        className="min-w-0 flex-1 bg-transparent text-[14.5px] font-medium text-foreground outline-none placeholder:text-muted-foreground"
+                    />
+                    {search && (
+                        <button
+                            type="button"
+                            onClick={() => changeSearch('')}
+                            aria-label={t('konten.drawer.clearSearch')}
+                            className="grid p-[3px] text-[var(--ink-faint)] hover:text-foreground"
+                        >
+                            <X size={16} />
+                        </button>
+                    )}
+                </label>
+                <span aria-hidden="true" className="my-3 w-px bg-border-soft" />
                 <button
                     type="button"
                     onClick={onClose}
                     aria-label={t('common.collapse')}
-                    className="grid border-l border-border-soft py-[3px] pl-2.5 pr-[3px] text-muted-foreground hover:text-foreground"
+                    className="grid w-14 flex-shrink-0 place-items-center text-muted-foreground transition-colors hover:text-foreground"
                 >
-                    <ChevronUp size={17} />
+                    <ChevronUp size={18} />
                 </button>
             </div>
 
-            <div className="max-h-[232px] overflow-y-auto">
+            <div className="max-h-[272px] overflow-y-auto">
                 {isFetching && drafts.length === 0 ? (
-                    <div className="flex items-center gap-2 px-3.5 py-4 text-[13px] text-muted-foreground">
+                    <div className="flex items-center gap-2 px-4 py-4 text-[13px] text-muted-foreground">
                         <Loader2 size={14} className="animate-spin" />
                         {t('transactions.detail.bankLoading')}
                     </div>
                 ) : list.length === 0 ? (
-                    <p className="px-3.5 py-[22px] text-center text-[13px] text-muted-foreground">
+                    <p className="px-4 py-4 text-center text-[13px] text-[var(--ink-faint)]">
                         {candidates.length ? t('konten.drawer.noSearchHit') : t('konten.drawer.noOpenTx')}
                     </p>
                 ) : (
                     list.map(({ tx, score }) => {
                         const on = tx.id === selectedId;
                         return (
-                            <div
-                                key={tx.id}
-                                onClick={() => select(tx)}
-                                className={cn(
-                                    'flex cursor-pointer items-center gap-[11px] border-b border-border-soft px-3.5 py-[11px] transition-colors last:border-b-0',
-                                    on ? 'bg-[var(--accent-surface)]' : 'hover:bg-[var(--surface-sunken)]'
-                                )}
-                            >
-                                <span
-                                    className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-[10px]"
-                                    style={{ background: on ? 'var(--primary)' : 'var(--surface-track)', color: on ? '#fff' : 'var(--muted-foreground)' }}
+                            <div key={tx.id} className="border-b border-border-soft last:border-b-0">
+                                <div
+                                    className={cn(
+                                        'flex items-center gap-2 pr-3 transition-colors',
+                                        on ? 'bg-[var(--accent-surface)]' : 'hover:bg-[var(--surface-sunken)]'
+                                    )}
                                 >
-                                    {on ? <Check size={16} strokeWidth={3} /> : <Receipt size={16} />}
-                                </span>
-                                <span className="flex min-w-0 flex-1 flex-col">
-                                    <span className="truncate text-[14px] font-bold text-foreground">{tx.name || '—'}</span>
-                                    <span className="mt-px truncate text-[12px] text-muted-foreground">
-                                        {fmtDate(tx.transactionTime)} · {tx.senderName || '—'}
-                                    </span>
-                                </span>
-                                {!needle && score >= STRONG_MATCH && <Confidence value={score} />}
-                                <span className="flex-shrink-0 whitespace-nowrap text-[14px] font-extrabold tabular-nums">
-                                    {format(Math.abs(tx.total ?? 0))}
-                                </span>
-                                {/* Show the candidate's receipt next to the drawer; does not toggle the selection. */}
-                                {tx.documentId != null && (
                                     <button
                                         type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onTogglePreview(tx.documentId!);
-                                        }}
-                                        aria-pressed={previewDocId === tx.documentId}
-                                        title={previewDocId === tx.documentId ? t('konten.drawer.hideReceipt') : t('konten.drawer.showReceipt')}
-                                        className={cn(
-                                            'grid h-7 w-7 flex-shrink-0 place-items-center rounded-full border transition-colors',
-                                            previewDocId === tx.documentId
-                                                ? 'border-purple-300 bg-[var(--accent-surface)] text-purple-700'
-                                                : 'border-border-soft text-muted-foreground hover:border-purple-300 hover:text-purple-700'
-                                        )}
+                                        onClick={() => select(tx)}
+                                        aria-pressed={on}
+                                        className="flex min-w-0 flex-1 items-center gap-3 py-3 pl-4 text-left"
                                     >
-                                        <FileText size={13} />
+                                        <span
+                                            className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-[var(--r-sm)]"
+                                            style={{
+                                                background: on ? 'var(--primary)' : 'var(--surface-track)',
+                                                color: on ? '#fff' : 'var(--muted-foreground)',
+                                            }}
+                                        >
+                                            {on ? <Check size={18} strokeWidth={3} /> : <Receipt size={17} />}
+                                        </span>
+                                        <span className="flex min-w-0 flex-1 flex-col">
+                                            <span className="truncate text-[14.5px] font-bold text-foreground">{tx.name || '—'}</span>
+                                            <span className="truncate text-[12.5px] text-muted-foreground">
+                                                {fmtDate(tx.transactionTime)} · {tx.senderName || '—'}
+                                            </span>
+                                        </span>
+                                        {!needle && score >= STRONG_MATCH && <Confidence value={score} />}
+                                        <span className="flex-shrink-0 whitespace-nowrap text-[14.5px] font-extrabold tabular-nums">
+                                            {format(Math.abs(tx.total ?? 0))}
+                                        </span>
                                     </button>
+                                    {/* Show the candidate's receipt next to the drawer; does not toggle the selection. */}
+                                    {tx.documentId != null && (
+                                        <button
+                                            type="button"
+                                            onClick={() => onTogglePreview(tx.documentId!)}
+                                            aria-pressed={previewDocId === tx.documentId}
+                                            title={previewDocId === tx.documentId ? t('konten.drawer.hideReceipt') : t('konten.drawer.showReceipt')}
+                                            className={cn(
+                                                'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[var(--btn-radius)] border transition-colors',
+                                                previewDocId === tx.documentId
+                                                    ? 'border-purple-300 bg-[var(--accent-surface)] text-purple-700'
+                                                    : 'border-border-soft text-[var(--ink-faint)] hover:border-purple-300 hover:text-purple-700'
+                                            )}
+                                        >
+                                            <FileText size={13} />
+                                        </button>
+                                    )}
+                                    {/* Open the transaction in a new tab, so this assignment stays open. */}
+                                    <button
+                                        type="button"
+                                        onClick={() => window.open(`/transactions?id=${tx.id}`, '_blank', 'noopener,noreferrer')}
+                                        title={t('konten.drawer.openTransactionNewTab')}
+                                        className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[var(--btn-radius)] border border-border-soft text-[var(--ink-faint)] transition-colors hover:border-purple-300 hover:text-purple-700"
+                                    >
+                                        <ExternalLink size={13} />
+                                    </button>
+                                </div>
+                                {/* Confirm the selection: how much of the movement to use, and link */}
+                                {on && (
+                                    <div ref={actionRef} className="bg-[var(--accent-surface)] px-4 pb-3.5 pt-1">
+                                        <div className="flex items-center gap-3">
+                                            <span className="inline-flex flex-shrink-0 items-center gap-1.5 text-[13.5px] font-semibold text-muted-foreground">
+                                                {t('transactions.detail.partialAmountLabel')}
+                                                <InfoTooltip
+                                                    content={t('transactions.detail.partialAmountHint')}
+                                                    label={t('transactions.detail.partialAmountLabel')}
+                                                />
+                                            </span>
+                                            <div
+                                                className={cn(
+                                                    'flex h-10 w-[132px] min-w-0 items-center gap-1.5 rounded-[12px] border bg-[var(--background-secondary)] px-3 transition-shadow focus-within:ring-[3px]',
+                                                    useValid
+                                                        ? 'border-border-soft focus-within:border-primary focus-within:ring-[var(--accent-surface)]'
+                                                        : 'border-[var(--negative-border)] focus-within:ring-[var(--negative-surface)]'
+                                                )}
+                                            >
+                                                <input
+                                                    type="text"
+                                                    inputMode="decimal"
+                                                    value={useText}
+                                                    onChange={(e) => changeUse(e.target.value)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') submit();
+                                                    }}
+                                                    aria-invalid={!useValid}
+                                                    aria-label={t('transactions.detail.partialAmountLabel')}
+                                                    className="min-w-0 flex-1 bg-transparent p-0 text-right text-[15px] font-extrabold tabular-nums outline-none"
+                                                />
+                                                <span className="text-[15px] font-extrabold text-muted-foreground">{symbol}</span>
+                                            </div>
+                                            <div className="flex-1" />
+                                            <button
+                                                type="button"
+                                                onClick={submit}
+                                                disabled={!useValid || pending}
+                                                className="inline-flex h-10 flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-[var(--btn-radius)] bg-primary px-5 text-[14.5px] font-bold text-white transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+                                            >
+                                                {pending ? <Loader2 size={16} className="animate-spin" /> : <Link2 size={16} />}
+                                                {t('transactions.detail.link')}
+                                            </button>
+                                        </div>
+                                        {useValid && useValue != null && useValue < selectedAmount - EPS && (
+                                            <div className="mt-1.5 text-[12.5px] tabular-nums text-muted-foreground">
+                                                {t('transactions.detail.partialAmountOf', { used: format(useValue), total: format(selectedAmount) })}
+                                            </div>
+                                        )}
+                                        {!useValid && (
+                                            <div className="mt-1.5 text-[12.5px] font-semibold text-[var(--negative)]">
+                                                {t('konten.drawer.partialAmountRange', { min: format(0.01), max: format(fit) })}
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
-                                {/* Open the transaction in a new tab, so this assignment stays open. */}
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        window.open(`/transactions?id=${tx.id}`, '_blank', 'noopener,noreferrer');
-                                    }}
-                                    title={t('konten.drawer.openTransactionNewTab')}
-                                    className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-full border border-border-soft text-muted-foreground transition-colors hover:border-purple-300 hover:text-purple-700"
-                                >
-                                    <ExternalLink size={13} />
-                                </button>
                             </div>
                         );
                     })
                 )}
             </div>
-
-            {/* Amount to use for the selection, and link */}
-            {selected && (
-                <div className="flex items-center gap-3 border-t border-border-soft px-3.5 py-3" style={{ background: 'var(--surface-sunken)' }}>
-                    <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                            <span className="text-[12.5px] font-semibold text-muted-foreground">{t('konten.drawer.partialAmount')}</span>
-                            <span
-                                className={cn(
-                                    'flex h-[34px] items-center gap-[3px] rounded-[10px] border-[1.5px] bg-[var(--background-secondary)] px-2.5',
-                                    useValid ? 'border-border-soft' : 'border-[var(--negative)]'
-                                )}
-                            >
-                                <input
-                                    type="text"
-                                    inputMode="decimal"
-                                    value={useText}
-                                    onChange={(e) => changeUse(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') submit();
-                                    }}
-                                    placeholder={fit.toFixed(2).replace('.', ',')}
-                                    aria-label={t('konten.drawer.partialAmount')}
-                                    aria-invalid={!useValid}
-                                    className={cn(
-                                        'w-[78px] bg-transparent text-right text-[14px] font-extrabold tabular-nums outline-none',
-                                        useValid ? 'text-foreground' : 'text-[var(--negative)]'
-                                    )}
-                                />
-                                <span className="text-[14px] font-extrabold text-muted-foreground">€</span>
-                            </span>
-                        </div>
-                        {!useValid && (
-                            <div className="mt-[7px] text-[12px] font-semibold text-[var(--negative)]">
-                                {t('konten.drawer.partialAmountRange', { min: format(0.01), max: format(fit) })}
-                            </div>
-                        )}
-                    </div>
-                    <button
-                        type="button"
-                        onClick={submit}
-                        disabled={!useValid || pending}
-                        className="inline-flex h-10 flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-[var(--btn-radius)] bg-primary px-5 text-[14px] font-bold text-white transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
-                    >
-                        {pending ? <Loader2 size={15} className="animate-spin" /> : <Link2 size={15} />}
-                        {t('konten.drawer.link')}
-                    </button>
-                </div>
-            )}
         </div>
     );
 }
