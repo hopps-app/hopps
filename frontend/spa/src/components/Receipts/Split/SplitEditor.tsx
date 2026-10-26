@@ -1,4 +1,4 @@
-import { Info, Plus, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { SplitPartRow } from './SplitPartRow';
@@ -46,26 +46,20 @@ export function SplitEditor({
                     </button>
                 )}
             </div>
-            {!hasTotal && (
-                <div
-                    className="flex items-start gap-3 rounded-[var(--r-card)] border px-4 py-3.5"
-                    style={{ background: 'var(--warning-surface)', borderColor: 'color-mix(in oklch, var(--warning) 25%, transparent)' }}
-                >
-                    <Info size={18} className="mt-px flex-shrink-0 text-[var(--warning)]" />
-                    <p className="text-[13.5px] font-semibold leading-snug text-[var(--warning)]">{t('receipts.split.noTotal')}</p>
-                </div>
-            )}
             <SumBar
                 value={format(sum.assigned)}
                 total={t('receipts.split.of', { total: format(total) })}
                 ok={!sum.over && sum.unassigned === 0 && hasTotal}
-                tone={sum.over ? 'warn' : 'neutral'}
+                // Without a receipt amount there is nothing to distribute; that, not the sum, is what to fix first.
+                tone={!hasTotal ? 'open' : sum.over ? 'warn' : sum.unassigned > 0 ? 'open' : 'neutral'}
                 message={
-                    sum.over
-                        ? t('receipts.split.over', { amount: format(-sum.diff) })
-                        : sum.unassigned > 0
-                          ? t('receipts.split.unassigned', { amount: format(sum.unassigned) })
-                          : t('receipts.split.sumOk')
+                    !hasTotal
+                        ? t('receipts.split.noTotalShort')
+                        : sum.over
+                          ? t('receipts.split.over', { amount: format(-sum.diff) })
+                          : sum.unassigned > 0
+                            ? t('receipts.split.unassigned', { amount: format(sum.unassigned) })
+                            : t('receipts.split.sumOk')
                 }
                 segments={perPart.map((x) => ({
                     key: x.part.key,
@@ -81,6 +75,7 @@ export function SplitEditor({
                     index={x.index}
                     amount={x.amount}
                     groups={x.groups}
+                    missing={x.errors}
                     errors={x.visible}
                     bommelItems={editor.bommelItems}
                     bommelName={editor.bommelNameOf(x.part.bommelId)}
@@ -98,7 +93,7 @@ export function SplitEditor({
             <BaseButton
                 variant="outline"
                 onClick={editor.add}
-                className="h-[42px] w-full gap-2 rounded-[var(--btn-radius)] border-border-soft bg-[var(--background-secondary)] text-[14px] font-bold"
+                className="h-[42px] w-full gap-2 rounded-[var(--btn-radius)] border-border-soft bg-[var(--background-secondary)] text-[14px] font-bold shadow-none hover:shadow-none"
             >
                 <Plus size={16} />
                 {t('receipts.split.addPart')}

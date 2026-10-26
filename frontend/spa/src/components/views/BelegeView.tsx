@@ -37,11 +37,11 @@ import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { DOC_GRID, DOC_GRID_NARROW } from '@/components/Receipts/layout';
 import { ReceiptsTableSkeleton } from '@/components/Receipts/ReceiptsSkeleton';
 import { SplitEditor } from '@/components/Receipts/Split/SplitEditor';
-import { seedSplitParts, fromTransaction } from '@/components/Receipts/Split/splitHelpers';
+import { categoryValuesOf, seedSplitParts, fromTransaction } from '@/components/Receipts/Split/splitHelpers';
 import { SplitTransactionsView } from '@/components/Receipts/Split/SplitTransactionsView';
 import { useSplitEditor } from '@/components/Receipts/Split/useSplitEditor';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
-import { DirectionCards, Field, footerBtn, inputCls } from '@/components/Transactions/drawerParts';
+import { DirectionCards, Field, errorInputCls, footerBtn, hideWhileEditingCls, inputCls, pickerFocusCls } from '@/components/Transactions/drawerParts';
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
 import { HIDE_BOMMEL_QUERY } from '@/components/Transactions/layout';
 import { Badge, type BadgeTone, StatusBadge as TxStatusBadge } from '@/components/Transactions/StatusBadge';
@@ -85,6 +85,7 @@ import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
 import { getDuplicateDocumentId, getErrorStatus, isNetworkError } from '@/utils/errorUtils';
+import { isInvalidAmount, parseAllocationAmount } from '@/utils/parseAmount';
 
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
 
@@ -176,16 +177,28 @@ function DrawerInput({
     loading = false,
     type = 'text',
     inputMode,
+    warn = false,
+    error = false,
 }: {
     value: string;
     onChange: (v: string) => void;
     loading?: boolean;
     type?: string;
     inputMode?: 'decimal' | 'text';
+    // Orange border for a value that is still missing, like the required fields of the split.
+    warn?: boolean;
+    // Red border for a value that is wrong, not just missing.
+    error?: boolean;
 }) {
     return (
         <div className="relative">
-            <input type={type} inputMode={inputMode} value={value} onChange={(e) => onChange(e.target.value)} className={cn(inputCls, loading && 'pr-9')} />
+            <input
+                type={type}
+                inputMode={inputMode}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                className={cn(inputCls, loading && 'pr-9', error ? errorInputCls : warn && 'border-[var(--warning)]')}
+            />
             {loading && (
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-purple-700">
                     <Loader2 size={15} className="animate-spin" />
@@ -275,7 +288,9 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
     // The form edits the split in place of the single bommel and category fields. Also on a confirmed receipt, whose
     // split is changed (or a transaction added) right here instead of in a separate view.
     const [splitting, setSplitting] = useState(false);
-    const editingForm = !locked || splitting;
+    // A confirmed single receipt reopened in the form ("Beleg bearbeiten"), while its transaction is still a draft.
+    const [editingReceipt, setEditingReceipt] = useState(false);
+    const editingForm = !locked || splitting || editingReceipt;
     const { data: savedParts } = useDocumentTransactions(doc?.id);
     // Receipts created from a bank movement already carry a (draft) transaction before they are confirmed. Their form
     // edits that transaction.
@@ -301,9 +316,12 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
     // this, so going back to the previous value clears the hint again.
     const [baseline, setBaseline] = useState<ReviewForm | null>(null);
     const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false);
+    // Asks before a first split leaves part of the receipt amount unbooked.
+    const [unbookedOpen, setUnbookedOpen] = useState(false);
     useEffect(() => {
         setDetailTab('transaction');
         setSplitting(false);
+        setEditingReceipt(false);
     }, [docProp?.id]);
 
     const open = docProp !== null;
@@ -439,7 +457,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
     }
 
     function buildPayload() {
-        const rawAmount = parseFloat(amount.replace(',', '.'));
+        const rawAmount = parseAllocationAmount(amount) ?? NaN;
         return new DocumentUpdateRequest({
             name: name || undefined,
             total: !isNaN(rawAmount) ? rawAmount : undefined,
@@ -455,14 +473,29 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
     // The receipt already has its transaction but is in review: when its amount differs from the receipt total (e.g. the
     // transaction was edited by hand afterwards), the deviation is shown, and confirming aligns the receipt with it.
     const receiptTotal = doc?.total != null ? Math.abs(Number(doc.total)) : null;
-    const formAmount = parseFloat(amount.replace(',', '.'));
+    const formAmount = parseAllocationAmount(amount) ?? NaN;
+    // Typed but not an amount (e.g. "4ßß"): an error that blocks saving, rather than being read as 4 or dropped.
+    const amountInvalid = isInvalidAmount(amount);
     const amountDeviates = !splitting && isBankReconcile && receiptTotal != null && !isNaN(formAmount) && Math.abs(formAmount) !== receiptTotal;
 
     // ── Split ("Betrag auf mehrere Bommel und Kategorien aufteilen") ──
     // The parts share out the amount of the form, so changing it moves the rest part along.
     const splitTotal = isNaN(formAmount) ? 0 : Math.abs(formAmount);
     const splitEditor = useSplitEditor(splitTotal);
+    // A part amount that is not a number blocks saving the split as well (it would be stored as 0).
+    const splitAmountInvalid = splitting && splitEditor.perPart.some((x) => x.errors.some((e) => e.invalid));
     const splitDirty = splitting && splitEditor.dirty;
+    // Parts with an id update their existing transaction, the others are created. Only a first split "creates"; editing
+    // a saved one confirms it and names how many transactions are added.
+    const newSplitParts = splitEditor.parts.filter((p) => p.id == null).length;
+    const splitConfirmLabel =
+        newSplitParts === splitEditor.parts.length
+            ? newSplitParts > 1
+                ? t('receipts.split.createMany', { n: newSplitParts })
+                : t('receipts.split.createOne')
+            : newSplitParts === 0
+              ? t('receipts.split.confirmSplit')
+              : t('receipts.split.confirmSplitNew', { count: newSplitParts });
 
     function startSplit() {
         splitEditor.seed(seedSplitParts(savedParts ?? [], splitTotal, { bommelId: bommelId ? Number(bommelId) : null, categoryValues }));
@@ -472,6 +505,10 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
 
     // A split still in review opens right in the split. Seeded once per receipt, so saving keeps what is on screen.
     const splitSeededRef = useRef<number | null>(null);
+    // Opening a receipt (also the same one again, which resets the form to the single booking) seeds its split anew.
+    useEffect(() => {
+        splitSeededRef.current = null;
+    }, [docProp?.id]);
     useEffect(() => {
         if (doc?.id == null || locked || !isSplitDoc || !savedParts || savedParts.length < 2) return;
         if (splitSeededRef.current === doc.id) return;
@@ -500,10 +537,16 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
 
     // Saves the receipt header and the parts. A draft keeps the receipt in review; "create" confirms it, and the drawer
     // then shows the transactions so they can be linked to their bank movements.
-    async function saveSplit(confirmDocument: boolean) {
+    async function saveSplit(confirmDocument: boolean, unbookedAccepted = false) {
         if (!doc?.id) return;
         if (confirmDocument && splitEditor.blocked) {
             splitEditor.markAttempted();
+            return;
+        }
+        // An unassigned rest is allowed (it stays unbooked), but easy to mistake for an error. Asked once, when the receipt
+        // is confirmed for the first time; re-confirming an already confirmed split does not ask again.
+        if (confirmDocument && !locked && !unbookedAccepted && splitEditor.sum.unassigned > 0) {
+            setUnbookedOpen(true);
             return;
         }
         const saved: ReviewForm = { name, amount, date, senderName, bommelId, privatelyPaid, direction, categoryValues };
@@ -528,13 +571,13 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
         } else {
             // New parts have ids now: continue from what was saved, so saving again updates them instead of adding.
             splitEditor.seed(result.map(fromTransaction));
-            showSuccess(t('receipts.split.toast.draftSaved'));
+            showSuccess(locked ? t('receipts.split.toast.draftReopened') : t('receipts.split.toast.draftSaved'));
         }
     }
 
     // For a bank-origin receipt the values are written onto the EXISTING transaction (signed by direction).
     function buildTransactionPayload() {
-        const rawAmount = parseFloat(amount.replace(',', '.'));
+        const rawAmount = parseAllocationAmount(amount) ?? NaN;
         const signed = isNaN(rawAmount) ? undefined : direction === 'OUTGOING' ? Math.abs(rawAmount) : -Math.abs(rawAmount);
         return new TransactionUpdateRequest({
             name: name || undefined,
@@ -598,6 +641,52 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
         setDetailTab('transaction');
     }
 
+    // "Beleg bearbeiten": the form again, with the receipt's header and the bommel and category values of its transaction
+    // (they may have been changed there since). Mirrors "Aufteilung bearbeiten" for a split receipt.
+    function startEditReceipt() {
+        if (!doc) return;
+        applyForm({
+            name: doc.name ?? '',
+            amount: doc.total != null ? String(Math.abs(Number(doc.total))) : '',
+            date: doc.transactionTime ? new Date(doc.transactionTime).toISOString().slice(0, 10) : '',
+            senderName: doc.senderName ?? '',
+            bommelId: linkedTx?.bommelId != null ? String(linkedTx.bommelId) : doc.bommelId != null ? String(doc.bommelId) : '',
+            privatelyPaid: doc.privatelyPaid ?? false,
+            direction: doc.direction ?? 'INCOMING',
+            categoryValues: linkedTx ? categoryValuesOf(linkedTx) : {},
+        });
+        setEditingReceipt(true);
+        setDetailTab('transaction');
+    }
+
+    function cancelEditReceipt() {
+        if (baseline) applyForm(baseline);
+        setEditingReceipt(false);
+    }
+
+    // Saves the receipt and writes the same values onto its transaction, receipt first: the transaction then agrees with
+    // the new receipt amount, so the receipt stays confirmed. Required category groups must be filled, as when creating.
+    async function saveEditReceipt() {
+        if (!doc?.id) return;
+        if (formMissingGroups.length > 0) {
+            showError(t('categoryGroups.fields.missing', { groups: formMissingGroups.map((g) => g.name).join(', ') }));
+            return;
+        }
+        const saved: ReviewForm = { name, amount, date, senderName, bommelId, privatelyPaid, direction, categoryValues };
+        try {
+            await updateMutation.mutateAsync(Object.assign(buildPayload(), { id: doc.id }));
+            if (linkedTransactionId) {
+                await updateTransaction.mutateAsync({ id: linkedTransactionId, data: buildTransactionPayload() });
+            }
+        } catch {
+            // Shown by the global mutation error handler.
+            return;
+        }
+        setBaseline(saved);
+        setEditingReceipt(false);
+        showSuccess(t('receipts.toast.saved'));
+    }
+
     // Confirm the linked draft transaction from the read view (same rule as in the transaction drawer).
     async function handleConfirmTransaction() {
         if (!linkedTransactionId) return;
@@ -658,12 +747,16 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
     const canConfirmTx = txConfirmState.canConfirm && txMissingGroups.length === 0;
     // A split can be changed as long as none of its transactions is confirmed.
     const canEditSplit = (savedParts?.length ?? 0) > 0 && (savedParts ?? []).every((p) => p.status !== 'CONFIRMED');
+    // What is missing, then where to fill it in: the fields belong to the transaction (the card above opens it); the bank
+    // coverage is linked further down, so the hint only shows when a field is missing.
+    const txMissingFields = txConfirmState.missing.some((m) => m !== 'coverage') || txMissingGroups.length > 0;
     const txConfirmBlockers = canConfirmTx ? null : (
         <>
             <span className="font-bold">{t('transactions.confirmBlockers.title')}</span>
             <span className="mt-0.5 block">
                 {[...txConfirmState.missing.map((m) => t(`transactions.confirmBlockers.${m}`)), ...txMissingGroups.map((g) => g.name)].join(', ')}
             </span>
+            {txMissingFields && <span className="mt-1.5 block">{t('transactions.confirmBlockers.fixInTransaction')}</span>}
         </>
     );
 
@@ -754,7 +847,13 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                 <div className="flex items-center justify-between gap-3 border-b border-border-soft px-6 py-5" style={{ background: 'var(--drawer-bg)' }}>
                     <div className="min-w-0">
                         <Eyebrow>
-                            {splitting ? t('receipts.split.eyebrowEdit') : locked ? t('receipts.review.eyebrowView') : t('receipts.review.title')}
+                            {splitting
+                                ? t('receipts.split.eyebrowEdit')
+                                : editingReceipt
+                                  ? t('receipts.review.editReceipt')
+                                  : locked
+                                    ? t('receipts.review.eyebrowView')
+                                    : t('receipts.review.title')}
                         </Eyebrow>
                         {doc && <h2 className="mt-1 truncate text-[19px] font-extrabold text-foreground">{doc.fileName}</h2>}
                     </div>
@@ -882,7 +981,27 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                     </Field>
                                     <div className="grid grid-cols-2 gap-3.5">
                                         <Field label={`${t('receipts.review.amount')} (${symbol})`}>
-                                            <DrawerInput value={amount} onChange={setAmount} inputMode="decimal" loading={isAnalyzing && !amount} />
+                                            <div className="group/field contents">
+                                                <DrawerInput
+                                                    value={amount}
+                                                    onChange={setAmount}
+                                                    inputMode="decimal"
+                                                    loading={isAnalyzing && !amount}
+                                                    warn={splitting && !splitEditor.hasTotal}
+                                                    error={amountInvalid}
+                                                />
+                                                {/* The split shares out this amount, so it is needed before parts can be created. */}
+                                                {amountInvalid && (
+                                                    <span className="text-[12px] font-semibold text-[var(--negative)]">
+                                                        {t('receipts.split.amountInvalid')}
+                                                    </span>
+                                                )}
+                                                {!amountInvalid && splitting && !splitEditor.hasTotal && (
+                                                    <span className={cn('text-[12px] font-semibold text-[var(--warning)]', hideWhileEditingCls)}>
+                                                        {t('receipts.split.amountRequired')}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </Field>
                                         <Field label={t('receipts.review.date')}>
                                             <DrawerInput value={date} onChange={setDate} type="date" loading={isAnalyzing && !date} />
@@ -903,7 +1022,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                                     cacheBommelChoice(id);
                                                     setBommelId(id ? String(id) : '');
                                                 }}
-                                                triggerClassName="sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none"
+                                                triggerClassName={cn('sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none', pickerFocusCls)}
                                                 matchTriggerWidth
                                             />
                                         </Field>
@@ -952,16 +1071,19 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                                 />
                                             }
 
-                                            {/* Several bommels/categories on one receipt: the split takes the place of the fields above. */}
-                                            <button
-                                                type="button"
-                                                onClick={startSplit}
-                                                disabled={busy}
-                                                className="inline-flex items-center gap-1.5 self-start text-[13px] font-bold text-purple-700 transition-colors hover:text-purple-900 disabled:opacity-50"
-                                            >
-                                                <Plus size={15} />
-                                                {t('receipts.split.link')}
-                                            </button>
+                                            {/* Several bommels/categories on one receipt: the split takes the place of the fields above.
+                                                Not while editing a confirmed receipt; its read view offers "Weitere Transaktion hinzufügen". */}
+                                            {!editingReceipt && (
+                                                <button
+                                                    type="button"
+                                                    onClick={startSplit}
+                                                    disabled={busy}
+                                                    className="inline-flex items-center gap-1.5 self-start text-[13px] font-bold text-purple-700 transition-colors hover:text-purple-900 disabled:opacity-50"
+                                                >
+                                                    <Plus size={15} />
+                                                    {t('receipts.split.link')}
+                                                </button>
+                                            )}
                                         </>
                                     )}
 
@@ -991,7 +1113,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                 </div>
                             )}
 
-                            {detailTab === 'transaction' && locked && !splitting && (
+                            {detailTab === 'transaction' && locked && !splitting && !editingReceipt && (
                                 <div className="flex flex-col gap-6">
                                     {/* Head: direction tile, name, upload date */}
                                     <div className="flex items-center gap-3.5">
@@ -1196,9 +1318,18 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                             {t('common.cancel')}
                                         </BaseButton>
                                     )}
-                                    <BaseButton variant="tonal" onClick={() => saveSplit(false)} disabled={busy} className={footerBtn}>
-                                        {replaceParts.isPending ? '…' : t('receipts.review.save')}
-                                    </BaseButton>
+                                    {/* A draft keeps the receipt in review; on a confirmed receipt it takes the confirmation back,
+                                        so the tooltip says so. */}
+                                    <HintTooltip content={locked ? t('receipts.split.saveDraftReopenHint') : t('receipts.split.saveDraftHint')}>
+                                        <BaseButton
+                                            variant="tonal"
+                                            onClick={() => saveSplit(false)}
+                                            disabled={busy || amountInvalid || splitAmountInvalid}
+                                            className={footerBtn}
+                                        >
+                                            {replaceParts.isPending ? '…' : t('receipts.review.save')}
+                                        </BaseButton>
+                                    </HintTooltip>
                                     <HintTooltip
                                         className={splitEditor.blocked ? 'cursor-not-allowed' : undefined}
                                         onMouseEnter={splitEditor.blocked ? splitEditor.markAttempted : undefined}
@@ -1212,32 +1343,61 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                                         </span>
                                                     ))}
                                                 </>
-                                            ) : null
+                                            ) : (
+                                                t('receipts.split.confirmHint')
+                                            )
                                         }
                                     >
                                         <BaseButton
                                             variant="default"
                                             onClick={() => saveSplit(true)}
-                                            disabled={busy || splitEditor.blocked}
+                                            disabled={busy || splitEditor.blocked || amountInvalid}
                                             className={footerBtn}
                                         >
                                             <Check size={16} strokeWidth={2.5} />
-                                            {replaceParts.isPending
-                                                ? '…'
-                                                : splitEditor.parts.length > 1
-                                                  ? t('receipts.split.createMany', { n: splitEditor.parts.length })
-                                                  : t('receipts.split.createOne')}
+                                            {replaceParts.isPending ? '…' : splitConfirmLabel}
+                                        </BaseButton>
+                                    </HintTooltip>
+                                </>
+                            ) : editingReceipt ? (
+                                <>
+                                    <BaseButton variant="ghost" onClick={cancelEditReceipt} disabled={busy} className={cn(footerBtn, 'text-muted-foreground')}>
+                                        {t('common.cancel')}
+                                    </BaseButton>
+                                    <HintTooltip
+                                        content={
+                                            formMissingGroups.length > 0 ? (
+                                                <>
+                                                    <span className="font-bold">{t('transactions.confirmBlockers.title')}</span>
+                                                    <span className="mt-0.5 block">{formMissingGroups.map((g) => g.name).join(', ')}</span>
+                                                </>
+                                            ) : null
+                                        }
+                                    >
+                                        <BaseButton
+                                            variant="default"
+                                            onClick={saveEditReceipt}
+                                            disabled={busy || formMissingGroups.length > 0 || amountInvalid}
+                                            className={footerBtn}
+                                        >
+                                            <Check size={16} strokeWidth={2.5} />
+                                            {updateMutation.isPending || updateTransaction.isPending ? '…' : t('receipts.review.save')}
                                         </BaseButton>
                                     </HintTooltip>
                                 </>
                             ) : locked ? (
                                 <>
-                                    <BaseButton variant="tonal" onClick={onClose} className={footerBtn}>
-                                        {t('common.close')}
-                                    </BaseButton>
+                                    {!isSplitDoc && linkedTx && (
+                                        <HintTooltip content={linkedTx.status === 'DRAFT' ? null : t('receipts.review.editReceiptLocked')}>
+                                            <BaseButton variant="tonal" onClick={startEditReceipt} disabled={linkedTx.status !== 'DRAFT'} className={footerBtn}>
+                                                <Pencil size={15} />
+                                                {t('receipts.review.editReceipt')}
+                                            </BaseButton>
+                                        </HintTooltip>
+                                    )}
                                     {isSplitDoc && (
                                         <HintTooltip content={canEditSplit ? null : t('receipts.split.editSplitLocked')}>
-                                            <BaseButton variant="default" onClick={startSplit} disabled={!canEditSplit} className={footerBtn}>
+                                            <BaseButton variant="tonal" onClick={startSplit} disabled={!canEditSplit} className={footerBtn}>
                                                 <Pencil size={15} />
                                                 {t('receipts.split.editSplit')}
                                             </BaseButton>
@@ -1259,11 +1419,14 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                 </>
                             ) : (
                                 <>
-                                    <BaseButton variant="tonal" onClick={handleSave} disabled={busy} className={footerBtn}>
-                                        {(updateMutation.isPending || updateTransaction.isPending) && !confirmMutation.isPending
-                                            ? '…'
-                                            : t('receipts.review.save')}
-                                    </BaseButton>
+                                    {/* Saving is a draft: the receipt stays in review until it is confirmed. */}
+                                    <HintTooltip content={t('receipts.review.saveDraftHint')}>
+                                        <BaseButton variant="tonal" onClick={handleSave} disabled={busy || amountInvalid} className={footerBtn}>
+                                            {(updateMutation.isPending || updateTransaction.isPending) && !confirmMutation.isPending
+                                                ? '…'
+                                                : t('receipts.review.save')}
+                                        </BaseButton>
+                                    </HintTooltip>
                                     <HintTooltip
                                         content={
                                             formMissingGroups.length > 0 ? (
@@ -1277,7 +1440,7 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                         <BaseButton
                                             variant="default"
                                             onClick={handleCreateTransaction}
-                                            disabled={busy || formMissingGroups.length > 0}
+                                            disabled={busy || formMissingGroups.length > 0 || amountInvalid}
                                             className={footerBtn}
                                         >
                                             <Check size={16} strokeWidth={2.5} />
@@ -1305,6 +1468,19 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                 onConfirm={handleDelete}
                 destructive
                 loading={deleteMutation.isPending}
+            />
+
+            <ConfirmDialog
+                open={unbookedOpen}
+                onOpenChange={setUnbookedOpen}
+                title={t('receipts.split.unbooked.title')}
+                description={t('receipts.split.unbooked.text', { amount: format(splitEditor.sum.unassigned) })}
+                confirmLabel={t('receipts.split.unbooked.confirm')}
+                cancelLabel={t('receipts.split.unbooked.cancel')}
+                onConfirm={() => {
+                    setUnbookedOpen(false);
+                    saveSplit(true, true);
+                }}
             />
 
             <ConfirmDialog
@@ -2125,7 +2301,6 @@ export function BelegeView() {
                     <h1 className="font-bold text-[#1B1B1F] leading-tight" style={{ fontSize: 26 }}>
                         {t('receipts.title')}
                     </h1>
-                    <p className="mt-1 text-[13.5px] text-[#6B6B76]">{t('receipts.subtitle', { count: unreviewedCount })}</p>
                 </div>
             </div>
 
@@ -2164,8 +2339,11 @@ export function BelegeView() {
                         </button>
                     )}
 
-                    {/* Search, same look as on the transactions page */}
-                    <div className="relative w-64 max-w-full">
+                    {/* Search, same look as on the transactions page; wide enough to show the whole placeholder (plus icon and clear button padding) */}
+                    <div
+                        className="relative max-w-full text-[14.5px]"
+                        style={{ width: `max(16rem, calc(${t('receipts.searchPlaceholder').length}ch + 74px))` }}
+                    >
                         <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--ink-faint)] pointer-events-none" />
                         <input
                             type="text"
