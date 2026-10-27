@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.0](https://github.com/hopps-app/hopps/compare/v2.1.0...v2.2.0) (2026-10-27)
+
+
+### Features
+
+* first-use setup, category templates and unified empty and loading states ([#887](https://github.com/hopps-app/hopps/issues/887)) ([630fa5d](https://github.com/hopps-app/hopps/commit/630fa5d9a1a52762a7e23940656b2ee10ddb4b0d))
+
 ## [2.1.0](https://github.com/hopps-app/hopps/compare/v2.0.0...v2.1.0) (2026-10-21)
 
 
