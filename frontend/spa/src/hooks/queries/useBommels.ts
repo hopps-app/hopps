@@ -85,6 +85,10 @@ export function useDeleteBommel() {
         mutationFn: (id: number) => apiService.orgService.bommelDELETE(id, undefined),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: bommelKeys.lists() });
+            // Deleting detaches the bommel from transactions, receipts and bank accounts and may reopen transactions.
+            queryClient.invalidateQueries({ queryKey: ['transactions'] });
+            queryClient.invalidateQueries({ queryKey: ['documents'] });
+            queryClient.invalidateQueries({ queryKey: ['bankAccounts'] });
             showSuccess(t('organization.structure.deleteBommel'));
         },
         onError: () => {
