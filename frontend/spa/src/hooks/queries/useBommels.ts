@@ -68,6 +68,10 @@ export function useUpdateBommel() {
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: bommelKeys.lists() });
             queryClient.invalidateQueries({ queryKey: bommelKeys.detail(variables.id) });
+            // Cards show the bommel name from the transaction/receipt/account responses.
+            queryClient.invalidateQueries({ queryKey: ['transactions'] });
+            queryClient.invalidateQueries({ queryKey: ['documents'] });
+            queryClient.invalidateQueries({ queryKey: ['bankAccounts'] });
             showSuccess(t('organization.structure.saveName'));
         },
         onError: () => {
