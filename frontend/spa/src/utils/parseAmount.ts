@@ -10,3 +10,8 @@ export function parseAllocationAmount(raw: string): number | null {
     const n = Number(cleaned);
     return Number.isFinite(n) ? n : null;
 }
+
+// Something was typed that is not an amount (e.g. "4ßß"); an empty field is "missing", not invalid.
+export function isInvalidAmount(raw: string): boolean {
+    return raw.trim() !== '' && parseAllocationAmount(raw) == null;
+}

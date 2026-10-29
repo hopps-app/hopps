@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { FC, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { pickerFocusCls } from '@/components/Transactions/drawerParts';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/Command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn/Popover';
 import { useCategoryGroupValues } from '@/hooks/queries/useCategoryGroups';
@@ -47,7 +48,8 @@ const CategoryValueCombobox: FC<CategoryValueComboboxProps> = ({ groupId, value,
                         disabled={disabled}
                         className={cn(
                             'flex h-10 w-full cursor-pointer items-center justify-between gap-2 rounded-xl border bg-[var(--background-secondary)] px-3.5 text-left text-[14px] text-[var(--font-color)]',
-                            'border-border-soft transition-shadow focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-surface)]',
+                            'border-border-soft transition-shadow',
+                            pickerFocusCls,
                             'disabled:cursor-not-allowed disabled:opacity-50',
                             !value && 'text-muted-foreground',
                             warn && 'border-[var(--warning)]',
