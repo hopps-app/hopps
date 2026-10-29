@@ -68,6 +68,10 @@ export function useUpdateBommel() {
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: bommelKeys.lists() });
             queryClient.invalidateQueries({ queryKey: bommelKeys.detail(variables.id) });
+            // Cards show the bommel name from the transaction/receipt/account responses.
+            queryClient.invalidateQueries({ queryKey: ['transactions'] });
+            queryClient.invalidateQueries({ queryKey: ['documents'] });
+            queryClient.invalidateQueries({ queryKey: ['bankAccounts'] });
             showSuccess(t('organization.structure.saveName'));
         },
         onError: () => {
@@ -85,6 +89,10 @@ export function useDeleteBommel() {
         mutationFn: (id: number) => apiService.orgService.bommelDELETE(id, undefined),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: bommelKeys.lists() });
+            // Deleting detaches the bommel from transactions, receipts and bank accounts and may reopen transactions.
+            queryClient.invalidateQueries({ queryKey: ['transactions'] });
+            queryClient.invalidateQueries({ queryKey: ['documents'] });
+            queryClient.invalidateQueries({ queryKey: ['bankAccounts'] });
             showSuccess(t('organization.structure.deleteBommel'));
         },
         onError: () => {
