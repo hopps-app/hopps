@@ -179,8 +179,9 @@ public class BommelRepository implements PanacheRepository<Bommel> {
     /**
      * Deletes a bommel, with {@code recursive} also its descendants. What referenced them is kept:
      * <ul>
-     * <li>transactions lose their bommel and their category-group values; a confirmed one goes back to draft (confirming needs a bommel), as when it is
-     * reopened: a receipt booked as only that transaction returns to review, a split receipt stays confirmed</li>
+     * <li>transactions lose their bommel and their category-group values; a confirmed one goes back to draft
+     * (confirming needs a bommel), as when it is reopened: a receipt booked as only that transaction returns to review,
+     * a split receipt stays confirmed</li>
      * <li>receipts lose their bommel</li>
      * <li>bank accounts, which always belong to a bommel, move to the parent of the deleted bommel</li>
      * </ul>

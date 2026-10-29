@@ -1,6 +1,7 @@
 package app.hopps.bommel.repository;
 
 import app.hopps.bankimport.domain.BankAccount;
+import app.hopps.category.domain.CategoryGroup;
 import app.hopps.document.domain.Document;
 import app.hopps.document.domain.DocumentStatus;
 import app.hopps.shared.bootstrap.TestdataBootstrapper;
@@ -16,7 +17,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Deleting a bommel keeps what referenced it. Test data: "Workshops" (26) of Bühnefrei e.V. books the confirmed
@@ -65,6 +69,24 @@ class BommelDeletionTest {
         assertEquals(DocumentStatus.ANALYZED, receipt.getDocumentStatus());
 
         assertNull(repo.findById(WORKSHOPS));
+    }
+
+    @Test
+    @TestTransaction
+    @TestSecurity(user = "alice@example.test")
+    void dropsTheCategoryValuesOfTransactionsThatLoseTheirBommel() {
+        CategoryGroup group = new CategoryGroup();
+        group.setName("Kostenstelle");
+        group.setOrganization(repo.getOrganization(repo.findById(WORKSHOPS)));
+        group.persist();
+        em.find(Transaction.class, 4L).replaceCategoryValues(Map.of(group.id, "Technik"));
+        em.flush();
+
+        repo.deleteBommel(repo.findById(WORKSHOPS), false);
+        em.flush();
+        em.clear();
+
+        assertTrue(em.find(Transaction.class, 4L).getCategoryValues().isEmpty());
     }
 
     @Test
