@@ -1,19 +1,22 @@
-import { BankTransactionResponse, DocumentResponse, TransactionResponse } from '@hopps/api-client';
+import { BankTransactionResponse, DocumentResponse, MatchAllocationResponse, TransactionResponse } from '@hopps/api-client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ExternalLink, FileCheck2, FileText, Info, Landmark, Link2, Loader2, Plus, Receipt, Sparkles, Unlink, Upload } from 'lucide-react';
-import { useEffect, useState, type ReactNode } from 'react';
+import { ExternalLink, Eye, FileCheck2, FileText, Info, Landmark, Link2, Loader2, Plus, Receipt, Search, Sparkles, Unlink, Upload } from 'lucide-react';
+import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 import { BankStatusBadge } from '@/components/BankAccounts/BankStatusBadge';
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
 import { fmtDate } from '@/components/BankAccounts/format';
+import { CandidateInfo } from '@/components/BankAccounts/MatchCandidateRow';
 import { TransactionMatchPicker } from '@/components/BankAccounts/TransactionMatchPicker';
+import { allocationFor, confidenceTone, defaultAllocation, fitOf, STRONG_MATCH, useMatchCandidates } from '@/components/BankAccounts/useMatchCandidates';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
 import { FONT } from '@/components/Transactions/layout';
 import { MatchAllocationControl } from '@/components/Transactions/MatchAllocationControl';
 import { segmentColor, segmentTint } from '@/components/Transactions/segmentColors';
+import { Badge } from '@/components/Transactions/StatusBadge';
 import { CloseButton } from '@/components/ui/CloseButton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
@@ -33,6 +36,7 @@ import {
 import { useDocument } from '@/hooks/queries/useDocuments';
 import { useReopenTransaction, useTransaction } from '@/hooks/queries/useTransactions';
 import { useCurrency } from '@/hooks/use-currency';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService';
@@ -45,12 +49,26 @@ const EPS = 0.005;
 const ICON_BTN =
     'grid h-[34px] w-[34px] flex-shrink-0 place-items-center rounded-[11px] border border-border-soft bg-[var(--background-secondary)] text-muted-foreground transition-colors hover:border-[var(--border-strong)] hover:text-foreground disabled:opacity-50';
 const UNLINK_BTN = cn(ICON_BTN, 'hover:border-[var(--negative-border)] hover:text-[var(--negative)]');
-// Tonal small button ("Weiteren Beleg hochladen"), in the style of the row action.
-const TONAL_SM =
-    'inline-flex h-[34px] flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[var(--btn-radius)] bg-[var(--purple-100)] px-3.5 text-[13px] font-bold text-[var(--purple-700)] transition-colors hover:bg-[var(--purple-200)]';
+// The buttons of a suggestion: "Verknüpfen" is the primary one, "Vorschau" stays quiet next to it.
+const SUGGESTION_BTN =
+    'inline-flex h-[34px] flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[var(--btn-radius)] px-3.5 text-[13px] font-bold transition-colors';
+// Neutral option of the drawer (search, upload, create). Long labels wrap instead of pushing the neighbour out.
+const OPTION_BTN =
+    'inline-flex min-h-[42px] items-center justify-center gap-2 rounded-[var(--btn-radius)] border border-border-soft bg-[var(--background-secondary)] px-3 py-1.5 text-center text-[13px] font-bold leading-tight text-foreground transition-colors hover:bg-[var(--surface-sunken)]';
 // Footer buttons, as in the transaction drawer.
 const FOOTER_BTN = 'h-[42px] gap-2 rounded-[var(--btn-radius)] px-5 text-[14.5px] font-bold';
 const ACCEPT = { 'application/pdf': ['.pdf'], 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'] };
+// A new link rises into its place, where the suggestion or picker was a moment ago.
+const LINK_ENTER = 'motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300';
+// Content that arrives a moment later (a hint with its receipt, suggestions) or comes back after an unlink.
+const FADE_IN = 'motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300';
+const FADE_OUT = 'motion-safe:animate-out motion-safe:fade-out motion-safe:fill-mode-forwards motion-safe:duration-300';
+// The drawer slides like the other drawers. They stay mounted and toggle a class; this one is mounted per movement.
+const DRAWER_IN = 'motion-safe:animate-in motion-safe:slide-in-from-right-full motion-safe:duration-300 motion-safe:ease-out';
+const DRAWER_OUT = 'motion-safe:animate-out motion-safe:slide-out-to-right-full motion-safe:fill-mode-forwards motion-safe:duration-300 motion-safe:ease-out';
+const CLOSE_MS = 300;
+// How many strong matches the drawer suggests for the open rest.
+const MAX_SUGGESTIONS = 3;
 
 // ─── Building blocks ─────────────────────────────────────────────────────────
 
@@ -86,7 +104,7 @@ const HINT_TONE = {
 function Hint({ tone, icon, children }: { tone: keyof typeof HINT_TONE; icon: ReactNode; children: ReactNode }) {
     const style = HINT_TONE[tone];
     return (
-        <div className="mt-[11px] flex items-start gap-2.5 rounded-[12px] px-3 py-2.5" style={{ background: style.bg }}>
+        <div className={cn('mt-[11px] flex items-start gap-2.5 rounded-[12px] px-3 py-2.5', FADE_IN)} style={{ background: style.bg }}>
             <span className="mt-px flex-shrink-0" style={{ color: style.icon }}>
                 {icon}
             </span>
@@ -97,7 +115,8 @@ function Hint({ tone, icon, children }: { tone: keyof typeof HINT_TONE; icon: Re
 
 /**
  * Says where the values of a draft transaction created from a receipt come from, by the receipt's extraction source:
- * the AI (Document AI) or the ZUGFeRD data embedded in an e-invoice. A receipt without extracted data gets no hint.
+ * the AI (Document AI) or the ZUGFeRD data embedded in an e-invoice. A receipt without extracted data gets no hint, and
+ * only a receipt still waiting for review shows it: once confirmed, the values have been checked.
  */
 function SourceHint({ doc }: { doc: DocumentResponse }) {
     const { t } = useTranslation();
@@ -190,6 +209,7 @@ function LinkedTxCard({
     onReview,
     busy,
     color,
+    entering,
 }: {
     txId: number;
     used: number | undefined;
@@ -201,12 +221,21 @@ function LinkedTxCard({
     busy: boolean;
     /** Colour of this transaction's segment in the progress bar, repeated on the icon tile. Visual only. */
     color: string;
+    /** Just linked here, so the card animates in. */
+    entering: boolean;
 }) {
     const { t } = useTranslation();
     const { format } = useCurrency();
     const { data: tx } = useTransaction(txId);
     const { data: doc } = useDocument(tx?.documentId ?? undefined, { poll: false });
-    if (!tx) return null;
+    // Holds the card's place while the transaction loads, so what is below does not jump.
+    if (!tx) {
+        return (
+            <FlatCard>
+                <div className="h-[90px] animate-pulse rounded-[var(--r-sm)] bg-[var(--surface-track)]" />
+            </FlatCard>
+        );
+    }
 
     const amount = Math.abs(tx.total ?? 0);
     const usedAmount = used ?? Math.min(amount, movementMagnitude);
@@ -221,7 +250,7 @@ function LinkedTxCard({
     const partial = usedAmount < amount - EPS;
 
     return (
-        <FlatCard>
+        <FlatCard className={entering ? LINK_ENTER : FADE_IN}>
             <div className="flex items-start gap-3">
                 <IconTile bg={segmentTint(color)} fg={color}>
                     {tx.documentId != null ? <FileText size={17} /> : <Receipt size={17} />}
@@ -239,7 +268,7 @@ function LinkedTxCard({
                         {t('konten.drawer.receiptHigherHint', { amount: format(higherBy, { currency }) })}
                     </Hint>
                 ) : (
-                    doc && <SourceHint doc={doc} />
+                    receiptToReview && <SourceHint doc={doc} />
                 ))}
             {/* Actions: the used amount (editable unless the transaction is confirmed), unlink, then the way into the
                 transaction last: "Prüfen" while its receipt is not confirmed yet, otherwise open it in a new tab. */}
@@ -288,6 +317,76 @@ function LinkedTxCard({
     );
 }
 
+// A suggested transaction: its head as in the picker, how well it fits the open rest, then preview and link.
+function SuggestionCard({
+    tx,
+    score,
+    disabled,
+    canShowReceipt,
+    showingReceipt,
+    onPreview,
+    onLink,
+}: {
+    tx: TransactionResponse;
+    score: number;
+    disabled: boolean;
+    /** The preview shows the receipt next to the drawer; otherwise it opens the transaction in a new tab. */
+    canShowReceipt: boolean;
+    showingReceipt: boolean;
+    onPreview: () => void;
+    onLink: () => void;
+}) {
+    const { t } = useTranslation();
+
+    return (
+        <FlatCard className={FADE_IN}>
+            <div className="flex items-center gap-3">
+                <CandidateInfo tx={tx} />
+            </div>
+            {/* On a narrow drawer the buttons wrap below the badge and stay on the right. */}
+            <div className="mt-2.5 flex flex-wrap items-center justify-end gap-2">
+                <span className="mr-auto">
+                    <Badge tone={confidenceTone(score)}>
+                        <Sparkles size={12} />
+                        {t('konten.drawer.matchPercent', { pct: Math.round(score * 100) })}
+                    </Badge>
+                </span>
+                <button
+                    type="button"
+                    onClick={onPreview}
+                    aria-pressed={showingReceipt}
+                    title={
+                        showingReceipt
+                            ? t('konten.drawer.hideReceipt')
+                            : canShowReceipt
+                              ? t('konten.drawer.showReceipt')
+                              : t('konten.drawer.openTransactionNewTab')
+                    }
+                    className={cn(
+                        SUGGESTION_BTN,
+                        'border',
+                        showingReceipt
+                            ? 'border-purple-300 bg-[var(--accent-surface)] text-purple-700'
+                            : 'border-border-soft text-muted-foreground hover:bg-[var(--surface-sunken)] hover:text-foreground'
+                    )}
+                >
+                    {canShowReceipt ? <Eye size={15} /> : <ExternalLink size={15} />}
+                    {t('konten.drawer.preview')}
+                </button>
+                <button
+                    type="button"
+                    onClick={onLink}
+                    disabled={disabled}
+                    className={cn(SUGGESTION_BTN, 'bg-primary text-white hover:bg-primary/90 disabled:opacity-50')}
+                >
+                    <Link2 size={15} />
+                    {t('konten.drawer.suggestionLink')}
+                </button>
+            </div>
+        </FlatCard>
+    );
+}
+
 // ─── MatchDrawer ─────────────────────────────────────────────────────────────
 
 interface MatchDrawerProps {
@@ -309,7 +408,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     const queryClient = useQueryClient();
 
     const { data: bankTx } = useBankTransaction(bankTxId);
-    const { data: matchAllocs = [] } = useBankTransactionMatches(bankTxId);
+    const { data: loadedAllocs } = useBankTransactionMatches(bankTxId);
 
     const createReceipt = useCreateReceiptForBankTransaction();
     const addMatch = useAddBankTransactionMatch();
@@ -340,6 +439,15 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     // A candidate's receipt shown to the left of the drawer.
     const [previewDocId, setPreviewDocId] = useState<number | null>(null);
     const { data: previewDoc } = useDocument(previewDocId ?? undefined, { poll: false });
+    // The transaction linked last in this drawer: only its card and progress segment animate in, not those of older links.
+    const [justLinkedId, setJustLinkedId] = useState<number | null>(null);
+    // The progress segment of a link just removed, shrinking away at its old place.
+    const [leavingSegment, setLeavingSegment] = useState<{ index: number; amount: number; color: string } | null>(null);
+    // The receipt panel only exists from this width on (see below); narrower, "Vorschau" opens the transaction instead.
+    const receiptPanelFits = useMediaQuery('(min-width: 1024px)');
+    // Plays the closing animation, then unmounts.
+    const [closing, setClosing] = useState(false);
+    const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
 
     // The bommel store is populated on demand per view and the Konten page does not load it, so fetch it when "Beleg
     // prüfen" opens (its bommel selector would be empty otherwise).
@@ -352,8 +460,21 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
         }
     }, [reviewDoc, organizationId, bommelsLoaded, loadBommels]);
 
-    // Drag and drop (or click) a receipt. The upload creates its draft transaction and links it, so the drawer stays open
-    // and shows the new link.
+    const ignored = bankTx?.status === 'IGNORED';
+    const magnitude = Math.abs(bankTx?.amount ?? 0);
+    // Until the allocations arrive, the links and coverage of the list row, so the drawer opens the way it will stay.
+    const matchAllocs = loadedAllocs ?? (bankTx?.matchedTransactionIds ?? []).map((transactionId) => new MatchAllocationResponse({ transactionId }));
+    const linkedIds = new Set(matchAllocs.map((m) => m.transactionId!).filter((id) => id != null));
+    const assigned = loadedAllocs ? loadedAllocs.reduce((s, m) => s + (m.amount ?? 0), 0) : Math.abs(bankTx?.matchedAmount ?? 0);
+    const rest = Math.max(0, magnitude - assigned);
+    const covered = rest <= EPS;
+
+    // The strong matches for the open rest, offered right away and again after a partial link.
+    const { candidates, settled } = useMatchCandidates({ bankAmount: bankTx?.amount ?? 0, bookingDate: bankTx?.bookingDate, rest, linkedIds });
+    const suggestions = candidates.filter((c) => c.score >= STRONG_MATCH).slice(0, MAX_SUGGESTIONS);
+
+    // A receipt can be dropped anywhere on the drawer or chosen with the upload button. The upload creates its draft
+    // transaction and links it, so the drawer stays open and shows the new link.
     const {
         getRootProps,
         getInputProps,
@@ -375,23 +496,28 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
         },
         multiple: false,
         accept: ACCEPT,
-        disabled: createReceipt.isPending,
+        disabled: createReceipt.isPending || ignored || covered,
+        noClick: true,
+        noKeyboard: true,
     });
 
     if (!bankTx) return null;
 
-    const ignored = bankTx.status === 'IGNORED';
-    const magnitude = Math.abs(bankTx.amount ?? 0);
-    const linkedIds = new Set(matchAllocs.map((m) => m.transactionId!).filter((id) => id != null));
-    const assigned = matchAllocs.reduce((s, m) => s + (m.amount ?? 0), 0);
-    const rest = Math.max(0, magnitude - assigned);
-    const covered = rest <= EPS;
-
     const reading = uploadingName != null;
     const hasLinks = matchAllocs.length > 0;
+    // The first link brings its whole section with it; later ones only add a card to it.
+    const firstLink = matchAllocs.length === 1 && matchAllocs[0].transactionId === justLinkedId;
 
     const barPreview = Math.min(rest, preview);
     const pct = (v: number) => `${magnitude > 0 ? Math.min(100, (v / magnitude) * 100) : 0}%`;
+    // Without motion there is no shrinking, and so no end of it, so it is simply not shown.
+    const leavingBar = leavingSegment && (
+        <div
+            className="motion-safe:animate-segment-out motion-reduce:hidden"
+            style={{ width: pct(leavingSegment.amount), background: leavingSegment.color }}
+            onAnimationEnd={() => setLeavingSegment(null)}
+        />
+    );
 
     const summary = [
         { key: 'total', label: t('konten.drawer.sumAmount'), value: magnitude, color: 'var(--foreground)' },
@@ -401,18 +527,32 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
             value: assigned + preview,
             color: preview > EPS ? 'var(--purple-700)' : assigned > EPS ? 'var(--positive)' : 'var(--ink-faint)',
         },
-        // Only while something is assigned (or previewed) and a rest is still open, as in the transaction drawer: before
-        // that it would just repeat the amount, and once covered there is nothing open.
-        ...(assigned + preview > EPS && rest - preview > EPS
-            ? [{ key: 'open', label: t('konten.drawer.sumOpen'), value: rest - preview, color: 'var(--warning)' }]
-            : []),
+        // Always there, also at 0,00 €, so the columns do not shift when the movement gets covered.
+        {
+            key: 'open',
+            label: t('konten.drawer.sumOpen'),
+            value: Math.max(0, rest - preview),
+            color: rest - preview > EPS ? 'var(--warning)' : 'var(--ink-faint)',
+        },
     ];
 
-    async function link(transactionId: number, amount: number | undefined) {
-        await addMatch.mutateAsync({ bankTxId, transactionId, amount });
-        showSuccess(t('bankMatch.toast.linked'));
+    // The new link replaces the suggestion or picker in one step (see useAddBankTransactionMatch).
+    async function link(tx: TransactionResponse, amount: number | undefined) {
+        if (tx.id == null) return;
+        setJustLinkedId(tx.id);
         setPickerOpen(false);
         setPreview(0);
+        try {
+            await addMatch.mutateAsync({
+                bankTxId,
+                transactionId: tx.id,
+                amount,
+                optimistic: { tx, amount: amount ?? defaultAllocation(tx, bankTx!.amount ?? 0) },
+            });
+            showSuccess(t('bankMatch.toast.linked'));
+        } catch {
+            // Shown by the global mutation error handler; the mutation has taken the link back.
+        }
     }
 
     // Unlinks straight away, unless the transaction is confirmed and would no longer be fully covered without this
@@ -423,15 +563,44 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
         if (tx.status === 'CONFIRMED' && Math.abs(tx.total ?? 0) - coveredWithout > EPS) {
             setUnlinkPending(tx.id);
         } else {
+            keepSegmentLeaving(tx.id);
             removeMatch.mutate({ bankTxId, transactionId: tx.id });
         }
     }
 
+    // The link goes right away; its segment stays behind for a moment and shrinks.
+    function keepSegmentLeaving(transactionId: number) {
+        const index = matchAllocs.findIndex((m) => m.transactionId === transactionId);
+        if (index >= 0) setLeavingSegment({ index, amount: matchAllocs[index].amount ?? 0, color: segmentColor(index) });
+    }
+
     async function confirmUnlinkAndReopen() {
         if (unlinkPending == null) return;
+        keepSegmentLeaving(unlinkPending);
         await removeMatch.mutateAsync({ bankTxId, transactionId: unlinkPending });
         await reopenTx.mutateAsync(unlinkPending);
         setUnlinkPending(null);
+    }
+
+    // Links a suggestion with what fits, like the picker's prefilled amount.
+    function linkSuggestion(tx: TransactionResponse) {
+        return link(tx, allocationFor(tx, fitOf(tx, rest), bankTx!.amount ?? 0));
+    }
+
+    // "Vorschau": the receipt next to the drawer when there is one and room for it, otherwise the transaction in a new tab.
+    function previewSuggestion(tx: TransactionResponse) {
+        const documentId = tx.documentId;
+        if (documentId != null && receiptPanelFits) {
+            setPreviewDocId((prev) => (prev === documentId ? null : documentId));
+        } else {
+            window.open(`/transactions?id=${tx.id}`, '_blank', 'noopener,noreferrer');
+        }
+    }
+
+    function close() {
+        if (closing) return;
+        setClosing(true);
+        setTimeout(onClose, reducedMotion ? 0 : CLOSE_MS);
     }
 
     function closePicker() {
@@ -447,20 +616,20 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
             return;
         }
         showSuccess(t('bankMatch.toast.ignored'));
-        onClose();
+        close();
     }
 
     return (
         <>
             {/* Scrim */}
-            <div className="fixed inset-0 z-40 bg-[rgba(18,17,24,0.42)] backdrop-blur-[2px]" onClick={onClose} />
+            <div className={cn('fixed inset-0 z-40 bg-[rgba(18,17,24,0.42)] backdrop-blur-[2px]', closing ? FADE_OUT : FADE_IN)} onClick={close} />
 
             {/* A candidate's receipt to the left of the drawer (desktop only). The wrapper ignores pointer events so
                 clicks in the gap still reach the scrim. */}
             <div
                 className={cn(
                     'pointer-events-none fixed bottom-0 left-0 top-0 z-50 hidden p-4 transition-transform duration-300 ease-out lg:flex',
-                    previewDoc ? 'translate-x-0' : '-translate-x-full'
+                    previewDoc && !closing ? 'translate-x-0' : '-translate-x-full'
                 )}
                 style={{ right: 'var(--drawer-w)' }}
             >
@@ -469,97 +638,81 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
 
             {/* Drawer */}
             <div
-                className="fixed right-0 top-0 z-50 flex h-full flex-col"
+                {...getRootProps()}
+                className={cn('fixed right-0 top-0 z-50 flex h-full flex-col', closing ? DRAWER_OUT : DRAWER_IN)}
                 style={{ width: 'var(--drawer-w)', maxWidth: '94vw', background: 'var(--drawer-bg)', boxShadow: 'var(--shadow-lg)', fontFamily: FONT }}
             >
+                {/* Shown while a file is dragged over the drawer; the drawer itself is the drop target. */}
+                {isDragActive && (
+                    <div
+                        className="pointer-events-none absolute inset-3 z-10 flex items-center justify-center gap-2.5 rounded-[var(--r-card)] border-2 border-dashed border-primary text-[15px] font-extrabold text-[var(--purple-700)]"
+                        style={{ background: 'color-mix(in oklab, var(--accent-surface) 90%, transparent)' }}
+                    >
+                        <Upload size={20} />
+                        {t('konten.drawer.uploadReceiptDrop')}
+                    </div>
+                )}
+
                 <div className="flex flex-shrink-0 items-center justify-between border-b border-border-soft px-6 py-5">
                     <Eyebrow>{t('konten.drawer.title')}</Eyebrow>
-                    <CloseButton onClick={onClose} />
+                    <CloseButton onClick={close} />
                 </div>
 
                 <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto p-6">
-                    {/* Always mounted, so "Weiteren Beleg hochladen" can open the file picker without the dropzone. */}
+                    {/* Always mounted: the upload buttons and dropping on the drawer both use it. */}
                     <input {...getInputProps()} />
                     <BankCard bankTx={bankTx} />
 
-                    {uploadingName && <ReadingCard fileName={uploadingName} />}
-
-                    {/* Creation shortcuts, only while nothing is linked or uploading */}
-                    {!ignored && !hasLinks && !reading && (
-                        <>
-                            <div
-                                {...getRootProps()}
-                                className={cn(
-                                    'flex cursor-pointer select-none items-center gap-3.5 rounded-[var(--r-card)] border-2 border-dashed px-5 py-[18px] text-left transition-colors',
-                                    isDragActive ? 'border-primary' : 'border-[var(--border-strong)] hover:border-primary'
-                                )}
-                                style={{ background: 'color-mix(in oklab, var(--accent-surface) 45%, var(--background-secondary))' }}
-                            >
-                                <IconTile size={44} bg="var(--accent-surface)" fg="var(--purple-700)">
-                                    <Upload size={20} />
-                                </IconTile>
-                                <span className="min-w-0">
-                                    <span className="block text-[15px] font-extrabold text-foreground">{t('konten.drawer.uploadReceipt')}</span>
-                                    <span className="mt-0.5 block text-[13px] leading-[1.45] text-muted-foreground">
-                                        {isDragActive ? t('konten.drawer.uploadReceiptDrop') : t('konten.drawer.uploadReceiptHint')}
-                                    </span>
-                                </span>
+                    {/* Summary: amount, linked parts, open rest, with the progress bar. Flat, like the summary tile of the
+                        transaction drawer. */}
+                    {!ignored && (
+                        <div className="rounded-[var(--r-card)] px-4 py-[13px]" style={{ background: 'var(--surface-track)' }}>
+                            <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${summary.length}, minmax(0, 1fr))` }}>
+                                {summary.map((col) => (
+                                    <div key={col.key} className="min-w-0">
+                                        <div className="truncate text-[12.5px] font-semibold text-muted-foreground">{col.label}</div>
+                                        <div
+                                            className="mt-[3px] text-[16px] font-extrabold tabular-nums transition-colors duration-300"
+                                            style={{ color: col.color }}
+                                        >
+                                            {format(col.value, { currency: bankTx.currency })}
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => setShowCreate(true)}
-                                className="flex items-center gap-3.5 rounded-[var(--r-card)] border border-border-soft bg-[var(--background-secondary)] px-5 py-[18px] text-left transition-colors hover:bg-[var(--surface-sunken)]"
-                            >
-                                <IconTile size={44} bg="var(--surface-track)" fg="var(--muted-foreground)">
-                                    <Plus size={20} />
-                                </IconTile>
-                                <span className="min-w-0">
-                                    <span className="block text-[15px] font-extrabold text-foreground">{t('konten.drawer.createTransaction')}</span>
-                                    <span className="mt-0.5 block text-[13px] leading-[1.45] text-muted-foreground">
-                                        {t('konten.drawer.createTransactionHint')}
-                                    </span>
-                                </span>
-                            </button>
-                        </>
+                            {/* One segment per linked transaction, then the preview in the next colour. */}
+                            <div className="mt-3 flex h-1.5 gap-[2px] overflow-hidden rounded-full" style={{ background: 'var(--background-secondary)' }}>
+                                {matchAllocs.map((m, i) => (
+                                    <Fragment key={m.transactionId}>
+                                        {leavingSegment?.index === i && leavingBar}
+                                        <div
+                                            className={cn(
+                                                'transition-[width,background-color] duration-300 ease-out',
+                                                m.transactionId === justLinkedId && 'motion-safe:animate-segment-in'
+                                            )}
+                                            style={{ width: pct(m.amount ?? 0), background: segmentColor(i) }}
+                                        />
+                                    </Fragment>
+                                ))}
+                                {leavingSegment != null && leavingSegment.index >= matchAllocs.length && leavingBar}
+                                {barPreview > EPS && <div style={{ width: pct(barPreview), background: segmentColor(matchAllocs.length), opacity: 0.4 }} />}
+                            </div>
+                        </div>
                     )}
 
-                    {/* Transaktionen zuordnen */}
-                    {!ignored && (
-                        <div className="mt-2.5">
+                    {uploadingName && <ReadingCard fileName={uploadingName} />}
+
+                    {/* What is linked so far */}
+                    {!ignored && hasLinks && (
+                        <div className={firstLink ? LINK_ENTER : undefined}>
                             <Eyebrow icon={<Link2 size={14} />} className="mb-[11px]">
-                                {t('konten.drawer.matchSection')}
+                                {t('konten.drawer.sumAssigned')}
                             </Eyebrow>
                             <div className="flex flex-col gap-[11px]">
-                                {/* Summary: amount, linked parts, open rest, with the progress bar. Flat, like the summary
-                                    tile of the transaction drawer. */}
-                                <div className="rounded-[var(--r-card)] px-4 py-[13px]" style={{ background: 'var(--surface-track)' }}>
-                                    <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${summary.length}, minmax(0, 1fr))` }}>
-                                        {summary.map((col) => (
-                                            <div key={col.key} className="min-w-0">
-                                                <div className="truncate text-[12.5px] font-semibold text-muted-foreground">{col.label}</div>
-                                                <div className="mt-[3px] text-[16px] font-extrabold tabular-nums" style={{ color: col.color }}>
-                                                    {format(col.value, { currency: bankTx.currency })}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    {/* One segment per linked transaction, then the preview in the next colour. */}
-                                    <div
-                                        className="mt-3 flex h-1.5 gap-[2px] overflow-hidden rounded-full"
-                                        style={{ background: 'var(--background-secondary)' }}
-                                    >
-                                        {matchAllocs.map((m, i) => (
-                                            <div key={m.transactionId} style={{ width: pct(m.amount ?? 0), background: segmentColor(i) }} />
-                                        ))}
-                                        {barPreview > EPS && (
-                                            <div style={{ width: pct(barPreview), background: segmentColor(matchAllocs.length), opacity: 0.4 }} />
-                                        )}
-                                    </div>
-                                </div>
-
                                 {matchAllocs.map((m, i) => (
                                     <LinkedTxCard
                                         key={m.transactionId}
+                                        entering={!firstLink && m.transactionId === justLinkedId}
                                         color={segmentColor(i)}
                                         txId={m.transactionId!}
                                         used={m.amount}
@@ -571,63 +724,68 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                                         onReview={setReviewDoc}
                                     />
                                 ))}
+                            </div>
+                        </div>
+                    )}
 
-                                {/* Something is assigned, but a rest is still open */}
-                                {hasLinks && !covered && !reading && !pickerOpen && (
-                                    <FlatCard className="flex flex-col gap-2.5">
-                                        <div className="flex items-start gap-2.5">
-                                            <Info size={15} className="mt-0.5 flex-shrink-0 text-[var(--warning)]" />
-                                            <span className="min-w-0 flex-1 text-[13px] leading-[1.5] text-foreground">
-                                                <Trans
-                                                    i18nKey="konten.drawer.restOpen"
-                                                    values={{ amount: format(rest, { currency: bankTx.currency }) }}
-                                                    components={{ b: <strong className="tabular-nums" /> }}
-                                                />
-                                            </span>
-                                        </div>
-                                        <div className="flex flex-wrap gap-2">
-                                            <button type="button" onClick={openFilePicker} className={TONAL_SM}>
-                                                <Upload size={15} />
-                                                {t('konten.drawer.uploadMore')}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowCreate(true)}
-                                                className="inline-flex h-[34px] items-center gap-1.5 rounded-[var(--btn-radius)] px-3.5 text-[13px] font-bold text-foreground transition-colors hover:bg-[var(--surface-sunken)]"
-                                            >
-                                                <Plus size={15} />
-                                                {t('konten.drawer.restWithoutReceipt')}
-                                            </button>
-                                        </div>
-                                    </FlatCard>
-                                )}
-
-                                {/* Link more */}
-                                {!covered &&
-                                    !reading &&
-                                    (pickerOpen ? (
-                                        <TransactionMatchPicker
-                                            bankAmount={bankTx.amount ?? 0}
-                                            bookingDate={bankTx.bookingDate}
-                                            rest={rest}
-                                            linkedIds={linkedIds}
-                                            pending={addMatch.isPending}
-                                            onLink={link}
-                                            onPreview={setPreview}
-                                            onClose={closePicker}
-                                            previewDocId={previewDocId}
-                                            onTogglePreview={(id) => setPreviewDocId((prev) => (prev === id ? null : id))}
+                    {/* Everything that can still assign the open rest, most likely first */}
+                    {!ignored && !covered && !reading && settled && (
+                        <div className={cn('flex flex-col gap-[11px]', FADE_IN)}>
+                            {/* Strong matches, linked with one click. Hidden while the picker is open, which lists them too. */}
+                            {!pickerOpen && suggestions.length > 0 && (
+                                <>
+                                    <Eyebrow icon={<Sparkles size={14} />}>{t('konten.drawer.suggestionsTitle')}</Eyebrow>
+                                    {suggestions.map(({ tx, score }) => (
+                                        <SuggestionCard
+                                            key={tx.id}
+                                            tx={tx}
+                                            score={score}
+                                            disabled={addMatch.isPending}
+                                            canShowReceipt={tx.documentId != null && receiptPanelFits}
+                                            showingReceipt={tx.documentId != null && previewDocId === tx.documentId}
+                                            onPreview={() => previewSuggestion(tx)}
+                                            onLink={() => linkSuggestion(tx)}
                                         />
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            onClick={() => setPickerOpen(true)}
-                                            className="inline-flex h-[42px] w-full items-center justify-center gap-2 rounded-[var(--btn-radius)] border border-border-soft bg-[var(--background-secondary)] text-[14.5px] font-bold text-foreground transition-colors hover:bg-[var(--surface-sunken)]"
-                                        >
-                                            <Link2 size={16} />
-                                            {t('konten.drawer.linkTransaction')}
-                                        </button>
                                     ))}
+                                </>
+                            )}
+
+                            {pickerOpen ? (
+                                <TransactionMatchPicker
+                                    bankAmount={bankTx.amount ?? 0}
+                                    bookingDate={bankTx.bookingDate}
+                                    rest={rest}
+                                    linkedIds={linkedIds}
+                                    pending={addMatch.isPending}
+                                    onLink={link}
+                                    onPreview={setPreview}
+                                    onClose={closePicker}
+                                    previewDocId={previewDocId}
+                                    onTogglePreview={(id) => setPreviewDocId((prev) => (prev === id ? null : id))}
+                                />
+                            ) : (
+                                <button type="button" onClick={() => setPickerOpen(true)} className={cn(OPTION_BTN, 'w-full')}>
+                                    <Search size={15} className="flex-shrink-0" />
+                                    {suggestions.length > 0 ? t('konten.drawer.searchOther') : t('konten.drawer.searchTransaction')}
+                                </button>
+                            )}
+
+                            {/* Nothing fits: upload a receipt (also by dropping it on the drawer) or record it without one */}
+                            <Eyebrow className="mt-2.5">{t('konten.drawer.noMatchTitle')}</Eyebrow>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button type="button" onClick={openFilePicker} title={t('konten.drawer.uploadReceiptHint')} className={OPTION_BTN}>
+                                    <Upload size={15} className="flex-shrink-0" />
+                                    {hasLinks ? t('konten.drawer.uploadMore') : t('konten.drawer.uploadReceipt')}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCreate(true)}
+                                    title={t('konten.drawer.createTransactionHint')}
+                                    className={OPTION_BTN}
+                                >
+                                    <Plus size={15} className="flex-shrink-0" />
+                                    {hasLinks ? t('konten.drawer.restWithoutReceipt') : t('konten.drawer.createTransaction')}
+                                </button>
                             </div>
                         </div>
                     )}
@@ -643,7 +801,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                             <BaseButton
                                 variant="ghost"
                                 className={cn(FOOTER_BTN, 'border border-border-soft text-foreground hover:bg-[var(--background-secondary)]')}
-                                onClick={onClose}
+                                onClick={close}
                             >
                                 {t('common.close')}
                             </BaseButton>
@@ -670,10 +828,10 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                                 </BaseButton>
                             )}
                             <div className="flex-1" />
-                            {!ignored && (
-                                <BaseButton variant="default" className={FOOTER_BTN} disabled={!hasLinks} onClick={onClose}>
+                            {!ignored && hasLinks && (
+                                <BaseButton variant="default" className={FOOTER_BTN} onClick={close}>
                                     <Link2 size={16} />
-                                    {hasLinks ? t('konten.drawer.assignPartial') : t('konten.drawer.assign')}
+                                    {t('konten.drawer.assignPartial')}
                                 </BaseButton>
                             )}
                         </>

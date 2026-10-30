@@ -86,7 +86,16 @@ export default {
             },
             fontFamily: {
                 reddit: ['"Reddit Sans"', 'sans-serif'],
-            }
+            },
+            keyframes: {
+                // A progress segment growing to its width, which is set inline.
+                'segment-in': { from: { width: '0' } },
+                'segment-out': { to: { width: '0' } },
+            },
+            animation: {
+                'segment-in': 'segment-in 320ms ease-out',
+                'segment-out': 'segment-out 320ms ease-out forwards',
+            },
         },
     },
     plugins: [require('tailwindcss-animate')],

@@ -7,8 +7,11 @@ import {
     BankCsvColumnMappingDto,
     AmountStrategy,
     BankFieldType,
+    BankTransactionResponse,
+    MatchAllocationResponse,
     MatchRequest,
     MatchAmountRequest,
+    TransactionResponse,
 } from '@hopps/api-client';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -388,11 +391,26 @@ export function useSuggestSchema(accountId: number, headerColumns: string[] | nu
 // ─── Bank Transactions ────────────────────────────────────────────────────────
 
 export function useBankTransaction(id: number | null) {
+    const queryClient = useQueryClient();
     return useQuery({
         queryKey: [...bankTransactionKeys.all, 'detail', id],
         queryFn: () => apiService.orgService.bankTransactions(id!),
         enabled: id !== null && id > 0,
+        // The row clicked in a list is already loaded, so its drawer can open right away.
+        placeholderData: () =>
+            queryClient
+                .getQueriesData<BankTransactionResponse[]>({ queryKey: bankTransactionKeys.all })
+                .flatMap(([, rows]) => (Array.isArray(rows) ? rows : []))
+                .find((row) => row.id === id),
     });
+}
+
+interface AddMatchVariables {
+    bankTxId: number;
+    transactionId: number;
+    amount?: number;
+    /** The transaction and the amount it will use, to show the link before the backend has answered. */
+    optimistic?: { tx: TransactionResponse; amount: number };
 }
 
 export function useAddBankTransactionMatch() {
@@ -401,9 +419,26 @@ export function useAddBankTransactionMatch() {
         meta: { errorMessage: 'bankMatch.toast.linkError' },
         // `amount` is the portion of the bank movement used for this transaction (the allocation). Omit it for the full
         // amount; pass a value to split a collective transfer across several transactions.
-        mutationFn: ({ bankTxId, transactionId, amount }: { bankTxId: number; transactionId: number; amount?: number }) =>
+        mutationFn: ({ bankTxId, transactionId, amount }: AddMatchVariables) =>
             apiService.orgService.matchesPOST(bankTxId, new MatchRequest({ transactionId, amount })),
-        onSuccess: (_, vars) => {
+        // With `optimistic` the link shows right away, in one step with the summary, instead of a server round trip later
+        // for the link and another for its transaction. The refetch below replaces it; a failed link is taken back.
+        onMutate: async ({ bankTxId, transactionId, optimistic }) => {
+            if (!optimistic) return undefined;
+            const queryKey = [...bankTransactionKeys.all, 'matches', bankTxId];
+            await queryClient.cancelQueries({ queryKey });
+            const previous = queryClient.getQueryData<MatchAllocationResponse[]>(queryKey);
+            queryClient.setQueryData<TransactionResponse>(transactionKeys.detail(transactionId), (cached) => cached ?? optimistic.tx);
+            queryClient.setQueryData<MatchAllocationResponse[]>(queryKey, (cached = []) => [
+                ...cached,
+                new MatchAllocationResponse({ transactionId, amount: optimistic.amount }),
+            ]);
+            return { queryKey, previous };
+        },
+        onError: (_, __, context) => {
+            if (context) queryClient.setQueryData(context.queryKey, context.previous);
+        },
+        onSettled: (_, __, vars) => {
             queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
             queryClient.invalidateQueries({ queryKey: [...bankTransactionKeys.all, 'detail', vars.bankTxId] });
             // Matching may fill an empty transaction amount from the bank movement — refresh transactions too.
@@ -442,7 +477,18 @@ export function useRemoveBankTransactionMatch() {
     return useMutation({
         meta: { errorMessage: 'bankMatch.toast.unlinkError' },
         mutationFn: ({ bankTxId, transactionId }: { bankTxId: number; transactionId: number }) => apiService.orgService.matchesDELETE(bankTxId, transactionId),
-        onSuccess: (_, vars) => {
+        // Like linking: the link goes right away, in one step with the summary; a failed unlink brings it back.
+        onMutate: async ({ bankTxId, transactionId }) => {
+            const queryKey = [...bankTransactionKeys.all, 'matches', bankTxId];
+            await queryClient.cancelQueries({ queryKey });
+            const previous = queryClient.getQueryData<MatchAllocationResponse[]>(queryKey);
+            queryClient.setQueryData<MatchAllocationResponse[]>(queryKey, (cached) => cached?.filter((m) => m.transactionId !== transactionId));
+            return { queryKey, previous };
+        },
+        onError: (_, __, context) => {
+            if (context) queryClient.setQueryData(context.queryKey, context.previous);
+        },
+        onSettled: (_, __, vars) => {
             queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
             queryClient.invalidateQueries({ queryKey: [...bankTransactionKeys.all, 'detail', vars.bankTxId] });
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
