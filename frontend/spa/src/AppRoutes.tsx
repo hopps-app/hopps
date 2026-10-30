@@ -16,6 +16,7 @@ import AuthGuard from '@/guards/AuthGuard';
 import SetupGuard from '@/guards/SetupGuard';
 import AuthLayout from '@/layouts/default/AuthLayout';
 import DefaultLayout from '@/layouts/default/DefaultLayout.tsx';
+import { PUBLIC_UPLOAD_PATH } from '@/lib/publicUpload';
 
 // Eagerly loaded - these are needed immediately
 
@@ -34,6 +35,7 @@ const KontenView = lazy(() => import('@/components/views/KontenView').then((m) =
 const TransactionenView = lazy(() => import('@/components/views/TransactionenView').then((m) => ({ default: m.TransactionenView })));
 const ReportsView = lazy(() => import('@/components/views/ReportsView').then((m) => ({ default: m.ReportsView })));
 const BankSchemasView = lazy(() => import('@/components/views/BankSchemasView').then((m) => ({ default: m.BankSchemasView })));
+const PublicUploadView = lazy(() => import('@/components/views/PublicUploadView').then((m) => ({ default: m.PublicUploadView })));
 const LegalView = lazy(() => import('@/components/views/LegalView').then((m) => ({ default: m.LegalView })));
 
 function LazyRoute({ children, fallback }: { children: React.ReactNode; fallback?: React.ReactNode }) {
@@ -57,6 +59,16 @@ export default function AppRoutes() {
                     }
                 />
             </Route>
+
+            {/* Public upload page behind a bommel's upload link: receipts without an account */}
+            <Route
+                path={`${PUBLIC_UPLOAD_PATH}/:token`}
+                element={
+                    <LazyRoute>
+                        <PublicUploadView />
+                    </LazyRoute>
+                }
+            />
 
             {/* Public legal pages (Impressum / Datenschutzerklärung) — operator-configurable */}
             <Route

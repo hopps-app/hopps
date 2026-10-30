@@ -12,6 +12,7 @@ import app.hopps.document.domain.*;
 import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.DocumentFileService;
 import app.hopps.document.service.DocumentTransactionService;
+import app.hopps.document.service.DocumentUploadService;
 import app.hopps.document.service.TradePartyService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.infrastructure.storage.StoredFileNotFoundException;
@@ -56,8 +57,7 @@ import java.util.Set;
 @Path("/documents")
 public class DocumentResource {
     private static final Logger LOG = LoggerFactory.getLogger(DocumentResource.class);
-    private static final List<String> ALLOWED_CONTENT_TYPES = List.of(
-            "image/png", "image/jpeg", "application/pdf");
+    private static final List<String> ALLOWED_CONTENT_TYPES = DocumentUploadService.ALLOWED_CONTENT_TYPES;
 
     @Inject
     DocumentRepository documentRepository;
@@ -67,6 +67,9 @@ public class DocumentResource {
 
     @Inject
     DocumentFileService fileService;
+
+    @Inject
+    DocumentUploadService documentUploadService;
 
     @Inject
     TransactionRepository transactionRepository;
@@ -118,20 +121,9 @@ public class DocumentResource {
             @RestForm("file") FileUpload file,
             @QueryParam("analyze") @DefaultValue("true") @Parameter(description = "Whether to trigger automatic AI analysis after upload") boolean analyze,
             @QueryParam("direction") @Parameter(description = "Document direction: INCOMING (Eingangsbeleg, expense) or OUTGOING (Ausgangsbeleg, income). Defaults to INCOMING.") DocumentDirection direction) {
-        // Validate input
         LOG.info("Upload request received - file: {}", file);
-        if (file == null || file.fileName() == null || file.fileName().isBlank()) {
-            LOG.warn("File validation failed: file={}, fileName={}", file, file != null ? file.fileName() : "null");
-            throw new BadRequestException("File is required");
-        }
-
+        DocumentUploadService.validateFile(file);
         LOG.info("File details: name={}, contentType={}, size={}", file.fileName(), file.contentType(), file.size());
-        if (!ALLOWED_CONTENT_TYPES.contains(file.contentType())) {
-            LOG.warn("Unsupported content type: {}", file.contentType());
-            throw new ClientErrorException(
-                    "Unsupported file type: " + file.contentType() + ". Allowed: " + ALLOWED_CONTENT_TYPES,
-                    Response.Status.UNSUPPORTED_MEDIA_TYPE);
-        }
 
         // Get current organization
         Organization organization = organizationContext.getCurrentOrganization();
@@ -140,32 +132,8 @@ public class DocumentResource {
         }
 
         String principal = securityIdentity.getPrincipal().getName();
-
-        // Create document entity
-        Document document = new Document();
-        document.setOrganization(organization);
-        document.setAnalysisStatus(AnalysisStatus.PENDING);
-        document.setUploadedBy(principal);
-        document.setDirection(direction != null ? direction : DocumentDirection.INCOMING);
-
-        // Upload file to S3 and set file metadata
-        fileService.handleFileUpload(document, file);
-
-        // Persist document. Flush so the @CreationTimestamp/@UpdateTimestamp values are populated before the response.
-        document.setDocumentStatus(DocumentStatus.UPLOADED);
-        documentRepository.persistAndFlush(document);
-        documentAuditor.created(document);
-        LOG.info("Document created: id={}, fileName={}", document.getId(), document.getFileName());
-
-        // Fire event to trigger async analysis after transaction commits (only if requested)
-        if (analyze) {
-            documentCreatedEvent.fire(new DocumentCreatedEvent(document.getId()));
-        } else {
-            document.setAnalysisStatus(AnalysisStatus.SKIPPED);
-            LOG.info("Skipping analysis for document: id={} (analyze=false)", document.getId());
-        }
-
-        notifyChanged(document);
+        Document document = documentUploadService.upload(organization, file, principal, direction, analyze, d -> {
+        });
 
         // Return response with 201 Created status
         DocumentResponse response = DocumentResponse.from(document);

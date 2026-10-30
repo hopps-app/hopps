@@ -349,6 +349,7 @@ function OrganizationSettingsView() {
                                     subBommelsCount={selectedBommel ? countSubBommels(selectedBommel) : 0}
                                     onNavigateToReceipts={isDemoMode ? undefined : handleNavigateToReceipts}
                                     onNavigateToTransactions={isDemoMode ? undefined : handleNavigateToTransactions}
+                                    showUploadLink={!isDemoMode}
                                 />
                             )}
                         </div>

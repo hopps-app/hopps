@@ -49,6 +49,7 @@
         "lucide-react": "^1.25.0",
         "moment": "^2.31.0",
         "oidc-client-ts": "^3.5.0",
+        "qrcode.react": "^4.2.0",
         "react": "^19.2.7",
         "react-d3-tree": "^3.6.6",
         "react-dnd": "^16.0.1",

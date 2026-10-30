@@ -6,6 +6,7 @@ import AppRoutes from './AppRoutes';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { NoAccessView } from '@/components/NoAccessView';
 import { OrganizationErrorView } from '@/components/OrganizationErrorView';
+import { isPublicUploadPage } from '@/lib/publicUpload';
 import authService from '@/services/auth/auth.service.ts';
 import connectivityService from '@/services/ConnectivityService.ts';
 import emojiService from '@/services/EmojiService';
@@ -57,7 +58,9 @@ function App() {
                     useStore.getState().setInstance(await fetchInstanceInfo());
                 }
 
-                if (identityProviderReachable) {
+                // Submitters on the public upload page have no account: no session check at the provider, which would
+                // bounce them through a login redirect first.
+                if (identityProviderReachable && !isPublicUploadPage()) {
                     const success = await authService.init();
                     if (success && authService.isAuthenticated() && backendReachable) {
                         await loadUserOrganisation();
