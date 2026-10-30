@@ -11,6 +11,7 @@ import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.audit.TransactionAuditor;
 import app.hopps.transaction.domain.Transaction;
+import app.hopps.transaction.repository.TransactionRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -30,6 +31,9 @@ public class BankTransactionMatchService {
 
     @Inject
     BankTransactionRepository bankTransactionRepository;
+
+    @Inject
+    TransactionRepository transactionRepository;
 
     @Inject
     EntityManager em;
@@ -64,9 +68,14 @@ public class BankTransactionMatchService {
             throw new BadRequestException("Cannot match an ignored bank transaction");
         }
 
-        Transaction tx = em.find(Transaction.class, transactionId);
+        // Scoped like the bank transaction, so a movement can only be linked to a transaction of the same organization.
+        Transaction tx = transactionRepository.findByIdScoped(transactionId);
         if (tx == null) {
             throw new NotFoundException("Transaction not found");
+        }
+
+        if (isLinked(bankTxId, transactionId)) {
+            return;
         }
 
         boolean manual = requestedAmount != null;
@@ -79,10 +88,6 @@ public class BankTransactionMatchService {
         if (!manual && tx.getTotal() == null) {
             tx.setTotal(bankTx.getAmount());
             adoptedTotal = true;
-        }
-
-        if (isLinked(bankTxId, transactionId)) {
-            return;
         }
 
         // matchedAmount is the covered magnitude (always positive). Both bank amount and transaction total share the
