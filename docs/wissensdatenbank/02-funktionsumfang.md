@@ -37,7 +37,7 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 | „Privat bezahlt" (Auslage) markieren | ✅ | Boolean `privatelyPaid`, filterbar | BE `document/domain/Document`, `GET /transactions?privatelyPaid=true` |
 | Auslagen-Erstattung (Empfänger, IBAN, Auszahlungsstatus) | ❌ / 💡 | Nur das Flag oben; keine Person/IBAN/Status/Summe pro Person | – |
 | Beleg auf mehrere Kategorien/Beträge aufteilen | ✅ | Beleg wird in mehrere Transaktionen geteilt (je Teil Betrag, Bommel, Kategoriewerte); Entwurf oder direkt erstellen, Teilsumme darf unter dem Belegbetrag liegen (Privatanteil); Bankabgleich je Teil (Stand 2026-10-12) | BE `PUT /documents/{id}/transactions`, SPA `Receipts/Split/SplitDrawer` |
-| Upload ohne Konto (Gast, z. B. per Link) | ❌ / 💡 | Alle Beleg-Endpoints erfordern Login | BE `application.properties` (öffentliche Pfade) |
+| Upload ohne Konto (Gast, z. B. per Link) | ✅ | Pro Bommel ein Upload-Link (zufälliges Token, kopieren, QR-Code, optional Ablaufdatum, neu erzeugen/widerrufen). Die Upload-Seite braucht kein Konto: Foto oder Datei (PNG/JPEG/PDF, mehrere), Pflichtfeld Name, optional Kommentar und „privat bezahlt“. Beleg landet beim Bommel, läuft durch die normale KI-Analyse, `uploadedBy` = Name, in der Belegliste als Link-Upload markiert. Dateityp serverseitig geprüft, Rate-Limit pro Link und Client (Stand 2026-10-30) | BE `uploadlink/`, `POST /upload-links/{bommelId}`, `POST /public/upload-links/{token}`, SPA `/upload/:token`, `OrganizationSettings/components/UploadLinkSection` |
 | „Meine Belege"-Ansicht für Einreichende | ❌ | Belege werden organisationsweit gelistet | BE `document/repository/DocumentRepository` |
 
 ## 3. Kategorien

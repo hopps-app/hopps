@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
+import { UploadLinkSection } from './UploadLinkSection';
+
 import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel';
 import Button from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -11,9 +13,17 @@ interface BommelDetailsPanelProps {
     subBommelsCount: number;
     onNavigateToReceipts?: () => void;
     onNavigateToTransactions?: () => void;
+    /** Shows the upload link management; off in demo mode, where the bommels do not exist. */
+    showUploadLink?: boolean;
 }
 
-export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigateToReceipts, onNavigateToTransactions }: BommelDetailsPanelProps) {
+export function BommelDetailsPanel({
+    selectedBommel,
+    subBommelsCount,
+    onNavigateToReceipts,
+    onNavigateToTransactions,
+    showUploadLink = false,
+}: BommelDetailsPanelProps) {
     const { format } = useCurrency();
     const { t } = useTranslation();
 
@@ -82,6 +92,10 @@ export function BommelDetailsPanel({ selectedBommel, subBommelsCount, onNavigate
                             </Button>
                         )}
                     </div>
+                )}
+
+                {showUploadLink && typeof selectedBommel.id === 'number' && (
+                    <UploadLinkSection key={selectedBommel.id} bommelId={selectedBommel.id} bommelName={selectedBommel.text} />
                 )}
             </CardContent>
         </Card>

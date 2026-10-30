@@ -297,7 +297,31 @@
                 "createChildError": "Failed to create child Bommel"
             },
             "demoMode": "Show demo data",
-            "demoBanner": "You are viewing sample data for orientation. This data is read-only."
+            "demoBanner": "You are viewing sample data for orientation. This data is read-only.",
+            "uploadLink": {
+                "title": "Upload link",
+                "description": "Members without a Hopps account can submit receipts for this bommel through this link.",
+                "create": "Create upload link",
+                "expiresOn": "Valid until (optional)",
+                "copy": "Copy link",
+                "copied": "Link copied",
+                "copyFailed": "Could not copy the link",
+                "showQr": "Show QR code",
+                "qrTitle": "Upload link for {{name}}",
+                "qrDescription": "Scan the QR code to upload receipts for this bommel.",
+                "validUntil": "Valid until {{date}}",
+                "noExpiry": "Does not expire",
+                "expired": "Expired. Regenerate to keep using it.",
+                "regenerate": "Regenerate",
+                "regenerateConfirmTitle": "Regenerate upload link?",
+                "regenerateConfirmText": "The current link stops working. Links and QR codes you already shared need to be replaced.",
+                "revoke": "Revoke",
+                "revokeConfirmTitle": "Revoke upload link?",
+                "revokeConfirmText": "Receipts can no longer be uploaded through this link.",
+                "created": "Upload link created",
+                "revoked": "Upload link revoked",
+                "error": "Could not change the upload link"
+            }
         },
         "details": {
             "typeVerein": "Association (Verein)",
@@ -1247,6 +1271,12 @@
             "bulkDeleted": "{{count}} receipt(s) deleted",
             "bulkDeletePartial": "{{done}} receipt(s) deleted, {{failed}} failed",
             "bulkDeleteFailed": "Receipts could not be deleted"
+        },
+        "uploadLink": {
+            "badge": "Upload link",
+            "by": "Via link from {{name}}",
+            "hint": "Submitted without an account through the bommel's upload link",
+            "comment": "Comment"
         }
     },
     "bommel": {
@@ -1599,6 +1629,44 @@
             "ignored": "Bank transaction ignored",
             "unignored": "Bank transaction restored",
             "unignoreError": "Bank transaction could not be restored"
+        }
+    },
+    "publicUpload": {
+        "title": "Upload receipts",
+        "pageTitle": "Upload receipts for {{name}}",
+        "intro": "Submit receipts for this area. No account needed.",
+        "takePhoto": "Take photo",
+        "chooseFiles": "Choose files",
+        "allowedTypes": "PNG, JPEG or PDF, several receipts at once",
+        "removeFile": "Remove file",
+        "name": "Name",
+        "nameRequired": "Please enter your name",
+        "comment": "Comment (optional)",
+        "commentPlaceholder": "e.g. what the receipt is for",
+        "privatelyPaid": "Paid privately",
+        "submit_one": "Submit receipt",
+        "submit_other": "Submit {{count}} receipts",
+        "success": {
+            "title": "Thank you!",
+            "text_one": "The receipt was submitted for {{bommel}}.",
+            "text_other": "{{count}} receipts were submitted for {{bommel}}.",
+            "more": "Upload more receipts"
+        },
+        "invalid": {
+            "title": "Invalid link",
+            "text": "This upload link does not exist or has been revoked."
+        },
+        "expired": {
+            "title": "Link expired",
+            "text": "This upload link is no longer valid. Please ask for a new link."
+        },
+        "errors": {
+            "duplicate": "This receipt has already been uploaded.",
+            "fileType": "Only PNG, JPEG or PDF are allowed.",
+            "tooLarge": "The file is too large.",
+            "rateLimit": "Too many uploads. Please try again later.",
+            "linkInvalid": "The link is no longer valid.",
+            "generic": "Upload failed. Please try again."
         }
     }
 }

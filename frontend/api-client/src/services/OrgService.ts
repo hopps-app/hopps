@@ -4363,7 +4363,7 @@ export class Client {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("No parts, a non-positive amount, an unknown bommel, an invalid category value, or (confirmDocument) a part without bommel or mandatory category group, or amounts exceeding the document total", status, _responseText, _headers);
+            return throwException("No parts, a negative amount, an unknown bommel, an invalid category value, or (confirmDocument) a part without amount, bommel or mandatory category group, or amounts exceeding the document total", status, _responseText, _headers);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
@@ -5481,6 +5481,145 @@ export class Client {
     }
 
     /**
+     * Submit a receipt through an upload link
+     * @param token The upload link token
+     * @param file (optional) 
+     * @param name (optional) 
+     * @param comment (optional) 
+     * @param privatelyPaid (optional) 
+     * @return Receipt submitted
+     */
+    submitPublicReceipt(token: string, file: FileParameter | undefined, name: string | undefined, comment: string | undefined, privatelyPaid: boolean | undefined): Promise<PublicUploadResponse> {
+        let url_ = this.baseUrl + "/public/upload-links/{token}";
+        if (token === undefined || token === null)
+            throw new globalThis.Error("The parameter 'token' must be defined.");
+        url_ = url_.replace("{token}", encodeURIComponent("" + token));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (file === null || file === undefined)
+            throw new globalThis.Error("The parameter 'file' cannot be null.");
+        else
+            content_.append("file", file.data, file.fileName ? file.fileName : "file");
+        if (name === null || name === undefined)
+            throw new globalThis.Error("The parameter 'name' cannot be null.");
+        else
+            content_.append("name", name.toString());
+        if (comment === null || comment === undefined)
+            throw new globalThis.Error("The parameter 'comment' cannot be null.");
+        else
+            content_.append("comment", comment.toString());
+        if (privatelyPaid === null || privatelyPaid === undefined)
+            throw new globalThis.Error("The parameter 'privatelyPaid' cannot be null.");
+        else
+            content_.append("privatelyPaid", privatelyPaid.toString());
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSubmitPublicReceipt(_response);
+        });
+    }
+
+    protected processSubmitPublicReceipt(response: Response): Promise<PublicUploadResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = PublicUploadResponse.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Missing file or name, or a field is too long", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Unknown or revoked upload link", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("This receipt has already been uploaded", status, _responseText, _headers);
+            });
+        } else if (status === 410) {
+            return response.text().then((_responseText) => {
+            return throwException("Upload link has expired", status, _responseText, _headers);
+            });
+        } else if (status === 415) {
+            return response.text().then((_responseText) => {
+            return throwException("File type not allowed or file content does not match it", status, _responseText, _headers);
+            });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            return throwException("Too many uploads through this link from this client", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PublicUploadResponse>(null as any);
+    }
+
+    /**
+     * Describe an upload link
+     * @param token The upload link token
+     * @return Upload link is active
+     */
+    getPublicUploadLink(token: string): Promise<PublicUploadLinkInfo> {
+        let url_ = this.baseUrl + "/public/upload-links/{token}";
+        if (token === undefined || token === null)
+            throw new globalThis.Error("The parameter 'token' must be defined.");
+        url_ = url_.replace("{token}", encodeURIComponent("" + token));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetPublicUploadLink(_response);
+        });
+    }
+
+    protected processGetPublicUploadLink(response: Response): Promise<PublicUploadLinkInfo> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PublicUploadLinkInfo.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Unknown or revoked upload link", status, _responseText, _headers);
+            });
+        } else if (status === 410) {
+            return response.text().then((_responseText) => {
+            return throwException("Upload link has expired", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PublicUploadLinkInfo>(null as any);
+    }
+
+    /**
      * Get bommel statistics
      * @param bommelId The bommel ID
      * @param aggregate (optional) Whether to aggregate statistics from all child bommels
@@ -6194,6 +6333,172 @@ export class Client {
             });
         }
         return Promise.resolve<TransactionResponse>(null as any);
+    }
+
+    /**
+     * Revoke the upload link of a bommel
+     * @param bommelId The bommel ID
+     * @return Upload link revoked (or there was none)
+     */
+    revokeBommelUploadLink(bommelId: number): Promise<void> {
+        let url_ = this.baseUrl + "/upload-links/{bommelId}";
+        if (bommelId === undefined || bommelId === null)
+            throw new globalThis.Error("The parameter 'bommelId' must be defined.");
+        url_ = url_.replace("{bommelId}", encodeURIComponent("" + bommelId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRevokeBommelUploadLink(_response);
+        });
+    }
+
+    protected processRevokeBommelUploadLink(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not authenticated", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Bommel not found in the current organization", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Create or regenerate the upload link of a bommel
+     * @param bommelId The bommel ID
+     * @return Upload link created
+     */
+    regenerateBommelUploadLink(bommelId: number, body: UploadLinkRequest): Promise<UploadLinkResponse> {
+        let url_ = this.baseUrl + "/upload-links/{bommelId}";
+        if (bommelId === undefined || bommelId === null)
+            throw new globalThis.Error("The parameter 'bommelId' must be defined.");
+        url_ = url_.replace("{bommelId}", encodeURIComponent("" + bommelId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRegenerateBommelUploadLink(_response);
+        });
+    }
+
+    protected processRegenerateBommelUploadLink(response: Response): Promise<UploadLinkResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = UploadLinkResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Expiry date is in the past", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not authenticated", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Bommel not found in the current organization", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<UploadLinkResponse>(null as any);
+    }
+
+    /**
+     * Get the upload link of a bommel
+     * @param bommelId The bommel ID
+     * @return Upload link found
+     */
+    getBommelUploadLink(bommelId: number): Promise<UploadLinkResponse> {
+        let url_ = this.baseUrl + "/upload-links/{bommelId}";
+        if (bommelId === undefined || bommelId === null)
+            throw new globalThis.Error("The parameter 'bommelId' must be defined.");
+        url_ = url_.replace("{bommelId}", encodeURIComponent("" + bommelId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetBommelUploadLink(_response);
+        });
+    }
+
+    protected processGetBommelUploadLink(response: Response): Promise<UploadLinkResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = UploadLinkResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not authenticated", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Bommel not found in the current organization", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<UploadLinkResponse>(null as any);
     }
 }
 
@@ -9690,6 +9995,8 @@ export class DocumentResponse implements IDocumentResponse {
     createdAt?: Date;
     updatedAt?: Date;
     uploadedBy?: string;
+    uploadChannel?: UploadChannel;
+    uploaderComment?: string;
 
     [key: string]: any;
 
@@ -9744,6 +10051,8 @@ export class DocumentResponse implements IDocumentResponse {
             this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
             this.updatedAt = _data["updatedAt"] ? new Date(_data["updatedAt"].toString()) : undefined as any;
             this.uploadedBy = _data["uploadedBy"];
+            this.uploadChannel = _data["uploadChannel"];
+            this.uploaderComment = _data["uploaderComment"];
         }
     }
 
@@ -9796,6 +10105,8 @@ export class DocumentResponse implements IDocumentResponse {
         data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
         data["updatedAt"] = this.updatedAt ? this.updatedAt.toISOString() : undefined as any;
         data["uploadedBy"] = this.uploadedBy;
+        data["uploadChannel"] = this.uploadChannel;
+        data["uploaderComment"] = this.uploaderComment;
         return data;
     }
 
@@ -9836,6 +10147,8 @@ export interface IDocumentResponse {
     createdAt?: Date;
     updatedAt?: Date;
     uploadedBy?: string;
+    uploadChannel?: UploadChannel;
+    uploaderComment?: string;
 
     [key: string]: any;
 }
@@ -11498,6 +11811,128 @@ export interface IPagedValuesResponse {
 
 export type Permission = "MANAGE_MEMBERS";
 
+export class PublicUploadLinkInfo implements IPublicUploadLinkInfo {
+    organizationName?: string;
+    bommelName?: string;
+    bommelEmoji?: string;
+    expiresAt?: Date;
+
+    [key: string]: any;
+
+    constructor(data?: IPublicUploadLinkInfo) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.organizationName = _data["organizationName"];
+            this.bommelName = _data["bommelName"];
+            this.bommelEmoji = _data["bommelEmoji"];
+            this.expiresAt = _data["expiresAt"] ? new Date(_data["expiresAt"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): PublicUploadLinkInfo {
+        data = typeof data === 'object' ? data : {};
+        let result = new PublicUploadLinkInfo();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["organizationName"] = this.organizationName;
+        data["bommelName"] = this.bommelName;
+        data["bommelEmoji"] = this.bommelEmoji;
+        data["expiresAt"] = this.expiresAt ? this.expiresAt.toISOString() : undefined as any;
+        return data;
+    }
+
+    clone(): PublicUploadLinkInfo {
+        const json = this.toJSON();
+        let result = new PublicUploadLinkInfo();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IPublicUploadLinkInfo {
+    organizationName?: string;
+    bommelName?: string;
+    bommelEmoji?: string;
+    expiresAt?: Date;
+
+    [key: string]: any;
+}
+
+export class PublicUploadResponse implements IPublicUploadResponse {
+    fileName?: string;
+
+    [key: string]: any;
+
+    constructor(data?: IPublicUploadResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.fileName = _data["fileName"];
+        }
+    }
+
+    static fromJS(data: any): PublicUploadResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new PublicUploadResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["fileName"] = this.fileName;
+        return data;
+    }
+
+    clone(): PublicUploadResponse {
+        const json = this.toJSON();
+        let result = new PublicUploadResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IPublicUploadResponse {
+    fileName?: string;
+
+    [key: string]: any;
+}
+
 /** Pending group state to preview the re-draft impact */
 export class ReopenImpactRequest implements IReopenImpactRequest {
     /** Existing group id, or null when previewing a group that is being created */
@@ -12520,6 +12955,138 @@ export class TreeSearchBommel implements ITreeSearchBommel {
 export interface ITreeSearchBommel {
     bommel?: Bommel;
     cyclePath?: number[];
+
+    [key: string]: any;
+}
+
+export type UploadChannel = "APP" | "UPLOAD_LINK";
+
+export class UploadLinkRequest implements IUploadLinkRequest {
+    expiresAt?: Date;
+
+    [key: string]: any;
+
+    constructor(data?: IUploadLinkRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.expiresAt = _data["expiresAt"] ? new Date(_data["expiresAt"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): UploadLinkRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UploadLinkRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["expiresAt"] = this.expiresAt ? this.expiresAt.toISOString() : undefined as any;
+        return data;
+    }
+
+    clone(): UploadLinkRequest {
+        const json = this.toJSON();
+        let result = new UploadLinkRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IUploadLinkRequest {
+    expiresAt?: Date;
+
+    [key: string]: any;
+}
+
+export class UploadLinkResponse implements IUploadLinkResponse {
+    bommelId?: number;
+    token?: string;
+    expiresAt?: Date;
+    expired?: boolean;
+    createdAt?: Date;
+    createdBy?: string;
+
+    [key: string]: any;
+
+    constructor(data?: IUploadLinkResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.bommelId = _data["bommelId"];
+            this.token = _data["token"];
+            this.expiresAt = _data["expiresAt"] ? new Date(_data["expiresAt"].toString()) : undefined as any;
+            this.expired = _data["expired"];
+            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
+            this.createdBy = _data["createdBy"];
+        }
+    }
+
+    static fromJS(data: any): UploadLinkResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new UploadLinkResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["bommelId"] = this.bommelId;
+        data["token"] = this.token;
+        data["expiresAt"] = this.expiresAt ? this.expiresAt.toISOString() : undefined as any;
+        data["expired"] = this.expired;
+        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
+        data["createdBy"] = this.createdBy;
+        return data;
+    }
+
+    clone(): UploadLinkResponse {
+        const json = this.toJSON();
+        let result = new UploadLinkResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IUploadLinkResponse {
+    bommelId?: number;
+    token?: string;
+    expiresAt?: Date;
+    expired?: boolean;
+    createdAt?: Date;
+    createdBy?: string;
 
     [key: string]: any;
 }

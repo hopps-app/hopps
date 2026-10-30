@@ -58,6 +58,8 @@ Hopps ist eine cloud-basierte Open-Source Buchhaltungssoftware mit KI für gemei
 - `/documents` - Dokumenten-Upload und Abruf
 - `/statistics` - Auswertungen/Kennzahlen
 - `/bankaccounts`, `/imports`, `/bank-transactions`, `/bank-schemas` - Bank-Import-Feature
+- `/upload-links/{bommelId}` - Upload-Link eines Bommels verwalten (erzeugen/neu erzeugen, widerrufen)
+- `/public/upload-links/{token}` - öffentlich (ohne Login): Upload-Seite-Infos und Beleg einreichen; rate-limitiert
 - `/health` - Health-Check
 - `/ws/documents` - WebSocket für Live-Updates zu Dokumentanalysen
 
@@ -78,7 +80,7 @@ ZUGFeRD-Rechnungsverarbeitung (XML aus PDFs extrahieren)
 - **Flyway Migrations:** `/src/main/resources/db/migration`
 - **Testdaten:** `/src/main/resources/db/testdata` (dev mode)
 - **Multi-Database:** Separate DBs für org, keycloak
-- **Schema Version:** aktuell V1.0.19 (Nummerierung mit Lücke: V1.0.0–V1.0.2, dann V1.0.13–V1.0.19)
+- **Schema Version:** aktuell V1.0.40 (Nummerierung mit Lücke: V1.0.0–V1.0.2, dann ab V1.0.13 fortlaufend)
 
 ## Frontend
 
@@ -137,6 +139,7 @@ src/
 - `/bank-accounts`, `/bank-schemas` - Konten, Bank-Import und CSV-Schemata (protected)
 - `/admin/categories`, `/admin/ngo-details` - Admin (protected)
 - `/profile` - Benutzereinstellungen (protected)
+- `/upload/:token` - öffentliche Upload-Seite eines Bommel-Upload-Links (ohne Login; `App.tsx` überspringt dort den Session-Check)
 
 ### Mobile App
 
