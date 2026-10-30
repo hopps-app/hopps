@@ -76,16 +76,18 @@ public class DocumentRepository implements PanacheRepository<Document> {
     }
 
     /**
-     * Finds an existing document with the same file content hash in the current organization. Used to detect and reject
-     * duplicate uploads of the same receipt file.
+     * Finds an existing document with the same file content hash in the given organization. Used to detect and reject
+     * duplicate uploads of the same receipt file. The organization is passed in because an upload through a public
+     * upload link has no signed-in member to take it from.
      *
      * @param fileHash
      *            SHA-256 hex digest of the file content
+     * @param orgId
+     *            the organization to look in
      *
      * @return the existing document, or null if none has this hash (or hash/org is null)
      */
-    public Document findByFileHash(String fileHash) {
-        Long orgId = organizationContext.getCurrentOrganizationId();
+    public Document findByFileHash(String fileHash, Long orgId) {
         if (orgId == null || fileHash == null) {
             return null;
         }

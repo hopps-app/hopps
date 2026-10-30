@@ -296,7 +296,31 @@
                 "createChildError": "Fehler beim Erstellen des Unterbommels"
             },
             "demoMode": "Demodaten anzeigen",
-            "demoBanner": "Beispieldaten zur Orientierung. Diese Daten sind nicht bearbeitbar."
+            "demoBanner": "Beispieldaten zur Orientierung. Diese Daten sind nicht bearbeitbar.",
+            "uploadLink": {
+                "title": "Upload-Link",
+                "description": "Über diesen Link können Mitglieder ohne Hopps-Konto Belege für diesen Bommel einreichen.",
+                "create": "Upload-Link erzeugen",
+                "expiresOn": "Gültig bis (optional)",
+                "copy": "Link kopieren",
+                "copied": "Link kopiert",
+                "copyFailed": "Link konnte nicht kopiert werden",
+                "showQr": "QR-Code anzeigen",
+                "qrTitle": "Upload-Link für {{name}}",
+                "qrDescription": "QR-Code scannen, um Belege für diesen Bommel hochzuladen.",
+                "validUntil": "Gültig bis {{date}}",
+                "noExpiry": "Läuft nicht ab",
+                "expired": "Abgelaufen. Zum Weiterverwenden neu erzeugen.",
+                "regenerate": "Neu erzeugen",
+                "regenerateConfirmTitle": "Upload-Link neu erzeugen?",
+                "regenerateConfirmText": "Der bisherige Link funktioniert danach nicht mehr. Bereits geteilte Links und QR-Codes müssen ersetzt werden.",
+                "revoke": "Widerrufen",
+                "revokeConfirmTitle": "Upload-Link widerrufen?",
+                "revokeConfirmText": "Über den Link können danach keine Belege mehr hochgeladen werden.",
+                "created": "Upload-Link erzeugt",
+                "revoked": "Upload-Link widerrufen",
+                "error": "Der Upload-Link konnte nicht geändert werden"
+            }
         },
         "details": {
             "typeVerein": "Verein",
@@ -1111,6 +1135,12 @@
             "bulkDeleted": "{{count}} Beleg(e) gelöscht",
             "bulkDeletePartial": "{{done}} Beleg(e) gelöscht, {{failed}} fehlgeschlagen",
             "bulkDeleteFailed": "Belege konnten nicht gelöscht werden"
+        },
+        "uploadLink": {
+            "badge": "Upload-Link",
+            "by": "Per Link von {{name}}",
+            "hint": "Ohne Konto über den Upload-Link des Bommels eingereicht",
+            "comment": "Kommentar"
         }
     },
     "bommel": {
@@ -1598,6 +1628,44 @@
             "ignored": "Bankumsatz ignoriert",
             "unignored": "Bankumsatz wieder aufgenommen",
             "unignoreError": "Bankumsatz konnte nicht wieder aufgenommen werden"
+        }
+    },
+    "publicUpload": {
+        "title": "Belege hochladen",
+        "pageTitle": "Belege für {{name}} hochladen",
+        "intro": "Belege für diesen Bereich einreichen. Ein Konto ist nicht nötig.",
+        "takePhoto": "Foto aufnehmen",
+        "chooseFiles": "Dateien wählen",
+        "allowedTypes": "PNG, JPEG oder PDF, mehrere Belege möglich",
+        "removeFile": "Datei entfernen",
+        "name": "Name",
+        "nameRequired": "Bitte einen Namen angeben",
+        "comment": "Kommentar (optional)",
+        "commentPlaceholder": "z. B. wofür der Beleg ist",
+        "privatelyPaid": "Privat bezahlt",
+        "submit_one": "Beleg einreichen",
+        "submit_other": "{{count}} Belege einreichen",
+        "success": {
+            "title": "Danke!",
+            "text_one": "Der Beleg wurde für {{bommel}} eingereicht.",
+            "text_other": "{{count}} Belege wurden für {{bommel}} eingereicht.",
+            "more": "Weitere Belege hochladen"
+        },
+        "invalid": {
+            "title": "Link ungültig",
+            "text": "Dieser Upload-Link existiert nicht oder wurde widerrufen."
+        },
+        "expired": {
+            "title": "Link abgelaufen",
+            "text": "Dieser Upload-Link ist nicht mehr gültig. Bitte einen neuen Link anfragen."
+        },
+        "errors": {
+            "duplicate": "Dieser Beleg wurde bereits hochgeladen.",
+            "fileType": "Nur PNG, JPEG oder PDF möglich.",
+            "tooLarge": "Die Datei ist zu groß.",
+            "rateLimit": "Zu viele Uploads. Bitte später erneut versuchen.",
+            "linkInvalid": "Der Link ist nicht mehr gültig.",
+            "generic": "Hochladen fehlgeschlagen. Bitte erneut versuchen."
         }
     }
 }

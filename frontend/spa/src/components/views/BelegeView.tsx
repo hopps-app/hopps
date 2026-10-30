@@ -803,7 +803,22 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
               [t('receipts.review.fileType'), fileExt || '—'],
               [t('receipts.review.fileSize'), doc.fileSize ? fmtFileSize(doc.fileSize, i18n.language) : '—'],
               [t('receipts.review.uploadedAt'), fmtDate(doc.createdAt)],
-              ...(doc.uploadedBy ? [[t('receipts.review.uploadedBy'), doc.uploadedBy] as [string, React.ReactNode]] : []),
+              ...(doc.uploadedBy
+                  ? [
+                        [
+                            t('receipts.review.uploadedBy'),
+                            doc.uploadChannel === 'UPLOAD_LINK' ? (
+                                <span key="uploadedBy" className="inline-flex flex-wrap items-center justify-end gap-1.5">
+                                    {doc.uploadedBy}
+                                    <Badge tone="purple">{t('receipts.uploadLink.badge')}</Badge>
+                                </span>
+                            ) : (
+                                doc.uploadedBy
+                            ),
+                        ] as [string, React.ReactNode],
+                    ]
+                  : []),
+              ...(doc.uploaderComment ? [[t('receipts.uploadLink.comment'), doc.uploaderComment] as [string, React.ReactNode]] : []),
               [t('receipts.review.documentNumber'), doc.legalDocumentId || '—'],
               [
                   t('receipts.review.extraction'),
@@ -1538,7 +1553,16 @@ function DocumentRow({
                 </span>
                 <span className="flex flex-col min-w-0">
                     <span className="font-bold text-[14px] text-foreground truncate leading-snug">{doc.name || doc.fileName || '—'}</span>
-                    <span className="text-[12px] text-muted-foreground truncate leading-snug">{doc.senderName ?? ''}</span>
+                    <span className="text-[12px] text-muted-foreground truncate leading-snug">
+                        {doc.uploadChannel === 'UPLOAD_LINK' ? (
+                            <span className="inline-flex items-center gap-1" title={t('receipts.uploadLink.hint')}>
+                                <Link2 size={12} className="flex-shrink-0" />
+                                {[t('receipts.uploadLink.by', { name: doc.uploadedBy }), doc.senderName].filter(Boolean).join(' · ')}
+                            </span>
+                        ) : (
+                            (doc.senderName ?? '')
+                        )}
+                    </span>
                 </span>
             </span>
 

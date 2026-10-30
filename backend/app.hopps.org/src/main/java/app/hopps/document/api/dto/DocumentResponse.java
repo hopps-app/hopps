@@ -5,6 +5,7 @@ import app.hopps.document.domain.Document;
 import app.hopps.document.domain.DocumentDirection;
 import app.hopps.document.domain.DocumentStatus;
 import app.hopps.document.domain.ExtractionSource;
+import app.hopps.document.domain.UploadChannel;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -50,7 +51,10 @@ public record DocumentResponse(
         // Timestamps
         Instant createdAt,
         Instant updatedAt,
-        String uploadedBy) {
+        String uploadedBy,
+        // APP, or UPLOAD_LINK when submitted without an account through the bommel's upload link
+        UploadChannel uploadChannel,
+        String uploaderComment) {
     /**
      * Creates a DocumentResponse from a Document entity.
      */
@@ -90,6 +94,8 @@ public record DocumentResponse(
                 tagNames,
                 doc.getCreatedAt(),
                 doc.getUpdatedAt(),
-                doc.getUploadedBy());
+                doc.getUploadedBy(),
+                doc.getUploadChannel(),
+                doc.getUploaderComment());
     }
 }

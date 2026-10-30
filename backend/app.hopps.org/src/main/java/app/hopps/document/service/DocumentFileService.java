@@ -58,7 +58,7 @@ public class DocumentFileService {
         // Reject re-uploads of a file that already exists in this organization. Comparing the document id lets a file
         // replacement keep its own identical content without tripping the check.
         String fileHash = DedupeHashService.sha256(bytes);
-        Document existing = documentRepository.findByFileHash(fileHash);
+        Document existing = documentRepository.findByFileHash(fileHash, document.getOrganization().getId());
         if (existing != null && !Objects.equals(existing.getId(), document.getId())) {
             // Return the existing document's id in the 409 body so the client can link straight to the already-booked
             // receipt.
