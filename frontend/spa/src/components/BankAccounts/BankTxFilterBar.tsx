@@ -28,7 +28,7 @@ export function BankTxFilterBar({ filters, actions }: { filters: BankTxFilterSta
                         value={filters.search}
                         onChange={(e) => filters.setSearch(e.target.value)}
                         placeholder={t('konten.filter.searchPlaceholder')}
-                        className="h-9 w-full rounded-xl border border-border-soft bg-[var(--background-secondary)] pl-[38px] pr-9 text-[14.5px] text-foreground transition-shadow placeholder:text-muted-foreground/60 focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-surface)]"
+                        className="h-11 w-full rounded-xl border border-border-soft bg-[var(--background-secondary)] pl-[38px] pr-9 text-[14.5px] text-foreground transition-shadow placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-surface)]"
                     />
                     {filters.search && (
                         <button
@@ -47,11 +47,11 @@ export function BankTxFilterBar({ filters, actions }: { filters: BankTxFilterSta
                     type="button"
                     onClick={() => setOpen((o) => !o)}
                     aria-expanded={open}
-                    className="inline-flex h-9 items-center gap-[7px] whitespace-nowrap font-semibold transition-colors"
+                    className="inline-flex h-11 items-center gap-[7px] whitespace-nowrap font-semibold transition-colors"
                     style={{
                         fontSize: 13.5,
                         padding: '0 14px',
-                        borderRadius: 9,
+                        borderRadius: 'var(--btn-radius)',
                         border: '1px solid',
                         borderColor: open ? 'transparent' : 'var(--border-soft)',
                         background: open ? 'var(--purple-100)' : 'var(--background-secondary)',

@@ -1,7 +1,7 @@
 import { BankAccountResponse, IBankImportResponse } from '@hopps/api-client';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Edit, Landmark, Plus, Search, Sheet, Trash2, Unlink, Upload } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
@@ -460,18 +460,18 @@ const PAGE_SIZE = 50;
 
 function AccountTab({
     account,
+    statuses,
+    setStatuses,
     onOpenDrawer,
     onImport,
 }: {
     account: BankAccountResponse;
+    statuses: BankTransactionStatusValue[];
+    setStatuses: Dispatch<SetStateAction<BankTransactionStatusValue[]>>;
     onOpenDrawer: (id: number) => void;
     onImport: (accountId: number) => void;
 }) {
-    const { format } = useCurrency();
     const { t } = useTranslation();
-    // Several statuses can be selected; none selected shows every movement. Starts on the worklist: Offen and
-    // Teilverknüpft.
-    const [statuses, setStatuses] = usePersistedState<BankTransactionStatusValue[]>('hopps.konten.account.bankStatuses', ['UNMATCHED', 'PARTIALLY_MATCHED']);
     const [page, setPage] = useState(0);
     const [sortBy, setSortBy] = usePersistedState<BankTransactionSortField>('hopps.konten.account.sortBy', 'bookingDate');
     const [sortDir, setSortDir] = usePersistedState<SortDirection>('hopps.konten.account.sortDir', 'desc');
@@ -482,7 +482,7 @@ function AccountTab({
     const { search, minAmount, maxAmount, dateFrom, dateTo } = filters;
     useEffect(() => {
         setPage(0);
-    }, [search, minAmount, maxAmount, dateFrom, dateTo]);
+    }, [search, minAmount, maxAmount, dateFrom, dateTo, statuses]);
 
     const apiStatus = statuses.length > 0 ? statuses.join(',') : undefined;
     // Counts per status for the filter, following the other filters (search, amount, date).
@@ -537,11 +537,6 @@ function AccountTab({
                 <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
                     <AccountDot color={account.color} />
                     <span className="font-mono">{account.iban}</span>
-                    {(account.balance ?? account.openingBalance) !== undefined && (
-                        <span>
-                            · {t('konten.balance')} {format(account.balance ?? account.openingBalance, { currency: account.currency })}
-                        </span>
-                    )}
                 </span>
                 <div className="ml-auto">
                     <StatusSegments ariaLabel={t('konten.table.status')} segments={statusSegments} selected={statuses} onToggle={toggleStatus} />
@@ -552,7 +547,7 @@ function AccountTab({
                 <BankTxFilterBar
                     filters={filters}
                     actions={
-                        <BaseButton size="sm" className="gap-1.5 whitespace-nowrap" onClick={() => onImport(account.id!)}>
+                        <BaseButton size="sm" className="h-11 gap-1.5 whitespace-nowrap" onClick={() => onImport(account.id!)}>
                             <Upload className="w-4 h-4" />
                             {t('konten.import')}
                         </BaseButton>
@@ -778,10 +773,7 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
         <div>
             {/* Toolbar: search and status filter */}
             <div className="mb-3.5 flex flex-wrap items-center gap-3">
-                <label
-                    className="flex h-11 min-w-[240px] flex-1 items-center gap-2.5 border border-border-soft bg-[var(--background-secondary)] px-3.5"
-                    style={{ borderRadius: 14 }}
-                >
+                <label className="flex h-11 min-w-[240px] flex-1 items-center gap-2.5 rounded-xl border border-border-soft bg-[var(--background-secondary)] px-3.5">
                     <Search size={16} className="flex-shrink-0 text-[var(--ink-faint)]" />
                     <input
                         type="text"
@@ -941,7 +933,15 @@ export function KontenView() {
     const { data: accounts = [], isLoading, refetch } = useBankAccounts(false);
     const [tab, setTab] = useState<TabId>('abgleich');
     const [drawerAccount, setDrawerAccount] = useState<BankAccountResponse | 'new' | null>(null);
+    // The account stays set while the dialog closes, so it keeps its content during the closing animation.
     const [importAccountId, setImportAccountId] = useState<number | null>(null);
+    const [importOpen, setImportOpen] = useState(false);
+    // Status filter of the account tab. Several can be selected; none selected shows every movement. Starts on the
+    // worklist: Offen and Teilverknüpft. Lives here so that finishing an import can set it.
+    const [accountStatuses, setAccountStatuses] = usePersistedState<BankTransactionStatusValue[]>('hopps.konten.account.bankStatuses', [
+        'UNMATCHED',
+        'PARTIALLY_MATCHED',
+    ]);
     const [matchDrawerBankTxId, setMatchDrawerBankTxId] = useState<number | null>(null);
     // The account cards take up a lot of room; keep them collapsed to compact pills by default and only show the full
     // cards when the user actively expands the section. Cached like the other Konten preferences.
@@ -961,6 +961,11 @@ export function KontenView() {
     const openMatchDrawer = (id: number) => {
         queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
         setMatchDrawerBankTxId(id);
+    };
+
+    const openImport = (accountId: number) => {
+        setImportAccountId(accountId);
+        setImportOpen(true);
     };
 
     const closeMatchDrawer = () => {
@@ -1088,7 +1093,7 @@ export function KontenView() {
                                         }}
                                         onImport={(e) => {
                                             e.stopPropagation();
-                                            setImportAccountId(a.id!);
+                                            openImport(a.id!);
                                         }}
                                     />
                                 ))}
@@ -1127,7 +1132,15 @@ export function KontenView() {
 
                     {/* Tab content */}
                     {tab === 'abgleich' && <AbgleichTab accounts={accounts} onOpenDrawer={openMatchDrawer} />}
-                    {activeAccount && <AccountTab account={activeAccount} onOpenDrawer={openMatchDrawer} onImport={setImportAccountId} />}
+                    {activeAccount && (
+                        <AccountTab
+                            account={activeAccount}
+                            statuses={accountStatuses}
+                            setStatuses={setAccountStatuses}
+                            onOpenDrawer={openMatchDrawer}
+                            onImport={openImport}
+                        />
+                    )}
                     {tab === 'importe' && <ImporteTab accounts={accounts} />}
                 </>
             )}
@@ -1153,14 +1166,18 @@ export function KontenView() {
             {/* Import wizard dialog */}
             <ImportWizardDialog
                 accountId={importAccountId}
-                open={importAccountId !== null}
+                open={importOpen}
                 onOpenChange={(open) => {
                     if (!open) {
-                        setImportAccountId(null);
+                        setImportOpen(false);
                         refetch();
                     }
                 }}
-                onViewTransactions={(id) => setTab(String(id))}
+                onViewTransactions={(id) => {
+                    // What was just imported is what needs assigning next.
+                    setAccountStatuses(['UNMATCHED']);
+                    setTab(String(id));
+                }}
             />
         </div>
     );
