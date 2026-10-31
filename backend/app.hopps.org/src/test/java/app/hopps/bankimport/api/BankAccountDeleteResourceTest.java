@@ -58,6 +58,23 @@ class BankAccountDeleteResourceTest {
         given().get("/{id}", id).then().statusCode(404);
     }
 
+    /** An archived account without data would otherwise keep the organization's currency locked for good. */
+    @Test
+    void archivedUnusedAccountCanBeDeleted() {
+        int id = given().contentType(ContentType.JSON)
+                .body("{\"name\":\"Archiviert\",\"iban\":\"DE21500105171234567890\"}")
+                .post()
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("id");
+        given().delete("/{id}", id).then().statusCode(204);
+
+        given().delete("/{id}/permanent", id).then().statusCode(204);
+
+        given().get("/{id}", id).then().statusCode(404);
+    }
+
     @Test
     void usedAccountCannotBeDeleted() {
         given().get("/{id}", USED_ACCOUNT_ID).then().statusCode(200).body("deletable", is(false));

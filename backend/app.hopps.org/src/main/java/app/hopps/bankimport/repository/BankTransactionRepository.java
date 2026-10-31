@@ -30,6 +30,15 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
         return find("id = ?1 and organization.id = ?2", id, orgId).firstResult();
     }
 
+    /** Whether a movement of the account is linked to a bookkeeping transaction. */
+    public boolean hasLinks(Long bankAccountId) {
+        return getEntityManager()
+                .createQuery("SELECT COUNT(m) FROM BankTransactionMatch m WHERE m.bankTransaction.bankAccount.id = :id",
+                        Long.class)
+                .setParameter("id", bankAccountId)
+                .getSingleResult() > 0;
+    }
+
     public boolean existsForAccount(Long bankAccountId) {
         return count("bankAccount.id", bankAccountId) > 0;
     }
@@ -51,7 +60,7 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
 
     /**
      * Cross-account listing scoped to the current organization, with optional filters. {@code accountIds=null} means
-     * all accounts; empty list means no result.
+     * all accounts except archived ones; empty list means no result.
      * <p>
      * When {@code search} is a numeric amount, exact amount matches (full or still-open) are ordered first so the
      * intended reconciliation candidate surfaces at the top and cannot be pushed off the page by the many
@@ -182,6 +191,9 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
         if (accountIds != null) {
             where.append(" AND t.bankAccount.id IN :accountIds");
             params.put("accountIds", accountIds);
+        } else {
+            // What is archived stays out of the lists across accounts; asking for the account by id still finds it.
+            where.append(" AND t.bankAccount.archived = false");
         }
         if (fromDate != null) {
             where.append(" AND t.bookingDate >= :fromDate");

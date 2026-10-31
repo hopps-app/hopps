@@ -73,8 +73,9 @@ public class BankAccountResource {
     @POST
     @Operation(summary = "Create a bank account", description = "Creates a new bank account. If bommelId is omitted, the account is attached to the organization's root bommel.")
     @APIResponse(responseCode = "201", description = "Bank account created", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankAccountResponse.class)))
-    @APIResponse(responseCode = "400", description = "Invalid input (e.g. duplicate IBAN, invalid IBAN format)")
+    @APIResponse(responseCode = "400", description = "Invalid input (e.g. invalid IBAN format)")
     @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "409", description = "The IBAN belongs to another account (code IBAN_IN_USE) or to an archived one (code IBAN_ARCHIVED, fields archivedAccountId, archivedAccountName)")
     public Response createBankAccount(@Valid BankAccountCreateRequest request) {
         BankAccount account = bankAccountService.create(request);
         LOG.info("Bank account created: id={}, iban={}", account.getId(), account.getIban());
@@ -92,6 +93,7 @@ public class BankAccountResource {
     @APIResponse(responseCode = "400", description = "Invalid input")
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "404", description = "Bank account not found")
+    @APIResponse(responseCode = "409", description = "The IBAN belongs to another account (code IBAN_IN_USE) or to an archived one (code IBAN_ARCHIVED, fields archivedAccountId, archivedAccountName)")
     public BankAccountResponse updateBankAccount(
             @PathParam("id") @Parameter(description = "Bank account ID") Long id,
             @Valid BankAccountUpdateRequest request) {
@@ -102,10 +104,11 @@ public class BankAccountResource {
 
     @DELETE
     @Path("/{id}")
-    @Operation(summary = "Archive a bank account", description = "Soft-deletes the account (sets archived=true). Imports and transactions are preserved. Use POST /restore to undo.")
+    @Operation(summary = "Archive a bank account", description = "Soft-deletes the account (sets archived=true). Imports and transactions are preserved, but its transactions leave the lists across accounts. Not possible while transactions are linked to bookkeeping transactions (see 'linked' on the account). Use POST /restore to undo.")
     @APIResponse(responseCode = "204", description = "Bank account archived")
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "404", description = "Bank account not found")
+    @APIResponse(responseCode = "409", description = "Movements of the account are linked to transactions (code ACCOUNT_HAS_LINKS)")
     public void archiveBankAccount(
             @PathParam("id") @Parameter(description = "Bank account ID") Long id) {
         bankAccountService.archive(id);
@@ -128,10 +131,12 @@ public class BankAccountResource {
     @Transactional
     @POST
     @Path("/{id}/restore")
+    @Consumes(MediaType.WILDCARD) // No body, so the client sends no JSON content type.
     @Operation(summary = "Restore an archived bank account", description = "Sets archived=false on a previously archived account.")
     @APIResponse(responseCode = "200", description = "Bank account restored", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankAccountResponse.class)))
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "404", description = "Bank account not found")
+    @APIResponse(responseCode = "409", description = "An active account has the same IBAN (code IBAN_IN_USE)")
     public BankAccountResponse restoreBankAccount(
             @PathParam("id") @Parameter(description = "Bank account ID") Long id) {
         BankAccount account = bankAccountService.restore(id);
@@ -141,6 +146,6 @@ public class BankAccountResource {
 
     private BankAccountResponse toResponse(BankAccount account) {
         return BankAccountResponse.from(account, bankAccountService.computeBalance(account),
-                bankAccountService.isDeletable(account));
+                bankAccountService.isDeletable(account), bankAccountService.hasLinks(account));
     }
 }

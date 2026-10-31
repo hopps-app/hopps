@@ -37,6 +37,16 @@ public class BankImportRepository implements PanacheRepository<BankImport> {
         return find("status = ?1", Sort.ascending("importedAt"), BankImportStatus.QUEUED).firstResultOptional();
     }
 
+    /**
+     * An import of this file into another account of the organization, archived ones included. A failed import does not
+     * count: it left no movements behind.
+     */
+    public BankImport findOnOtherAccount(Long bankAccountId, String sha256) {
+        Long orgId = organizationContext.getCurrentOrganizationId();
+        return find("organization.id = ?1 and bankAccount.id <> ?2 and fileSha256 = ?3 and status <> ?4",
+                orgId, bankAccountId, sha256, BankImportStatus.FAILED).firstResult();
+    }
+
     /** Returns true if a QUEUED or PROCESSING import already references this file SHA for the given account. */
     public boolean existsActiveBySha(Long bankAccountId, String sha256) {
         return count(

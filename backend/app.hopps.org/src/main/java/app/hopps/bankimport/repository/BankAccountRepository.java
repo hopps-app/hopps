@@ -46,6 +46,12 @@ public class BankAccountRepository implements PanacheRepository<BankAccount> {
      * Returns true if the current org has a bank account with the given IBAN (excluding archived). Used to prevent
      * duplicate IBAN entries within the same organization.
      */
+    public BankAccount findArchivedByIban(String iban, Long excludeId) {
+        Long orgId = organizationContext.getCurrentOrganizationId();
+        return find("organization.id = ?1 and iban = ?2 and archived = true and id <> ?3", orgId, iban,
+                excludeId != null ? excludeId : -1L).firstResult();
+    }
+
     public boolean existsByIban(String iban, Long excludeId) {
         Long orgId = organizationContext.getCurrentOrganizationId();
         if (excludeId == null) {

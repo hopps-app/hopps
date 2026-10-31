@@ -78,9 +78,7 @@ public class BankAccountService {
         Organization organization = requireOrganization();
         String normalizedIban = normalizeIban(request.iban());
         validateIban(normalizedIban);
-        if (bankAccountRepository.existsByIban(normalizedIban, null)) {
-            throw new BadRequestException("A bank account with this IBAN already exists in this organization");
-        }
+        requireIbanFree(normalizedIban, null);
         Bommel bommel = resolveBommel(request.bommelId(), organization);
         BankCsvSchema defaultSchema = resolveDefaultSchema(request.defaultSchemaId());
 
@@ -118,11 +116,8 @@ public class BankAccountService {
         if (request.iban() != null) {
             String normalizedIban = normalizeIban(request.iban());
             validateIban(normalizedIban);
-            if (!normalizedIban.equals(account.getIban())
-                    && bankAccountRepository.existsByIban(normalizedIban, id)) {
-                throw new BadRequestException("A bank account with this IBAN already exists in this organization");
-            }
             if (!normalizedIban.equals(account.getIban())) {
+                requireIbanFree(normalizedIban, id);
                 validateIbanFitsCurrency(normalizedIban, account.getCurrency());
             }
             account.setIban(normalizedIban);
@@ -166,9 +161,19 @@ public class BankAccountService {
     public void archive(Long id) {
         BankAccount account = get(id);
         if (!account.isArchived()) {
+            if (hasLinks(account)) {
+                throw BankAccountConflictException.hasLinks();
+            }
             account.setArchived(true);
             account.setArchivedAt(Instant.now());
         }
+    }
+
+    /**
+     * Whether movements of the account are linked to transactions. Such an account can be neither archived nor deleted.
+     */
+    public boolean hasLinks(BankAccount account) {
+        return bankTransactionRepository.hasLinks(account.getId());
     }
 
     /**
@@ -195,10 +200,24 @@ public class BankAccountService {
     public BankAccount restore(Long id) {
         BankAccount account = get(id);
         if (account.isArchived()) {
+            if (bankAccountRepository.existsByIban(account.getIban(), id)) {
+                throw BankAccountConflictException.ibanInUse();
+            }
             account.setArchived(false);
             account.setArchivedAt(null);
         }
         return account;
+    }
+
+    /** An IBAN belongs to one account: an archived account with it is to be restored, not created a second time. */
+    private void requireIbanFree(String iban, Long excludeId) {
+        if (bankAccountRepository.existsByIban(iban, excludeId)) {
+            throw BankAccountConflictException.ibanInUse();
+        }
+        BankAccount archived = bankAccountRepository.findArchivedByIban(iban, excludeId);
+        if (archived != null) {
+            throw BankAccountConflictException.ibanArchived(archived);
+        }
     }
 
     private Organization requireOrganization() {

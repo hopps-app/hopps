@@ -101,6 +101,10 @@ public class BankImportService {
         if (importRepository.existsActiveBySha(bankAccountId, sha256)) {
             throw new BadRequestException("An identical file is already queued or processing for this account");
         }
+        BankImport sameFile = importRepository.findOnOtherAccount(bankAccountId, sha256);
+        if (sameFile != null) {
+            throw BankImportRejectedException.alreadyImported(sameFile.getBankAccount());
+        }
 
         // Last chance to stop a file in the wrong currency: once queued, the worker imports it unattended.
         importFileCheckService.verify(account, content, fileType, schema);
