@@ -53,7 +53,7 @@ public class BankAccountResource {
             @QueryParam("includeArchived") @DefaultValue("false") @Parameter(description = "Include archived (soft-deleted) accounts") boolean includeArchived) {
         return bankAccountService.list(includeArchived)
                 .stream()
-                .map(account -> BankAccountResponse.from(account, bankAccountService.computeBalance(account)))
+                .map(this::toResponse)
                 .toList();
     }
 
@@ -66,20 +66,21 @@ public class BankAccountResource {
     public BankAccountResponse getBankAccount(
             @PathParam("id") @Parameter(description = "Bank account ID") Long id) {
         BankAccount account = bankAccountService.get(id);
-        return BankAccountResponse.from(account, bankAccountService.computeBalance(account));
+        return toResponse(account);
     }
 
     @Transactional
     @POST
     @Operation(summary = "Create a bank account", description = "Creates a new bank account. If bommelId is omitted, the account is attached to the organization's root bommel.")
     @APIResponse(responseCode = "201", description = "Bank account created", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankAccountResponse.class)))
-    @APIResponse(responseCode = "400", description = "Invalid input (e.g. duplicate IBAN, invalid IBAN format)")
+    @APIResponse(responseCode = "400", description = "Invalid input (e.g. invalid IBAN format)")
     @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "409", description = "The IBAN belongs to another account (code IBAN_IN_USE) or to an archived one (code IBAN_ARCHIVED, fields archivedAccountId, archivedAccountName)")
     public Response createBankAccount(@Valid BankAccountCreateRequest request) {
         BankAccount account = bankAccountService.create(request);
         LOG.info("Bank account created: id={}, iban={}", account.getId(), account.getIban());
         return Response.status(Response.Status.CREATED)
-                .entity(BankAccountResponse.from(account, bankAccountService.computeBalance(account)))
+                .entity(toResponse(account))
                 .build();
     }
 
@@ -92,37 +93,59 @@ public class BankAccountResource {
     @APIResponse(responseCode = "400", description = "Invalid input")
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "404", description = "Bank account not found")
+    @APIResponse(responseCode = "409", description = "The IBAN belongs to another account (code IBAN_IN_USE) or to an archived one (code IBAN_ARCHIVED, fields archivedAccountId, archivedAccountName)")
     public BankAccountResponse updateBankAccount(
             @PathParam("id") @Parameter(description = "Bank account ID") Long id,
             @Valid BankAccountUpdateRequest request) {
         BankAccount account = bankAccountService.update(id, request);
         LOG.info("Bank account updated: id={}", account.getId());
-        return BankAccountResponse.from(account, bankAccountService.computeBalance(account));
+        return toResponse(account);
     }
 
     @DELETE
     @Path("/{id}")
-    @Operation(summary = "Archive a bank account", description = "Soft-deletes the account (sets archived=true). Imports and transactions are preserved. Use POST /restore to undo.")
+    @Operation(summary = "Archive a bank account", description = "Soft-deletes the account (sets archived=true). Imports and transactions are preserved, but its transactions leave the lists across accounts. Not possible while transactions are linked to bookkeeping transactions (see 'linked' on the account). Use POST /restore to undo.")
     @APIResponse(responseCode = "204", description = "Bank account archived")
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "404", description = "Bank account not found")
+    @APIResponse(responseCode = "409", description = "Movements of the account are linked to transactions (code ACCOUNT_HAS_LINKS)")
     public void archiveBankAccount(
             @PathParam("id") @Parameter(description = "Bank account ID") Long id) {
         bankAccountService.archive(id);
         LOG.info("Bank account archived: id={}", id);
     }
 
+    @DELETE
+    @Path("/{id}/permanent")
+    @Operation(summary = "Delete an unused bank account", description = "Deletes the account for good, e.g. one created with a mistyped IBAN. Only possible while it has no imports and no transactions (see 'deletable' on the account); otherwise it can only be archived.")
+    @APIResponse(responseCode = "204", description = "Bank account deleted")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "404", description = "Bank account not found")
+    @APIResponse(responseCode = "409", description = "Bank account has imports or transactions")
+    public void deleteBankAccount(
+            @PathParam("id") @Parameter(description = "Bank account ID") Long id) {
+        bankAccountService.delete(id);
+        LOG.info("Bank account deleted: id={}", id);
+    }
+
     @Transactional
     @POST
     @Path("/{id}/restore")
+    @Consumes(MediaType.WILDCARD) // No body, so the client sends no JSON content type.
     @Operation(summary = "Restore an archived bank account", description = "Sets archived=false on a previously archived account.")
     @APIResponse(responseCode = "200", description = "Bank account restored", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankAccountResponse.class)))
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "404", description = "Bank account not found")
+    @APIResponse(responseCode = "409", description = "An active account has the same IBAN (code IBAN_IN_USE)")
     public BankAccountResponse restoreBankAccount(
             @PathParam("id") @Parameter(description = "Bank account ID") Long id) {
         BankAccount account = bankAccountService.restore(id);
         LOG.info("Bank account restored: id={}", id);
-        return BankAccountResponse.from(account, bankAccountService.computeBalance(account));
+        return toResponse(account);
+    }
+
+    private BankAccountResponse toResponse(BankAccount account) {
+        return BankAccountResponse.from(account, bankAccountService.computeBalance(account),
+                bankAccountService.isDeletable(account), bankAccountService.hasLinks(account));
     }
 }

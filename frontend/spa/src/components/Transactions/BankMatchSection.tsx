@@ -7,6 +7,7 @@ import { BankTransactionPicker } from '@/components/Transactions/BankTransaction
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
 import { fmtDate } from '@/components/Transactions/format';
 import { MatchAllocationControl } from '@/components/Transactions/MatchAllocationControl';
+import { segmentColor, segmentTint } from '@/components/Transactions/segmentColors';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import {
     useBankTransactionsForTransaction,
@@ -100,6 +101,8 @@ export function BankMatchSection({
         ...(shownSurplus > 0.005 ? [{ key: 'surplus', label: t('transactions.detail.reconcileSurplus'), value: shownSurplus, color: 'var(--negative)' }] : []),
     ];
 
+    const pct = (v: number) => `${Math.min(100, (v / total) * 100)}%`;
+
     async function link(bankTxId: number, amount: number | undefined) {
         if (!tx.id) return;
         await addMatch.mutateAsync({ bankTxId, transactionId: tx.id, amount });
@@ -155,18 +158,27 @@ export function BankMatchSection({
             <div className="flex flex-col gap-[11px]">
                 {/* Sums: amount, what the linked movements cover, and what is still open or left over. There is no
                     separate coverage badge — the status badge already says whether the transaction is covered. */}
-                <div
-                    className="grid gap-3 rounded-[var(--r-card)] px-4 py-[13px]"
-                    style={{ gridTemplateColumns: `repeat(${summary.length}, minmax(0, 1fr))`, background: 'var(--surface-track)' }}
-                >
-                    {summary.map((col) => (
-                        <div key={col.key} className="min-w-0">
-                            <div className="truncate text-[12.5px] font-semibold text-muted-foreground">{col.label}</div>
-                            <div className="mt-[3px] text-[16px] font-extrabold tabular-nums" style={{ color: col.color }}>
-                                {format(col.value)}
+                <div className="rounded-[var(--r-card)] px-4 py-[13px]" style={{ background: 'var(--surface-track)' }}>
+                    <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${summary.length}, minmax(0, 1fr))` }}>
+                        {summary.map((col) => (
+                            <div key={col.key} className="min-w-0">
+                                <div className="truncate text-[12.5px] font-semibold text-muted-foreground">{col.label}</div>
+                                <div className="mt-[3px] text-[16px] font-extrabold tabular-nums" style={{ color: col.color }}>
+                                    {format(col.value)}
+                                </div>
                             </div>
+                        ))}
+                    </div>
+                    {/* Progress bar, as in the Kontoumsatz drawer: one segment per linked movement, then the preview in the
+                        next colour. Without an amount there is nothing to fill. */}
+                    {total > 0 && (
+                        <div className="mt-3 flex h-1.5 gap-[2px] overflow-hidden rounded-full" style={{ background: 'var(--background-secondary)' }}>
+                            {(linked ?? []).map((b, i) => (
+                                <div key={b.id} style={{ width: pct(b.allocatedAmount ?? Math.abs(b.amount ?? 0)), background: segmentColor(i) }} />
+                            ))}
+                            {preview > 0.005 && <div style={{ width: pct(preview), background: segmentColor(linked?.length ?? 0), opacity: 0.4 }} />}
                         </div>
-                    ))}
+                    )}
                 </div>
 
                 {isLoading ? (
@@ -175,7 +187,7 @@ export function BankMatchSection({
                         {t('transactions.detail.bankLoading')}
                     </div>
                 ) : (
-                    (linked ?? []).map((b) => {
+                    (linked ?? []).map((b, i) => {
                         const amount = b.amount ?? 0;
                         return (
                             <div
@@ -186,7 +198,7 @@ export function BankMatchSection({
                                 <div className="flex items-start gap-3">
                                     <span
                                         className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[var(--r-sm)]"
-                                        style={{ background: 'var(--positive-surface)', color: 'var(--positive)' }}
+                                        style={{ background: segmentTint(segmentColor(i)), color: segmentColor(i) }}
                                     >
                                         <Landmark size={17} />
                                     </span>

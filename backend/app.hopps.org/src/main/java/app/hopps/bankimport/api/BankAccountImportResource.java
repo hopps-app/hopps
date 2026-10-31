@@ -93,7 +93,9 @@ public class BankAccountImportResource {
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "404", description = "Account or schema not found")
     @APIResponse(responseCode = "409", description = "The file's amounts are in another currency than the account, or in several (code "
-            + BankImportRejectedException.CURRENCY_MISMATCH + ", fields fileCurrencies, accountCurrency)")
+            + BankImportRejectedException.CURRENCY_MISMATCH
+            + ", fields fileCurrencies, accountCurrency), or the file was already imported into another account (code "
+            + BankImportRejectedException.FILE_ALREADY_IMPORTED + ", fields accountName, accountArchived)")
     public Response createImport(
             @PathParam("accountId") @Parameter(description = "Bank account ID") Long accountId,
             @RestForm("file") FileUpload file,
@@ -143,8 +145,10 @@ public class BankAccountImportResource {
         }
         List<Long> importIds = jobs.stream().map(BankImport::getId).toList();
         var statusCounts = transactionRepository.countStatusesByImports(importIds);
+        var inUse = transactionRepository.findImportsInUse(importIds);
         return jobs.stream()
-                .map(j -> BankImportResponse.from(j, statusCounts.getOrDefault(j.getId(), java.util.Map.of())))
+                .map(j -> BankImportResponse.from(j, statusCounts.getOrDefault(j.getId(), java.util.Map.of()),
+                        inUse.contains(j.getId())))
                 .toList();
     }
 }

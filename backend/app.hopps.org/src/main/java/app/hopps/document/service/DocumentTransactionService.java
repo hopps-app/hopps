@@ -1,5 +1,6 @@
 package app.hopps.document.service;
 
+import app.hopps.bankimport.service.BankTransactionMatchService;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.category.service.CategoryGroupService;
@@ -50,6 +51,9 @@ public class DocumentTransactionService {
 
     @Inject
     TransactionRepository transactionRepository;
+
+    @Inject
+    BankTransactionMatchService bankTransactionMatchService;
 
     @Inject
     BommelRepository bommelRepository;
@@ -186,6 +190,7 @@ public class DocumentTransactionService {
         }
         // Part order is id order ("Teil 1" is the oldest), independent of the order in the request.
         result.sort(Comparator.comparing(Transaction::getId));
+        bankTransactionMatchService.linkOtherParts(document, principal);
 
         DocumentStatus previousStatus = document.getDocumentStatus();
         if (finalize) {

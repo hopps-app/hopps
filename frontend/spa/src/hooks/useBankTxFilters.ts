@@ -15,23 +15,32 @@ export interface BankTxFilterState {
     setDateFrom: (v: string) => void;
     dateTo: string;
     setDateTo: (v: string) => void;
-    // Number of column filters (date/amount) currently set — shown as a badge on the toggle. Search is separate.
+    // Accounts a cross-account list is narrowed to; empty means all.
+    accountIds: number[];
+    setAccountIds: (ids: number[]) => void;
+    // Number of column filters (account/date/amount) currently set — shown as a badge on the toggle. Search is separate.
     columnFilterCount: number;
     hasAnyFilter: boolean;
+    // Resets the column filters and the search.
     clear: () => void;
+    // Resets only the column filters; the search stays.
+    clearColumnFilters: () => void;
 }
 
 /**
  * Search + column-filter state for a bank-transaction feed, cached in localStorage under {@code keyPrefix} (e.g.
  * {@code hopps.konten.account}) exactly like the sort/status already are, so a bookkeeper's search, date range and
- * amount range survive navigation and reloads.
+ * amount range survive navigation and reloads. Pass {@code accounts} for a list that can be narrowed by account: a cached
+ * selection of an account that no longer exists is dropped against it.
  */
-export function useBankTxFilters(keyPrefix: string): BankTxFilterState {
+export function useBankTxFilters(keyPrefix: string, accounts?: { id?: number }[]): BankTxFilterState {
     const [search, setSearch] = usePersistedState<string>(`${keyPrefix}.search`, '');
     const [minAmount, setMinAmount] = usePersistedState<string>(`${keyPrefix}.minAmount`, '');
     const [maxAmount, setMaxAmount] = usePersistedState<string>(`${keyPrefix}.maxAmount`, '');
     const [dateFrom, setDateFrom] = usePersistedState<string>(`${keyPrefix}.dateFrom`, '');
     const [dateTo, setDateTo] = usePersistedState<string>(`${keyPrefix}.dateTo`, '');
+    const [storedAccountIds, setAccountIds] = usePersistedState<number[]>(`${keyPrefix}.accountIds`, []);
+    const accountIds = accounts ? storedAccountIds.filter((id) => accounts.some((a) => a.id === id)) : [];
 
     // The free-text inputs (search + amount range) drive the server query only after a short pause: debouncing the
     // query-facing value keeps typing from firing a request on every keystroke and from thrashing the query key — which
@@ -47,17 +56,23 @@ export function useBankTxFilters(keyPrefix: string): BankTxFilterState {
         maxAmount: debouncedMaxAmount || undefined,
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
+        accountIds: accountIds.length > 0 ? accountIds.join(',') : undefined,
     };
 
-    const columnFilterCount = [dateFrom, dateTo, minAmount.trim(), maxAmount.trim()].filter(Boolean).length;
+    const columnFilterCount = [dateFrom, dateTo, minAmount.trim(), maxAmount.trim()].filter(Boolean).length + accountIds.length;
     const hasAnyFilter = columnFilterCount > 0 || search.trim().length > 0;
 
-    const clear = () => {
-        setSearch('');
+    const clearColumnFilters = () => {
         setMinAmount('');
         setMaxAmount('');
         setDateFrom('');
         setDateTo('');
+        setAccountIds([]);
+    };
+
+    const clear = () => {
+        setSearch('');
+        clearColumnFilters();
     };
 
     return {
@@ -72,8 +87,11 @@ export function useBankTxFilters(keyPrefix: string): BankTxFilterState {
         setDateFrom,
         dateTo,
         setDateTo,
+        accountIds,
+        setAccountIds,
         columnFilterCount,
         hasAnyFilter,
         clear,
+        clearColumnFilters,
     };
 }

@@ -36,7 +36,7 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 | Beleg-Detailansicht mit Vorschau | ✅ | – | SPA `BelegeView` ReviewDrawer, `GET /documents/{id}/file` |
 | „Privat bezahlt" (Auslage) markieren | ✅ | Boolean `privatelyPaid`, filterbar | BE `document/domain/Document`, `GET /transactions?privatelyPaid=true` |
 | Auslagen-Erstattung (Empfänger, IBAN, Auszahlungsstatus) | ❌ / 💡 | Nur das Flag oben; keine Person/IBAN/Status/Summe pro Person | – |
-| Beleg auf mehrere Kategorien/Beträge aufteilen | ✅ | Beleg wird in mehrere Transaktionen geteilt (je Teil Betrag, Bommel, Kategoriewerte); Entwurf oder direkt erstellen, Teilsumme darf unter dem Belegbetrag liegen (Privatanteil); Bankabgleich je Teil (Stand 2026-10-12) | BE `PUT /documents/{id}/transactions`, SPA `Receipts/Split/SplitDrawer` |
+| Beleg auf mehrere Kategorien/Beträge aufteilen | ✅ | Beleg wird in mehrere Transaktionen geteilt (je Teil Betrag, Bommel, Kategoriewerte); Entwurf oder direkt erstellen, Teilsumme darf unter dem Belegbetrag liegen (Privatanteil); Bankabgleich je Teil; zahlt ein Umsatz den ganzen Beleg, werden alle Teile mit ihm verknüpft, auch wenn der Beleg erst danach geteilt wird (Stand 2026-10-31) | BE `PUT /documents/{id}/transactions`, SPA `Receipts/Split/SplitDrawer` |
 | Upload ohne Konto (Gast, z. B. per Link) | ❌ / 💡 | Alle Beleg-Endpoints erfordern Login | BE `application.properties` (öffentliche Pfade) |
 | „Meine Belege"-Ansicht für Einreichende | ❌ | Belege werden organisationsweit gelistet | BE `document/repository/DocumentRepository` |
 
@@ -59,7 +59,10 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 | Bank-Import Vorlagen (automatische Erkennung) | ✅ | Sparkasse (MT940, CAMT.052 v2/v8), Volksbanken / Raiffeisenbanken Umsatz-CSV (18 Spalten, Atruvia-Banken inkl. Deutsche Skatbank) | BE `SystemTemplateService`, `SchemaDetectionService` (Stand 2026-10-05) |
 | Bank-Import MT940 | ✅ | – | BE `bankimport/` |
 | Währungsprüfung beim Import | ✅ | Vor dem Import (Stand 2026-10-04): Beträge in anderer Währung als das Konto (oder gemischte Währungen) werden abgelehnt. Keine Prüfung, ob die Datei zum Konto (IBAN) passt | BE `bankimport/service/ImportFileCheckService.java`, SPA `BankAccounts/ImportWizard.tsx` |
-| Abgleich Bank ↔ Belege (inkl. Teilbeträge) | ✅ | Manuell; Auto-Matching erst Gerüst | BE `BankTransactionMatch` |
+| Abgleich Bank ↔ Belege (inkl. Teilbeträge) | ✅ | Manuell; Auto-Matching erst Gerüst. Beim Öffnen eines Kontoumsatzes werden bis zu drei passende offene Transaktionen (nach offenem Betrag und Datum) vorgeschlagen und mit einem Klick verknüpft; die Suche findet offene Transaktionen auch über Betrag. Die Abgleich-Liste lässt sich nach Konto filtern. Beleg direkt am Kontoumsatz hochladen: legt eine aus dem Umsatz vorausgefüllte Entwurfstransaktion an und verknüpft sie sofort; nach der Analyse übernimmt sie Steuer und Belegname, solange unverändert; mehrere Belege pro Umsatz möglich | BE `BankTransactionMatch`, `BankTransactionReceiptService`, SPA `BankAccounts/useMatchCandidates` (Stand 2026-10-30) |
+| Bankkonto löschen / archivieren | ✅ | Unbenutzte Konten (keine Importe, keine Umsätze) lassen sich endgültig löschen. Konten mit Daten, aber ohne zugeordnete Umsätze lassen sich archivieren: sie verschwinden samt offener Umsätze aus den Arbeitslisten und sind wiederherstellbar. Konten mit zugeordneten Umsätzen bleiben bestehen (Stand 2026-10-31) | BE `BankAccountService.delete`, SPA `BankAccountDrawer` |
+| Import löschen | ✅ | Ein Import lässt sich nur löschen, solange keiner seiner Umsätze zugeordnet oder ignoriert ist; sonst zuerst die Verknüpfungen lösen (Stand 2026-10-30) | BE `BankImportService.rollback`, SPA `KontenView` |
+| Doppelte Kontoauszüge verhindern | ✅ | Eine IBAN gehört zu genau einem Konto, auch archivierte zählen; eine bereits in ein anderes Konto importierte identische Datei wird abgelehnt. (Stand 2026-10-31) | BE `BankAccountService`, `BankImportService.enqueueImport` |
 | Automatischer Kontoabruf (FinTS/EBICS) | ❌ | – | – |
 | Doppelte Buchführung / EÜR / Jahresabschluss | ❌ | Siehe [04-roadmap.md](04-roadmap.md) | – |
 | Kassenbuch (Bargeld) | ❌ | – | – |
