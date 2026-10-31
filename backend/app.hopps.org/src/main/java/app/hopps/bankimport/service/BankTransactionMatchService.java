@@ -162,6 +162,27 @@ public class BankTransactionMatchService {
         }
     }
 
+    /**
+     * The same as {@link #linkOtherReceiptParts} for a receipt that was split after it was linked, as in the bank
+     * drawer. Splitting turns the receipt's one transaction into several. If the bank movement linked to one of them
+     * has the amount of the whole receipt, it paid all of them, so it gets linked to the other transactions as well. A
+     * movement of another amount stays linked to its one transaction only.
+     */
+    @Transactional
+    public void linkOtherParts(Document document, String username) {
+        List<BankTransactionMatch> matches = em.createQuery(
+                "SELECT m FROM BankTransactionMatch m WHERE m.transaction.document.id = :documentId",
+                BankTransactionMatch.class)
+                .setParameter("documentId", document.getId())
+                .getResultList();
+        Map<BankTransaction, Transaction> linkedPartByMovement = new HashMap<>();
+        matches.forEach(match -> linkedPartByMovement.putIfAbsent(match.getBankTransaction(), match.getTransaction()));
+        linkedPartByMovement.forEach((bankTx, part) -> {
+            linkOtherReceiptParts(bankTx, part, username);
+            recomputeStatus(bankTx);
+        });
+    }
+
     private boolean isLinked(Long bankTxId, Long transactionId) {
         return em.createQuery(
                 "SELECT COUNT(m) FROM BankTransactionMatch m WHERE m.bankTransaction.id = :bankTxId AND m.transaction.id = :txId",
