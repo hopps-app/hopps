@@ -36,7 +36,7 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 | Beleg-Detailansicht mit Vorschau | ✅ | – | SPA `BelegeView` ReviewDrawer, `GET /documents/{id}/file` |
 | „Privat bezahlt" (Auslage) markieren | ✅ | Boolean `privatelyPaid`, filterbar | BE `document/domain/Document`, `GET /transactions?privatelyPaid=true` |
 | Auslagen-Erstattung (Empfänger, IBAN, Auszahlungsstatus) | ❌ / 💡 | Nur das Flag oben; keine Person/IBAN/Status/Summe pro Person | – |
-| Beleg auf mehrere Kategorien/Beträge aufteilen | ✅ | Beleg wird in mehrere Transaktionen geteilt (je Teil Betrag, Bommel, Kategoriewerte); Entwurf oder direkt erstellen, Teilsumme darf unter dem Belegbetrag liegen (Privatanteil); Bankabgleich je Teil (Stand 2026-10-12) | BE `PUT /documents/{id}/transactions`, SPA `Receipts/Split/SplitDrawer` |
+| Beleg auf mehrere Kategorien/Beträge aufteilen | ✅ | Beleg wird in mehrere Transaktionen geteilt (je Teil Betrag, Bommel, Kategoriewerte); Entwurf oder direkt erstellen, Teilsumme darf unter dem Belegbetrag liegen (Privatanteil); Bankabgleich je Teil; zahlt ein Umsatz den ganzen Beleg, werden alle Teile mit ihm verknüpft, auch wenn der Beleg erst danach geteilt wird (Stand 2026-10-31) | BE `PUT /documents/{id}/transactions`, SPA `Receipts/Split/SplitDrawer` |
 | Upload ohne Konto (Gast, z. B. per Link) | ❌ / 💡 | Alle Beleg-Endpoints erfordern Login | BE `application.properties` (öffentliche Pfade) |
 | „Meine Belege"-Ansicht für Einreichende | ❌ | Belege werden organisationsweit gelistet | BE `document/repository/DocumentRepository` |
 
