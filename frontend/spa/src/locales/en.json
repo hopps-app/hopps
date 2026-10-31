@@ -1292,6 +1292,8 @@
             "createError": "Bank account could not be created",
             "updateSuccess": "Bank account saved",
             "updateError": "Bank account could not be saved",
+            "deleteSuccess": "Bank account deleted",
+            "deleteError": "Bank account could not be deleted",
             "archiveSuccess": "Bank account archived",
             "archiveError": "Bank account could not be archived",
             "restoreSuccess": "Bank account restored",
@@ -1452,6 +1454,16 @@
         "buttonDisabledHint": "This action is unavailable because a required service is unreachable."
     },
     "konten": {
+        "accountActions": {
+            "delete": "Delete account",
+            "archive": "Archive account",
+            "deleteTitle": "Delete this account?",
+            "deleteText": "This account has no imports and no transactions. It will be deleted permanently.",
+            "archiveTitle": "Archive this account?",
+            "archiveText": "This account has imports or transactions, so it cannot be deleted. It will be hidden, all data stays, and you can restore it at any time.",
+            "archivedTitle": "Archived accounts ({{count}})",
+            "restore": "Restore"
+        },
         "title": "Accounts",
         "balance": "Balance",
         "open": "open",
@@ -1483,6 +1495,9 @@
             "dateTo": "Date to",
             "minAmount": "Min amount",
             "maxAmount": "Max amount",
+            "account": "Account",
+            "allAccounts": "All accounts",
+            "accountsSelected": "{{count}} accounts",
             "clearAll": "Clear filters"
         },
         "abgleich": {
@@ -1512,15 +1527,14 @@
             "actions": "Actions",
             "delete": "Delete import",
             "deleteTitle": "Delete import?",
+            "deleteBlocked": "Bank transactions of this import are already assigned or ignored. To delete it, unlink them and undo the ignoring first.",
             "deleteConfirm_one": "The import <strong>\"{{file}}\"</strong> and the <strong>one transaction</strong> it created will be deleted. Uploaded receipts and bookkeeping entries are kept.",
             "deleteConfirm_other": "The import <strong>\"{{file}}\"</strong> and the <strong>{{count}} transactions</strong> it created will be deleted. Uploaded receipts and bookkeeping entries are kept.",
-            "deleteMatchedWarning_one": "Note: <strong>1 of these transactions</strong> is linked to a bookkeeping entry — that link will be removed.",
-            "deleteMatchedWarning_other": "Note: <strong>{{count}} of these transactions</strong> are linked to bookkeeping entries — those links will be removed.",
             "search": "Search (file, account) …",
             "noResults": "No imports for this selection.",
             "status": {
-                "completed": "Completed",
-                "partial": "Partial",
+                "completed": "Imported",
+                "partial": "Partially imported",
                 "failed": "Failed",
                 "processing": "Running",
                 "queued": "Queued"

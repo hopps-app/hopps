@@ -1,16 +1,18 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ApiException, BankAccountResponse } from '@hopps/api-client';
-import { useEffect } from 'react';
+import { Archive, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Resolver, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { LoadingState } from '@/components/common/LoadingState';
 import Button from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/Dialog';
 import { Label } from '@/components/ui/Label';
 import { BaseInput } from '@/components/ui/shadecn/BaseInput';
-import { useCreateBankAccount, useUpdateBankAccount } from '@/hooks/queries/useBankAccounts';
+import { useArchiveBankAccount, useCreateBankAccount, useDeleteBankAccount, useUpdateBankAccount } from '@/hooks/queries/useBankAccounts';
 import { useCurrency } from '@/hooks/use-currency';
 import { currencyForIban, type CurrencyCode } from '@/lib/currency';
 import { caretAfterChars, formatIban, normalizeIban } from '@/lib/iban';
@@ -83,9 +85,11 @@ interface BankAccountDrawerProps {
     account?: BankAccountResponse;
     /** Called after saving, with the saved account (e.g. to select a newly created one). */
     onSuccess?: (account: BankAccountResponse) => void;
+    /** Called after the account was deleted or archived. */
+    onRemoved?: (accountId: number) => void;
 }
 
-export function BankAccountDrawer({ open, onOpenChange, account, onSuccess }: BankAccountDrawerProps) {
+export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRemoved }: BankAccountDrawerProps) {
     // Accounts are kept in the organization's currency; the backend sets it, the form only checks that the IBAN fits.
     const { currency: organizationCurrency } = useCurrency();
     const { t } = useTranslation();
@@ -95,6 +99,13 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess }: Ba
     const createMutation = useCreateBankAccount();
     const updateMutation = useUpdateBankAccount();
     const isLoading = createMutation.isPending || updateMutation.isPending;
+    const deleteMutation = useDeleteBankAccount();
+    const archiveMutation = useArchiveBankAccount();
+    // Waiting for the confirmation. An unused account can be deleted for good; one with data can only be archived.
+    const [confirmRemove, setConfirmRemove] = useState(false);
+    const deletable = account?.deletable === true;
+    const removeMutation = deletable ? deleteMutation : archiveMutation;
+    const removeLabel = t(deletable ? 'konten.accountActions.delete' : 'konten.accountActions.archive');
 
     const {
         register,
@@ -160,11 +171,36 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess }: Ba
         }
     };
 
+    const remove = async () => {
+        if (account?.id == null) return;
+        try {
+            await removeMutation.mutateAsync(account.id);
+            setConfirmRemove(false);
+            onRemoved?.(account.id);
+        } catch {
+            // The mutation shows the error; the dialog stays open.
+        }
+    };
+
     const selectedColor = watch('color') ?? ACCT_COLORS[0];
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-md">
+                {/* Next to the dialog's close button, away from "Speichern": a rare action that should not compete with it. */}
+                {isEdit && (
+                    <button
+                        type="button"
+                        onClick={() => setConfirmRemove(true)}
+                        disabled={isLoading}
+                        title={removeLabel}
+                        aria-label={removeLabel}
+                        className="absolute right-[3.25rem] top-3 grid h-10 w-10 place-items-center rounded-[var(--btn-radius)] opacity-70 transition-opacity hover:bg-[var(--surface-track)] hover:opacity-100 disabled:opacity-50"
+                    >
+                        {deletable ? <Trash2 size={18} className="text-[var(--negative)]" /> : <Archive size={18} />}
+                    </button>
+                )}
+
                 <DialogHeader>
                     <DialogTitle>{isEdit ? t('bankAccounts.form.editTitle') : t('bankAccounts.form.createTitle')}</DialogTitle>
                     <p className="text-sm text-muted-foreground">{t('konten.form.subtitle')}</p>
@@ -258,6 +294,17 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess }: Ba
                         </Button>
                     </DialogFooter>
                 </form>
+
+                <ConfirmDialog
+                    open={confirmRemove}
+                    onOpenChange={setConfirmRemove}
+                    title={t(deletable ? 'konten.accountActions.deleteTitle' : 'konten.accountActions.archiveTitle')}
+                    description={t(deletable ? 'konten.accountActions.deleteText' : 'konten.accountActions.archiveText')}
+                    confirmLabel={removeLabel}
+                    onConfirm={remove}
+                    destructive={deletable}
+                    loading={removeMutation.isPending}
+                />
             </DialogContent>
         </Dialog>
     );

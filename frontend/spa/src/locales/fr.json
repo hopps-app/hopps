@@ -1259,6 +1259,8 @@
             "createError": "Le compte bancaire n'a pas pu être créé",
             "updateSuccess": "Compte bancaire enregistré",
             "updateError": "Le compte bancaire n'a pas pu être enregistré",
+            "deleteSuccess": "Compte bancaire supprimé",
+            "deleteError": "Le compte bancaire n'a pas pu être supprimé",
             "archiveSuccess": "Compte bancaire archivé",
             "archiveError": "Le compte bancaire n'a pas pu être archivé",
             "restoreSuccess": "Compte bancaire restauré",
@@ -1419,6 +1421,16 @@
         "buttonDisabledHint": "Cette action est indisponible car un service requis est injoignable."
     },
     "konten": {
+        "accountActions": {
+            "delete": "Supprimer le compte",
+            "archive": "Archiver le compte",
+            "deleteTitle": "Supprimer ce compte ?",
+            "deleteText": "Ce compte n'a ni importation ni opération. Il sera supprimé définitivement.",
+            "archiveTitle": "Archiver ce compte ?",
+            "archiveText": "Ce compte a des importations ou des opérations et ne peut donc pas être supprimé. Il sera masqué, toutes les données sont conservées et il peut être restauré à tout moment.",
+            "archivedTitle": "Comptes archivés ({{count}})",
+            "restore": "Restaurer"
+        },
         "title": "Comptes",
         "subtitle": "Comptes bancaires — tous les fonds du club en un seul endroit.",
         "balance": "Solde",
@@ -1453,6 +1465,9 @@
             "dateTo": "Date de fin",
             "minAmount": "Montant min.",
             "maxAmount": "Montant max.",
+            "account": "Compte",
+            "allAccounts": "Tous les comptes",
+            "accountsSelected": "{{count}} comptes",
             "clearAll": "Réinitialiser les filtres"
         },
         "abgleich": {
@@ -1490,10 +1505,16 @@
             "actions": "Actions",
             "delete": "Supprimer l'import",
             "deleteTitle": "Supprimer l'import ?",
+            "status": {
+                "completed": "Importé",
+                "partial": "Partiellement importé",
+                "failed": "Échec",
+                "processing": "En cours",
+                "queued": "En attente"
+            },
+            "deleteBlocked": "Des opérations de cette importation sont déjà affectées ou ignorées. Pour la supprimer, retirez d'abord les associations et annulez l'ignorance.",
             "deleteConfirm_one": "L'import <strong>\"{{file}}\"</strong> et l'<strong>unique transaction</strong> qu'il a créée seront supprimés. Les reçus téléversés et les écritures comptables sont conservés.",
-            "deleteConfirm_other": "L'import <strong>\"{{file}}\"</strong> et les <strong>{{count}} transactions</strong> qu'il a créées seront supprimés. Les reçus téléversés et les écritures comptables sont conservés.",
-            "deleteMatchedWarning_one": "Remarque : <strong>1 de ces transactions</strong> est liée à une écriture comptable — ce lien sera supprimé.",
-            "deleteMatchedWarning_other": "Remarque : <strong>{{count}} de ces transactions</strong> sont liées à des écritures comptables — ces liens seront supprimés."
+            "deleteConfirm_other": "L'import <strong>\"{{file}}\"</strong> et les <strong>{{count}} transactions</strong> qu'il a créées seront supprimés. Les reçus téléversés et les écritures comptables sont conservés."
         },
         "empty": {
             "noMatchTitle": "Aucun résultat",

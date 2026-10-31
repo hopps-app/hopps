@@ -59,6 +59,8 @@ export interface BankTxFilter {
     maxAmount?: string;
     dateFrom?: string;
     dateTo?: string;
+    // Comma-separated account ids of the cross-account lists; left out for all accounts.
+    accountIds?: string;
 }
 
 export const bankTransactionKeys = {
@@ -77,7 +79,7 @@ export const bankTransactionKeys = {
         [...bankTransactionKeys.all, 'list', { status, page, size, sort, direction, ...filter }] as const,
     // Aggregate totals + true (uncapped) count for a filter set.
     aggregate: (accountIds?: string, status?: string, filter?: BankTxFilter) =>
-        [...bankTransactionKeys.all, 'aggregate', { accountIds, status, ...filter }] as const,
+        [...bankTransactionKeys.all, 'aggregate', { status, ...filter, accountIds: accountIds ?? filter?.accountIds }] as const,
 };
 
 // ─── Bank Accounts ───────────────────────────────────────────────────────────
@@ -148,6 +150,24 @@ export function useArchiveBankAccount() {
         },
         onError: (err) => {
             showError(t('bankAccounts.toast.archiveError'), { description: getUserFriendlyErrorMessage(err) });
+        },
+    });
+}
+
+// Deletes an unused account for good; the backend refuses one with imports or movements.
+export function useDeleteBankAccount() {
+    const queryClient = useQueryClient();
+    const { showSuccess, showError } = useToast();
+    const { t } = useTranslation();
+
+    return useMutation({
+        mutationFn: (id: number) => apiService.orgService.permanent(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: bankAccountKeys.lists() });
+            showSuccess(t('bankAccounts.toast.deleteSuccess'));
+        },
+        onError: (err) => {
+            showError(t('bankAccounts.toast.deleteError'), { description: getUserFriendlyErrorMessage(err) });
         },
     });
 }
@@ -555,7 +575,7 @@ export function useAllBankTransactions(
         queryKey: bankTransactionKeys.list(status, page, size, sort, direction, filter),
         queryFn: () =>
             apiService.orgService.bankTransactionsAll(
-                undefined, // accountIds → all accounts
+                filter.accountIds, // omitted → all accounts
                 filter.dateFrom || undefined,
                 filter.dateTo || undefined,
                 direction,
@@ -582,7 +602,7 @@ export function useBankTransactionAggregate(accountIds?: string, status?: string
         queryKey: bankTransactionKeys.aggregate(accountIds, status, filter),
         queryFn: () =>
             apiService.orgService.aggregate(
-                accountIds,
+                accountIds ?? filter.accountIds,
                 filter.dateFrom || undefined,
                 filter.dateTo || undefined,
                 filter.maxAmount || undefined,

@@ -1302,6 +1302,8 @@
             "createError": "Bankkonto konnte nicht erstellt werden",
             "updateSuccess": "Bankkonto gespeichert",
             "updateError": "Bankkonto konnte nicht gespeichert werden",
+            "deleteSuccess": "Bankkonto gelöscht",
+            "deleteError": "Bankkonto konnte nicht gelöscht werden",
             "archiveSuccess": "Bankkonto archiviert",
             "archiveError": "Bankkonto konnte nicht archiviert werden",
             "restoreSuccess": "Bankkonto wiederhergestellt",
@@ -1451,6 +1453,16 @@
         }
     },
     "konten": {
+        "accountActions": {
+            "delete": "Konto löschen",
+            "archive": "Konto archivieren",
+            "deleteTitle": "Dieses Konto löschen?",
+            "deleteText": "Das Konto hat keine Importe und keine Umsätze. Es wird endgültig gelöscht.",
+            "archiveTitle": "Dieses Konto archivieren?",
+            "archiveText": "Das Konto hat Importe oder Umsätze und kann deshalb nicht gelöscht werden. Es wird ausgeblendet, alle Daten bleiben erhalten, und es lässt sich jederzeit wiederherstellen.",
+            "archivedTitle": "Archivierte Konten ({{count}})",
+            "restore": "Wiederherstellen"
+        },
         "title": "Konten",
         "balance": "Saldo",
         "open": "offen",
@@ -1482,6 +1494,9 @@
             "dateTo": "Datum bis",
             "minAmount": "Betrag min.",
             "maxAmount": "Betrag max.",
+            "account": "Konto",
+            "allAccounts": "Alle Konten",
+            "accountsSelected": "{{count}} Konten",
             "clearAll": "Filter zurücksetzen"
         },
         "abgleich": {
@@ -1512,15 +1527,14 @@
             "actions": "Aktionen",
             "delete": "Import löschen",
             "deleteTitle": "Import löschen?",
+            "deleteBlocked": "Umsätze dieses Imports sind bereits zugeordnet oder ignoriert. Zum Löschen zuerst die Verknüpfungen lösen und das Ignorieren aufheben.",
             "deleteConfirm_one": "Der Import <strong>„{{file}}“</strong> und der daraus erzeugte <strong>1 Umsatz</strong> werden gelöscht. Hochgeladene Belege und erfasste Buchungen bleiben erhalten.",
             "deleteConfirm_other": "Der Import <strong>„{{file}}“</strong> und die daraus erzeugten <strong>{{count}} Umsätze</strong> werden gelöscht. Hochgeladene Belege und erfasste Buchungen bleiben erhalten.",
-            "deleteMatchedWarning_one": "Achtung: <strong>1 dieser Umsätze</strong> ist einer Buchung zugeordnet – diese Zuordnung geht verloren.",
-            "deleteMatchedWarning_other": "Achtung: <strong>{{count}} dieser Umsätze</strong> sind Buchungen zugeordnet – diese Zuordnungen gehen verloren.",
             "search": "Suchen (Datei, Konto) …",
             "noResults": "Keine Importe für diese Auswahl.",
             "status": {
-                "completed": "Abgeschlossen",
-                "partial": "Teilweise",
+                "completed": "Importiert",
+                "partial": "Teilweise importiert",
                 "failed": "Fehlgeschlagen",
                 "processing": "Läuft",
                 "queued": "Wartet"

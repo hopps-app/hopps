@@ -1259,6 +1259,8 @@
             "createError": "Impossibile creare il conto bancario",
             "updateSuccess": "Conto bancario salvato",
             "updateError": "Impossibile salvare il conto bancario",
+            "deleteSuccess": "Conto bancario eliminato",
+            "deleteError": "Impossibile eliminare il conto bancario",
             "archiveSuccess": "Conto bancario archiviato",
             "archiveError": "Impossibile archiviare il conto bancario",
             "restoreSuccess": "Conto bancario ripristinato",
@@ -1419,6 +1421,16 @@
         "buttonDisabledHint": "Questa azione non è disponibile perché un servizio necessario non è raggiungibile."
     },
     "konten": {
+        "accountActions": {
+            "delete": "Elimina conto",
+            "archive": "Archivia conto",
+            "deleteTitle": "Eliminare questo conto?",
+            "deleteText": "Questo conto non ha importazioni né movimenti. Verrà eliminato definitivamente.",
+            "archiveTitle": "Archiviare questo conto?",
+            "archiveText": "Questo conto ha importazioni o movimenti e quindi non può essere eliminato. Verrà nascosto, tutti i dati restano e può essere ripristinato in qualsiasi momento.",
+            "archivedTitle": "Conti archiviati ({{count}})",
+            "restore": "Ripristina"
+        },
         "title": "Conti",
         "subtitle": "Conti bancari — tutti i fondi dell'associazione in un unico posto.",
         "balance": "Saldo",
@@ -1453,6 +1465,9 @@
             "dateTo": "Data a",
             "minAmount": "Importo minimo",
             "maxAmount": "Importo massimo",
+            "account": "Conto",
+            "allAccounts": "Tutti i conti",
+            "accountsSelected": "{{count}} conti",
             "clearAll": "Cancella filtri"
         },
         "abgleich": {
@@ -1490,10 +1505,16 @@
             "actions": "Azioni",
             "delete": "Elimina importazione",
             "deleteTitle": "Eliminare l'importazione?",
+            "status": {
+                "completed": "Importato",
+                "partial": "Parzialmente importato",
+                "failed": "Non riuscito",
+                "processing": "In corso",
+                "queued": "In coda"
+            },
+            "deleteBlocked": "Alcuni movimenti di questa importazione sono già assegnati o ignorati. Per eliminarla, rimuovi prima i collegamenti e annulla l'ignora.",
             "deleteConfirm_one": "L'importazione <strong>\"{{file}}\"</strong> e la <strong>transazione</strong> da essa creata verranno eliminate. Le ricevute caricate e le registrazioni contabili vengono conservate.",
-            "deleteConfirm_other": "L'importazione <strong>\"{{file}}\"</strong> e le <strong>{{count}} transazioni</strong> da essa create verranno eliminate. Le ricevute caricate e le registrazioni contabili vengono conservate.",
-            "deleteMatchedWarning_one": "Nota: <strong>1 di queste transazioni</strong> è collegata a una registrazione contabile — tale collegamento verrà rimosso.",
-            "deleteMatchedWarning_other": "Nota: <strong>{{count}} di queste transazioni</strong> sono collegate a registrazioni contabili — tali collegamenti verranno rimossi."
+            "deleteConfirm_other": "L'importazione <strong>\"{{file}}\"</strong> e le <strong>{{count}} transazioni</strong> da essa create verranno eliminate. Le ricevute caricate e le registrazioni contabili vengono conservate."
         },
         "empty": {
             "noMatchTitle": "Nessun risultato",
