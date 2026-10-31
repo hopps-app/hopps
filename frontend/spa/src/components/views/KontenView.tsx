@@ -26,6 +26,7 @@ import { StatusSegments, type StatusSegment } from '@/components/ui/StatusSegmen
 import {
     useBankAccounts,
     useRestoreBankAccount,
+    useDeleteBankAccount,
     useBankTransactionsByAccount,
     useAllBankTransactions,
     useBankTransactionAggregate,
@@ -945,9 +946,22 @@ function ArchivedAccounts() {
     const { t } = useTranslation();
     const { data: all = [] } = useBankAccounts(true);
     const restore = useRestoreBankAccount();
+    const remove = useDeleteBankAccount();
     const [open, setOpen] = useState(false);
+    // Waiting for the confirmation. Only an account without imports and movements offers this.
+    const [deleteTarget, setDeleteTarget] = useState<BankAccountResponse | null>(null);
     const archived = all.filter((a) => a.archived);
     if (archived.length === 0) return null;
+
+    const confirmDelete = async () => {
+        if (deleteTarget?.id == null) return;
+        try {
+            await remove.mutateAsync(deleteTarget.id);
+            setDeleteTarget(null);
+        } catch {
+            // The mutation shows the error; the dialog stays open.
+        }
+    };
 
     return (
         <div className="flex flex-col gap-2">
@@ -969,8 +983,29 @@ function ArchivedAccounts() {
                         <BaseButton variant="ghost" size="sm" className="ml-auto" disabled={restore.isPending} onClick={() => restore.mutate(a.id!)}>
                             {t('konten.accountActions.restore')}
                         </BaseButton>
+                        {a.deletable && (
+                            <button
+                                type="button"
+                                onClick={() => setDeleteTarget(a)}
+                                title={t('konten.accountActions.delete')}
+                                aria-label={t('konten.accountActions.delete')}
+                                className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-[var(--btn-radius)] text-[var(--negative)] opacity-70 transition-opacity hover:bg-[var(--surface-track)] hover:opacity-100"
+                            >
+                                <Trash2 size={16} />
+                            </button>
+                        )}
                     </div>
                 ))}
+            <ConfirmDialog
+                open={deleteTarget !== null}
+                onOpenChange={(next) => !next && setDeleteTarget(null)}
+                title={t('konten.accountActions.deleteTitle')}
+                description={t('konten.accountActions.deleteText')}
+                confirmLabel={t('konten.accountActions.delete')}
+                onConfirm={confirmDelete}
+                destructive
+                loading={remove.isPending}
+            />
         </div>
     );
 }

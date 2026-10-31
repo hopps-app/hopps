@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import OrganizationDetailsSettingsView from '../OrganizationDetailsSettingsView';
 
+import apiService from '@/services/ApiService';
 import { useStore } from '@/store/store';
 import { renderWithProviders } from '@/test/test-utils';
 
@@ -50,8 +51,17 @@ describe('OrganizationDetailsSettingsView – currency', () => {
         await waitFor(() => expect(currencySelect()).toBeDisabled());
         expect(currencySelect()).toHaveTextContent('Euro (€)');
         const note = screen.getByTestId('currency-locked-note');
-        expect(note).toHaveTextContent(/can no longer be changed/i);
+        expect(note).toHaveTextContent(/cannot be changed/i);
         expect(note).toHaveTextContent(/please contact support/i);
+    });
+
+    it('reads the lock anew, because the store can be out of date after deleting an account', async () => {
+        useStore.setState({ organization: organization({ currency: 'EUR', currencyLocked: true }) });
+        vi.mocked(apiService.orgService.myGET).mockResolvedValueOnce(organization({ currency: 'EUR', currencyLocked: false }));
+        renderWithProviders(<OrganizationDetailsSettingsView />);
+
+        await waitFor(() => expect(currencySelect()).toBeEnabled());
+        expect(screen.queryByTestId('currency-locked-note')).not.toBeInTheDocument();
     });
 
     it('falls back to euro when the organization carries no currency yet', async () => {

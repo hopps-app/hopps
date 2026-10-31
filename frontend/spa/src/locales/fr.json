@@ -335,8 +335,8 @@
             "currencyEUR": "Euro (€)",
             "currencyCHF": "Franc suisse (CHF)",
             "currencyHint": "Tous les montants dans hopps sont affichés dans cette devise, y compris les comptes bancaires. Elle ne peut être modifiée que tant qu'aucune transaction ni aucun compte bancaire n'existe.",
-            "currencyLockedTitle": "La devise ne peut plus être modifiée",
-            "currencyLocked": "Des transactions ou des comptes bancaires existent déjà pour cette organisation. Tous les montants enregistrés sont tenus dans la devise choisie ; un changement les fausserait. Pour modifier la devise malgré tout, veuillez contacter le support.",
+            "currencyLockedTitle": "La devise ne peut pas être modifiée",
+            "currencyLocked": "Des transactions ou des comptes bancaires existent déjà dans cette devise. Si seul un compte bancaire inutilisé empêche le changement, il peut être supprimé sous « Comptes ». Sinon, veuillez contacter le support.",
             "currencyLockedError": "La devise ne peut plus être modifiée, car des transactions ou des comptes bancaires existent déjà.",
             "loadError": "Échec du chargement des détails de l'organisation",
             "placeholder": {
@@ -1269,6 +1269,9 @@
     },
     "bankImport": {
         "check": {
+            "alreadyImportedTitle": "Fichier déjà importé",
+            "alreadyImported": "Ce fichier exact a déjà été importé dans le compte « {{account}} ». Pour l'importer à nouveau, supprimez d'abord cette importation.",
+            "alreadyImportedArchived": "Ce fichier exact a déjà été importé dans le compte archivé « {{account}} ». Ce compte peut être restauré sous « Comptes archivés ».",
             "currencyMismatchTitle": "Devise incorrecte",
             "currencyMismatch": "Le fichier contient des montants en {{fileCurrencies}}, mais le compte est tenu en {{accountCurrency}}. Importez le fichier dans un compte de cette devise.",
             "mixedCurrencies": "Le fichier contient des montants en plusieurs devises ({{fileCurrencies}}). Un compte ne peut être tenu que dans une seule devise, le fichier ne peut donc pas être importé.",
@@ -1428,6 +1431,11 @@
             "deleteText": "Ce compte n'a ni importation ni opération. Il sera supprimé définitivement.",
             "archiveTitle": "Archiver ce compte ?",
             "archiveText": "Ce compte a des importations ou des opérations et ne peut donc pas être supprimé. Il sera masqué, toutes les données sont conservées et il peut être restauré à tout moment.",
+            "ibanArchived": "Cet IBAN appartient au compte archivé « {{name}} ».",
+            "restoreAccount": "Restaurer le compte",
+            "restoreIbanInUse": "Un compte actif utilise déjà cet IBAN.",
+            "archiveBlocked": "Ce compte a des opérations affectées et ne peut donc pas être archivé.",
+            "archiveOpenWarning": "Opérations ouvertes : {{count}}. Elles seront masquées du rapprochement et réapparaîtront à la restauration du compte.",
             "archivedTitle": "Comptes archivés ({{count}})",
             "restore": "Restaurer"
         },

@@ -337,8 +337,8 @@
             "currencyEUR": "Euro (€)",
             "currencyCHF": "Schweizer Franken (CHF)",
             "currencyHint": "Alle Beträge in hopps werden in dieser Währung angezeigt, auch die Bankkonten. Sie kann nur geändert werden, solange noch keine Transaktion und kein Bankkonto angelegt wurde.",
-            "currencyLockedTitle": "Die Währung kann nicht mehr geändert werden",
-            "currencyLocked": "Für diese Organisation gibt es bereits Transaktionen oder Bankkonten. Alle gespeicherten Beträge werden in der gewählten Währung geführt, ein Wechsel würde sie verfälschen. Um die Währung dennoch zu ändern, bitte an den Support wenden.",
+            "currencyLockedTitle": "Die Währung kann nicht geändert werden",
+            "currencyLocked": "Es gibt bereits Transaktionen oder Bankkonten in dieser Währung. Wenn nur ein ungenutztes Bankkonto die Änderung verhindert, lässt es sich unter „Konten“ löschen. Andernfalls bitte an den Support wenden.",
             "currencyLockedError": "Die Währung kann nicht mehr geändert werden, da bereits Transaktionen oder Bankkonten vorhanden sind.",
             "loadError": "Fehler beim Laden der Organisationsdetails",
             "placeholder": {
@@ -1312,6 +1312,9 @@
     },
     "bankImport": {
         "check": {
+            "alreadyImportedTitle": "Datei bereits importiert",
+            "alreadyImported": "Genau diese Datei ist bereits im Konto „{{account}}“ importiert. Für einen neuen Import dort zuerst den Import löschen.",
+            "alreadyImportedArchived": "Genau diese Datei ist bereits im archivierten Konto „{{account}}“ importiert. Das Konto lässt sich unter „Archivierte Konten“ wiederherstellen.",
             "currencyMismatchTitle": "Falsche Währung",
             "currencyMismatch": "Die Datei enthält Beträge in {{fileCurrencies}}, das Konto wird aber in {{accountCurrency}} geführt. Die Datei bitte in ein Konto mit dieser Währung importieren.",
             "mixedCurrencies": "Die Datei enthält Beträge in mehreren Währungen ({{fileCurrencies}}). Ein Konto kann nur eine Währung führen, deshalb kann die Datei nicht importiert werden.",
@@ -1460,6 +1463,11 @@
             "deleteText": "Das Konto hat keine Importe und keine Umsätze. Es wird endgültig gelöscht.",
             "archiveTitle": "Dieses Konto archivieren?",
             "archiveText": "Das Konto hat Importe oder Umsätze und kann deshalb nicht gelöscht werden. Es wird ausgeblendet, alle Daten bleiben erhalten, und es lässt sich jederzeit wiederherstellen.",
+            "ibanArchived": "Diese IBAN gehört zum archivierten Konto „{{name}}“.",
+            "restoreAccount": "Konto wiederherstellen",
+            "restoreIbanInUse": "Ein aktives Konto nutzt bereits diese IBAN.",
+            "archiveBlocked": "Dieses Konto hat zugeordnete Umsätze und lässt sich deshalb nicht archivieren.",
+            "archiveOpenWarning": "Noch offene Umsätze: {{count}}. Diese werden aus dem Abgleich ausgeblendet und sind nach dem Wiederherstellen wieder sichtbar.",
             "archivedTitle": "Archivierte Konten ({{count}})",
             "restore": "Wiederherstellen"
         },

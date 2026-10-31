@@ -12,11 +12,19 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/Dialog';
 import { Label } from '@/components/ui/Label';
 import { BaseInput } from '@/components/ui/shadecn/BaseInput';
-import { useArchiveBankAccount, useCreateBankAccount, useDeleteBankAccount, useUpdateBankAccount } from '@/hooks/queries/useBankAccounts';
+import {
+    useArchiveBankAccount,
+    useBankTransactionAggregate,
+    useCreateBankAccount,
+    useDeleteBankAccount,
+    useRestoreBankAccount,
+    useUpdateBankAccount,
+} from '@/hooks/queries/useBankAccounts';
 import { useCurrency } from '@/hooks/use-currency';
 import { currencyForIban, type CurrencyCode } from '@/lib/currency';
 import { caretAfterChars, formatIban, normalizeIban } from '@/lib/iban';
 import { cn } from '@/lib/utils';
+import { getErrorBody } from '@/utils/errorUtils';
 
 const ACCT_COLORS = ['#9955CC', '#2E9E6B', '#2A6FDB', '#C8385A', '#B47C18', '#5B5BD6'];
 
@@ -79,6 +87,9 @@ function buildSchema(t: (k: string, o?: Record<string, unknown>) => string, orga
 
 type FormValues = z.infer<ReturnType<typeof buildSchema>>;
 
+/** Body of the 409 for an IBAN that already belongs to an account (see BankAccountConflictException). */
+type IbanConflict = { code?: 'IBAN_IN_USE' | 'IBAN_ARCHIVED'; archivedAccountId?: number; archivedAccountName?: string };
+
 interface BankAccountDrawerProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -105,7 +116,19 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRe
     const [confirmRemove, setConfirmRemove] = useState(false);
     const deletable = account?.deletable === true;
     const removeMutation = deletable ? deleteMutation : archiveMutation;
+    // Linked movements keep the account: it can be neither deleted nor archived.
+    const linked = account?.linked === true;
     const removeLabel = t(deletable ? 'konten.accountActions.delete' : 'konten.accountActions.archive');
+    // Open movements leave the Abgleich list with the account, so the confirmation points them out.
+    const openAggregate = useBankTransactionAggregate(
+        account?.id != null ? String(account.id) : undefined,
+        'UNMATCHED,PARTIALLY_MATCHED',
+        confirmRemove && !deletable
+    );
+    const openCount = openAggregate.data?.count ?? 0;
+    // The archived account the typed IBAN belongs to, offered for restoring instead of a second account.
+    const [archivedMatch, setArchivedMatch] = useState<number | null>(null);
+    const restoreMutation = useRestoreBankAccount();
 
     const {
         register,
@@ -131,6 +154,7 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRe
 
     useEffect(() => {
         if (open) {
+            setArchivedMatch(null);
             reset(
                 account
                     ? {
@@ -158,6 +182,7 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRe
     }, [open, account, reset]);
 
     const onSubmit = async (values: FormValues) => {
+        setArchivedMatch(null);
         const openingBalanceDate = values.openingBalanceDate ? new Date(values.openingBalanceDate) : undefined;
         const payload = { ...values, openingBalanceDate };
         try {
@@ -166,8 +191,23 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRe
             onSuccess?.(saved);
         } catch (err) {
             if (ApiException.isApiException(err) && err.status === 409) {
-                setError('iban', { message: t('bankAccounts.form.validation.duplicateIban') });
+                const body = getErrorBody<IbanConflict>(err);
+                if (body?.code === 'IBAN_ARCHIVED') {
+                    setArchivedMatch(body.archivedAccountId ?? null);
+                    setError('iban', { message: t('konten.accountActions.ibanArchived', { name: body.archivedAccountName }) });
+                } else {
+                    setError('iban', { message: t('bankAccounts.form.validation.duplicateIban') });
+                }
             }
+        }
+    };
+
+    const restoreArchived = async () => {
+        if (archivedMatch == null) return;
+        try {
+            onSuccess?.(await restoreMutation.mutateAsync(archivedMatch));
+        } catch {
+            // The mutation shows the error.
         }
     };
 
@@ -191,11 +231,15 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRe
                 {isEdit && (
                     <button
                         type="button"
-                        onClick={() => setConfirmRemove(true)}
+                        onClick={() => !linked && setConfirmRemove(true)}
                         disabled={isLoading}
-                        title={removeLabel}
-                        aria-label={removeLabel}
-                        className="absolute right-[3.25rem] top-3 grid h-10 w-10 place-items-center rounded-[var(--btn-radius)] opacity-70 transition-opacity hover:bg-[var(--surface-track)] hover:opacity-100 disabled:opacity-50"
+                        aria-disabled={linked}
+                        title={linked ? t('konten.accountActions.archiveBlocked') : removeLabel}
+                        aria-label={linked ? t('konten.accountActions.archiveBlocked') : removeLabel}
+                        className={cn(
+                            'absolute right-[3.25rem] top-3 grid h-10 w-10 place-items-center rounded-[var(--btn-radius)] transition-opacity disabled:opacity-50',
+                            linked ? 'cursor-not-allowed opacity-30' : 'opacity-70 hover:bg-[var(--surface-track)] hover:opacity-100'
+                        )}
                     >
                         {deletable ? <Trash2 size={18} className="text-[var(--negative)]" /> : <Archive size={18} />}
                     </button>
@@ -237,6 +281,16 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRe
                             className="font-mono"
                         />
                         {errors.iban && <p className="text-xs text-destructive">{errors.iban.message}</p>}
+                        {archivedMatch != null && (
+                            <button
+                                type="button"
+                                onClick={restoreArchived}
+                                disabled={restoreMutation.isPending}
+                                className="w-fit text-xs font-bold text-primary hover:underline disabled:opacity-50"
+                            >
+                                {t('konten.accountActions.restoreAccount')}
+                            </button>
+                        )}
                     </div>
 
                     {/* Bank */}
@@ -299,7 +353,16 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRe
                     open={confirmRemove}
                     onOpenChange={setConfirmRemove}
                     title={t(deletable ? 'konten.accountActions.deleteTitle' : 'konten.accountActions.archiveTitle')}
-                    description={t(deletable ? 'konten.accountActions.deleteText' : 'konten.accountActions.archiveText')}
+                    description={
+                        <>
+                            {t(deletable ? 'konten.accountActions.deleteText' : 'konten.accountActions.archiveText')}
+                            {!deletable && openCount > 0 && (
+                                <span className="mt-2 block font-semibold text-[var(--warning)]">
+                                    {t('konten.accountActions.archiveOpenWarning', { count: openCount })}
+                                </span>
+                            )}
+                        </>
+                    }
                     confirmLabel={removeLabel}
                     onConfirm={remove}
                     destructive={deletable}

@@ -272,8 +272,15 @@ function OrganizationDetailsSettingsView() {
 
     // Same order as app.hopps.organization.domain.Currency; euro first because it is the default.
     const currencyOptions = useMemo(() => SUPPORTED_CURRENCIES.map((code) => ({ label: t(`organization.details.currency${code}`), value: code })), [t]);
-    // The backend reports whether transactions exist; once they do, the currency select is read-only.
-    const currencyLocked = organization?.currencyLocked === true;
+    // The backend reports whether transactions or bank accounts exist; once they do, the currency select is read-only.
+    // Asked anew here, not taken from the store: that is filled at app start, while accounts come and go in between. Kept
+    // apart from the store so the answer does not reset the form.
+    const { data: currentOrganization } = useQuery({
+        queryKey: ['organization', 'currencyLock'],
+        queryFn: () => apiService.orgService.myGET(),
+        staleTime: 0,
+    });
+    const currencyLocked = (currentOrganization ?? organization)?.currencyLocked === true;
 
     const schema = useMemo(
         () =>

@@ -338,8 +338,8 @@
             "currencyEUR": "Euro (€)",
             "currencyCHF": "Swiss franc (CHF)",
             "currencyHint": "Every amount in hopps is shown in this currency, bank accounts included. It can only be changed while no transaction and no bank account exist yet.",
-            "currencyLockedTitle": "The currency can no longer be changed",
-            "currencyLocked": "Transactions or bank accounts already exist for this organization. All stored amounts are kept in the selected currency, so switching it would falsify them. To change the currency anyway, please contact support.",
+            "currencyLockedTitle": "The currency cannot be changed",
+            "currencyLocked": "Transactions or bank accounts already exist in this currency. If only an unused bank account is preventing the change, it can be deleted under “Accounts”. Otherwise, please contact support.",
             "currencyLockedError": "The currency can no longer be changed because transactions or bank accounts already exist.",
             "loadError": "Failed to load organization details",
             "placeholder": {
@@ -1302,6 +1302,9 @@
     },
     "bankImport": {
         "check": {
+            "alreadyImportedTitle": "File already imported",
+            "alreadyImported": "This exact file was already imported into the account “{{account}}”. To import it again, delete that import first.",
+            "alreadyImportedArchived": "This exact file was already imported into the archived account “{{account}}”. You can restore that account under “Archived accounts”.",
             "currencyMismatchTitle": "Wrong currency",
             "currencyMismatch": "The file contains amounts in {{fileCurrencies}}, but the account is kept in {{accountCurrency}}. Import the file into an account with that currency.",
             "mixedCurrencies": "The file contains amounts in several currencies ({{fileCurrencies}}). An account can only hold one currency, so the file cannot be imported.",
@@ -1461,6 +1464,11 @@
             "deleteText": "This account has no imports and no transactions. It will be deleted permanently.",
             "archiveTitle": "Archive this account?",
             "archiveText": "This account has imports or transactions, so it cannot be deleted. It will be hidden, all data stays, and you can restore it at any time.",
+            "ibanArchived": "This IBAN belongs to the archived account “{{name}}”.",
+            "restoreAccount": "Restore account",
+            "restoreIbanInUse": "An active account already uses this IBAN.",
+            "archiveBlocked": "This account has assigned bank transactions, so it cannot be archived.",
+            "archiveOpenWarning": "Open bank transactions: {{count}}. They will be hidden from the reconciliation list and come back when the account is restored.",
             "archivedTitle": "Archived accounts ({{count}})",
             "restore": "Restore"
         },

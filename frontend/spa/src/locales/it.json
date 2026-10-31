@@ -335,8 +335,8 @@
             "currencyEUR": "Euro (€)",
             "currencyCHF": "Franco svizzero (CHF)",
             "currencyHint": "Tutti gli importi in hopps vengono visualizzati in questa valuta, compresi i conti bancari. Può essere modificata solo finché non esistono transazioni né conti bancari.",
-            "currencyLockedTitle": "La valuta non può più essere modificata",
-            "currencyLocked": "Per questa organizzazione esistono già transazioni o conti bancari. Tutti gli importi salvati sono tenuti nella valuta selezionata; un cambio li falserebbe. Per modificare comunque la valuta, contatta il supporto.",
+            "currencyLockedTitle": "La valuta non può essere modificata",
+            "currencyLocked": "Esistono già transazioni o conti bancari in questa valuta. Se solo un conto bancario non utilizzato impedisce la modifica, puoi eliminarlo in «Conti». Altrimenti contatta il supporto.",
             "currencyLockedError": "La valuta non può più essere modificata perché esistono già transazioni o conti bancari.",
             "loadError": "Caricamento dei dettagli dell'organizzazione non riuscito",
             "placeholder": {
@@ -1269,6 +1269,9 @@
     },
     "bankImport": {
         "check": {
+            "alreadyImportedTitle": "File già importato",
+            "alreadyImported": "Questo file esatto è già stato importato nel conto «{{account}}». Per importarlo di nuovo, elimina prima quell'importazione.",
+            "alreadyImportedArchived": "Questo file esatto è già stato importato nel conto archiviato «{{account}}». Il conto si può ripristinare in «Conti archiviati».",
             "currencyMismatchTitle": "Valuta errata",
             "currencyMismatch": "Il file contiene importi in {{fileCurrencies}}, ma il conto è tenuto in {{accountCurrency}}. Importa il file in un conto con questa valuta.",
             "mixedCurrencies": "Il file contiene importi in più valute ({{fileCurrencies}}). Un conto può avere una sola valuta, quindi il file non può essere importato.",
@@ -1428,6 +1431,11 @@
             "deleteText": "Questo conto non ha importazioni né movimenti. Verrà eliminato definitivamente.",
             "archiveTitle": "Archiviare questo conto?",
             "archiveText": "Questo conto ha importazioni o movimenti e quindi non può essere eliminato. Verrà nascosto, tutti i dati restano e può essere ripristinato in qualsiasi momento.",
+            "ibanArchived": "Questo IBAN appartiene al conto archiviato «{{name}}».",
+            "restoreAccount": "Ripristina conto",
+            "restoreIbanInUse": "Un conto attivo usa già questo IBAN.",
+            "archiveBlocked": "Questo conto ha movimenti assegnati e quindi non può essere archiviato.",
+            "archiveOpenWarning": "Movimenti aperti: {{count}}. Verranno nascosti dalla riconciliazione e torneranno visibili al ripristino del conto.",
             "archivedTitle": "Conti archiviati ({{count}})",
             "restore": "Ripristina"
         },

@@ -21,7 +21,7 @@ import { documentKeys, showUploadError } from '@/hooks/queries/useDocuments';
 import { transactionKeys, type SortDirection } from '@/hooks/queries/useTransactions';
 import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
-import { getUserFriendlyErrorMessage } from '@/utils/errorUtils';
+import { getErrorBody, getUserFriendlyErrorMessage } from '@/utils/errorUtils';
 
 // ─── Query Keys ─────────────────────────────────────────────────────────────
 
@@ -149,7 +149,8 @@ export function useArchiveBankAccount() {
             showSuccess(t('bankAccounts.toast.archiveSuccess'));
         },
         onError: (err) => {
-            showError(t('bankAccounts.toast.archiveError'), { description: getUserFriendlyErrorMessage(err) });
+            const description = getErrorBody(err)?.code === 'ACCOUNT_HAS_LINKS' ? t('konten.accountActions.archiveBlocked') : getUserFriendlyErrorMessage(err);
+            showError(t('bankAccounts.toast.archiveError'), { description });
         },
     });
 }
@@ -184,7 +185,8 @@ export function useRestoreBankAccount() {
             showSuccess(t('bankAccounts.toast.restoreSuccess'));
         },
         onError: (err) => {
-            showError(t('bankAccounts.toast.restoreError'), { description: getUserFriendlyErrorMessage(err) });
+            const description = getErrorBody(err)?.code === 'IBAN_IN_USE' ? t('konten.accountActions.restoreIbanInUse') : getUserFriendlyErrorMessage(err);
+            showError(t('bankAccounts.toast.restoreError'), { description });
         },
     });
 }
