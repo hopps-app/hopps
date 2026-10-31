@@ -17,12 +17,22 @@ import java.util.Map;
 public class BankImportRejectedException extends ClientErrorException {
 
     public static final String CURRENCY_MISMATCH = "CURRENCY_MISMATCH";
+    public static final String IMPORT_IN_USE = "IMPORT_IN_USE";
 
     private BankImportRejectedException(String message, Map<String, Object> body) {
         super(message, Response.status(Response.Status.CONFLICT)
                 .type(MediaType.APPLICATION_JSON)
                 .entity(body)
                 .build());
+    }
+
+    /** The import cannot be deleted: some of its movements are linked to transactions or ignored. */
+    public static BankImportRejectedException importInUse() {
+        String message = "Movements of this import are linked to transactions or ignored";
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("code", IMPORT_IN_USE);
+        body.put("message", message);
+        return new BankImportRejectedException(message, body);
     }
 
     public static BankImportRejectedException currencyMismatch(List<String> fileCurrencies, String accountCurrency) {

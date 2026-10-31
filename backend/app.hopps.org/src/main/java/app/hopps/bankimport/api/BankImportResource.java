@@ -47,16 +47,18 @@ public class BankImportResource {
             @PathParam("id") @Parameter(description = "Import ID") Long id) {
         var job = importService.get(id);
         var statusCounts = transactionRepository.countStatusesByImports(java.util.List.of(job.getId()));
-        return BankImportResponse.from(job, statusCounts.getOrDefault(job.getId(), java.util.Map.of()));
+        boolean inUse = !transactionRepository.findImportsInUse(java.util.List.of(job.getId())).isEmpty();
+        return BankImportResponse.from(job, statusCounts.getOrDefault(job.getId(), java.util.Map.of()), inUse);
     }
 
     @DELETE
     @Path("/{id}")
-    @Operation(summary = "Rollback an import", description = "Deletes all transactions created by this import and removes the import record itself. Allowed only for finished imports (COMPLETED / PARTIAL / FAILED).")
+    @Operation(summary = "Rollback an import", description = "Deletes all transactions created by this import and removes the import record itself. Not possible once a movement is linked to a transaction or ignored. Allowed only for finished imports (COMPLETED / PARTIAL / FAILED).")
     @APIResponse(responseCode = "204", description = "Import rolled back")
     @APIResponse(responseCode = "400", description = "Import is still QUEUED or PROCESSING")
     @APIResponse(responseCode = "401", description = "User not logged in")
     @APIResponse(responseCode = "404", description = "Import not found")
+    @APIResponse(responseCode = "409", description = "Movements of the import are linked to transactions or ignored (code IMPORT_IN_USE)")
     public void rollbackImport(
             @PathParam("id") @Parameter(description = "Import ID") Long id) {
         importService.rollback(id);

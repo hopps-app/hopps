@@ -53,7 +53,7 @@ public class BankAccountResource {
             @QueryParam("includeArchived") @DefaultValue("false") @Parameter(description = "Include archived (soft-deleted) accounts") boolean includeArchived) {
         return bankAccountService.list(includeArchived)
                 .stream()
-                .map(account -> BankAccountResponse.from(account, bankAccountService.computeBalance(account)))
+                .map(this::toResponse)
                 .toList();
     }
 
@@ -66,7 +66,7 @@ public class BankAccountResource {
     public BankAccountResponse getBankAccount(
             @PathParam("id") @Parameter(description = "Bank account ID") Long id) {
         BankAccount account = bankAccountService.get(id);
-        return BankAccountResponse.from(account, bankAccountService.computeBalance(account));
+        return toResponse(account);
     }
 
     @Transactional
@@ -79,7 +79,7 @@ public class BankAccountResource {
         BankAccount account = bankAccountService.create(request);
         LOG.info("Bank account created: id={}, iban={}", account.getId(), account.getIban());
         return Response.status(Response.Status.CREATED)
-                .entity(BankAccountResponse.from(account, bankAccountService.computeBalance(account)))
+                .entity(toResponse(account))
                 .build();
     }
 
@@ -97,7 +97,7 @@ public class BankAccountResource {
             @Valid BankAccountUpdateRequest request) {
         BankAccount account = bankAccountService.update(id, request);
         LOG.info("Bank account updated: id={}", account.getId());
-        return BankAccountResponse.from(account, bankAccountService.computeBalance(account));
+        return toResponse(account);
     }
 
     @DELETE
@@ -112,6 +112,19 @@ public class BankAccountResource {
         LOG.info("Bank account archived: id={}", id);
     }
 
+    @DELETE
+    @Path("/{id}/permanent")
+    @Operation(summary = "Delete an unused bank account", description = "Deletes the account for good, e.g. one created with a mistyped IBAN. Only possible while it has no imports and no transactions (see 'deletable' on the account); otherwise it can only be archived.")
+    @APIResponse(responseCode = "204", description = "Bank account deleted")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "404", description = "Bank account not found")
+    @APIResponse(responseCode = "409", description = "Bank account has imports or transactions")
+    public void deleteBankAccount(
+            @PathParam("id") @Parameter(description = "Bank account ID") Long id) {
+        bankAccountService.delete(id);
+        LOG.info("Bank account deleted: id={}", id);
+    }
+
     @Transactional
     @POST
     @Path("/{id}/restore")
@@ -123,6 +136,11 @@ public class BankAccountResource {
             @PathParam("id") @Parameter(description = "Bank account ID") Long id) {
         BankAccount account = bankAccountService.restore(id);
         LOG.info("Bank account restored: id={}", id);
-        return BankAccountResponse.from(account, bankAccountService.computeBalance(account));
+        return toResponse(account);
+    }
+
+    private BankAccountResponse toResponse(BankAccount account) {
+        return BankAccountResponse.from(account, bankAccountService.computeBalance(account),
+                bankAccountService.isDeletable(account));
     }
 }

@@ -28,11 +28,13 @@ import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Ignoring a bank transaction, taking that back and deleting an import are recorded in the audit log. Links to
- * bookkeeping transactions stay on the transaction's own audit; the import's delete entry lists the ones it removed.
+ * bookkeeping transactions stay on the transaction's own audit. An import can only be deleted while none of its
+ * movements is linked or ignored.
  */
 @QuarkusTest
 @TestSecurity(user = "alice@example.test", roles = "user")
@@ -127,9 +129,8 @@ class BankAuditTest {
         assertEquals("alice@example.test", entries.get(0).actorEmail);
     }
 
-    @Test
-    @SuppressWarnings("unchecked")
-    void deletingAnImportRecordsWhatItRemoved() {
+    /** Links the seeded movement to a new transaction and returns that transaction's id. */
+    private Integer linkMovement() {
         Integer transactionId = given()
                 .contentType("application/json")
                 .body("""
@@ -148,6 +149,39 @@ class BankAuditTest {
                 .post("/bank-transactions/{id}/matches", bankTxId)
                 .then()
                 .statusCode(204);
+        return transactionId;
+    }
+
+    @Test
+    void anImportWithALinkedMovementCannotBeDeleted() {
+        Integer transactionId = linkMovement();
+
+        given().when().get("/imports/{id}", importId).then().statusCode(200).body("deletable", is(false));
+        given().when().delete("/imports/{id}", importId).then().statusCode(409).body("code", is("IMPORT_IN_USE"));
+
+        given().when().get("/imports/{id}", importId).then().statusCode(200);
+        given().when().get("/bank-transactions/{id}", bankTxId).then().statusCode(200);
+        assertEquals(0, auditOf(AuditEntityType.BANK_IMPORT, importId).size());
+
+        // Releasing the link makes it deletable again.
+        given().when().delete("/bank-transactions/{id}/matches/{tx}", bankTxId, transactionId).then().statusCode(204);
+        given().when().get("/imports/{id}", importId).then().statusCode(200).body("deletable", is(true));
+        given().when().delete("/imports/{id}", importId).then().statusCode(204);
+    }
+
+    @Test
+    void anImportWithAnIgnoredMovementCannotBeDeleted() {
+        given().when().post("/bank-transactions/{id}/ignore", bankTxId).then().statusCode(204);
+
+        given().when().delete("/imports/{id}", importId).then().statusCode(409).body("code", is("IMPORT_IN_USE"));
+
+        given().when().delete("/bank-transactions/{id}/ignore", bankTxId).then().statusCode(204);
+        given().when().delete("/imports/{id}", importId).then().statusCode(204);
+    }
+
+    @Test
+    void deletingAnImportRecordsWhatItRemoved() {
+        given().when().get("/imports/{id}", importId).then().statusCode(200).body("deletable", is(true));
 
         given().when().delete("/imports/{id}", importId).then().statusCode(204);
 
@@ -158,10 +192,6 @@ class BankAuditTest {
         assertEquals("audit.csv", entry.snapshot.get("fileName"));
         assertEquals("Audit Account", entry.snapshot.get("bankAccountName"));
         assertEquals(1, ((Number) entry.snapshot.get("bankTransactions")).intValue());
-        assertEquals(1, ((Number) entry.snapshot.get("assigned")).intValue());
-        List<Map<String, Object>> links = (List<Map<String, Object>>) entry.snapshot.get("removedLinks");
-        assertEquals(1, links.size());
-        assertEquals(transactionId.longValue(), ((Number) links.get(0).get("transactionId")).longValue());
-        assertEquals("50", links.get(0).get("matchedAmount"));
+        assertEquals(0, ((Number) entry.snapshot.get("assigned")).intValue());
     }
 }

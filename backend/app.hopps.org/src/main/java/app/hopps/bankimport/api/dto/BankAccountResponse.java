@@ -29,6 +29,8 @@ public record BankAccountResponse(
         String defaultSchemaName,
         boolean archived,
         Instant archivedAt,
+        // No imports and no movements, so it can be deleted for good; otherwise it can only be archived.
+        boolean deletable,
         String createdBy,
         Instant createdAt,
         Instant updatedAt) {
@@ -37,8 +39,10 @@ public record BankAccountResponse(
      * @param balance
      *            the computed current balance (opening balance + transactions booked after the opening date); pass
      *            {@code null} when the balance is not relevant (it then falls back to the opening balance).
+     * @param deletable
+     *            whether the account holds no bookkeeping data, see {@code BankAccountService#isDeletable}
      */
-    public static BankAccountResponse from(BankAccount account, BigDecimal balance) {
+    public static BankAccountResponse from(BankAccount account, BigDecimal balance, boolean deletable) {
         return new BankAccountResponse(
                 account.getId(),
                 account.getOrganization() != null ? account.getOrganization().id : null,
@@ -59,6 +63,7 @@ public record BankAccountResponse(
                 account.getDefaultSchema() != null ? account.getDefaultSchema().getName() : null,
                 account.isArchived(),
                 account.getArchivedAt(),
+                deletable,
                 account.getCreatedBy(),
                 account.getCreatedAt(),
                 account.getUpdatedAt());

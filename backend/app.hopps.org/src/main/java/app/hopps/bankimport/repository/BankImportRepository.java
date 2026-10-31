@@ -17,6 +17,10 @@ public class BankImportRepository implements PanacheRepository<BankImport> {
     @Inject
     OrganizationContext organizationContext;
 
+    public boolean existsForAccount(Long bankAccountId) {
+        return count("bankAccount.id", bankAccountId) > 0;
+    }
+
     public List<BankImport> listForAccount(Long bankAccountId) {
         Long orgId = organizationContext.getCurrentOrganizationId();
         return find("organization.id = ?1 and bankAccount.id = ?2",

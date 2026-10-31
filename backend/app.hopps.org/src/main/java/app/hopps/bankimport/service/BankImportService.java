@@ -145,13 +145,18 @@ public class BankImportService {
 
     /**
      * Deletes all {@link app.hopps.bankimport.domain.BankTransaction}s of a finished import and removes the import
-     * record itself. Cannot be applied while the worker is still processing.
+     * record itself, so a wrong file can be taken back. Cannot be applied while the worker is still processing, nor
+     * once a movement is linked to a transaction or ignored: bookkeeping rests on those, so they have to be released
+     * one by one first, which is recorded on each of them.
      */
     @Transactional
     public void rollback(Long id) {
         BankImport job = get(id);
         if (job.getStatus() == BankImportStatus.PROCESSING || job.getStatus() == BankImportStatus.QUEUED) {
             throw new BadRequestException("Cannot rollback an import that is still in progress");
+        }
+        if (!transactionRepository.findImportsInUse(List.of(job.getId())).isEmpty()) {
+            throw BankImportRejectedException.importInUse();
         }
         // Recorded first: the import's movements, their statuses and links are gone once deleted.
         importAuditor.deleted(job,

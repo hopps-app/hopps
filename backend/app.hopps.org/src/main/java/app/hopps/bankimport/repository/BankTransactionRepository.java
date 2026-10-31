@@ -30,6 +30,10 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
         return find("id = ?1 and organization.id = ?2", id, orgId).firstResult();
     }
 
+    public boolean existsForAccount(Long bankAccountId) {
+        return count("bankAccount.id", bankAccountId) > 0;
+    }
+
     public Set<String> findExistingDedupeHashes(Long bankAccountId, Set<String> hashes) {
         if (hashes == null || hashes.isEmpty()) {
             return Set.of();
@@ -258,6 +262,26 @@ public class BankTransactionRepository implements PanacheRepository<BankTransact
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    /**
+     * Those of the given imports with a movement someone has already worked on: linked to a bookkeeping transaction or
+     * ignored. Checks the links themselves and not the status, because a link without an amount leaves a movement
+     * UNMATCHED.
+     */
+    public Set<Long> findImportsInUse(Collection<Long> importIds) {
+        if (importIds == null || importIds.isEmpty()) {
+            return Set.of();
+        }
+        return Set.copyOf(getEntityManager()
+                .createQuery(
+                        "SELECT DISTINCT t.bankImport.id FROM BankTransaction t WHERE t.bankImport.id IN :importIds "
+                                + "AND (t.status = :ignored OR EXISTS "
+                                + "(SELECT 1 FROM BankTransactionMatch m WHERE m.bankTransaction = t))",
+                        Long.class)
+                .setParameter("importIds", importIds)
+                .setParameter("ignored", BankTransactionStatus.IGNORED)
+                .getResultList());
     }
 
     /**

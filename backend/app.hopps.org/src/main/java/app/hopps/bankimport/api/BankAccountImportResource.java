@@ -143,8 +143,10 @@ public class BankAccountImportResource {
         }
         List<Long> importIds = jobs.stream().map(BankImport::getId).toList();
         var statusCounts = transactionRepository.countStatusesByImports(importIds);
+        var inUse = transactionRepository.findImportsInUse(importIds);
         return jobs.stream()
-                .map(j -> BankImportResponse.from(j, statusCounts.getOrDefault(j.getId(), java.util.Map.of())))
+                .map(j -> BankImportResponse.from(j, statusCounts.getOrDefault(j.getId(), java.util.Map.of()),
+                        inUse.contains(j.getId())))
                 .toList();
     }
 }

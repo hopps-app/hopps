@@ -5,6 +5,7 @@ import app.hopps.bankimport.api.dto.BankAccountUpdateRequest;
 import app.hopps.bankimport.domain.BankAccount;
 import app.hopps.bankimport.domain.BankCsvSchema;
 import app.hopps.bankimport.repository.BankAccountRepository;
+import app.hopps.bankimport.repository.BankImportRepository;
 import app.hopps.bankimport.repository.BankTransactionRepository;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
@@ -15,7 +16,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.Response;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -36,6 +39,9 @@ public class BankAccountService {
 
     @Inject
     BankTransactionRepository bankTransactionRepository;
+
+    @Inject
+    BankImportRepository bankImportRepository;
 
     @Inject
     BommelRepository bommelRepository;
@@ -163,6 +169,26 @@ public class BankAccountService {
             account.setArchived(true);
             account.setArchivedAt(Instant.now());
         }
+    }
+
+    /**
+     * Whether the account holds no bookkeeping data at all, neither imports nor movements. Only then it can be deleted
+     * for good; anything else stays traceable and can only be archived.
+     */
+    public boolean isDeletable(BankAccount account) {
+        return !bankImportRepository.existsForAccount(account.getId())
+                && !bankTransactionRepository.existsForAccount(account.getId());
+    }
+
+    /** Deletes an unused account for good, e.g. one created with a mistyped IBAN. See {@link #isDeletable}. */
+    @Transactional
+    public void delete(Long id) {
+        BankAccount account = get(id);
+        if (!isDeletable(account)) {
+            throw new ClientErrorException("A bank account with imports or transactions can only be archived",
+                    Response.Status.CONFLICT);
+        }
+        bankAccountRepository.delete(account);
     }
 
     @Transactional
