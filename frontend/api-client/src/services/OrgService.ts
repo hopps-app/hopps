@@ -14,7 +14,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8080";
+        this.baseUrl = baseUrl ?? "http://localhost:8101";
     }
 
     /**
@@ -2574,6 +2574,60 @@ export class Client {
     }
 
     /**
+     * Delete an unused bank account
+     * @param id Bank account ID
+     * @return Bank account deleted
+     */
+    permanent(id: number): Promise<void> {
+        let url_ = this.baseUrl + "/bankaccounts/{id}/permanent";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processPermanent(_response);
+        });
+    }
+
+    protected processPermanent(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Bank account not found", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("Bank account has imports or transactions", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    /**
      * Restore an archived bank account
      * @param id Bank account ID
      * @return Bank account restored
@@ -4534,6 +4588,10 @@ export class Client {
         } else if (status === 404) {
             return response.text().then((_responseText) => {
             return throwException("Import not found", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("Movements of the import are linked to transactions or ignored (code IMPORT_IN_USE)", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -6716,6 +6774,7 @@ export class BankAccountResponse implements IBankAccountResponse {
     defaultSchemaName?: string;
     archived?: boolean;
     archivedAt?: Date;
+    deletable?: boolean;
     createdBy?: string;
     createdAt?: Date;
     updatedAt?: Date;
@@ -6756,6 +6815,7 @@ export class BankAccountResponse implements IBankAccountResponse {
             this.defaultSchemaName = _data["defaultSchemaName"];
             this.archived = _data["archived"];
             this.archivedAt = _data["archivedAt"] ? new Date(_data["archivedAt"].toString()) : undefined as any;
+            this.deletable = _data["deletable"];
             this.createdBy = _data["createdBy"];
             this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
             this.updatedAt = _data["updatedAt"] ? new Date(_data["updatedAt"].toString()) : undefined as any;
@@ -6794,6 +6854,7 @@ export class BankAccountResponse implements IBankAccountResponse {
         data["defaultSchemaName"] = this.defaultSchemaName;
         data["archived"] = this.archived;
         data["archivedAt"] = this.archivedAt ? this.archivedAt.toISOString() : undefined as any;
+        data["deletable"] = this.deletable;
         data["createdBy"] = this.createdBy;
         data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
         data["updatedAt"] = this.updatedAt ? this.updatedAt.toISOString() : undefined as any;
@@ -6828,6 +6889,7 @@ export interface IBankAccountResponse {
     defaultSchemaName?: string;
     archived?: boolean;
     archivedAt?: Date;
+    deletable?: boolean;
     createdBy?: string;
     createdAt?: Date;
     updatedAt?: Date;
@@ -7537,6 +7599,7 @@ export class BankImportResponse implements IBankImportResponse {
     totalTransactions?: number;
     matchedTransactions?: number;
     ignoredTransactions?: number;
+    deletable?: boolean;
 
     [key: string]: any;
 
@@ -7577,6 +7640,7 @@ export class BankImportResponse implements IBankImportResponse {
             this.totalTransactions = _data["totalTransactions"];
             this.matchedTransactions = _data["matchedTransactions"];
             this.ignoredTransactions = _data["ignoredTransactions"];
+            this.deletable = _data["deletable"];
         }
     }
 
@@ -7615,6 +7679,7 @@ export class BankImportResponse implements IBankImportResponse {
         data["totalTransactions"] = this.totalTransactions;
         data["matchedTransactions"] = this.matchedTransactions;
         data["ignoredTransactions"] = this.ignoredTransactions;
+        data["deletable"] = this.deletable;
         return data;
     }
 
@@ -7649,6 +7714,7 @@ export interface IBankImportResponse {
     totalTransactions?: number;
     matchedTransactions?: number;
     ignoredTransactions?: number;
+    deletable?: boolean;
 
     [key: string]: any;
 }
