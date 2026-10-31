@@ -2127,7 +2127,7 @@ export class Client {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Invalid input (e.g. duplicate IBAN, invalid IBAN format)", status, _responseText, _headers);
+            return throwException("Invalid input (e.g. invalid IBAN format)", status, _responseText, _headers);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
@@ -2136,6 +2136,10 @@ export class Client {
         } else if (status === 403) {
             return response.text().then((_responseText) => {
             return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("The IBAN belongs to another account (code IBAN_IN_USE) or to an archived one (code IBAN_ARCHIVED, fields archivedAccountId, archivedAccountName)", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -2276,7 +2280,7 @@ export class Client {
             });
         } else if (status === 409) {
             return response.text().then((_responseText) => {
-            return throwException("The file\'s amounts are in another currency than the account, or in several (code CURRENCY_MISMATCH, fields fileCurrencies, accountCurrency)", status, _responseText, _headers);
+            return throwException("The file\'s amounts are in another currency than the account, or in several (code CURRENCY_MISMATCH, fields fileCurrencies, accountCurrency), or the file was already imported into another account (code FILE_ALREADY_IMPORTED, fields accountName, accountArchived)", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -2461,6 +2465,10 @@ export class Client {
             return response.text().then((_responseText) => {
             return throwException("Bank account not found", status, _responseText, _headers);
             });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("The IBAN belongs to another account (code IBAN_IN_USE) or to an archived one (code IBAN_ARCHIVED, fields archivedAccountId, archivedAccountName)", status, _responseText, _headers);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -2564,6 +2572,10 @@ export class Client {
         } else if (status === 404) {
             return response.text().then((_responseText) => {
             return throwException("Bank account not found", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("Movements of the account are linked to transactions (code ACCOUNT_HAS_LINKS)", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -2672,6 +2684,10 @@ export class Client {
         } else if (status === 404) {
             return response.text().then((_responseText) => {
             return throwException("Bank account not found", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("An active account has the same IBAN (code IBAN_IN_USE)", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -6775,6 +6791,7 @@ export class BankAccountResponse implements IBankAccountResponse {
     archived?: boolean;
     archivedAt?: Date;
     deletable?: boolean;
+    linked?: boolean;
     createdBy?: string;
     createdAt?: Date;
     updatedAt?: Date;
@@ -6816,6 +6833,7 @@ export class BankAccountResponse implements IBankAccountResponse {
             this.archived = _data["archived"];
             this.archivedAt = _data["archivedAt"] ? new Date(_data["archivedAt"].toString()) : undefined as any;
             this.deletable = _data["deletable"];
+            this.linked = _data["linked"];
             this.createdBy = _data["createdBy"];
             this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
             this.updatedAt = _data["updatedAt"] ? new Date(_data["updatedAt"].toString()) : undefined as any;
@@ -6855,6 +6873,7 @@ export class BankAccountResponse implements IBankAccountResponse {
         data["archived"] = this.archived;
         data["archivedAt"] = this.archivedAt ? this.archivedAt.toISOString() : undefined as any;
         data["deletable"] = this.deletable;
+        data["linked"] = this.linked;
         data["createdBy"] = this.createdBy;
         data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
         data["updatedAt"] = this.updatedAt ? this.updatedAt.toISOString() : undefined as any;
@@ -6890,6 +6909,7 @@ export interface IBankAccountResponse {
     archived?: boolean;
     archivedAt?: Date;
     deletable?: boolean;
+    linked?: boolean;
     createdBy?: string;
     createdAt?: Date;
     updatedAt?: Date;
