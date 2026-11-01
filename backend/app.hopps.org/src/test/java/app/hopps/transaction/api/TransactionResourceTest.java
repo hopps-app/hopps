@@ -577,6 +577,32 @@ class TransactionResourceTest {
     }
 
     @Test
+    void shouldRefuseChangesToAConfirmedTransactionUntilItIsReopened() {
+        Long id = createConfirmableTransaction(BigDecimal.valueOf(40));
+
+        given().contentType("application/json").when().post("/{id}/confirm", id).then().statusCode(200);
+
+        given()
+                .contentType("application/json")
+                .body("{ \"name\": \"Changed\" }")
+                .when()
+                .patch("/{id}", id)
+                .then()
+                .statusCode(409);
+
+        given().contentType("application/json").when().post("/{id}/reopen", id).then().statusCode(200);
+
+        given()
+                .contentType("application/json")
+                .body("{ \"name\": \"Changed\" }")
+                .when()
+                .patch("/{id}", id)
+                .then()
+                .statusCode(200)
+                .body("name", is("Changed"));
+    }
+
+    @Test
     void shouldReopenConfirmedTransaction() {
         // Create, confirm, then reopen a fully-confirmable transaction.
         Long id = createConfirmableTransaction(BigDecimal.valueOf(40));
