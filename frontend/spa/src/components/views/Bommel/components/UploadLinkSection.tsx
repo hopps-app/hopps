@@ -121,27 +121,27 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                             <QrCode size={16} />
                         </Button>
                     </div>
-                    <div className="grid grid-cols-2 justify-items-center gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                         <button
                             type="button"
                             onClick={() => setConfirm('regenerate')}
                             className={cn(
-                                'inline-flex h-7 items-center gap-1.5 rounded-[var(--btn-radius)] border border-border-soft bg-[var(--background-secondary)] px-2.5 text-[12px] font-bold transition-colors hover:border-[var(--border-strong)]',
+                                'inline-flex h-10 w-full items-center justify-center gap-2 rounded-[var(--btn-radius)] border border-border-soft bg-[var(--background-secondary)] px-3 text-[14px] font-bold transition-colors hover:border-[var(--border-strong)]',
                                 'text-foreground'
                             )}
                         >
-                            <RefreshCw size={13} aria-hidden="true" />
+                            <RefreshCw size={15} aria-hidden="true" />
                             {t('bommel.uploadLink.regenerate')}
                         </button>
                         <button
                             type="button"
                             onClick={() => setConfirm('revoke')}
                             className={cn(
-                                'inline-flex h-7 items-center gap-1.5 rounded-[var(--btn-radius)] border border-border-soft bg-[var(--background-secondary)] px-2.5 text-[12px] font-bold transition-colors hover:border-[var(--border-strong)]',
+                                'inline-flex h-10 w-full items-center justify-center gap-2 rounded-[var(--btn-radius)] border border-border-soft bg-[var(--background-secondary)] px-3 text-[14px] font-bold transition-colors hover:border-[var(--border-strong)]',
                                 'text-[var(--negative)]'
                             )}
                         >
-                            <Trash2 size={13} aria-hidden="true" />
+                            <Trash2 size={15} aria-hidden="true" />
                             {t('bommel.uploadLink.revoke')}
                         </button>
                     </div>
