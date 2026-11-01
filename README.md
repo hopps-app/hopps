@@ -1,11 +1,11 @@
 # Hopps
 
-Wir wollen eine cloudbasierte Open Source Buchhaltungssoftware mit AI entwickeln, damit Vereine mehr Zeit für ihre
+hopps ist eine cloudbasierte Open Source Buchhaltungssoftware mit AI, damit Vereine mehr Zeit für ihre
 wesentlichen Ziele und Angebote haben und frustrierte Situationen mit der Buchhaltung der Vergangenheit angehören.
 Implementiert wird das Projekt von einer Gruppe engagierter EntwicklerInnen
 des [Open Project e.V. Pfaffenhofen an der Ilm](https://op-paf.de).
 
-Das Projekt wird gefördert von
+Das Projekt wurde gefördert von
 der [Dt. Stiftung für Engagement und Ehrenamt](https://www.deutsche-stiftung-engagement-und-ehrenamt.de/).
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
@@ -16,22 +16,26 @@ der [Dt. Stiftung für Engagement und Ehrenamt](https://www.deutsche-stiftung-en
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-vereine&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-vereine)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-document-ai&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-document-ai)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=hopps-app_hopps-fin&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=hopps-app_hopps-fin)
+
 
 ## Deployment
 
-| Was | Wo |
-|---|---|
-| Helm-Chart (Quellen) | [charts/hopps](charts/hopps) |
+
+| Was                                     | Wo                                                                                               |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Helm-Chart (Quellen)                    | [charts/hopps](charts/hopps)                                                                     |
 | Helm-Chart (veröffentlichte Versionen) | [ghcr.io/hopps-app/hopps/hopps](https://github.com/hopps-app/hopps/pkgs/container/hopps%2Fhopps) |
-| Alle Pakete (Charts und Images) | [Packages](https://github.com/orgs/hopps-app/packages?repo_name=hopps) |
-| Docker Compose (Self-Hosting) | [infrastructure/hopps-app](infrastructure/hopps-app) |
+| Alle Pakete (Charts und Images)         | [Packages](https://github.com/orgs/hopps-app/packages?repo_name=hopps)                           |
+| Docker Compose (Self-Hosting)           | [infrastructure/hopps-app](infrastructure/hopps-app)                                             |
 
 ## Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+
 <!-- prettier-ignore-start -->
+
 <!-- markdownlint-disable -->
+
 <table>
   <tbody>
     <tr>
@@ -55,6 +59,7 @@ der [Dt. Stiftung für Engagement und Ehrenamt](https://www.deutsche-stiftung-en
 </table>
 
 <!-- markdownlint-restore -->
+
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->

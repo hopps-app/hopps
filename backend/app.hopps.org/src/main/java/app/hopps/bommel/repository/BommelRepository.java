@@ -1,10 +1,19 @@
 package app.hopps.bommel.repository;
 
+import app.hopps.audit.domain.AuditAction;
+import app.hopps.bankimport.domain.BankAccount;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.domain.TreeSearchBommel;
+import app.hopps.document.audit.DocumentAuditor;
+import app.hopps.document.domain.Document;
+import app.hopps.document.domain.DocumentStatus;
 import app.hopps.organization.domain.Organization;
+import app.hopps.transaction.audit.TransactionAuditor;
+import app.hopps.transaction.domain.Transaction;
+import app.hopps.transaction.domain.TransactionStatus;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.WebApplicationException;
@@ -19,6 +28,12 @@ import java.util.Set;
 
 @ApplicationScoped
 public class BommelRepository implements PanacheRepository<Bommel> {
+
+    @Inject
+    TransactionAuditor transactionAuditor;
+
+    @Inject
+    DocumentAuditor documentAuditor;
 
     /**
      * The ids of the given bommels together with all of their descendants (recursively). Used to find every transaction
@@ -161,6 +176,17 @@ public class BommelRepository implements PanacheRepository<Bommel> {
         return child;
     }
 
+    /**
+     * Deletes a bommel, with {@code recursive} also its descendants. What referenced them is kept:
+     * <ul>
+     * <li>transactions lose their bommel and their category-group values; a confirmed one goes back to draft
+     * (confirming needs a bommel), as when it is reopened: a receipt booked as only that transaction returns to review,
+     * a split receipt stays confirmed</li>
+     * <li>receipts lose their bommel</li>
+     * <li>bank accounts, which always belong to a bommel, move to the parent of the deleted bommel</li>
+     * </ul>
+     * Category-group assignments of the deleted bommels go with them (on delete cascade).
+     */
     @Transactional
     public void deleteBommel(Bommel bommel, boolean recursive) {
         if (!recursive && !bommel.getChildren().isEmpty()) {
@@ -169,25 +195,52 @@ public class BommelRepository implements PanacheRepository<Bommel> {
                     Response.Status.BAD_REQUEST);
         }
 
-        if (recursive && !bommel.getChildren().isEmpty()) {
-            // Unlink transactions for all descendant bommels before cascade delete
-            List<TreeSearchBommel> descendants = getChildrenRecursive(bommel);
-            for (TreeSearchBommel descendant : descendants) {
-                getEntityManager()
-                        .createQuery("UPDATE Transaction t SET t.bommel = NULL WHERE t.bommel.id = :bommelId")
-                        .setParameter("bommelId", descendant.bommel().id)
-                        .executeUpdate();
-            }
+        Set<Long> ids = new HashSet<>();
+        ids.add(bommel.id);
+        if (recursive) {
+            getChildrenRecursive(bommel).forEach(descendant -> ids.add(descendant.bommel().id));
         }
 
-        // Unlink all transactions referencing this bommel before deletion
-        // This sets bommel_id = NULL so transactions are preserved but detached
+        for (Transaction transaction : getEntityManager()
+                .createQuery("SELECT t FROM Transaction t WHERE t.bommel.id IN :ids", Transaction.class)
+                .setParameter("ids", ids)
+                .getResultList()) {
+            transaction.setBommel(null);
+            // Without a bommel no category group applies, so the values chosen for its groups go as well.
+            transaction.replaceCategoryValues(Map.of());
+            if (transaction.isConfirmed()) {
+                reopen(transaction);
+            }
+        }
         getEntityManager()
-                .createQuery("UPDATE Transaction t SET t.bommel = NULL WHERE t.bommel.id = :bommelId")
-                .setParameter("bommelId", bommel.id)
-                .executeUpdate();
+                .createQuery("SELECT d FROM Document d WHERE d.bommel.id IN :ids", Document.class)
+                .setParameter("ids", ids)
+                .getResultList()
+                .forEach(document -> document.setBommel(null));
+        if (bommel.getParent() != null) {
+            getEntityManager()
+                    .createQuery("SELECT a FROM BankAccount a WHERE a.bommel.id IN :ids", BankAccount.class)
+                    .setParameter("ids", ids)
+                    .getResultList()
+                    .forEach(account -> account.setBommel(bommel.getParent()));
+        }
 
         delete(bommel);
+    }
+
+    /** Sets a confirmed transaction back to draft, like reopening it does, including its single-transaction receipt. */
+    private void reopen(Transaction transaction) {
+        TransactionStatus before = transaction.getStatus();
+        transaction.setStatus(TransactionStatus.DRAFT);
+        transactionAuditor.statusChanged(transaction, before, AuditAction.REOPEN);
+
+        Document document = transaction.getDocument();
+        if (document != null && document.getTransactions().size() <= 1
+                && document.getDocumentStatus() == DocumentStatus.CONFIRMED) {
+            document.setDocumentStatus(DocumentStatus.ANALYZED);
+            document.setReviewedBy(null);
+            documentAuditor.reopened(document, DocumentStatus.CONFIRMED);
+        }
     }
 
     @Transactional
