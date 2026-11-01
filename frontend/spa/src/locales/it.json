@@ -1277,7 +1277,6 @@
         "guide": {
             "label": "Introduzione",
             "progress": "Passo {{current}} di {{total}}",
-            "restart": "Introduzione",
             "skip": "Salta",
             "back": "Indietro",
             "next": "Avanti",
@@ -1300,7 +1299,8 @@
                 "step1": "Scegliere Modifica.",
                 "step2": "Aggiungere un ambito al Bommel principale e dargli un nome.",
                 "start": "Crea il primo Bommel"
-            }
+            },
+            "start": "Avvia l'introduzione"
         }
     },
     "bankAccounts": {

@@ -1,5 +1,5 @@
 import type { DocumentResponse } from '@hopps/api-client';
-import { RefreshCw, AlertCircle, Info, Lightbulb } from 'lucide-react';
+import { RefreshCw, AlertCircle, Info, Lightbulb, Play } from 'lucide-react';
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -331,7 +331,19 @@ function BommelView() {
                             onClose={closeGuide}
                         />
                     )}
-                    {!guideStep && isDemoMode && <HintBanner icon={Info}>{t('bommel.demoBanner')}</HintBanner>}
+                    {!guideStep && isDemoMode && (
+                        <HintBanner
+                            icon={Info}
+                            action={
+                                <Button size="sm" variant="default" onClick={() => setGuideStep('example')}>
+                                    <Play size={14} aria-hidden="true" />
+                                    {t('bommel.guide.start')}
+                                </Button>
+                            }
+                        >
+                            {t('bommel.demoBanner')}
+                        </HintBanner>
+                    )}
                     {!guideStep && !isDemoMode && structureIsEmpty && <HintBanner icon={Lightbulb}>{t('bommel.emptyHint')}</HintBanner>}
 
                     <div className="flex flex-wrap items-center gap-x-[30px] gap-y-3 rounded-[18px] border border-border-soft bg-background-secondary px-[18px] py-3 shadow-[var(--shadow-sm)]">
@@ -358,16 +370,6 @@ function BommelView() {
                                 checked={isDemoMode}
                                 onCheckedChange={handleDemoModeChange}
                             />
-                        )}
-                        {/* The guide runs on the example, so it is offered next to the switch that shows it. */}
-                        {isDemoMode && !guideStep && (
-                            <button
-                                type="button"
-                                onClick={() => setGuideStep('example')}
-                                className="text-[13.5px] font-bold text-purple-700 transition-colors hover:text-purple-900"
-                            >
-                                {t('bommel.guide.restart')}
-                            </button>
                         )}
                         {isEditMode && !isDemoMode && (
                             <ToggleField

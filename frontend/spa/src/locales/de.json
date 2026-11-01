@@ -1206,7 +1206,6 @@
         "guide": {
             "label": "Einführung",
             "progress": "Schritt {{current}} von {{total}}",
-            "restart": "Einführung",
             "skip": "Überspringen",
             "back": "Zurück",
             "next": "Weiter",
@@ -1229,7 +1228,8 @@
                 "step1": "Bearbeiten wählen.",
                 "step2": "Am obersten Bommel einen Bereich hinzufügen und benennen.",
                 "start": "Ersten Bommel anlegen"
-            }
+            },
+            "start": "Einführung starten"
         }
     },
     "dashboard": {

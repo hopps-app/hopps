@@ -1342,7 +1342,6 @@
         "guide": {
             "label": "Introduction",
             "progress": "Step {{current}} of {{total}}",
-            "restart": "Introduction",
             "skip": "Skip",
             "back": "Back",
             "next": "Next",
@@ -1365,7 +1364,8 @@
                 "step1": "Choose Edit.",
                 "step2": "Add an area to the top Bommel and name it.",
                 "start": "Add the first Bommel"
-            }
+            },
+            "start": "Start the introduction"
         }
     },
     "bankAccounts": {

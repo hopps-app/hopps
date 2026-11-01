@@ -8,10 +8,12 @@ interface HintBannerProps {
     children: ReactNode;
     /** Smaller, lighter variant for the edit-mode notice */
     compact?: boolean;
+    /** Optional action at the right end, e.g. a button */
+    action?: ReactNode;
 }
 
 /** Light purple notice above the Bommel tree: empty structure, example data or edit mode */
-export function HintBanner({ icon: Icon, children, compact }: HintBannerProps) {
+export function HintBanner({ icon: Icon, children, compact, action }: HintBannerProps) {
     return (
         <div
             className={cn(
@@ -20,7 +22,8 @@ export function HintBanner({ icon: Icon, children, compact }: HintBannerProps) {
             )}
         >
             <Icon className="h-[17px] w-[17px] flex-shrink-0" aria-hidden="true" />
-            <span>{children}</span>
+            <span className="min-w-0 flex-1">{children}</span>
+            {action}
         </div>
     );
 }

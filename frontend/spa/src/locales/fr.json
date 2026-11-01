@@ -1277,7 +1277,6 @@
         "guide": {
             "label": "Introduction",
             "progress": "Étape {{current}} sur {{total}}",
-            "restart": "Introduction",
             "skip": "Passer",
             "back": "Retour",
             "next": "Suivant",
@@ -1300,7 +1299,8 @@
                 "step1": "Choisir Modifier.",
                 "step2": "Ajouter un domaine au Bommel du haut et le nommer.",
                 "start": "Créer le premier Bommel"
-            }
+            },
+            "start": "Démarrer l'introduction"
         }
     },
     "bankAccounts": {
