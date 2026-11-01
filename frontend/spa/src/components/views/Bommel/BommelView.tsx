@@ -318,15 +318,6 @@ function BommelView() {
                 <h1 className="mb-4 flex items-center gap-2 text-[27px] font-extrabold leading-tight tracking-[-0.02em] text-foreground">
                     {t('bommel.title')}
                     <InfoTooltip content={t('bommel.titleInfo')} label={t('bommel.titleInfoLabel')} size={17} />
-                    {!guideStep && (
-                        <button
-                            type="button"
-                            onClick={() => setGuideStep('example')}
-                            className="ml-1 text-[13px] font-bold text-purple-700 transition-colors hover:text-purple-900"
-                        >
-                            {t('bommel.guide.restart')}
-                        </button>
-                    )}
                 </h1>
 
                 <div className="mb-4 flex flex-col gap-4 flex-shrink-0">
@@ -367,6 +358,16 @@ function BommelView() {
                                 checked={isDemoMode}
                                 onCheckedChange={handleDemoModeChange}
                             />
+                        )}
+                        {/* The guide runs on the example, so it is offered next to the switch that shows it. */}
+                        {isDemoMode && !guideStep && (
+                            <button
+                                type="button"
+                                onClick={() => setGuideStep('example')}
+                                className="text-[13.5px] font-bold text-purple-700 transition-colors hover:text-purple-900"
+                            >
+                                {t('bommel.guide.restart')}
+                            </button>
                         )}
                         {isEditMode && !isDemoMode && (
                             <ToggleField
