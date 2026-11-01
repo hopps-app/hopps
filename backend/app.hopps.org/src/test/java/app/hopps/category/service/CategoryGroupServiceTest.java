@@ -2,6 +2,7 @@ package app.hopps.category.service;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.category.api.dto.CategoryGroupReportRow;
 import app.hopps.category.domain.CategoryGroup;
 import app.hopps.category.repository.CategoryGroupRepository;
 import app.hopps.category.repository.CategoryGroupValueRepository;
@@ -15,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -83,7 +85,7 @@ class CategoryGroupServiceTest {
         CategoryGroup applicable = group(1L, "Kostenstelle", false);
         when(bommelRepository.getParents(b)).thenReturn(List.of());
         when(categoryGroupRepository.findApplicable(any())).thenReturn(List.of(applicable));
-        when(categoryGroupValueRepository.existsValue(1L, "KS-100")).thenReturn(true);
+        when(categoryGroupValueRepository.isSelectable(1L, "KS-100")).thenReturn(true);
 
         // group 2 is not applicable to this bommel → its value must be discarded
         service.validateAndApply(tx, Map.of(1L, "KS-100", 2L, "ignored"));
@@ -103,11 +105,71 @@ class CategoryGroupServiceTest {
         CategoryGroup applicable = group(1L, "Kostenstelle", false);
         when(bommelRepository.getParents(b)).thenReturn(List.of());
         when(categoryGroupRepository.findApplicable(any())).thenReturn(List.of(applicable));
-        when(categoryGroupValueRepository.existsValue(1L, "does-not-exist")).thenReturn(false);
+        when(categoryGroupValueRepository.isSelectable(1L, "does-not-exist")).thenReturn(false);
 
         BadRequestException ex = assertThrows(BadRequestException.class,
                 () -> service.validateAndApply(tx, Map.of(1L, "does-not-exist")));
         assertTrue(ex.getMessage().contains("Kostenstelle"));
+    }
+
+    @Test
+    void validateAndApplyKeepsAValueTheTransactionAlreadyCarries() {
+        Bommel b = bommel(5L);
+        Transaction tx = new Transaction();
+        tx.setBommel(b);
+        tx.getCategoryValues().add(new TransactionCategoryValue(tx, 1L, "now-hidden"));
+
+        when(bommelRepository.getParents(b)).thenReturn(List.of());
+        when(categoryGroupRepository.findApplicable(any())).thenReturn(List.of(group(1L, "Kostenstelle", false)));
+
+        // not selectable any more, but unchanged: no lookup, no rejection
+        service.validateAndApply(tx, Map.of(1L, "now-hidden"));
+
+        assertEquals("now-hidden", tx.getCategoryValues().iterator().next().getValue());
+    }
+
+    @Test
+    void validateAndApplyRejectsChangingToAValueThatIsNotSelectable() {
+        Bommel b = bommel(5L);
+        Transaction tx = new Transaction();
+        tx.setBommel(b);
+        tx.getCategoryValues().add(new TransactionCategoryValue(tx, 1L, "old"));
+
+        when(bommelRepository.getParents(b)).thenReturn(List.of());
+        when(categoryGroupRepository.findApplicable(any())).thenReturn(List.of(group(1L, "Kostenstelle", false)));
+        when(categoryGroupValueRepository.isSelectable(1L, "hidden-or-collection")).thenReturn(false);
+
+        assertThrows(BadRequestException.class, () -> service.validateAndApply(tx, Map.of(1L, "hidden-or-collection")));
+    }
+
+    @Test
+    void reportRowsRollChildrenUpToTheirParent() {
+        List<Object[]> sums = List.of(
+                new Object[] { "Einnahmen", new BigDecimal("5.00"), BigDecimal.ZERO, 1L },
+                new Object[] { "Gelöscht", BigDecimal.ZERO, new BigDecimal("1.00"), 1L },
+                new Object[] { "Mitgliedsbeitrag", new BigDecimal("10.00"), BigDecimal.ZERO, 2L },
+                new Object[] { "Spenden", new BigDecimal("20.00"), new BigDecimal("3.00"), 3L },
+                new Object[] { "Sponsoring", new BigDecimal("7.00"), BigDecimal.ZERO, 1L });
+
+        List<CategoryGroupReportRow> rows = CategoryGroupService.reportRows(sums,
+                Map.of("Mitgliedsbeitrag", "Einnahmen", "Spenden", "Einnahmen", "Sponsoring", "Sonstiges"));
+
+        assertEquals(List.of("Einnahmen", "Gelöscht", "Sonstiges"),
+                rows.stream().map(CategoryGroupReportRow::value).toList());
+
+        CategoryGroupReportRow parent = rows.get(0);
+        assertEquals(6L, parent.count());
+        assertEquals(new BigDecimal("35.00"), parent.income());
+        assertEquals(new BigDecimal("3.00"), parent.expense());
+        assertEquals(List.of("Einnahmen", "Mitgliedsbeitrag", "Spenden"),
+                parent.children().stream().map(CategoryGroupReportRow::value).toList());
+        assertTrue(parent.children().get(0).direct(), "what was booked on the parent itself stays visible");
+
+        assertTrue(rows.get(1).children().isEmpty(), "a value without a known parent stays on the top level");
+
+        // a parent nothing was booked on directly appears through its children alone
+        assertEquals(1, rows.get(2).children().size());
+        assertEquals(new BigDecimal("7.00"), rows.get(2).income());
     }
 
     @Test

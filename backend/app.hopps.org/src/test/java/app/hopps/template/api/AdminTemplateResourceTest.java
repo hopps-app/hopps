@@ -43,7 +43,7 @@ class AdminTemplateResourceTest {
                 "description", "Beschreibung",
                 "active", true,
                 "required", false,
-                "values", values);
+                "values", values.stream().map(v -> Map.of("value", v)).toList());
     }
 
     private static int create(String name, List<String> values) {
@@ -84,7 +84,7 @@ class AdminTemplateResourceTest {
                 .then()
                 .statusCode(200)
                 .body("name", is("Kostenstelle"))
-                .body("values", contains("Verwaltung", "Jugend", "Veranstaltungen"))
+                .body("values.value", contains("Verwaltung", "Jugend", "Veranstaltungen"))
                 .body("usageCount", is(0))
                 .body("createdAt", notNullValue());
 
@@ -112,7 +112,7 @@ class AdminTemplateResourceTest {
                 .then()
                 .statusCode(200)
                 .body("name", is("Projekte"))
-                .body("values", contains("C", "D", "A"));
+                .body("values.value", contains("C", "D", "A"));
     }
 
     @Test

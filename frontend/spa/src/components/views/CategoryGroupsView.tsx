@@ -1,12 +1,14 @@
 import { CategoryGroupResponse } from '@hopps/api-client';
-import { Lightbulb, Plus } from 'lucide-react';
+import { FileUp, Lightbulb, Plus } from 'lucide-react';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import CategoryGroupCard from '@/components/CategoryGroups/CategoryGroupCard';
+import CategoryGroupImportDialog from '@/components/CategoryGroups/CategoryGroupImportDialog';
 import CategoryGroupModal from '@/components/CategoryGroups/CategoryGroupModal';
 import CategoryGroupSetup from '@/components/CategoryGroups/CategoryGroupSetup';
 import { CategoryGroupsSkeleton } from '@/components/CategoryGroups/CategoryGroupsSkeleton';
+import { downloadCategoryGroupFile } from '@/components/CategoryGroups/categoryValues';
 import { rootBommel } from '@/components/CategoryGroups/helpers';
 import Button from '@/components/ui/Button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
@@ -14,6 +16,7 @@ import { useCategoryGroups, useCategoryGroupTemplates, useCategoryGroupUsage, us
 import { useEnsureBommels } from '@/hooks/use-ensure-bommels';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
+import apiService from '@/services/ApiService';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
 
@@ -37,6 +40,7 @@ function CategoryGroupsView() {
     }, [organization?.id, bommelCount, loadBommels]);
 
     const [modalOpen, setModalOpen] = useState(false);
+    const [importOpen, setImportOpen] = useState(false);
     const [editing, setEditing] = useState<CategoryGroupResponse | undefined>(undefined);
     const [toDelete, setToDelete] = useState<CategoryGroupResponse | undefined>(undefined);
     const { data: deleteUsage, isLoading: usageLoading } = useCategoryGroupUsage(toDelete?.id);
@@ -52,6 +56,21 @@ function CategoryGroupsView() {
         setEditing(group);
         setModalOpen(true);
     };
+
+    const handleExport = async (group: CategoryGroupResponse) => {
+        try {
+            downloadCategoryGroupFile(await apiService.orgService.exportCategoryGroup(group.id as number));
+        } catch {
+            showError(t('categoryGroups.toast.error'));
+        }
+    };
+
+    const importButton = (
+        <Button variant="outline" size="sm" className="h-10" onClick={() => setImportOpen(true)}>
+            <FileUp />
+            {t('categoryGroups.import.button')}
+        </Button>
+    );
 
     const confirmDelete = async () => {
         if (!toDelete?.id) {
@@ -74,7 +93,7 @@ function CategoryGroupsView() {
                 <CategoryGroupsSkeleton />
             ) : isSetup ? (
                 <>
-                    <PageHeader title={t('categoryGroups.setup.title')} />
+                    <PageHeader title={t('categoryGroups.setup.title')} action={importButton} />
                     <CategoryGroupSetup templates={templates} onCreated={refetch} />
                 </>
             ) : (
@@ -82,10 +101,13 @@ function CategoryGroupsView() {
                     <PageHeader
                         title={t('categoryGroups.title')}
                         action={
-                            <Button size="sm" className="h-10" onClick={openCreate}>
-                                <Plus />
-                                {t('categoryGroups.addButton')}
-                            </Button>
+                            <div className="flex gap-2.5">
+                                {importButton}
+                                <Button size="sm" className="h-10" onClick={openCreate}>
+                                    <Plus />
+                                    {t('categoryGroups.addButton')}
+                                </Button>
+                            </div>
                         }
                     />
 
@@ -101,6 +123,7 @@ function CategoryGroupsView() {
                                 group={group}
                                 rootId={rootId}
                                 onEdit={() => openEdit(group)}
+                                onExport={() => handleExport(group)}
                                 onDelete={() => setToDelete(group)}
                             />
                         ))}
@@ -117,6 +140,7 @@ function CategoryGroupsView() {
             )}
 
             <CategoryGroupModal open={modalOpen} group={editing} onClose={() => setModalOpen(false)} onSaved={refetch} />
+            <CategoryGroupImportDialog open={importOpen} groups={groups} onClose={() => setImportOpen(false)} onImported={refetch} />
 
             <Dialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(undefined)}>
                 <DialogContent className="max-w-md">

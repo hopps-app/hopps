@@ -16,7 +16,8 @@ public record CategoryGroupResponse(
         boolean required,
         List<Long> bommelIds,
         long valueCount,
-        @Schema(description = "The template this group was copied from, or null for a group created by hand") Long templateId) {
+        @Schema(description = "The template this group was copied from, or null for a group created by hand") Long templateId,
+        @Schema(description = "The template or export file this group came from, or null. Importing a file with the same key extends this group.") String sourceKey) {
 
     public static CategoryGroupResponse from(CategoryGroup group, long valueCount) {
         List<Long> bommelIds = group.getBommels()
@@ -24,6 +25,6 @@ public record CategoryGroupResponse(
                 .map(b -> b.id)
                 .toList();
         return new CategoryGroupResponse(group.getId(), group.getName(), group.isRequired(), bommelIds, valueCount,
-                group.getTemplateId());
+                group.getTemplateId(), group.getSourceKey());
     }
 }

@@ -1,5 +1,6 @@
 package app.hopps.transaction.repository;
 
+import app.hopps.category.repository.CategoryGroupValueRepository;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionDisplayStatus;
@@ -25,6 +26,9 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
 
     @Inject
     OrganizationContext organizationContext;
+
+    @Inject
+    CategoryGroupValueRepository categoryGroupValueRepository;
 
     /**
      * Find all transactions for the current organization, ordered by creation date.
@@ -213,7 +217,7 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
         }
 
         // Category-group value filters (AND across groups)
-        appendCategoryFilters(query, params, categoryValues, "");
+        appendCategoryFilters(query, params, withChildCategoryValues(categoryValues), "");
 
         return find(query.toString(), sort != null ? sort : Sort.descending("createdAt"), params)
                 .page(page)
@@ -311,24 +315,13 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
         }
         Map<Long, List<String>> valuesByGroup = new LinkedHashMap<>();
         for (String entry : categoryValues) {
-            if (entry == null) {
+            Map.Entry<Long, String> filter = parseCategoryFilter(entry);
+            if (filter == null) {
                 continue;
             }
-            int sep = entry.indexOf(':');
-            // need a non-empty id and a non-empty value
-            if (sep <= 0 || sep == entry.length() - 1) {
-                continue;
-            }
-            Long groupId;
-            try {
-                groupId = Long.parseLong(entry.substring(0, sep).trim());
-            } catch (NumberFormatException e) {
-                continue;
-            }
-            String value = entry.substring(sep + 1);
-            List<String> groupValues = valuesByGroup.computeIfAbsent(groupId, k -> new ArrayList<>());
-            if (!groupValues.contains(value)) {
-                groupValues.add(value);
+            List<String> groupValues = valuesByGroup.computeIfAbsent(filter.getKey(), k -> new ArrayList<>());
+            if (!groupValues.contains(filter.getValue())) {
+                groupValues.add(filter.getValue());
             }
         }
 
@@ -348,6 +341,40 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             params.put(vp, group.getValue());
             i++;
         }
+    }
+
+    /** Splits a {@code groupId:value} filter entry; null when it is malformed. */
+    private static Map.Entry<Long, String> parseCategoryFilter(String entry) {
+        if (entry == null) {
+            return null;
+        }
+        int sep = entry.indexOf(':');
+        // need a non-empty id and a non-empty value
+        if (sep <= 0 || sep == entry.length() - 1) {
+            return null;
+        }
+        try {
+            return Map.entry(Long.parseLong(entry.substring(0, sep).trim()), entry.substring(sep + 1));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    /** Adds the children of every filtered value: filtering by a parent category also finds what is booked below it. */
+    private List<String> withChildCategoryValues(List<String> categoryValues) {
+        if (categoryValues == null || categoryValues.isEmpty()) {
+            return categoryValues;
+        }
+        List<String> expanded = new ArrayList<>(categoryValues);
+        for (String entry : categoryValues) {
+            Map.Entry<Long, String> filter = parseCategoryFilter(entry);
+            if (filter != null) {
+                for (String child : categoryGroupValueRepository.childValues(filter.getKey(), filter.getValue())) {
+                    expanded.add(filter.getKey() + ":" + child);
+                }
+            }
+        }
+        return expanded;
     }
 
     /**
@@ -414,7 +441,7 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             params.put("privatelyPaid", privatelyPaid);
         }
 
-        appendCategoryFilters(query, params, categoryValues, "");
+        appendCategoryFilters(query, params, withChildCategoryValues(categoryValues), "");
 
         return count(query.toString(), params);
     }
@@ -479,7 +506,7 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
             params.put("privatelyPaid", privatelyPaid);
         }
 
-        appendCategoryFilters(where, params, categoryValues, "t.");
+        appendCategoryFilters(where, params, withChildCategoryValues(categoryValues), "t.");
 
         var query = getEntityManager().createQuery(
                 "SELECT COALESCE(SUM(CASE WHEN t.total > 0 THEN t.total ELSE 0 END), 0), "

@@ -61,7 +61,8 @@
             "created": "Kategoriegruppe angelegt",
             "updated": "Kategoriegruppe gespeichert",
             "deleted": "Kategoriegruppe gelöscht",
-            "error": "Aktion fehlgeschlagen"
+            "error": "Aktion fehlgeschlagen",
+            "lastSelectable": "Eine Pflichtgruppe braucht mindestens eine wählbare Kategorie."
         },
         "reopen": {
             "title": "Bestätigte Transaktionen betroffen",
@@ -87,6 +88,31 @@
             "noTemplatesTitle": "Erste Kategoriegruppe anlegen",
             "ownGroupTitle": "Eigene Kategoriegruppe",
             "ownGroupText": "Noch keine Kategorien, sie werden selbst angelegt."
+        },
+        "export": "Als Datei exportieren",
+        "values": {
+            "collection": "Sammlung",
+            "hidden": "Ausgeblendet",
+            "addChild": "Unterkategorie zu {{name}} hinzufügen",
+            "addingUnder": "Neue Kategorie unter {{name}}",
+            "makeCollection": "{{name}} nur als Sammlung führen (nicht buchbar)",
+            "makeBookable": "{{name}} direkt buchbar machen",
+            "hide": "{{name}} ausblenden",
+            "show": "{{name}} einblenden",
+            "move": "{{name}} einer Oberkategorie zuordnen",
+            "topLevel": "Keine Oberkategorie"
+        },
+        "import": {
+            "button": "Importieren",
+            "title": "Kategoriegruppe importieren",
+            "subtitle": "Eine exportierte Datei übernehmen. Danach lässt sich die Gruppe frei anpassen.",
+            "chooseFile": "Datei auswählen",
+            "invalidFile": "Diese Datei lässt sich nicht importieren.",
+            "extendsExisting": "Diese Vorgabe gibt es bereits als „{{group}}“. Neue Kategorien werden ergänzt, vorhandene bleiben unverändert.",
+            "submit": "Importieren",
+            "created": "Kategoriegruppe importiert",
+            "extended_one": "{{count}} Kategorie ergänzt",
+            "extended_other": "{{count}} Kategorien ergänzt"
         }
     },
     "banner": {
@@ -525,7 +551,9 @@
             "income": "Einnahmen",
             "expense": "Ausgaben",
             "net": "Saldo",
-            "distribution": "Verteilung"
+            "distribution": "Verteilung",
+            "parent": "Oberkategorie",
+            "direct": "Direkt gebucht"
         },
         "emptyNoGroup": {
             "title": "Kategoriegruppe wählen",

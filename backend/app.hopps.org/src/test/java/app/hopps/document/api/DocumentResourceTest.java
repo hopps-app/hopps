@@ -505,7 +505,7 @@ class DocumentResourceTest {
                 .basePath("/category-groups")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("""
-                        { "name": "Kostenstelle", "required": true, "bommelIds": [24], "values": ["KS-100"] }
+                        { "name": "Kostenstelle", "required": true, "bommelIds": [24], "values": [{ "value": "KS-100" }] }
                         """)
                 .when()
                 .post()

@@ -1,7 +1,7 @@
 package app.hopps.template.api.dto;
 
+import app.hopps.category.api.dto.CategoryValueEntry;
 import app.hopps.template.domain.CategoryGroupTemplate;
-import app.hopps.template.domain.TemplateCategoryValue;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import java.time.Instant;
@@ -15,10 +15,11 @@ public record CategoryGroupTemplateResponse(
         boolean active,
         int sortIndex,
         boolean required,
-        List<String> values,
+        List<CategoryValueEntry> values,
         @Schema(description = "Number of organizations that currently hold a copy of this template") long usageCount,
         Instant createdAt,
-        Instant updatedAt) {
+        Instant updatedAt,
+        @Schema(description = "Stable id of this template, carried by its export file") String sourceKey) {
 
     public static CategoryGroupTemplateResponse from(CategoryGroupTemplate template, long usageCount) {
         return new CategoryGroupTemplateResponse(
@@ -28,9 +29,10 @@ public record CategoryGroupTemplateResponse(
                 template.isActive(),
                 template.getSortIndex(),
                 template.isRequired(),
-                template.getValues().stream().map(TemplateCategoryValue::getValue).toList(),
+                template.toEntries(),
                 usageCount,
                 template.getCreatedAt(),
-                template.getUpdatedAt());
+                template.getUpdatedAt(),
+                template.getSourceKey());
     }
 }

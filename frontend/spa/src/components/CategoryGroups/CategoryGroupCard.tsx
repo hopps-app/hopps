@@ -1,18 +1,21 @@
 import { CategoryGroupResponse } from '@hopps/api-client';
-import { Pencil, Plus, Tag, Trash2 } from 'lucide-react';
+import { Download, Pencil, Plus, Tag, Trash2 } from 'lucide-react';
 import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { RequiredBadge } from './CategoryGroupSetup';
+import { categoryLabel } from './categoryValues';
 
 import Emoji from '@/components/ui/Emoji';
 import { useCategoryGroupValues } from '@/hooks/queries/useCategoryGroups';
+import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
 type CategoryGroupCardProps = {
     group: CategoryGroupResponse;
     rootId: number | undefined;
     onEdit: () => void;
+    onExport: () => void;
     onDelete: () => void;
 };
 
@@ -22,7 +25,7 @@ const MAX_CHIPS = 12;
 const sectionLabel = 'mb-2 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[var(--ink-faint)]';
 
 /** One category group in the overview: name, required badge, the bommels it applies to and its categories. */
-const CategoryGroupCard: FC<CategoryGroupCardProps> = ({ group, rootId, onEdit, onDelete }) => {
+const CategoryGroupCard: FC<CategoryGroupCardProps> = ({ group, rootId, onEdit, onExport, onDelete }) => {
     const { t } = useTranslation();
     const allBommels = useBommelsStore((s) => s.allBommels);
     const { data: values } = useCategoryGroupValues(group.id, '');
@@ -54,6 +57,15 @@ const CategoryGroupCard: FC<CategoryGroupCardProps> = ({ group, rootId, onEdit, 
                         className="grid rounded-lg p-1 text-[var(--muted)] hover:bg-[var(--surface-track)]"
                     >
                         <Pencil size={16} />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onExport}
+                        aria-label={t('categoryGroups.export')}
+                        title={t('categoryGroups.export')}
+                        className="grid rounded-lg p-1 text-[var(--muted)] hover:bg-[var(--surface-track)]"
+                    >
+                        <Download size={16} />
                     </button>
                     <button
                         type="button"
@@ -98,9 +110,12 @@ const CategoryGroupCard: FC<CategoryGroupCardProps> = ({ group, rootId, onEdit, 
                     {shown.map((item) => (
                         <span
                             key={item.id}
-                            className="inline-flex items-center rounded-[var(--r-sm)] border border-[var(--border-soft)] dark:border-white px-[11px] py-[5px] text-[13px] font-semibold text-[var(--font-color)]"
+                            className={cn(
+                                'inline-flex items-center rounded-[var(--r-sm)] border border-[var(--border-soft)] dark:border-white px-[11px] py-[5px] text-[13px] font-semibold text-[var(--font-color)]',
+                                (item.hidden || item.parentHidden) && 'opacity-50'
+                            )}
                         >
-                            {item.value}
+                            {categoryLabel(item)}
                         </span>
                     ))}
                     {valueCount > shown.length && shown.length > 0 && (

@@ -10,5 +10,5 @@ public record CategoryGroupTemplateDetail(
         String name,
         String description,
         boolean required,
-        List<String> values) {
+        List<CategoryValueEntry> values) {
 }

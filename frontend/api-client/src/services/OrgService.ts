@@ -14,7 +14,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
     }
 
     /**
@@ -670,6 +670,60 @@ export class Client {
             });
         }
         return Promise.resolve<CategoryGroupTemplateResponse>(null as any);
+    }
+
+    /**
+     * Export a category group template
+     * @param id The template id
+     * @return Export file
+     */
+    exportAdminCategoryGroupTemplate(id: number): Promise<CategoryGroupExport> {
+        let url_ = this.baseUrl + "/admin/templates/category-groups/{id}/export";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processExportAdminCategoryGroupTemplate(_response);
+        });
+    }
+
+    protected processExportAdminCategoryGroupTemplate(response: Response): Promise<CategoryGroupExport> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CategoryGroupExport.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not an admin", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Template not found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CategoryGroupExport>(null as any);
     }
 
     /**
@@ -3261,6 +3315,60 @@ export class Client {
     }
 
     /**
+     * Import a category group
+     * @return Import done
+     */
+    importCategoryGroup(body: CategoryGroupImportRequest): Promise<CategoryGroupImportResponse> {
+        let url_ = this.baseUrl + "/category-groups/import";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processImportCategoryGroup(_response);
+        });
+    }
+
+    protected processImportCategoryGroup(response: Response): Promise<CategoryGroupImportResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CategoryGroupImportResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Invalid or unsupported file", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CategoryGroupImportResponse>(null as any);
+    }
+
+    /**
      * Preview the re-draft impact
      * @return Impact preview
      */
@@ -3540,6 +3648,59 @@ export class Client {
     }
 
     /**
+     * Export a category group
+     * @return Export file
+     */
+    exportCategoryGroup(id: number): Promise<CategoryGroupExport> {
+        let url_ = this.baseUrl + "/category-groups/{id}/export";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processExportCategoryGroup(_response);
+        });
+    }
+
+    protected processExportCategoryGroup(response: Response): Promise<CategoryGroupExport> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CategoryGroupExport.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Group not found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CategoryGroupExport>(null as any);
+    }
+
+    /**
      * Category-group report
      * @param bommelId (optional) Restrict to these bommel ID(s); repeatable and combined with OR
      * @param endDate (optional) Filter transactions until this date, inclusive (ISO format: YYYY-MM-DD)
@@ -3664,10 +3825,12 @@ export class Client {
      * Search a group's values
      * @param page (optional) 
      * @param query (optional) 
+     * @param selection (optional) Leave out hidden values, as the picker for new bookings does. Parents that cannot be booked stay in, marked as not selectable.
      * @param size (optional) 
+     * @param topLevel (optional) Only values without a parent
      * @return A page of values
      */
-    valuesGET(id: number, page: number | undefined, query: string | undefined, size: number | undefined): Promise<PagedValuesResponse> {
+    valuesGET(id: number, page: number | undefined, query: string | undefined, selection: boolean | undefined, size: number | undefined, topLevel: boolean | undefined): Promise<PagedValuesResponse> {
         let url_ = this.baseUrl + "/category-groups/{id}/values?";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
@@ -3680,10 +3843,18 @@ export class Client {
             throw new globalThis.Error("The parameter 'query' cannot be null.");
         else if (query !== undefined)
             url_ += "query=" + encodeURIComponent("" + query) + "&";
+        if (selection === null)
+            throw new globalThis.Error("The parameter 'selection' cannot be null.");
+        else if (selection !== undefined)
+            url_ += "selection=" + encodeURIComponent("" + selection) + "&";
         if (size === null)
             throw new globalThis.Error("The parameter 'size' cannot be null.");
         else if (size !== undefined)
             url_ += "size=" + encodeURIComponent("" + size) + "&";
+        if (topLevel === null)
+            throw new globalThis.Error("The parameter 'topLevel' cannot be null.");
+        else if (topLevel !== undefined)
+            url_ += "topLevel=" + encodeURIComponent("" + topLevel) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -3767,7 +3938,7 @@ export class Client {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Bad Request", status, _responseText, _headers);
+            return throwException("The parent is not a top-level value of this group", status, _responseText, _headers);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
@@ -3787,6 +3958,74 @@ export class Client {
             });
         }
         return Promise.resolve<CategoryGroupResponse>(null as any);
+    }
+
+    /**
+     * Update a value
+     * @return Value updated
+     */
+    valuesPUT(id: number, valueId: number, body: CategoryGroupValueUpdateRequest): Promise<CategoryGroupValueResponse> {
+        let url_ = this.baseUrl + "/category-groups/{id}/values/{valueId}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        if (valueId === undefined || valueId === null)
+            throw new globalThis.Error("The parameter 'valueId' must be defined.");
+        url_ = url_.replace("{valueId}", encodeURIComponent("" + valueId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processValuesPUT(_response);
+        });
+    }
+
+    protected processValuesPUT(response: Response): Promise<CategoryGroupValueResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CategoryGroupValueResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("The hierarchy would become deeper than two levels", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Group or value not found", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A mandatory group would be left without any value that can be chosen", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CategoryGroupValueResponse>(null as any);
     }
 
     /**
@@ -8568,8 +8807,8 @@ export class CategoryGroupCreateRequest implements ICategoryGroupCreateRequest {
     required?: boolean;
     /** Bommels this group is assigned to. Empty = no bommel; assign the root bommel to apply to all. */
     bommelIds?: number[];
-    /** Initial allowed values (order preserved) */
-    values?: string[];
+    /** Initial categories with their hierarchy (order preserved) */
+    values?: CategoryValueEntry[];
     /** When true, already-confirmed transactions that would violate the now-mandatory group are reset to DRAFT */
     reopenAffectedTransactions?: boolean;
     /** The template the dialog was pre-filled from, if any. Only recorded as the group's origin. */
@@ -8602,7 +8841,7 @@ export class CategoryGroupCreateRequest implements ICategoryGroupCreateRequest {
             if (Array.isArray(_data["values"])) {
                 this.values = [] as any;
                 for (let item of _data["values"])
-                    this.values!.push(item);
+                    this.values!.push(CategoryValueEntry.fromJS(item));
             }
             this.reopenAffectedTransactions = _data["reopenAffectedTransactions"];
             this.templateId = _data["templateId"];
@@ -8632,7 +8871,7 @@ export class CategoryGroupCreateRequest implements ICategoryGroupCreateRequest {
         if (Array.isArray(this.values)) {
             data["values"] = [];
             for (let item of this.values)
-                data["values"].push(item);
+                data["values"].push(item ? item.toJSON() : undefined as any);
         }
         data["reopenAffectedTransactions"] = this.reopenAffectedTransactions;
         data["templateId"] = this.templateId;
@@ -8655,12 +8894,248 @@ export interface ICategoryGroupCreateRequest {
     required?: boolean;
     /** Bommels this group is assigned to. Empty = no bommel; assign the root bommel to apply to all. */
     bommelIds?: number[];
-    /** Initial allowed values (order preserved) */
-    values?: string[];
+    /** Initial categories with their hierarchy (order preserved) */
+    values?: CategoryValueEntry[];
     /** When true, already-confirmed transactions that would violate the now-mandatory group are reset to DRAFT */
     reopenAffectedTransactions?: boolean;
     /** The template the dialog was pre-filled from, if any. Only recorded as the group's origin. */
     templateId?: number;
+
+    [key: string]: any;
+}
+
+/** A category group as a portable file */
+export class CategoryGroupExport implements ICategoryGroupExport {
+    /** Version of this format */
+    formatVersion?: number;
+    /** Stable id of the source. Importing a file with a known key extends the existing group. */
+    sourceKey?: string;
+    name?: string;
+    required?: boolean;
+    values?: CategoryValueEntry[];
+
+    [key: string]: any;
+
+    constructor(data?: ICategoryGroupExport) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.formatVersion = _data["formatVersion"];
+            this.sourceKey = _data["sourceKey"];
+            this.name = _data["name"];
+            this.required = _data["required"];
+            if (Array.isArray(_data["values"])) {
+                this.values = [] as any;
+                for (let item of _data["values"])
+                    this.values!.push(CategoryValueEntry.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): CategoryGroupExport {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryGroupExport();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["formatVersion"] = this.formatVersion;
+        data["sourceKey"] = this.sourceKey;
+        data["name"] = this.name;
+        data["required"] = this.required;
+        if (Array.isArray(this.values)) {
+            data["values"] = [];
+            for (let item of this.values)
+                data["values"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+
+    clone(): CategoryGroupExport {
+        const json = this.toJSON();
+        let result = new CategoryGroupExport();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A category group as a portable file */
+export interface ICategoryGroupExport {
+    /** Version of this format */
+    formatVersion?: number;
+    /** Stable id of the source. Importing a file with a known key extends the existing group. */
+    sourceKey?: string;
+    name?: string;
+    required?: boolean;
+    values?: CategoryValueEntry[];
+
+    [key: string]: any;
+}
+
+/** An export file to bring into the current organization */
+export class CategoryGroupImportRequest implements ICategoryGroupImportRequest {
+    /** The content of the export file */
+    file!: CategoryGroupExport;
+    /** Bommels a new group is assigned to. Ignored when the file extends an existing group. */
+    bommelIds?: number[];
+    /** When true, already-confirmed transactions that would violate a new mandatory group are reset to DRAFT */
+    reopenAffectedTransactions?: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: ICategoryGroupImportRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.file = new CategoryGroupExport();
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.file = _data["file"] ? CategoryGroupExport.fromJS(_data["file"]) : new CategoryGroupExport();
+            if (Array.isArray(_data["bommelIds"])) {
+                this.bommelIds = [] as any;
+                for (let item of _data["bommelIds"])
+                    this.bommelIds!.push(item);
+            }
+            this.reopenAffectedTransactions = _data["reopenAffectedTransactions"];
+        }
+    }
+
+    static fromJS(data: any): CategoryGroupImportRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryGroupImportRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["file"] = this.file ? this.file.toJSON() : undefined as any;
+        if (Array.isArray(this.bommelIds)) {
+            data["bommelIds"] = [];
+            for (let item of this.bommelIds)
+                data["bommelIds"].push(item);
+        }
+        data["reopenAffectedTransactions"] = this.reopenAffectedTransactions;
+        return data;
+    }
+
+    clone(): CategoryGroupImportRequest {
+        const json = this.toJSON();
+        let result = new CategoryGroupImportRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+/** An export file to bring into the current organization */
+export interface ICategoryGroupImportRequest {
+    /** The content of the export file */
+    file: CategoryGroupExport;
+    /** Bommels a new group is assigned to. Ignored when the file extends an existing group. */
+    bommelIds?: number[];
+    /** When true, already-confirmed transactions that would violate a new mandatory group are reset to DRAFT */
+    reopenAffectedTransactions?: boolean;
+
+    [key: string]: any;
+}
+
+/** The outcome of an import */
+export class CategoryGroupImportResponse implements ICategoryGroupImportResponse {
+    group?: CategoryGroupResponse;
+    /** True when a new group was created, false when the file extended an existing one */
+    created?: boolean;
+    /** Number of categories added */
+    addedValues?: number;
+
+    [key: string]: any;
+
+    constructor(data?: ICategoryGroupImportResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.group = _data["group"] ? CategoryGroupResponse.fromJS(_data["group"]) : undefined as any;
+            this.created = _data["created"];
+            this.addedValues = _data["addedValues"];
+        }
+    }
+
+    static fromJS(data: any): CategoryGroupImportResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryGroupImportResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["group"] = this.group ? this.group.toJSON() : undefined as any;
+        data["created"] = this.created;
+        data["addedValues"] = this.addedValues;
+        return data;
+    }
+
+    clone(): CategoryGroupImportResponse {
+        const json = this.toJSON();
+        let result = new CategoryGroupImportResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** The outcome of an import */
+export interface ICategoryGroupImportResponse {
+    group?: CategoryGroupResponse;
+    /** True when a new group was created, false when the file extended an existing one */
+    created?: boolean;
+    /** Number of categories added */
+    addedValues?: number;
 
     [key: string]: any;
 }
@@ -8761,6 +9236,8 @@ export class CategoryGroupReportRow implements ICategoryGroupReportRow {
     count?: number;
     income?: number;
     expense?: number;
+    direct?: boolean;
+    children?: CategoryGroupReportRow[];
 
     [key: string]: any;
 
@@ -8783,6 +9260,12 @@ export class CategoryGroupReportRow implements ICategoryGroupReportRow {
             this.count = _data["count"];
             this.income = _data["income"];
             this.expense = _data["expense"];
+            this.direct = _data["direct"];
+            if (Array.isArray(_data["children"])) {
+                this.children = [] as any;
+                for (let item of _data["children"])
+                    this.children!.push(CategoryGroupReportRow.fromJS(item));
+            }
         }
     }
 
@@ -8803,6 +9286,12 @@ export class CategoryGroupReportRow implements ICategoryGroupReportRow {
         data["count"] = this.count;
         data["income"] = this.income;
         data["expense"] = this.expense;
+        data["direct"] = this.direct;
+        if (Array.isArray(this.children)) {
+            data["children"] = [];
+            for (let item of this.children)
+                data["children"].push(item ? item.toJSON() : undefined as any);
+        }
         return data;
     }
 
@@ -8819,6 +9308,8 @@ export interface ICategoryGroupReportRow {
     count?: number;
     income?: number;
     expense?: number;
+    direct?: boolean;
+    children?: CategoryGroupReportRow[];
 
     [key: string]: any;
 }
@@ -8832,6 +9323,8 @@ export class CategoryGroupResponse implements ICategoryGroupResponse {
     valueCount?: number;
     /** The template this group was copied from, or null for a group created by hand */
     templateId?: number;
+    /** The template or export file this group came from, or null. Importing a file with the same key extends this group. */
+    sourceKey?: string;
 
     [key: string]: any;
 
@@ -8860,6 +9353,7 @@ export class CategoryGroupResponse implements ICategoryGroupResponse {
             }
             this.valueCount = _data["valueCount"];
             this.templateId = _data["templateId"];
+            this.sourceKey = _data["sourceKey"];
         }
     }
 
@@ -8886,6 +9380,7 @@ export class CategoryGroupResponse implements ICategoryGroupResponse {
         }
         data["valueCount"] = this.valueCount;
         data["templateId"] = this.templateId;
+        data["sourceKey"] = this.sourceKey;
         return data;
     }
 
@@ -8906,6 +9401,8 @@ export interface ICategoryGroupResponse {
     valueCount?: number;
     /** The template this group was copied from, or null for a group created by hand */
     templateId?: number;
+    /** The template or export file this group came from, or null. Importing a file with the same key extends this group. */
+    sourceKey?: string;
 
     [key: string]: any;
 }
@@ -8916,7 +9413,7 @@ export class CategoryGroupTemplateDetail implements ICategoryGroupTemplateDetail
     name?: string;
     description?: string;
     required?: boolean;
-    values?: string[];
+    values?: CategoryValueEntry[];
 
     [key: string]: any;
 
@@ -8942,7 +9439,7 @@ export class CategoryGroupTemplateDetail implements ICategoryGroupTemplateDetail
             if (Array.isArray(_data["values"])) {
                 this.values = [] as any;
                 for (let item of _data["values"])
-                    this.values!.push(item);
+                    this.values!.push(CategoryValueEntry.fromJS(item));
             }
         }
     }
@@ -8967,7 +9464,7 @@ export class CategoryGroupTemplateDetail implements ICategoryGroupTemplateDetail
         if (Array.isArray(this.values)) {
             data["values"] = [];
             for (let item of this.values)
-                data["values"].push(item);
+                data["values"].push(item ? item.toJSON() : undefined as any);
         }
         return data;
     }
@@ -8986,7 +9483,7 @@ export interface ICategoryGroupTemplateDetail {
     name?: string;
     description?: string;
     required?: boolean;
-    values?: string[];
+    values?: CategoryValueEntry[];
 
     [key: string]: any;
 }
@@ -9094,8 +9591,10 @@ export class CategoryGroupTemplateRequest implements ICategoryGroupTemplateReque
     active?: boolean;
     /** Whether the created group is mandatory before a transaction can be confirmed */
     required?: boolean;
-    /** The values, in order. Blanks are skipped, duplicates are removed. */
-    values?: string[];
+    /** The categories, in order. Blanks are skipped, duplicates are removed. */
+    values?: CategoryValueEntry[];
+    /** Stable id taken over from an export file, so that the template and that file count as the same source. Keeps the current key when null. */
+    sourceKey?: string;
 
     [key: string]: any;
 
@@ -9121,8 +9620,9 @@ export class CategoryGroupTemplateRequest implements ICategoryGroupTemplateReque
             if (Array.isArray(_data["values"])) {
                 this.values = [] as any;
                 for (let item of _data["values"])
-                    this.values!.push(item);
+                    this.values!.push(CategoryValueEntry.fromJS(item));
             }
+            this.sourceKey = _data["sourceKey"];
         }
     }
 
@@ -9146,8 +9646,9 @@ export class CategoryGroupTemplateRequest implements ICategoryGroupTemplateReque
         if (Array.isArray(this.values)) {
             data["values"] = [];
             for (let item of this.values)
-                data["values"].push(item);
+                data["values"].push(item ? item.toJSON() : undefined as any);
         }
+        data["sourceKey"] = this.sourceKey;
         return data;
     }
 
@@ -9169,8 +9670,10 @@ export interface ICategoryGroupTemplateRequest {
     active?: boolean;
     /** Whether the created group is mandatory before a transaction can be confirmed */
     required?: boolean;
-    /** The values, in order. Blanks are skipped, duplicates are removed. */
-    values?: string[];
+    /** The categories, in order. Blanks are skipped, duplicates are removed. */
+    values?: CategoryValueEntry[];
+    /** Stable id taken over from an export file, so that the template and that file count as the same source. Keeps the current key when null. */
+    sourceKey?: string;
 
     [key: string]: any;
 }
@@ -9183,11 +9686,13 @@ export class CategoryGroupTemplateResponse implements ICategoryGroupTemplateResp
     active?: boolean;
     sortIndex?: number;
     required?: boolean;
-    values?: string[];
+    values?: CategoryValueEntry[];
     /** Number of organizations that currently hold a copy of this template */
     usageCount?: number;
     createdAt?: Date;
     updatedAt?: Date;
+    /** Stable id of this template, carried by its export file */
+    sourceKey?: string;
 
     [key: string]: any;
 
@@ -9215,11 +9720,12 @@ export class CategoryGroupTemplateResponse implements ICategoryGroupTemplateResp
             if (Array.isArray(_data["values"])) {
                 this.values = [] as any;
                 for (let item of _data["values"])
-                    this.values!.push(item);
+                    this.values!.push(CategoryValueEntry.fromJS(item));
             }
             this.usageCount = _data["usageCount"];
             this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
             this.updatedAt = _data["updatedAt"] ? new Date(_data["updatedAt"].toString()) : undefined as any;
+            this.sourceKey = _data["sourceKey"];
         }
     }
 
@@ -9245,11 +9751,12 @@ export class CategoryGroupTemplateResponse implements ICategoryGroupTemplateResp
         if (Array.isArray(this.values)) {
             data["values"] = [];
             for (let item of this.values)
-                data["values"].push(item);
+                data["values"].push(item ? item.toJSON() : undefined as any);
         }
         data["usageCount"] = this.usageCount;
         data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
         data["updatedAt"] = this.updatedAt ? this.updatedAt.toISOString() : undefined as any;
+        data["sourceKey"] = this.sourceKey;
         return data;
     }
 
@@ -9269,11 +9776,13 @@ export interface ICategoryGroupTemplateResponse {
     active?: boolean;
     sortIndex?: number;
     required?: boolean;
-    values?: string[];
+    values?: CategoryValueEntry[];
     /** Number of organizations that currently hold a copy of this template */
     usageCount?: number;
     createdAt?: Date;
     updatedAt?: Date;
+    /** Stable id of this template, carried by its export file */
+    sourceKey?: string;
 
     [key: string]: any;
 }
@@ -9425,6 +9934,10 @@ export class CategoryGroupValue implements ICategoryGroupValue {
     id?: number;
     value!: string;
     sortIndex?: number;
+    bookable?: boolean;
+    hidden?: boolean;
+    parentHidden?: boolean;
+    selectable?: boolean;
 
     [key: string]: any;
 
@@ -9446,6 +9959,10 @@ export class CategoryGroupValue implements ICategoryGroupValue {
             this.id = _data["id"];
             this.value = _data["value"];
             this.sortIndex = _data["sortIndex"];
+            this.bookable = _data["bookable"];
+            this.hidden = _data["hidden"];
+            this.parentHidden = _data["parentHidden"];
+            this.selectable = _data["selectable"];
         }
     }
 
@@ -9465,6 +9982,10 @@ export class CategoryGroupValue implements ICategoryGroupValue {
         data["id"] = this.id;
         data["value"] = this.value;
         data["sortIndex"] = this.sortIndex;
+        data["bookable"] = this.bookable;
+        data["hidden"] = this.hidden;
+        data["parentHidden"] = this.parentHidden;
+        data["selectable"] = this.selectable;
         return data;
     }
 
@@ -9481,6 +10002,10 @@ export interface ICategoryGroupValue {
     id?: number;
     value: string;
     sortIndex?: number;
+    bookable?: boolean;
+    hidden?: boolean;
+    parentHidden?: boolean;
+    selectable?: boolean;
 
     [key: string]: any;
 }
@@ -9489,6 +10014,8 @@ export interface ICategoryGroupValue {
 export class CategoryGroupValueCreateRequest implements ICategoryGroupValueCreateRequest {
     /** Values to add; duplicates within the group are ignored */
     values?: string[];
+    /** Top-level value to add the values under, or null to add them on the top level */
+    parentId?: number;
 
     [key: string]: any;
 
@@ -9512,6 +10039,7 @@ export class CategoryGroupValueCreateRequest implements ICategoryGroupValueCreat
                 for (let item of _data["values"])
                     this.values!.push(item);
             }
+            this.parentId = _data["parentId"];
         }
     }
 
@@ -9533,6 +10061,7 @@ export class CategoryGroupValueCreateRequest implements ICategoryGroupValueCreat
             for (let item of this.values)
                 data["values"].push(item);
         }
+        data["parentId"] = this.parentId;
         return data;
     }
 
@@ -9548,6 +10077,8 @@ export class CategoryGroupValueCreateRequest implements ICategoryGroupValueCreat
 export interface ICategoryGroupValueCreateRequest {
     /** Values to add; duplicates within the group are ignored */
     values?: string[];
+    /** Top-level value to add the values under, or null to add them on the top level */
+    parentId?: number;
 
     [key: string]: any;
 }
@@ -9557,6 +10088,20 @@ export class CategoryGroupValueResponse implements ICategoryGroupValueResponse {
     id?: number;
     value?: string;
     sortIndex?: number;
+    /** Id of the parent value, or null for a top-level value */
+    parentId?: number;
+    /** Name of the parent value, or null for a top-level value */
+    parentValue?: string;
+    /** Whether transactions can carry this value. False for a parent that only collects its children. */
+    bookable?: boolean;
+    /** Whether this value itself is hidden */
+    hidden?: boolean;
+    /** Whether this value is hidden through its parent */
+    parentHidden?: boolean;
+    /** Whether a new booking can use this value */
+    selectable?: boolean;
+    /** Number of values below this one */
+    childCount?: number;
 
     [key: string]: any;
 
@@ -9578,6 +10123,13 @@ export class CategoryGroupValueResponse implements ICategoryGroupValueResponse {
             this.id = _data["id"];
             this.value = _data["value"];
             this.sortIndex = _data["sortIndex"];
+            this.parentId = _data["parentId"];
+            this.parentValue = _data["parentValue"];
+            this.bookable = _data["bookable"];
+            this.hidden = _data["hidden"];
+            this.parentHidden = _data["parentHidden"];
+            this.selectable = _data["selectable"];
+            this.childCount = _data["childCount"];
         }
     }
 
@@ -9597,6 +10149,13 @@ export class CategoryGroupValueResponse implements ICategoryGroupValueResponse {
         data["id"] = this.id;
         data["value"] = this.value;
         data["sortIndex"] = this.sortIndex;
+        data["parentId"] = this.parentId;
+        data["parentValue"] = this.parentValue;
+        data["bookable"] = this.bookable;
+        data["hidden"] = this.hidden;
+        data["parentHidden"] = this.parentHidden;
+        data["selectable"] = this.selectable;
+        data["childCount"] = this.childCount;
         return data;
     }
 
@@ -9613,6 +10172,168 @@ export interface ICategoryGroupValueResponse {
     id?: number;
     value?: string;
     sortIndex?: number;
+    /** Id of the parent value, or null for a top-level value */
+    parentId?: number;
+    /** Name of the parent value, or null for a top-level value */
+    parentValue?: string;
+    /** Whether transactions can carry this value. False for a parent that only collects its children. */
+    bookable?: boolean;
+    /** Whether this value itself is hidden */
+    hidden?: boolean;
+    /** Whether this value is hidden through its parent */
+    parentHidden?: boolean;
+    /** Whether a new booking can use this value */
+    selectable?: boolean;
+    /** Number of values below this one */
+    childCount?: number;
+
+    [key: string]: any;
+}
+
+/** A category's position in the hierarchy and its settings */
+export class CategoryGroupValueUpdateRequest implements ICategoryGroupValueUpdateRequest {
+    /** Id of the top-level value to move this one under, or null for the top level */
+    parentId?: number;
+    /** Whether transactions can carry this value */
+    bookable?: boolean;
+    /** Whether this value is hidden from the pickers for new bookings */
+    hidden?: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: ICategoryGroupValueUpdateRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.parentId = _data["parentId"];
+            this.bookable = _data["bookable"];
+            this.hidden = _data["hidden"];
+        }
+    }
+
+    static fromJS(data: any): CategoryGroupValueUpdateRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryGroupValueUpdateRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["parentId"] = this.parentId;
+        data["bookable"] = this.bookable;
+        data["hidden"] = this.hidden;
+        return data;
+    }
+
+    clone(): CategoryGroupValueUpdateRequest {
+        const json = this.toJSON();
+        let result = new CategoryGroupValueUpdateRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A category's position in the hierarchy and its settings */
+export interface ICategoryGroupValueUpdateRequest {
+    /** Id of the top-level value to move this one under, or null for the top level */
+    parentId?: number;
+    /** Whether transactions can carry this value */
+    bookable?: boolean;
+    /** Whether this value is hidden from the pickers for new bookings */
+    hidden?: boolean;
+
+    [key: string]: any;
+}
+
+/** A category with its parent and settings, as a flat list entry */
+export class CategoryValueEntry implements ICategoryValueEntry {
+    /** The category's name */
+    value?: string;
+    /** Value of the parent category, or null for a top-level category */
+    parent?: string;
+    /** Whether the category can be booked directly. Defaults to true. */
+    bookable?: boolean;
+    /** Whether the category is hidden from the pickers. Defaults to false. */
+    hidden?: boolean;
+
+    [key: string]: any;
+
+    constructor(data?: ICategoryValueEntry) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.value = _data["value"];
+            this.parent = _data["parent"];
+            this.bookable = _data["bookable"];
+            this.hidden = _data["hidden"];
+        }
+    }
+
+    static fromJS(data: any): CategoryValueEntry {
+        data = typeof data === 'object' ? data : {};
+        let result = new CategoryValueEntry();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["value"] = this.value;
+        data["parent"] = this.parent;
+        data["bookable"] = this.bookable;
+        data["hidden"] = this.hidden;
+        return data;
+    }
+
+    clone(): CategoryValueEntry {
+        const json = this.toJSON();
+        let result = new CategoryValueEntry();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A category with its parent and settings, as a flat list entry */
+export interface ICategoryValueEntry {
+    /** The category's name */
+    value?: string;
+    /** Value of the parent category, or null for a top-level category */
+    parent?: string;
+    /** Whether the category can be booked directly. Defaults to true. */
+    bookable?: boolean;
+    /** Whether the category is hidden from the pickers. Defaults to false. */
+    hidden?: boolean;
 
     [key: string]: any;
 }

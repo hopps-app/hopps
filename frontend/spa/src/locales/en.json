@@ -61,7 +61,8 @@
             "created": "Category group created",
             "updated": "Category group saved",
             "deleted": "Category group deleted",
-            "error": "Action failed"
+            "error": "Action failed",
+            "lastSelectable": "A mandatory group needs at least one category that can be chosen."
         },
         "reopen": {
             "title": "Confirmed transactions affected",
@@ -87,6 +88,31 @@
             "noTemplatesTitle": "Create your first category group",
             "ownGroupTitle": "Your own category group",
             "ownGroupText": "No categories yet, you create them yourself."
+        },
+        "export": "Export as file",
+        "values": {
+            "collection": "Collection",
+            "hidden": "Hidden",
+            "addChild": "Add subcategory to {{name}}",
+            "addingUnder": "New category under {{name}}",
+            "makeCollection": "Keep {{name}} as a collection only (not bookable)",
+            "makeBookable": "Make {{name}} directly bookable",
+            "hide": "Hide {{name}}",
+            "show": "Show {{name}}",
+            "move": "Assign {{name}} to a parent category",
+            "topLevel": "No parent category"
+        },
+        "import": {
+            "button": "Import",
+            "title": "Import category group",
+            "subtitle": "Bring in an exported file. You can adjust the group freely afterwards.",
+            "chooseFile": "Choose file",
+            "invalidFile": "This file cannot be imported.",
+            "extendsExisting": "This preset already exists as “{{group}}”. New categories are added, existing ones stay as they are.",
+            "submit": "Import",
+            "created": "Category group imported",
+            "extended_one": "{{count}} category added",
+            "extended_other": "{{count}} categories added"
         }
     },
     "banner": {
@@ -526,7 +552,9 @@
             "income": "Income",
             "expense": "Expenses",
             "net": "Net",
-            "distribution": "Distribution"
+            "distribution": "Distribution",
+            "parent": "Parent category",
+            "direct": "Booked directly"
         },
         "emptyNoGroup": {
             "title": "Choose a category group",
