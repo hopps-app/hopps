@@ -262,10 +262,10 @@
                 "title": "Delete Bommel",
                 "description": "Are you sure you want to delete '{{name}}'?",
                 "hasTransactionsWarning": "This Bommel has linked transactions. You must choose how to handle them.",
-                "hasChildrenWarning": "This Bommel has {{count}} child Bommel(s). Deleting it will also delete all children and their linked transactions.",
+                "hasChildrenWarning": "This Bommel has {{count}} child Bommel(s). They are deleted as well; their transactions are unlinked too.",
                 "transactionHandlingLabel": "How should linked transactions be handled?",
                 "unlinkOption": "Unlink transactions",
-                "unlinkDescription": "Transactions will remain but will not be linked to any Bommel",
+                "unlinkDescription": "Transactions and receipts are kept, but without a Bommel. Confirmed transactions are set back to draft.",
                 "reassignOption": "Reassign to another Bommel",
                 "reassignDescription": "Choose another Bommel to assign these transactions to",
                 "comingSoon": "(Coming soon)",
@@ -297,7 +297,31 @@
                 "createChildError": "Failed to create child Bommel"
             },
             "demoMode": "Show demo data",
-            "demoBanner": "You are viewing sample data for orientation. This data is read-only."
+            "demoBanner": "You are viewing sample data for orientation. This data is read-only.",
+            "uploadLink": {
+                "title": "Upload link",
+                "description": "Members without a Hopps account can submit receipts for this bommel through this link.",
+                "create": "Create upload link",
+                "expiresOn": "Valid until (optional)",
+                "copy": "Copy link",
+                "copied": "Link copied",
+                "copyFailed": "Could not copy the link",
+                "showQr": "Show QR code",
+                "qrTitle": "Upload link for {{name}}",
+                "qrDescription": "Scan the QR code to upload receipts for this bommel.",
+                "validUntil": "Valid until {{date}}",
+                "noExpiry": "Does not expire",
+                "expired": "Expired. Regenerate to keep using it.",
+                "regenerate": "Regenerate",
+                "regenerateConfirmTitle": "Regenerate upload link?",
+                "regenerateConfirmText": "The current link stops working. Links and QR codes you already shared need to be replaced.",
+                "revoke": "Revoke",
+                "revokeConfirmTitle": "Revoke upload link?",
+                "revokeConfirmText": "Receipts can no longer be uploaded through this link.",
+                "created": "Upload link created",
+                "revoked": "Upload link revoked",
+                "error": "Could not change the upload link"
+            }
         },
         "details": {
             "typeVerein": "Association (Verein)",
@@ -338,8 +362,8 @@
             "currencyEUR": "Euro (€)",
             "currencyCHF": "Swiss franc (CHF)",
             "currencyHint": "Every amount in hopps is shown in this currency, bank accounts included. It can only be changed while no transaction and no bank account exist yet.",
-            "currencyLockedTitle": "The currency can no longer be changed",
-            "currencyLocked": "Transactions or bank accounts already exist for this organization. All stored amounts are kept in the selected currency, so switching it would falsify them. To change the currency anyway, please contact support.",
+            "currencyLockedTitle": "The currency cannot be changed",
+            "currencyLocked": "Transactions or bank accounts already exist in this currency. If only an unused bank account is preventing the change, it can be deleted under “Accounts”. Otherwise, please contact support.",
             "currencyLockedError": "The currency can no longer be changed because transactions or bank accounts already exist.",
             "loadError": "Failed to load organization details",
             "placeholder": {
@@ -1183,7 +1207,7 @@
             "discardText": "Your corrections to this receipt are not saved yet.",
             "discardConfirm": "Discard",
             "keepEditing": "Keep editing",
-            "amountDeviates": "The transaction amount ({{transaction}}) differs from the receipt ({{receipt}}). Confirming sets the receipt amount to the transaction amount.",
+            "amountDeviates": "The transaction amount ({{transaction}}) differs from the receipt ({{receipt}}).",
             "useReceiptAmount": "Use the receipt amount ({{amount}})"
         },
         "filter": {
@@ -1251,6 +1275,12 @@
             "bulkDeleted": "{{count}} receipt(s) deleted",
             "bulkDeletePartial": "{{done}} receipt(s) deleted, {{failed}} failed",
             "bulkDeleteFailed": "Receipts could not be deleted"
+        },
+        "uploadLink": {
+            "badge": "Upload link",
+            "by": "Via link from {{name}}",
+            "hint": "Submitted without an account through the bommel's upload link",
+            "comment": "Comment"
         }
     },
     "bommel": {
@@ -1296,6 +1326,8 @@
             "createError": "Bank account could not be created",
             "updateSuccess": "Bank account saved",
             "updateError": "Bank account could not be saved",
+            "deleteSuccess": "Bank account deleted",
+            "deleteError": "Bank account could not be deleted",
             "archiveSuccess": "Bank account archived",
             "archiveError": "Bank account could not be archived",
             "restoreSuccess": "Bank account restored",
@@ -1304,6 +1336,9 @@
     },
     "bankImport": {
         "check": {
+            "alreadyImportedTitle": "File already imported",
+            "alreadyImported": "This exact file was already imported into the account “{{account}}”. To import it again, delete that import first.",
+            "alreadyImportedArchived": "This exact file was already imported into the archived account “{{account}}”. You can restore that account under “Archived accounts”.",
             "currencyMismatchTitle": "Wrong currency",
             "currencyMismatch": "The file contains amounts in {{fileCurrencies}}, but the account is kept in {{accountCurrency}}. Import the file into an account with that currency.",
             "mixedCurrencies": "The file contains amounts in several currencies ({{fileCurrencies}}). An account can only hold one currency, so the file cannot be imported.",
@@ -1319,7 +1354,7 @@
             "fileTitle": "Upload CSV file",
             "fileDrop": "Drop file here or click to select",
             "fileDropHint": "Supported formats: .csv, .txt",
-            "dropSubtitle": "Sparkasse, GLS, DKB, VR-Bank … hopps auto-detects the format.",
+            "dropSubtitle": "Export the statement from your online banking and upload it here. The format is detected automatically.",
             "mt940Detected": "MT940 detected · {{count}} transactions found · no schema needed",
             "detecting": "Detecting format…",
             "noFormatDetected": "Format could not be detected automatically. Please select a schema below.",
@@ -1456,27 +1491,39 @@
         "buttonDisabledHint": "This action is unavailable because a required service is unreachable."
     },
     "konten": {
+        "accountActions": {
+            "delete": "Delete account",
+            "archive": "Archive account",
+            "deleteTitle": "Delete this account?",
+            "deleteText": "This account has no imports and no transactions. It will be deleted permanently.",
+            "archiveTitle": "Archive this account?",
+            "archiveText": "This account has imports or transactions, so it cannot be deleted. It will be hidden, all data stays, and you can restore it at any time. To delete the account completely, delete all of its imports first.",
+            "ibanArchived": "This IBAN belongs to the archived account “{{name}}”.",
+            "restoreAccount": "Restore account",
+            "restoreIbanInUse": "An active account already uses this IBAN.",
+            "archiveBlocked": "This account has assigned bank transactions, so it cannot be archived.",
+            "archiveOpenWarning": "Open bank transactions: {{count}}. They will be hidden and come back when the account is restored.",
+            "archivedTitle": "Archived accounts ({{count}})",
+            "restore": "Restore"
+        },
         "title": "Accounts",
-        "subtitle": "Bank reconciliation & cash box",
         "balance": "Balance",
         "open": "open",
         "allMatched": "reconciled",
         "addAccount": "Add bank account",
-        "accounts": "Accounts",
-        "accountsExpand": "Show details",
         "accountsCollapse": "Hide details",
         "importAction": "Import transactions",
         "import": "Import",
         "assign": "Assign",
         "unknownCounterparty": "Unknown",
         "tabs": {
-            "abgleich": "Reconciliation",
+            "all": "All",
             "importe": "Imports"
         },
         "status": {
             "open": "Open",
             "matched": "Matched",
-            "partial": "Partial",
+            "partial": "Partially linked",
             "ignored": "Ignored"
         },
         "filter": {
@@ -1490,16 +1537,12 @@
             "dateTo": "Date to",
             "minAmount": "Min amount",
             "maxAmount": "Max amount",
+            "account": "Account",
+            "allAccounts": "All accounts",
+            "accountsSelected": "{{count}} accounts",
             "clearAll": "Clear filters"
         },
         "abgleich": {
-            "allClear": "All reconciled",
-            "allClearDesc": "Every bank transaction is matched to a booking.",
-            "openSingular": "transaction not yet matched",
-            "openPlural": "transactions not yet matched",
-            "matched": "matched",
-            "openDesc": "Assign the open transactions below or create a transaction from them.",
-            "openBookings": "Open bank transactions",
             "noData": "No transactions yet",
             "noDataDesc": "Import a bank statement to start reconciliation."
         },
@@ -1510,27 +1553,30 @@
             "status": "Status"
         },
         "pagination": {
-            "page": "Page {{page}}",
             "pageOf": "Page {{page}} of {{total}}"
         },
         "imports": {
-            "title": "Import history",
-            "subtitle": "See which bank statements were imported, when, and for which account.",
             "account": "Account",
             "file": "File",
             "imported": "Imported",
             "duplicates": "Duplicates",
             "matched": "Matched",
-            "newImport": "New import",
-            "empty": "No imports yet",
-            "emptyDesc": "Import a bank statement to populate the history.",
+            "empty": "No imports yet.",
             "actions": "Actions",
             "delete": "Delete import",
             "deleteTitle": "Delete import?",
+            "deleteBlocked": "Bank transactions of this import are already assigned or ignored. To delete it, unlink them and undo the ignoring first.",
             "deleteConfirm_one": "The import <strong>\"{{file}}\"</strong> and the <strong>one transaction</strong> it created will be deleted. Uploaded receipts and bookkeeping entries are kept.",
             "deleteConfirm_other": "The import <strong>\"{{file}}\"</strong> and the <strong>{{count}} transactions</strong> it created will be deleted. Uploaded receipts and bookkeeping entries are kept.",
-            "deleteMatchedWarning_one": "Note: <strong>1 of these transactions</strong> is linked to a bookkeeping entry — that link will be removed.",
-            "deleteMatchedWarning_other": "Note: <strong>{{count}} of these transactions</strong> are linked to bookkeeping entries — those links will be removed."
+            "search": "Search (file, account) …",
+            "noResults": "No imports for this selection.",
+            "status": {
+                "completed": "Imported",
+                "partial": "Partially imported",
+                "failed": "Failed",
+                "processing": "Running",
+                "queued": "Queued"
+            }
         },
         "empty": {
             "noMatchTitle": "Nothing found",
@@ -1547,33 +1593,44 @@
         },
         "drawer": {
             "title": "Assign bank transaction",
-            "linked": "Already linked",
-            "selectTx": "Select matching transaction",
-            "multiSelect": "Multiple selection possible",
-            "noOpenTx": "No open transaction matches. Check your transactions list.",
-            "exactMatch": "exact match",
+            "noOpenTx": "No open transaction matches. Upload a receipt or create a transaction without a receipt.",
             "unlink": "Remove link",
-            "openTransaction": "Go to transaction",
             "openTransactionNewTab": "Open transaction in new tab",
             "bankAmount": "Amount",
-            "covered": "Covered",
-            "remaining": "Difference",
-            "fullyCovered": "Fully covered",
-            "usedAmountHint": "Amount used (default: full amount)",
             "ignore": "Ignore",
             "unignore": "Unignore",
-            "assign": "Assign",
-            "uploadReceipt": "Upload a receipt",
-            "uploadReceiptHint": "Drag a receipt here or click – a transaction is created and linked automatically",
+            "uploadReceipt": "Upload receipt",
+            "uploadReceiptHint": "Drag a receipt here or click. A transaction is created from the bank transaction and linked right away.",
             "uploadReceiptDrop": "Drop the receipt here …",
-            "uploadReceiptBusy": "Uploading receipt …",
-            "createTransaction": "Create transaction without receipt",
-            "createTransactionHint": "Prefilled from the bank transaction – no linked receipt",
-            "txSearchPlaceholder": "Search by amount or name…",
+            "createTransaction": "Create without receipt",
+            "createTransactionHint": "Prefilled from the bank transaction, without a linked receipt",
             "showReceipt": "Show receipt",
-            "hideReceipt": "Hide receipt"
+            "hideReceipt": "Hide receipt",
+            "sumAmount": "Amount",
+            "sumAssigned": "Assigned",
+            "sumOpen": "Open",
+            "readingTitle": "Reading receipt …",
+            "readingHint": "{{file}} · Detecting sender, date and amount",
+            "aiCreatedHint": "Created from the receipt by the AI. You check category and Bommel in the transaction.",
+            "receiptHigherHint": "The receipt is {{amount}} higher than the bank transaction. The transaction stays partially linked until you assign another bank transaction.",
+            "uploadMore": "Upload another receipt",
+            "restWithoutReceipt": "Record the rest without a receipt",
+            "searchOpenTx": "Search open transactions ({{count}})",
+            "clearSearch": "Clear search",
+            "noSearchHit": "No match. Adjust your search.",
+            "partialAmountRange": "Between {{min}} and {{max}}.",
+            "confidence": "{{pct}} %",
+            "suggestionsTitle": "Suggestions",
+            "searchOther": "Search for another transaction",
+            "searchTransaction": "Search for a transaction",
+            "noMatchTitle": "No matching transaction?",
+            "matchPercent": "{{pct}} % match",
+            "preview": "Preview",
+            "suggestionLink": "Link",
+            "review": "Review",
+            "assignPartial": "Assign partially",
+            "zugferdCreatedHint": "Created from the ZUGFeRD data of the e-invoice. You check category and Bommel in the transaction."
         },
-        "openAmount": "open: {{amount}}",
         "createTx": {
             "title": "Transaction from bank transaction",
             "subtitle": "Prefilled from the bank transaction, linked automatically",
@@ -1587,6 +1644,8 @@
             "shouldBeIncome": "This bank transaction is income. Please choose “Income”.",
             "shouldBeExpense": "This bank transaction is an expense. Please choose “Expense”."
         },
+        "view": "View",
+        "accountPillHint": "Click to expand and edit",
         "firstAccount": {
             "title": "Create a bank account first",
             "text": "Bank statements always belong to an account. Once an account exists, you can import and reconcile transactions.",
@@ -1603,6 +1662,44 @@
             "ignored": "Bank transaction ignored",
             "unignored": "Bank transaction restored",
             "unignoreError": "Bank transaction could not be restored"
+        }
+    },
+    "publicUpload": {
+        "title": "Upload receipts",
+        "pageTitle": "Upload receipts for {{name}}",
+        "intro": "Submit receipts for this area. No account needed.",
+        "takePhoto": "Take photo",
+        "chooseFiles": "Choose files",
+        "allowedTypes": "PNG, JPEG or PDF, several receipts at once",
+        "removeFile": "Remove file",
+        "name": "Name",
+        "nameRequired": "Please enter your name",
+        "comment": "Comment (optional)",
+        "commentPlaceholder": "e.g. what the receipt is for",
+        "privatelyPaid": "Paid privately",
+        "submit_one": "Submit receipt",
+        "submit_other": "Submit {{count}} receipts",
+        "success": {
+            "title": "Thank you!",
+            "text_one": "The receipt was submitted for {{bommel}}.",
+            "text_other": "{{count}} receipts were submitted for {{bommel}}.",
+            "more": "Upload more receipts"
+        },
+        "invalid": {
+            "title": "Invalid link",
+            "text": "This upload link does not exist or has been revoked."
+        },
+        "expired": {
+            "title": "Link expired",
+            "text": "This upload link is no longer valid. Please ask for a new link."
+        },
+        "errors": {
+            "duplicate": "This receipt has already been uploaded.",
+            "fileType": "Only PNG, JPEG or PDF are allowed.",
+            "tooLarge": "The file is too large.",
+            "rateLimit": "Too many uploads. Please try again later.",
+            "linkInvalid": "The link is no longer valid.",
+            "generic": "Upload failed. Please try again."
         }
     }
 }

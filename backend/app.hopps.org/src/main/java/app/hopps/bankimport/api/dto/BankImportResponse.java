@@ -32,13 +32,20 @@ public record BankImportResponse(
         String failureReason,
         int totalTransactions,
         int matchedTransactions,
-        int ignoredTransactions) {
+        int ignoredTransactions,
+        // Finished, and none of its movements is linked to a transaction or ignored.
+        boolean deletable) {
 
     public static BankImportResponse from(BankImport job) {
-        return from(job, Map.of());
+        return from(job, Map.of(), false);
     }
 
-    public static BankImportResponse from(BankImport job, Map<BankTransactionStatus, Long> statusCounts) {
+    /**
+     * @param inUse
+     *            whether a movement of the import is linked to a transaction or ignored
+     */
+    public static BankImportResponse from(BankImport job, Map<BankTransactionStatus, Long> statusCounts,
+            boolean inUse) {
         long total = statusCounts.values().stream().mapToLong(Long::longValue).sum();
         long matched = statusCounts.getOrDefault(BankTransactionStatus.FULLY_MATCHED, 0L)
                 + statusCounts.getOrDefault(BankTransactionStatus.PARTIALLY_MATCHED, 0L);
@@ -65,6 +72,8 @@ public record BankImportResponse(
                 job.getFailureReason(),
                 (int) total,
                 (int) matched,
-                (int) ignored);
+                (int) ignored,
+                !inUse && job.getStatus() != BankImportStatus.QUEUED
+                        && job.getStatus() != BankImportStatus.PROCESSING);
     }
 }

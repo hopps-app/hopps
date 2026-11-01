@@ -73,7 +73,7 @@ import {
     getDocumentReviewStatus,
     documentKeys,
 } from '@/hooks/queries/useDocuments';
-import { useTransaction, useUpdateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
+import { transactionKeys, useTransaction, useUpdateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
 import { useCurrency } from '@/hooks/use-currency';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
@@ -266,12 +266,15 @@ export function ReviewDrawer({
     onNext,
     onClose,
     onDeleted,
+    stacked = false,
 }: {
     doc: DocumentResponse | null;
     nextDoc?: DocumentResponse | null;
     onNext?: (doc: DocumentResponse) => void;
     onClose: () => void;
     onDeleted: () => void;
+    /** Opened on top of another drawer (e.g. "Kontoumsatz zuordnen"): layered above it, scrim included. */
+    stacked?: boolean;
 }) {
     const { format, symbol } = useCurrency();
     const { t, i18n } = useTranslation();
@@ -435,14 +438,27 @@ export function ReviewDrawer({
             direction !== baseline.direction ||
             !sameCategoryValues(categoryValues, baseline.categoryValues));
 
-    // Refresh the list once analysis finishes so the row's status/amount update too.
+    // Refresh the list once analysis finishes so the row's status/amount update too. A bank-origin draft is updated by
+    // the analysis as well (tax, name), so it is reloaded with it.
     const prevAnalyzingRef = useRef(false);
     useEffect(() => {
         if (prevAnalyzingRef.current && !isAnalyzing) {
             queryClient.invalidateQueries({ queryKey: documentKeys.lists() });
+            if (linkedTransactionId != null) {
+                queryClient.invalidateQueries({ queryKey: transactionKeys.detail(linkedTransactionId) });
+            }
         }
         prevAnalyzingRef.current = isAnalyzing;
-    }, [isAnalyzing, queryClient]);
+    }, [isAnalyzing, queryClient, linkedTransactionId]);
+
+    // The analysis replaces the bank purpose of a bank-origin draft with the receipt's name. Take that over while the
+    // name field still holds the loaded value; a name the user typed meanwhile is kept.
+    useEffect(() => {
+        if (!isBankReconcile || !baseline || !linkedTx?.name || linkedTx.name === baseline.name) return;
+        if (name === baseline.name) setName(linkedTx.name);
+        setBaseline({ ...baseline, name: linkedTx.name });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [linkedTx?.name]);
 
     // AI-extracted values from the analysed document, shown in the "Beleg" tab.
     const aiName = liveDoc?.name ?? undefined;
@@ -484,7 +500,7 @@ export function ReviewDrawer({
     }
 
     // The receipt already has its transaction but is in review: when its amount differs from the receipt total (e.g. the
-    // transaction was edited by hand afterwards), the deviation is shown, and confirming aligns the receipt with it.
+    // bank movement is one installment of the invoice), the deviation is shown with a way to take over the receipt total.
     const receiptTotal = doc?.total != null ? Math.abs(Number(doc.total)) : null;
     const formAmount = parseAllocationAmount(amount) ?? NaN;
     // Typed but not an amount (e.g. "4ßß"): an error that blocks saving, rather than being read as 4 or dropped.
@@ -635,11 +651,8 @@ export function ReviewDrawer({
         }
         try {
             if (isBankReconcile && linkedTransactionId) {
+                // The receipt keeps its own total: a transaction may book less than the receipt (e.g. one installment).
                 await updateTransaction.mutateAsync({ id: linkedTransactionId, data: buildTransactionPayload() });
-                // Confirming accepts the transaction amount for the receipt as well, so both agree again.
-                if (amountDeviates) {
-                    await updateMutation.mutateAsync(Object.assign(new DocumentUpdateRequest({ total: Math.abs(formAmount) }), { id: doc.id }));
-                }
                 await confirmMutation.mutateAsync({ id: doc.id, categoryValues });
                 showSuccess(t('receipts.toast.receiptConfirmed'));
             } else {
@@ -818,7 +831,22 @@ export function ReviewDrawer({
               [t('receipts.review.fileType'), fileExt || '—'],
               [t('receipts.review.fileSize'), doc.fileSize ? fmtFileSize(doc.fileSize, i18n.language) : '—'],
               [t('receipts.review.uploadedAt'), fmtDate(doc.createdAt)],
-              ...(doc.uploadedBy ? [[t('receipts.review.uploadedBy'), doc.uploadedBy] as [string, React.ReactNode]] : []),
+              ...(doc.uploadedBy
+                  ? [
+                        [
+                            t('receipts.review.uploadedBy'),
+                            doc.uploadChannel === 'UPLOAD_LINK' ? (
+                                <span key="uploadedBy" className="inline-flex flex-wrap items-center justify-end gap-1.5">
+                                    {doc.uploadedBy}
+                                    <Badge tone="purple">{t('receipts.uploadLink.badge')}</Badge>
+                                </span>
+                            ) : (
+                                doc.uploadedBy
+                            ),
+                        ] as [string, React.ReactNode],
+                    ]
+                  : []),
+              ...(doc.uploaderComment ? [[t('receipts.uploadLink.comment'), doc.uploaderComment] as [string, React.ReactNode]] : []),
               [t('receipts.review.documentNumber'), doc.legalDocumentId || '—'],
               [
                   t('receipts.review.extraction'),
@@ -837,7 +865,11 @@ export function ReviewDrawer({
     return (
         <>
             <div
-                className={cn('fixed inset-0 bg-black/25 z-40 transition-opacity duration-300', open ? 'opacity-100' : 'opacity-0 pointer-events-none')}
+                className={cn(
+                    'fixed inset-0 bg-black/25 transition-opacity duration-300',
+                    stacked ? 'z-50' : 'z-40',
+                    open ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                )}
                 onClick={tryClose}
             />
             {/* Large file preview to the left of the detail drawer (desktop only). pointer-events-none on the wrapper so
@@ -1574,7 +1606,16 @@ function DocumentRow({
                 </span>
                 <span className="flex flex-col min-w-0">
                     <span className="font-bold text-[14px] text-foreground truncate leading-snug">{doc.name || doc.fileName || '—'}</span>
-                    <span className="text-[12px] text-muted-foreground truncate leading-snug">{doc.senderName ?? ''}</span>
+                    <span className="text-[12px] text-muted-foreground truncate leading-snug">
+                        {doc.uploadChannel === 'UPLOAD_LINK' ? (
+                            <span className="inline-flex items-center gap-1" title={t('receipts.uploadLink.hint')}>
+                                <Link2 size={12} className="flex-shrink-0" />
+                                {[t('receipts.uploadLink.by', { name: doc.uploadedBy }), doc.senderName].filter(Boolean).join(' · ')}
+                            </span>
+                        ) : (
+                            (doc.senderName ?? '')
+                        )}
+                    </span>
                 </span>
             </span>
 
@@ -1618,6 +1659,9 @@ function DocumentRow({
 // oversized files get a clear message instead of a backend 413.
 const MAX_UPLOAD_MB = 10;
 const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
+
+// In dark mode --accent-surface sits right next to the card colour, so the icon tiles take the stronger step there.
+const ICON_TILE = 'bg-[var(--accent-surface)] dark:bg-[var(--accent-surface-strong)]';
 
 // Why an upload failed. The first two are caught in the browser before anything is sent.
 type UploadErrorKind = 'tooLarge' | 'invalidType' | 'unauthorized' | 'network' | 'server' | 'unknown';
@@ -1829,15 +1873,15 @@ function UploadZone({
             aria-label={collapsed ? t('receipts.upload.expand') : t('receipts.upload.collapse')}
             className="w-full flex items-center gap-3"
         >
-            <span className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#F3EAFB' }}>
-                {isUploading ? <Loader2 size={18} className="text-[#7E3FB4] animate-spin" /> : <Upload size={18} className="text-[#7E3FB4]" />}
+            <span className={cn('w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0', ICON_TILE)}>
+                {isUploading ? <Loader2 size={18} className="text-purple-700 animate-spin" /> : <Upload size={18} className="text-purple-700" />}
             </span>
             <span className="flex flex-col min-w-0 flex-1 text-left">
-                <span className="text-[14px] font-bold text-[#1B1B1F]" style={{ fontFamily: FONT }}>
+                <span className="text-[14px] font-bold text-foreground" style={{ fontFamily: FONT }}>
                     {t('receipts.upload.sectionTitle')}
                 </span>
                 {(collapsed || dragOverPassive) && (
-                    <span className="text-[12px] text-[#9A9AA3] truncate" style={{ fontFamily: FONT }}>
+                    <span className="text-[12px] text-[var(--ink-faint)] truncate" style={{ fontFamily: FONT }}>
                         {dragOverPassive
                             ? t('receipts.upload.dropzoneActive')
                             : isUploading
@@ -1846,7 +1890,7 @@ function UploadZone({
                     </span>
                 )}
             </span>
-            <ChevronDown size={18} className={cn('text-[#9A9AA3] transition-transform flex-shrink-0', collapsed ? '' : 'rotate-180')} />
+            <ChevronDown size={18} className={cn('text-[var(--ink-faint)] transition-transform flex-shrink-0', collapsed ? '' : 'rotate-180')} />
         </button>
     );
 
@@ -1863,12 +1907,14 @@ function UploadZone({
                             {...getRootProps()}
                             className={cn(
                                 'flex items-center gap-3 rounded-[14px] border-2 border-dashed py-2.5 pl-3.5 pr-3 cursor-pointer transition-all',
-                                isDragActive ? 'border-[#9955CC] bg-[#F3EAFB]' : 'border-[#E0E0E6] hover:border-[#C7A2E3] hover:bg-[#FAFAFA]'
+                                isDragActive
+                                    ? 'border-primary bg-[var(--accent-surface)]'
+                                    : 'border-border-soft hover:border-[var(--purple-300)] hover:bg-[var(--surface-sunken)]'
                             )}
                         >
                             <input {...getInputProps()} />
-                            <span className="w-[34px] h-[34px] rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: '#F3EAFB' }}>
-                                <Upload size={17} className="text-[#7E3FB4]" />
+                            <span className={cn('w-[34px] h-[34px] rounded-[10px] flex items-center justify-center flex-shrink-0', ICON_TILE)}>
+                                <Upload size={17} className="text-purple-700" />
                             </span>
                             <span className="flex-1 min-w-0 truncate text-[14px] font-bold text-foreground" style={{ fontFamily: FONT }}>
                                 {isDragActive ? t('receipts.upload.dropzoneActive') : t('receipts.upload.dropzoneMore')}
@@ -1884,21 +1930,25 @@ function UploadZone({
                             {...getRootProps()}
                             className={cn(
                                 'flex flex-col items-center justify-center gap-3 rounded-[14px] border-2 border-dashed py-10 px-6 cursor-pointer transition-all',
-                                isDragActive ? 'border-[#9955CC] bg-[#F3EAFB]' : 'border-[#E0E0E6] hover:border-[#C7A2E3] hover:bg-[#FAFAFA]'
+                                isDragActive
+                                    ? 'border-primary bg-[var(--accent-surface)]'
+                                    : 'border-border-soft hover:border-[var(--purple-300)] hover:bg-[var(--surface-sunken)]'
                             )}
                         >
                             <input {...getInputProps()} />
                             <div
-                                className="w-14 h-14 rounded-full flex items-center justify-center"
-                                style={{ background: isDragActive ? '#E0C8F5' : '#F3EAFB' }}
+                                className={cn(
+                                    'w-14 h-14 rounded-full flex items-center justify-center',
+                                    isDragActive ? 'bg-[var(--accent-surface-strong)]' : ICON_TILE
+                                )}
                             >
-                                <Upload size={26} className="text-[#7E3FB4]" />
+                                <Upload size={26} className="text-purple-700" />
                             </div>
                             <div className="text-center">
-                                <p className="font-bold text-[15px] text-[#1B1B1F]" style={{ fontFamily: FONT }}>
+                                <p className="font-bold text-[15px] text-foreground" style={{ fontFamily: FONT }}>
                                     {isDragActive ? t('receipts.upload.dropzoneActive') : t('receipts.upload.dropzone')}
                                 </p>
-                                <p className="mt-1 text-[13px] text-[#9A9AA3]" style={{ fontFamily: FONT }}>
+                                <p className="mt-1 text-[13px] text-[var(--ink-faint)]" style={{ fontFamily: FONT }}>
                                     {t('receipts.upload.hint')}
                                 </p>
                             </div>
@@ -2027,19 +2077,20 @@ function UploadZone({
         <div
             className={cn(
                 'relative rounded-[18px] border px-5 py-4 transition-[border-color,box-shadow] duration-700',
-                highlighted ? 'border-[#9955CC]' : 'border-[#E9E9EE]'
+                highlighted ? 'border-primary' : 'border-border-soft'
             )}
             style={{
-                background: '#FFFFFF',
-                boxShadow: highlighted
-                    ? '0 0 0 4px color-mix(in oklch, #9955CC 25%, transparent), 0 6px 22px rgba(20,20,40,.05)'
-                    : '0 1px 2px rgba(20,20,40,.05), 0 6px 22px rgba(20,20,40,.05)',
+                background: 'var(--background-secondary)',
+                boxShadow: highlighted ? '0 0 0 4px color-mix(in oklch, var(--primary) 25%, transparent), var(--shadow-md)' : 'var(--shadow-md)',
             }}
         >
             {passive ? (
                 <div
                     {...passiveDropzone.getRootProps()}
-                    className={cn('-mx-2 -my-1 px-2 py-1 rounded-[12px] transition-colors', dragOverPassive && 'bg-[#F3EAFB] ring-2 ring-inset ring-[#9955CC]')}
+                    className={cn(
+                        '-mx-2 -my-1 px-2 py-1 rounded-[12px] transition-colors',
+                        dragOverPassive && 'bg-[var(--accent-surface)] ring-2 ring-inset ring-primary'
+                    )}
                 >
                     <input {...passiveDropzone.getInputProps()} />
                     {card}
@@ -2057,10 +2108,14 @@ function UploadZone({
                         'absolute left-1/2 top-full z-20 mt-3 -translate-x-1/2 rounded-xl px-4 py-2.5 text-left text-[13.5px] font-bold text-white shadow-lg',
                         hint === 'on' ? 'animate-in fade-in slide-in-from-top-2 duration-300' : 'animate-out fade-out fill-mode-forwards duration-300'
                     )}
-                    style={{ background: '#7E3FB4', fontFamily: FONT, width: 'max-content', maxWidth: 'min(360px, calc(100vw - 32px))' }}
+                    style={{ background: 'var(--banner-ink)', fontFamily: FONT, width: 'max-content', maxWidth: 'min(360px, calc(100vw - 32px))' }}
                 >
                     {/* Arrow pointing up at the upload card */}
-                    <span aria-hidden="true" className="absolute left-1/2 -top-1.5 h-3 w-3 -translate-x-1/2 rotate-45" style={{ background: '#7E3FB4' }} />
+                    <span
+                        aria-hidden="true"
+                        className="absolute left-1/2 -top-1.5 h-3 w-3 -translate-x-1/2 rotate-45"
+                        style={{ background: 'var(--banner-ink)' }}
+                    />
                     {t('receipts.upload.setupHint')}
                 </button>
             )}
@@ -2340,11 +2395,11 @@ export function BelegeView() {
         );
 
     return (
-        <div className="flex flex-col w-full" style={{ fontFamily: FONT, background: '#F3F4F6' }}>
+        <div className="flex flex-col w-full" style={{ fontFamily: FONT }}>
             {/* Header */}
             <div className="flex items-start justify-between gap-4 mb-5">
                 <div>
-                    <h1 className="font-bold text-[#1B1B1F] leading-tight" style={{ fontSize: 26 }}>
+                    <h1 className="font-bold text-foreground leading-tight" style={{ fontSize: 26 }}>
                         {t('receipts.title')}
                     </h1>
                 </div>

@@ -1,5 +1,5 @@
 import { TransactionDisplayStatus, TransactionResponse } from '@hopps/api-client';
-import { ChevronLeft, ChevronRight, X, Plus, Search, FileText, Trash2, Filter, Wallet, Unlink } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Search, FileText, Trash2, Filter, Wallet, Unlink } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
@@ -10,6 +10,7 @@ import { TableEmptyState } from '@/components/common';
 import { ALL_BOMMELS, BommelSelect, BommelSelection } from '@/components/Dashboard/BommelSelect';
 import { collectSubtreeIds, flattenBommelTree } from '@/components/Dashboard/bommelTree';
 import { DeleteTransactionDialog } from '@/components/Receipts/DeleteTransactionDialog';
+import { FilterBadge } from '@/components/Transactions/FilterBadge';
 import { fmtDate } from '@/components/Transactions/format';
 import { FONT, HIDE_BOMMEL_QUERY, TX_GRID, TX_GRID_NARROW } from '@/components/Transactions/layout';
 import { StatusBadge } from '@/components/Transactions/StatusBadge';
@@ -63,32 +64,6 @@ const STATUS_SEGMENTS: { id: TransactionDisplayStatus; labelKey: string; color: 
     { id: 'LINKED', labelKey: 'transactions.status.linked', color: 'var(--warning)', tint: 'var(--warning-surface)' },
     { id: 'CONFIRMED', labelKey: 'transactions.status.confirmed', color: 'var(--positive)', tint: 'var(--positive-surface)' },
 ];
-
-/** Removable badge for one active advanced filter. */
-function FilterBadge({ label, onRemove }: { label: string; onRemove: () => void }) {
-    const { t } = useTranslation();
-    return (
-        <span
-            className="inline-flex cursor-default items-center gap-2 rounded-[var(--btn-radius)] border py-1.5 pl-3 pr-2 text-[13px] font-semibold"
-            style={{
-                fontFamily: FONT,
-                background: 'var(--accent-surface)',
-                color: 'var(--purple-700)',
-                borderColor: 'color-mix(in oklch, var(--primary) 28%, var(--background-secondary))',
-            }}
-        >
-            {label}
-            <button
-                type="button"
-                aria-label={t('transactions.filters.removeFilter')}
-                onClick={onRemove}
-                className="grid place-items-center transition-colors hover:text-[var(--negative)]"
-            >
-                <X size={14} strokeWidth={2.5} />
-            </button>
-        </span>
-    );
-}
 
 // ─── Transaction row ──────────────────────────────────────────────────────────
 

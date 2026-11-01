@@ -7,8 +7,11 @@ import {
     BankCsvColumnMappingDto,
     AmountStrategy,
     BankFieldType,
+    BankTransactionResponse,
+    MatchAllocationResponse,
     MatchRequest,
     MatchAmountRequest,
+    TransactionResponse,
 } from '@hopps/api-client';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -18,7 +21,7 @@ import { documentKeys, showUploadError } from '@/hooks/queries/useDocuments';
 import { transactionKeys, type SortDirection } from '@/hooks/queries/useTransactions';
 import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
-import { getUserFriendlyErrorMessage } from '@/utils/errorUtils';
+import { getErrorBody, getUserFriendlyErrorMessage } from '@/utils/errorUtils';
 
 // ─── Query Keys ─────────────────────────────────────────────────────────────
 
@@ -56,25 +59,18 @@ export interface BankTxFilter {
     maxAmount?: string;
     dateFrom?: string;
     dateTo?: string;
+    // Comma-separated account ids of the cross-account lists; left out for all accounts.
+    accountIds?: string;
 }
 
 export const bankTransactionKeys = {
     all: ['bankTransactions'] as const,
-    byAccount: (
-        accountId: number,
-        page?: number,
-        size?: number,
-        status?: string,
-        sort?: BankTransactionSortField,
-        direction?: SortDirection,
-        filter?: BankTxFilter
-    ) => [...bankTransactionKeys.all, 'account', accountId, { page, size, status, sort, direction, ...filter }] as const,
-    // Cross-account listing (all accounts when accountIds is omitted).
+    // Listing across the accounts in accountIds, all of them when it is omitted.
     list: (status?: string, page?: number, size?: number, sort?: BankTransactionSortField, direction?: SortDirection, filter?: BankTxFilter) =>
         [...bankTransactionKeys.all, 'list', { status, page, size, sort, direction, ...filter }] as const,
     // Aggregate totals + true (uncapped) count for a filter set.
     aggregate: (accountIds?: string, status?: string, filter?: BankTxFilter) =>
-        [...bankTransactionKeys.all, 'aggregate', { accountIds, status, ...filter }] as const,
+        [...bankTransactionKeys.all, 'aggregate', { status, ...filter, accountIds: accountIds ?? filter?.accountIds }] as const,
 };
 
 // ─── Bank Accounts ───────────────────────────────────────────────────────────
@@ -144,7 +140,26 @@ export function useArchiveBankAccount() {
             showSuccess(t('bankAccounts.toast.archiveSuccess'));
         },
         onError: (err) => {
-            showError(t('bankAccounts.toast.archiveError'), { description: getUserFriendlyErrorMessage(err) });
+            const description = getErrorBody(err)?.code === 'ACCOUNT_HAS_LINKS' ? t('konten.accountActions.archiveBlocked') : getUserFriendlyErrorMessage(err);
+            showError(t('bankAccounts.toast.archiveError'), { description });
+        },
+    });
+}
+
+// Deletes an unused account for good; the backend refuses one with imports or movements.
+export function useDeleteBankAccount() {
+    const queryClient = useQueryClient();
+    const { showSuccess, showError } = useToast();
+    const { t } = useTranslation();
+
+    return useMutation({
+        mutationFn: (id: number) => apiService.orgService.permanent(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: bankAccountKeys.lists() });
+            showSuccess(t('bankAccounts.toast.deleteSuccess'));
+        },
+        onError: (err) => {
+            showError(t('bankAccounts.toast.deleteError'), { description: getUserFriendlyErrorMessage(err) });
         },
     });
 }
@@ -161,7 +176,8 @@ export function useRestoreBankAccount() {
             showSuccess(t('bankAccounts.toast.restoreSuccess'));
         },
         onError: (err) => {
-            showError(t('bankAccounts.toast.restoreError'), { description: getUserFriendlyErrorMessage(err) });
+            const description = getErrorBody(err)?.code === 'IBAN_IN_USE' ? t('konten.accountActions.restoreIbanInUse') : getUserFriendlyErrorMessage(err);
+            showError(t('bankAccounts.toast.restoreError'), { description });
         },
     });
 }
@@ -364,11 +380,14 @@ export function useCreateReceiptForBankTransaction() {
     return useMutation({
         mutationFn: ({ bankTxId, file }: { bankTxId: number; file: File }) =>
             apiService.orgService.receipt(bankTxId, true, { data: file, fileName: file.name }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
-            queryClient.invalidateQueries({ queryKey: documentKeys.all });
-            queryClient.invalidateQueries({ queryKey: transactionKeys.all });
-        },
+        // Returned so the mutation resolves only once the new link is refetched; the drawer then shows it right away
+        // instead of briefly falling back to its empty state.
+        onSuccess: () =>
+            Promise.all([
+                queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all }),
+                queryClient.invalidateQueries({ queryKey: documentKeys.all }),
+                queryClient.invalidateQueries({ queryKey: transactionKeys.all }),
+            ]),
         onError: showUploadError,
     });
 }
@@ -385,11 +404,26 @@ export function useSuggestSchema(accountId: number, headerColumns: string[] | nu
 // ─── Bank Transactions ────────────────────────────────────────────────────────
 
 export function useBankTransaction(id: number | null) {
+    const queryClient = useQueryClient();
     return useQuery({
         queryKey: [...bankTransactionKeys.all, 'detail', id],
         queryFn: () => apiService.orgService.bankTransactions(id!),
         enabled: id !== null && id > 0,
+        // The row clicked in a list is already loaded, so its drawer can open right away.
+        placeholderData: () =>
+            queryClient
+                .getQueriesData<BankTransactionResponse[]>({ queryKey: bankTransactionKeys.all })
+                .flatMap(([, rows]) => (Array.isArray(rows) ? rows : []))
+                .find((row) => row.id === id),
     });
+}
+
+interface AddMatchVariables {
+    bankTxId: number;
+    transactionId: number;
+    amount?: number;
+    /** The transaction and the amount it will use, to show the link before the backend has answered. */
+    optimistic?: { tx: TransactionResponse; amount: number };
 }
 
 export function useAddBankTransactionMatch() {
@@ -398,9 +432,26 @@ export function useAddBankTransactionMatch() {
         meta: { errorMessage: 'bankMatch.toast.linkError' },
         // `amount` is the portion of the bank movement used for this transaction (the allocation). Omit it for the full
         // amount; pass a value to split a collective transfer across several transactions.
-        mutationFn: ({ bankTxId, transactionId, amount }: { bankTxId: number; transactionId: number; amount?: number }) =>
+        mutationFn: ({ bankTxId, transactionId, amount }: AddMatchVariables) =>
             apiService.orgService.matchesPOST(bankTxId, new MatchRequest({ transactionId, amount })),
-        onSuccess: (_, vars) => {
+        // With `optimistic` the link shows right away, in one step with the summary, instead of a server round trip later
+        // for the link and another for its transaction. The refetch below replaces it; a failed link is taken back.
+        onMutate: async ({ bankTxId, transactionId, optimistic }) => {
+            if (!optimistic) return undefined;
+            const queryKey = [...bankTransactionKeys.all, 'matches', bankTxId];
+            await queryClient.cancelQueries({ queryKey });
+            const previous = queryClient.getQueryData<MatchAllocationResponse[]>(queryKey);
+            queryClient.setQueryData<TransactionResponse>(transactionKeys.detail(transactionId), (cached) => cached ?? optimistic.tx);
+            queryClient.setQueryData<MatchAllocationResponse[]>(queryKey, (cached = []) => [
+                ...cached,
+                new MatchAllocationResponse({ transactionId, amount: optimistic.amount }),
+            ]);
+            return { queryKey, previous };
+        },
+        onError: (_, __, context) => {
+            if (context) queryClient.setQueryData(context.queryKey, context.previous);
+        },
+        onSettled: (_, __, vars) => {
             queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
             queryClient.invalidateQueries({ queryKey: [...bankTransactionKeys.all, 'detail', vars.bankTxId] });
             // Matching may fill an empty transaction amount from the bank movement — refresh transactions too.
@@ -439,7 +490,18 @@ export function useRemoveBankTransactionMatch() {
     return useMutation({
         meta: { errorMessage: 'bankMatch.toast.unlinkError' },
         mutationFn: ({ bankTxId, transactionId }: { bankTxId: number; transactionId: number }) => apiService.orgService.matchesDELETE(bankTxId, transactionId),
-        onSuccess: (_, vars) => {
+        // Like linking: the link goes right away, in one step with the summary; a failed unlink brings it back.
+        onMutate: async ({ bankTxId, transactionId }) => {
+            const queryKey = [...bankTransactionKeys.all, 'matches', bankTxId];
+            await queryClient.cancelQueries({ queryKey });
+            const previous = queryClient.getQueryData<MatchAllocationResponse[]>(queryKey);
+            queryClient.setQueryData<MatchAllocationResponse[]>(queryKey, (cached) => cached?.filter((m) => m.transactionId !== transactionId));
+            return { queryKey, previous };
+        },
+        onError: (_, __, context) => {
+            if (context) queryClient.setQueryData(context.queryKey, context.previous);
+        },
+        onSettled: (_, __, vars) => {
             queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
             queryClient.invalidateQueries({ queryKey: [...bankTransactionKeys.all, 'detail', vars.bankTxId] });
             queryClient.invalidateQueries({ queryKey: transactionKeys.all });
@@ -458,41 +520,9 @@ export function useIgnoreBankTransaction() {
     });
 }
 
-export function useBankTransactionsByAccount(
-    accountId: number,
-    page = 0,
-    size = 50,
-    status?: string,
-    sort: BankTransactionSortField = 'bookingDate',
-    direction: SortDirection = 'desc',
-    filter: BankTxFilter = {}
-) {
-    return useQuery({
-        queryKey: bankTransactionKeys.byAccount(accountId, page, size, status, sort, direction, filter),
-        queryFn: () =>
-            apiService.orgService.byAccount(
-                accountId,
-                filter.dateFrom || undefined,
-                filter.dateTo || undefined,
-                direction,
-                filter.maxAmount || undefined,
-                filter.minAmount || undefined,
-                page,
-                filter.search || undefined,
-                size,
-                sort,
-                status
-            ),
-        enabled: !!accountId,
-        // Keep the current rows on screen while a changed filter/page/sort refetches, so the list (and the search box
-        // above it) never blanks out into the loading state between keystrokes.
-        placeholderData: keepPreviousData,
-    });
-}
-
 /**
- * Cross-account bank transaction listing (all accounts) with server-side paging. Used by the reconciliation feed so
- * that more than one page of open transactions can be reached.
+ * Bank transaction listing with server-side paging, across the accounts in {@code filter.accountIds} or all of them
+ * when it is left out.
  */
 export function useAllBankTransactions(
     status: string | undefined,
@@ -506,7 +536,7 @@ export function useAllBankTransactions(
         queryKey: bankTransactionKeys.list(status, page, size, sort, direction, filter),
         queryFn: () =>
             apiService.orgService.bankTransactionsAll(
-                undefined, // accountIds → all accounts
+                filter.accountIds, // omitted → all accounts
                 filter.dateFrom || undefined,
                 filter.dateTo || undefined,
                 direction,
@@ -518,8 +548,8 @@ export function useAllBankTransactions(
                 sort,
                 status
             ),
-        // Keep the previous page/filter results visible while the changed query refetches (see byAccount above), so the
-        // reconciliation feed and its filter bar don't collapse into the full-page loading state on every keystroke.
+        // Keep the previous page/filter results visible while the changed query refetches, so the list (and the search box
+        // above it) never blanks out into the loading state between keystrokes.
         placeholderData: keepPreviousData,
     });
 }
@@ -533,7 +563,7 @@ export function useBankTransactionAggregate(accountIds?: string, status?: string
         queryKey: bankTransactionKeys.aggregate(accountIds, status, filter),
         queryFn: () =>
             apiService.orgService.aggregate(
-                accountIds,
+                accountIds ?? filter.accountIds,
                 filter.dateFrom || undefined,
                 filter.dateTo || undefined,
                 filter.maxAmount || undefined,

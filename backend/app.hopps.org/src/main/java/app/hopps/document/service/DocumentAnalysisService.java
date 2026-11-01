@@ -2,6 +2,7 @@ package app.hopps.document.service;
 
 import java.util.Map;
 
+import app.hopps.bankimport.service.BankTransactionReceiptService;
 import app.hopps.document.audit.DocumentAuditor;
 import app.hopps.document.client.DocumentAiClient;
 import app.hopps.document.client.DocumentData;
@@ -55,6 +56,9 @@ public class DocumentAnalysisService {
 
     @Inject
     DocumentDataApplier dataApplier;
+
+    @Inject
+    BankTransactionReceiptService receiptService;
 
     @Inject
     @RestClient
@@ -143,6 +147,8 @@ public class DocumentAnalysisService {
                 dataApplier.applyDocumentData(document, data, TagSource.AI);
                 document.setExtractionSource(source);
                 document.setAnalysisStatus(AnalysisStatus.COMPLETED);
+                // A receipt uploaded onto a bank transaction: fill in what the bank movement cannot know.
+                receiptService.applyAnalysedReceipt(document);
                 LOG.info("Document analysis completed: id={}, source={}", documentId, source);
             } else {
                 document.setAnalysisStatus(AnalysisStatus.COMPLETED);

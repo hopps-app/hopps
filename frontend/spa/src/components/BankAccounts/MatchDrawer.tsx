@@ -1,18 +1,28 @@
-import { BankTransactionResponse, DocumentResponse, TransactionResponse } from '@hopps/api-client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, ExternalLink, FilePlus, FileText, Landmark, Link2, Loader2, Search, Unlink, Upload, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { BankTransactionResponse, DocumentResponse, MatchAllocationResponse, TransactionResponse } from '@hopps/api-client';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { ExternalLink, Eye, FileCheck2, FileText, Info, Landmark, Link2, Loader2, Plus, Receipt, Search, Sparkles, Unlink, Upload } from 'lucide-react';
+import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 
+import { BankStatusBadge } from '@/components/BankAccounts/BankStatusBadge';
 import { CreateTransactionDrawer } from '@/components/BankAccounts/CreateTransactionDrawer';
 import { fmtDate } from '@/components/BankAccounts/format';
+import { CandidateInfo } from '@/components/BankAccounts/MatchCandidateRow';
+import { TransactionMatchPicker } from '@/components/BankAccounts/TransactionMatchPicker';
+import { allocationFor, confidenceTone, defaultAllocation, fitOf, STRONG_MATCH, useMatchCandidates } from '@/components/BankAccounts/useMatchCandidates';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
+import { Eyebrow } from '@/components/Transactions/Eyebrow';
+import { FONT } from '@/components/Transactions/layout';
 import { MatchAllocationControl } from '@/components/Transactions/MatchAllocationControl';
-import { DIRECTION_ICONS } from '@/components/Transactions/TxIcon';
+import { segmentColor, segmentTint } from '@/components/Transactions/segmentColors';
+import { Badge } from '@/components/Transactions/StatusBadge';
 import { CloseButton } from '@/components/ui/CloseButton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { HintTooltip } from '@/components/ui/HintTooltip';
+import { RowAction } from '@/components/ui/RowAction';
+import { BaseButton } from '@/components/ui/shadecn/BaseButton';
+import { ReviewDrawer } from '@/components/views/BelegeView';
 import {
     useBankTransaction,
     useAddBankTransactionMatch,
@@ -24,67 +34,356 @@ import {
     bankTransactionKeys,
 } from '@/hooks/queries/useBankAccounts';
 import { useDocument } from '@/hooks/queries/useDocuments';
-import { useReopenTransaction } from '@/hooks/queries/useTransactions';
+import { useReopenTransaction, useTransaction } from '@/hooks/queries/useTransactions';
 import { useCurrency } from '@/hooks/use-currency';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService';
-import { parseAllocationAmount } from '@/utils/parseAmount';
+import { useBommelsStore } from '@/store/bommels/bommelsStore';
+import { useStore } from '@/store/store';
 
-// ─── BookingMini ──────────────────────────────────────────────────────────────
+const EPS = 0.005;
 
-function BookingMini({ tx }: { tx: BankTransactionResponse }) {
+// Square icon button used on the cards (Transaktion öffnen, Verknüpfung lösen).
+const ICON_BTN =
+    'grid h-[34px] w-[34px] flex-shrink-0 place-items-center rounded-[11px] border border-border-soft bg-[var(--background-secondary)] text-muted-foreground transition-colors hover:border-[var(--border-strong)] hover:text-foreground disabled:opacity-50';
+const UNLINK_BTN = cn(ICON_BTN, 'hover:border-[var(--negative-border)] hover:text-[var(--negative)]');
+// The buttons of a suggestion: "Verknüpfen" is the primary one, "Vorschau" stays quiet next to it.
+const SUGGESTION_BTN =
+    'inline-flex h-[34px] flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[var(--btn-radius)] px-3.5 text-[13px] font-bold transition-colors';
+// Neutral option of the drawer (search, upload, create). Long labels wrap instead of pushing the neighbour out.
+const OPTION_BTN =
+    'inline-flex min-h-[42px] items-center justify-center gap-2 rounded-[var(--btn-radius)] border border-border-soft bg-[var(--background-secondary)] px-3 py-1.5 text-center text-[13px] font-bold leading-tight text-foreground transition-colors hover:bg-[var(--surface-sunken)]';
+// Footer buttons, as in the transaction drawer.
+const FOOTER_BTN = 'h-[42px] gap-2 rounded-[var(--btn-radius)] px-5 text-[14.5px] font-bold';
+const ACCEPT = { 'application/pdf': ['.pdf'], 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'] };
+// A new link rises into its place, where the suggestion or picker was a moment ago.
+const LINK_ENTER = 'motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-300';
+// Content that arrives a moment later (a hint with its receipt, suggestions) or comes back after an unlink.
+const FADE_IN = 'motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300';
+const FADE_OUT = 'motion-safe:animate-out motion-safe:fade-out motion-safe:fill-mode-forwards motion-safe:duration-300';
+// The drawer slides like the other drawers. They stay mounted and toggle a class; this one is mounted per movement.
+const DRAWER_IN = 'motion-safe:animate-in motion-safe:slide-in-from-right-full motion-safe:duration-300 motion-safe:ease-out';
+const DRAWER_OUT = 'motion-safe:animate-out motion-safe:slide-out-to-right-full motion-safe:fill-mode-forwards motion-safe:duration-300 motion-safe:ease-out';
+const CLOSE_MS = 300;
+// How many strong matches the drawer suggests for the open rest.
+const MAX_SUGGESTIONS = 3;
+
+// ─── Building blocks ─────────────────────────────────────────────────────────
+
+function IconTile({ size = 36, bg, fg, children }: { size?: number; bg: string; fg: string; children: ReactNode }) {
     return (
-        <div className="flex items-start gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl flex-shrink-0 bg-gray-100 dark:bg-gray-700 text-muted-foreground flex items-center justify-center">
-                <Landmark className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-                <div className="text-sm font-bold truncate">{tx.counterpartyName || '—'}</div>
-                {/* Show the full purpose ("Verwendungszweck") — wrap over as many lines as needed instead of truncating,
-                    so a long reference (e.g. customer/invoice numbers) stays fully readable in the summary. */}
-                <div className="text-xs text-muted-foreground break-words">
-                    {fmtDate(tx.bookingDate)}
-                    {tx.purpose ? ` · ${tx.purpose}` : ''}
+        <span
+            className="grid flex-shrink-0 place-items-center"
+            style={{ width: size, height: size, borderRadius: size >= 44 ? 13 : 10, background: bg, color: fg }}
+        >
+            {children}
+        </span>
+    );
+}
+
+// Card of the drawer's items (receipts, transactions): same surface and shadow as the bank card on top.
+function FlatCard({ children, className }: { children: ReactNode; className?: string }) {
+    return (
+        <div
+            className={cn('rounded-[var(--r-card)] px-[15px] py-[13px]', className)}
+            style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-md)' }}
+        >
+            {children}
+        </div>
+    );
+}
+
+const HINT_TONE = {
+    ai: { bg: 'var(--accent-surface)', icon: 'var(--purple-700)', text: 'text-muted-foreground' },
+    neutral: { bg: 'var(--surface-track)', icon: 'var(--muted-foreground)', text: 'text-muted-foreground' },
+    warn: { bg: 'var(--warning-surface)', icon: 'var(--warning)', text: 'text-foreground' },
+};
+
+function Hint({ tone, icon, children }: { tone: keyof typeof HINT_TONE; icon: ReactNode; children: ReactNode }) {
+    const style = HINT_TONE[tone];
+    return (
+        <div className={cn('mt-[11px] flex items-start gap-2.5 rounded-[12px] px-3 py-2.5', FADE_IN)} style={{ background: style.bg }}>
+            <span className="mt-px flex-shrink-0" style={{ color: style.icon }}>
+                {icon}
+            </span>
+            <span className={cn('min-w-0 flex-1 text-[12.5px] leading-[1.45]', style.text)}>{children}</span>
+        </div>
+    );
+}
+
+/**
+ * Says where the values of a draft transaction created from a receipt come from, by the receipt's extraction source:
+ * the AI (Document AI) or the ZUGFeRD data embedded in an e-invoice. A receipt without extracted data gets no hint, and
+ * only a receipt still waiting for review shows it: once confirmed, the values have been checked.
+ */
+function SourceHint({ doc }: { doc: DocumentResponse }) {
+    const { t } = useTranslation();
+    if (doc.extractionSource === 'AI') {
+        return (
+            <Hint tone="ai" icon={<Sparkles size={15} />}>
+                {t('konten.drawer.aiCreatedHint')}
+            </Hint>
+        );
+    }
+    if (doc.extractionSource === 'ZUGFERD') {
+        return (
+            <Hint tone="neutral" icon={<FileCheck2 size={15} />}>
+                {t('konten.drawer.zugferdCreatedHint')}
+            </Hint>
+        );
+    }
+    return null;
+}
+
+// The bank movement this drawer assigns: counterparty, date and purpose, amount, account and booking type.
+function BankCard({ bankTx }: { bankTx: BankTransactionResponse }) {
+    const { format } = useCurrency();
+    const amount = bankTx.amount ?? 0;
+    const incoming = amount >= 0;
+    return (
+        <div className="rounded-[var(--r-card)] px-5 py-[18px]" style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-md)' }}>
+            <div className="flex items-start gap-[13px]">
+                <IconTile size={44} bg="var(--surface-track)" fg="var(--muted-foreground)">
+                    <Landmark size={21} />
+                </IconTile>
+                <div className="min-w-0 flex-1">
+                    <div className="truncate text-[16px] font-extrabold text-foreground">{bankTx.counterpartyName || '—'}</div>
+                    {/* Account (with its colour, as in the Konten list) and booking date */}
+                    <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[13px] text-muted-foreground">
+                        {bankTx.bankAccountName && (
+                            <>
+                                <span className="h-2 w-2 flex-shrink-0 rounded-full" style={{ background: bankTx.bankAccountColor || 'var(--primary)' }} />
+                                <span className="truncate font-semibold text-foreground">{bankTx.bankAccountName}</span>
+                                <span aria-hidden="true">·</span>
+                            </>
+                        )}
+                        <span className="flex-shrink-0 tabular-nums">{fmtDate(bankTx.bookingDate)}</span>
+                    </div>
+                    {bankTx.transactionType && (
+                        <div className="mt-1 text-[11.5px] font-bold uppercase tracking-[0.04em] text-[var(--ink-faint)]">{bankTx.transactionType}</div>
+                    )}
+                    {/* The full purpose ("Verwendungszweck") wraps instead of truncating, so a long reference stays readable. */}
+                    {bankTx.purpose && <div className="mt-1 break-words text-[13px] leading-[1.45] text-muted-foreground">{bankTx.purpose}</div>}
+                </div>
+                <div className="flex flex-shrink-0 flex-col items-end gap-2">
+                    <BankStatusBadge status={bankTx.status} />
+                    <span
+                        className="whitespace-nowrap text-[19px] font-extrabold tabular-nums"
+                        style={{ color: incoming ? 'var(--positive)' : 'var(--foreground)' }}
+                    >
+                        {incoming ? '+ ' : '– '}
+                        {format(Math.abs(amount), { currency: bankTx.currency })}
+                    </span>
                 </div>
             </div>
         </div>
     );
 }
 
-// ─── HoppsTxMini ─────────────────────────────────────────────────────────────
-
-function HoppsTxMini({ tx }: { tx: TransactionResponse }) {
-    const isIncoming = (tx.total ?? 0) >= 0;
+// A receipt being uploaded onto the movement.
+function ReadingCard({ fileName }: { fileName: string }) {
+    const { t } = useTranslation();
     return (
-        <div className="flex items-center gap-3 min-w-0">
-            <div
-                className={cn(
-                    'w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center',
-                    isIncoming ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600' : 'bg-purple-100 dark:bg-purple-900/30 text-purple-600'
-                )}
-            >
-                {isIncoming ? <DIRECTION_ICONS.income className="w-5 h-5" /> : <DIRECTION_ICONS.expense className="w-5 h-5" />}
+        <FlatCard className="flex items-center gap-3.5 px-[18px] py-4">
+            <IconTile size={44} bg="var(--accent-surface)" fg="var(--purple-700)">
+                <Loader2 size={20} className="animate-spin" />
+            </IconTile>
+            <div className="min-w-0">
+                <div className="text-[15px] font-extrabold text-foreground">{t('konten.drawer.readingTitle')}</div>
+                <div className="mt-0.5 truncate text-[13px] text-muted-foreground">{t('konten.drawer.readingHint', { file: fileName })}</div>
             </div>
-            <div className="min-w-0 flex-1">
-                <div className="text-sm font-bold truncate">{tx.name || '—'}</div>
-                <div className="text-xs text-muted-foreground">{fmtDate(tx.transactionTime)}</div>
-            </div>
-        </div>
+        </FlatCard>
     );
 }
 
-// ─── SignedAmount ─────────────────────────────────────────────────────────────
-
-function SignedAmount({ amount, currency, size = 'base' }: { amount: number | undefined; currency?: string; size?: 'sm' | 'base' | 'lg' }) {
+// A transaction linked to the movement, with the portion of the movement it uses.
+function LinkedTxCard({
+    txId,
+    used,
+    movementMagnitude,
+    currency,
+    onUnlink,
+    onUpdateUsed,
+    onReview,
+    busy,
+    color,
+    entering,
+}: {
+    txId: number;
+    used: number | undefined;
+    movementMagnitude: number;
+    currency?: string;
+    onUnlink: (tx: TransactionResponse) => void;
+    onUpdateUsed: (amount: number) => void;
+    onReview: (doc: DocumentResponse) => void;
+    busy: boolean;
+    /** Colour of this transaction's segment in the progress bar, repeated on the icon tile. Visual only. */
+    color: string;
+    /** Just linked here, so the card animates in. */
+    entering: boolean;
+}) {
+    const { t } = useTranslation();
     const { format } = useCurrency();
-    const pos = (amount ?? 0) >= 0;
-    const sizeClass = size === 'lg' ? 'text-xl' : size === 'sm' ? 'text-[13px]' : 'text-base';
+    const { data: tx } = useTransaction(txId);
+    const { data: doc } = useDocument(tx?.documentId ?? undefined, { poll: false });
+    // Holds the card's place while the transaction loads, so what is below does not jump.
+    if (!tx) {
+        return (
+            <FlatCard>
+                <div className="h-[90px] animate-pulse rounded-[var(--r-sm)] bg-[var(--surface-track)]" />
+            </FlatCard>
+        );
+    }
+
+    const amount = Math.abs(tx.total ?? 0);
+    const usedAmount = used ?? Math.min(amount, movementMagnitude);
+    // A draft created from a receipt: reviewed and confirmed in "Beleg prüfen", not opened as a plain transaction.
+    const fromReceipt = tx.status === 'DRAFT' && tx.documentId != null;
+    const higherBy = amount - usedAmount;
+    // "Prüfen" only while the receipt itself still waits for review (not confirmed); otherwise the card opens the
+    // transaction like any other.
+    const receiptToReview = doc != null && doc.documentStatus !== 'CONFIRMED';
+
+    const confirmed = tx.status === 'CONFIRMED';
+    const partial = usedAmount < amount - EPS;
+
     return (
-        <span className={cn('font-bold tabular-nums whitespace-nowrap flex-shrink-0', sizeClass, pos ? 'text-emerald-600' : 'text-foreground')}>
-            {pos ? '+ ' : '– '}
-            {format(Math.abs(amount ?? 0), { currency })}
-        </span>
+        <FlatCard className={entering ? LINK_ENTER : FADE_IN}>
+            <div className="flex items-start gap-3">
+                <IconTile bg={segmentTint(color)} fg={color}>
+                    {tx.documentId != null ? <FileText size={17} /> : <Receipt size={17} />}
+                </IconTile>
+                <div className="min-w-0 flex-1">
+                    <div className="truncate text-[14px] font-bold text-foreground">{tx.name || '—'}</div>
+                    <div className="mt-px truncate text-[12.5px] text-muted-foreground">
+                        {fmtDate(tx.transactionTime)} · {(fromReceipt && doc?.fileName) || tx.senderName || '—'}
+                    </div>
+                </div>
+            </div>
+            {fromReceipt &&
+                (higherBy > EPS ? (
+                    <Hint tone="warn" icon={<Info size={15} />}>
+                        {t('konten.drawer.receiptHigherHint', { amount: format(higherBy, { currency }) })}
+                    </Hint>
+                ) : (
+                    receiptToReview && <SourceHint doc={doc} />
+                ))}
+            {/* Actions: the used amount (editable unless the transaction is confirmed), unlink, then the way into the
+                transaction last: "Prüfen" while its receipt is not confirmed yet, otherwise open it in a new tab. */}
+            <div className="mt-2.5 flex flex-wrap items-center gap-[9px]">
+                <span className="text-[15px] font-extrabold tabular-nums">{format(amount, { currency: tx.currencyCode })}</span>
+                <div className="flex-1" />
+                {confirmed ? (
+                    partial && (
+                        <span className="inline-flex flex-shrink-0 items-center rounded-full bg-[var(--warning-surface)] px-2.5 py-[5px] text-[12.5px] font-bold tabular-nums text-[var(--warning)]">
+                            {t('transactions.detail.usedAmount', { amount: format(usedAmount, { currency }) })}
+                        </span>
+                    )
+                ) : (
+                    <MatchAllocationControl
+                        variant="card"
+                        small
+                        amount={usedAmount}
+                        max={movementMagnitude}
+                        full={amount}
+                        currency={currency}
+                        pending={busy}
+                        onSave={onUpdateUsed}
+                    />
+                )}
+                <HintTooltip content={t('konten.drawer.unlink')}>
+                    <button type="button" onClick={() => onUnlink(tx)} disabled={busy} aria-label={t('konten.drawer.unlink')} className={UNLINK_BTN}>
+                        <Unlink size={15} />
+                    </button>
+                </HintTooltip>
+                {receiptToReview ? (
+                    <RowAction onClick={() => onReview(doc)}>{t('konten.drawer.review')}</RowAction>
+                ) : (
+                    <HintTooltip content={t('konten.drawer.openTransactionNewTab')} align="end">
+                        <button
+                            type="button"
+                            onClick={() => window.open(`/transactions?id=${tx.id}`, '_blank', 'noopener,noreferrer')}
+                            aria-label={t('konten.drawer.openTransactionNewTab')}
+                            className={ICON_BTN}
+                        >
+                            <ExternalLink size={16} />
+                        </button>
+                    </HintTooltip>
+                )}
+            </div>
+        </FlatCard>
+    );
+}
+
+// A suggested transaction: its head as in the picker, how well it fits the open rest, then preview and link.
+function SuggestionCard({
+    tx,
+    score,
+    disabled,
+    canShowReceipt,
+    showingReceipt,
+    onPreview,
+    onLink,
+}: {
+    tx: TransactionResponse;
+    score: number;
+    disabled: boolean;
+    /** The preview shows the receipt next to the drawer; otherwise it opens the transaction in a new tab. */
+    canShowReceipt: boolean;
+    showingReceipt: boolean;
+    onPreview: () => void;
+    onLink: () => void;
+}) {
+    const { t } = useTranslation();
+
+    return (
+        <FlatCard className={FADE_IN}>
+            <div className="flex items-center gap-3">
+                <CandidateInfo tx={tx} />
+            </div>
+            {/* On a narrow drawer the buttons wrap below the badge and stay on the right. */}
+            <div className="mt-2.5 flex flex-wrap items-center justify-end gap-2">
+                <span className="mr-auto">
+                    <Badge tone={confidenceTone(score)}>
+                        <Sparkles size={12} />
+                        {t('konten.drawer.matchPercent', { pct: Math.round(score * 100) })}
+                    </Badge>
+                </span>
+                <button
+                    type="button"
+                    onClick={onPreview}
+                    aria-pressed={showingReceipt}
+                    title={
+                        showingReceipt
+                            ? t('konten.drawer.hideReceipt')
+                            : canShowReceipt
+                              ? t('konten.drawer.showReceipt')
+                              : t('konten.drawer.openTransactionNewTab')
+                    }
+                    className={cn(
+                        SUGGESTION_BTN,
+                        'border',
+                        showingReceipt
+                            ? 'border-purple-300 bg-[var(--accent-surface)] text-purple-700'
+                            : 'border-border-soft text-muted-foreground hover:bg-[var(--surface-sunken)] hover:text-foreground'
+                    )}
+                >
+                    {canShowReceipt ? <Eye size={15} /> : <ExternalLink size={15} />}
+                    {t('konten.drawer.preview')}
+                </button>
+                <button
+                    type="button"
+                    onClick={onLink}
+                    disabled={disabled}
+                    className={cn(SUGGESTION_BTN, 'bg-primary text-white hover:bg-primary/90 disabled:opacity-50')}
+                >
+                    <Link2 size={15} />
+                    {t('konten.drawer.suggestionLink')}
+                </button>
+            </div>
+        </FlatCard>
     );
 }
 
@@ -93,267 +392,223 @@ function SignedAmount({ amount, currency, size = 'base' }: { amount: number | un
 interface MatchDrawerProps {
     bankTxId: number;
     onClose: () => void;
-    // Called after a receipt was uploaded onto the bank transaction. The parent (Konten page) opens the receipt-review
-    // drawer in place so the user completes + confirms the transaction without leaving the bank transactions page.
-    onReceiptUploaded?: (doc: DocumentResponse) => void;
 }
 
-export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawerProps) {
-    const { format } = useCurrency();
+/**
+ * "Kontoumsatz zuordnen": assigns one bank movement to bookkeeping transactions. Mirrors the Zahlungsabgleich section of
+ * the transaction drawer in the other direction. Every link is saved right away; the footer button only closes.
+ * <p>
+ * A receipt uploaded here creates a DRAFT transaction prefilled from the movement and links it right away; the receipt
+ * is then reviewed and confirmed in "Beleg prüfen" (opened on top of this drawer).
+ */
+export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     const { t } = useTranslation();
+    const { format } = useCurrency();
     const { showSuccess } = useToast();
-    const navigate = useNavigate();
-    const [sel, setSel] = useState<Set<number>>(new Set());
-    // Optional per-transaction "amount used" typed at link time (raw input). Only present for rows the user edited;
-    // an absent entry means the full/default amount. Lets one collective transfer be split across several transactions.
-    const [amounts, setAmounts] = useState<Map<number, string>>(new Map());
-    const [showCreate, setShowCreate] = useState(false);
-    const [txSearch, setTxSearch] = useState('');
-    // The receipt (document) currently previewed to the left of the drawer, chosen via the small receipt button on a
-    // candidate row. Only transactions that actually have a linked document can set this.
-    const [previewDocId, setPreviewDocId] = useState<number | null>(null);
-    const { data: previewDoc } = useDocument(previewDocId ?? undefined);
-    const createReceipt = useCreateReceiptForBankTransaction();
-
-    // Drag-and-drop (or click-to-pick) a receipt directly in the drawer. Uploading creates the linked (DRAFT)
-    // transaction; the parent then opens the receipt-review drawer in place so the user completes + confirms it and
-    // continues with the next bank transaction — all without leaving the Konten page.
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({
-        onDrop: async (acceptedFiles) => {
-            const file = acceptedFiles[0];
-            if (!file) return;
-            try {
-                const doc = await createReceipt.mutateAsync({ bankTxId, file });
-                onClose();
-                if (doc) onReceiptUploaded?.(doc);
-            } catch {
-                // The error toast (including the "already uploaded" 409 case) is shown by the mutation's onError;
-                // this catch only prevents an unhandled rejection.
-            }
-        },
-        multiple: false,
-        accept: { 'application/pdf': ['.pdf'], 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'] },
-        disabled: createReceipt.isPending,
-    });
+    const queryClient = useQueryClient();
 
     const { data: bankTx } = useBankTransaction(bankTxId);
+    const { data: loadedAllocs } = useBankTransactionMatches(bankTxId);
 
-    // Full pool — used for the already-linked list and the amount reconciliation.
-    const { data: allTx = [] } = useQuery({
-        queryKey: ['transactions', 'forMatch'],
-        queryFn: () =>
-            apiService.orgService.transactionsAll(
-                undefined, // bommelId
-                undefined, // categoryValue
-                undefined, // detached
-                undefined, // displayStatus
-                undefined, // endDate
-                0, // page
-                undefined, // privatelyPaid
-                undefined, // search
-                200, // size
-                undefined, // sortBy
-                undefined, // sortDir
-                undefined, // startDate
-                undefined // status
-            ),
-    });
-
-    // Pre-fill the search with the bank transaction's still-open amount — its amount minus what is already allocated to
-    // other transactions (matchedAmount) — in German decimal comma, so matching transactions for the remaining
-    // difference surface immediately. When nothing is allocated yet (matchedAmount = 0) this is just the full amount.
-    // The backend search matches both the amount and the name/counterparty text.
-    useEffect(() => {
-        if (bankTx) {
-            const open = Math.abs((bankTx.amount ?? 0) - (bankTx.matchedAmount ?? 0));
-            setTxSearch(open ? open.toFixed(2).replace('.', ',') : '');
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [bankTx?.id]);
-
-    // Search-driven candidates for the selection list (server-side: amount or text).
-    const { data: searchResults = [] } = useQuery({
-        queryKey: ['transactions', 'forMatch', 'search', txSearch],
-        queryFn: () =>
-            apiService.orgService.transactionsAll(
-                undefined, // bommelId
-                undefined, // categoryValue
-                undefined, // detached
-                undefined, // displayStatus
-                undefined, // endDate
-                0, // page
-                undefined, // privatelyPaid
-                txSearch || undefined, // search
-                50, // size
-                undefined, // sortBy
-                undefined, // sortDir
-                undefined, // startDate
-                undefined // status
-            ),
-        enabled: !!bankTx,
-    });
-
-    const queryClient = useQueryClient();
+    const createReceipt = useCreateReceiptForBankTransaction();
     const addMatch = useAddBankTransactionMatch();
     const removeMatch = useRemoveBankTransactionMatch();
     const updateMatchAmount = useUpdateBankTransactionMatchAmount();
-    const reopenTx = useReopenTransaction();
-    // A confirmed transaction whose link is about to be removed: confirming it requires full bank coverage, so unlinking
-    // sets it back to draft, and the user is told so first (same flow as on the transaction side, BankMatchSection).
-    const [unlinkPending, setUnlinkPending] = useState<TransactionResponse | null>(null);
-    const { data: matchAllocs } = useBankTransactionMatches(bankTxId);
     const ignoreTx = useIgnoreBankTransaction();
+    const reopenTx = useReopenTransaction();
     const unignoreTx = useMutation({
         meta: { errorMessage: 'bankMatch.toast.unignoreError' },
         mutationFn: (id: number) => apiService.orgService.ignoreDELETE(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all });
-            queryClient.invalidateQueries({ queryKey: [...bankTransactionKeys.all, 'detail', bankTxId] });
+            showSuccess(t('bankMatch.toast.unignored'));
         },
+    });
+
+    const [pickerOpen, setPickerOpen] = useState(false);
+    // A confirmed transaction whose unlinking would leave it no longer fully covered, waiting for confirmation: unlinking
+    // it also reopens it (back to draft), as in the transaction drawer's Zahlungsabgleich.
+    const [unlinkPending, setUnlinkPending] = useState<number | null>(null);
+    // Portion the picker's current selection would assign, previewed in the summary.
+    const [preview, setPreview] = useState(0);
+    const [showCreate, setShowCreate] = useState(false);
+    // File being uploaded right now (before the backend has created the document).
+    const [uploadingName, setUploadingName] = useState<string | null>(null);
+    // "Beleg prüfen" opened on top of this drawer.
+    const [reviewDoc, setReviewDoc] = useState<DocumentResponse | null>(null);
+    // A candidate's receipt shown to the left of the drawer.
+    const [previewDocId, setPreviewDocId] = useState<number | null>(null);
+    const { data: previewDoc } = useDocument(previewDocId ?? undefined, { poll: false });
+    // The transaction linked last in this drawer: only its card and progress segment animate in, not those of older links.
+    const [justLinkedId, setJustLinkedId] = useState<number | null>(null);
+    // The progress segment of a link just removed, shrinking away at its old place.
+    const [leavingSegment, setLeavingSegment] = useState<{ index: number; amount: number; color: string } | null>(null);
+    // The receipt panel only exists from this width on (see below); narrower, "Vorschau" opens the transaction instead.
+    const receiptPanelFits = useMediaQuery('(min-width: 1024px)');
+    // Plays the closing animation, then unmounts.
+    const [closing, setClosing] = useState(false);
+    const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+
+    // The bommel store is populated on demand per view and the Konten page does not load it, so fetch it when "Beleg
+    // prüfen" opens (its bommel selector would be empty otherwise).
+    const organizationId = useStore((s) => s.organization?.id);
+    const bommelsLoaded = useBommelsStore((s) => s.allBommels.length > 0);
+    const loadBommels = useBommelsStore((s) => s.loadBommels);
+    useEffect(() => {
+        if (reviewDoc && organizationId && !bommelsLoaded) {
+            loadBommels(organizationId);
+        }
+    }, [reviewDoc, organizationId, bommelsLoaded, loadBommels]);
+
+    const ignored = bankTx?.status === 'IGNORED';
+    const magnitude = Math.abs(bankTx?.amount ?? 0);
+    // Until the allocations arrive, the links and coverage of the list row, so the drawer opens the way it will stay.
+    const matchAllocs = loadedAllocs ?? (bankTx?.matchedTransactionIds ?? []).map((transactionId) => new MatchAllocationResponse({ transactionId }));
+    const linkedIds = new Set(matchAllocs.map((m) => m.transactionId!).filter((id) => id != null));
+    const assigned = loadedAllocs ? loadedAllocs.reduce((s, m) => s + (m.amount ?? 0), 0) : Math.abs(bankTx?.matchedAmount ?? 0);
+    const rest = Math.max(0, magnitude - assigned);
+    const covered = rest <= EPS;
+
+    // The strong matches for the open rest, offered right away and again after a partial link.
+    const { candidates, settled } = useMatchCandidates({ bankAmount: bankTx?.amount ?? 0, bookingDate: bankTx?.bookingDate, rest, linkedIds });
+    const suggestions = candidates.filter((c) => c.score >= STRONG_MATCH).slice(0, MAX_SUGGESTIONS);
+
+    // A receipt can be dropped anywhere on the drawer or chosen with the upload button. The upload creates its draft
+    // transaction and links it, so the drawer stays open and shows the new link.
+    const {
+        getRootProps,
+        getInputProps,
+        isDragActive,
+        open: openFilePicker,
+    } = useDropzone({
+        onDrop: async (acceptedFiles) => {
+            const file = acceptedFiles[0];
+            if (!file) return;
+            setPickerOpen(false);
+            setUploadingName(file.name);
+            try {
+                await createReceipt.mutateAsync({ bankTxId, file });
+            } catch {
+                // The error toast (including the "already uploaded" 409 case) is shown by the mutation's onError.
+            } finally {
+                setUploadingName(null);
+            }
+        },
+        multiple: false,
+        accept: ACCEPT,
+        disabled: createReceipt.isPending || ignored || covered,
+        noClick: true,
+        noKeyboard: true,
     });
 
     if (!bankTx) return null;
 
-    const matchedIds = new Set(bankTx.matchedTransactionIds ?? []);
-    const absAmount = Math.abs(bankTx.amount ?? 0);
+    const reading = uploadingName != null;
+    const hasLinks = matchAllocs.length > 0;
+    // The first link brings its whole section with it; later ones only add a card to it.
+    const firstLink = matchAllocs.length === 1 && matchAllocs[0].transactionId === justLinkedId;
 
-    // Candidates from the (amount-prefilled) search, minus already-linked, exact-amount matches first.
-    const openTx = searchResults
-        .filter((t) => !matchedIds.has(t.id!))
-        .sort((a, b) => {
-            const aExact = Math.abs(a.total ?? 0) === absAmount ? 0 : 1;
-            const bExact = Math.abs(b.total ?? 0) === absAmount ? 0 : 1;
-            return aExact - bExact;
-        });
+    const barPreview = Math.min(rest, preview);
+    const pct = (v: number) => `${magnitude > 0 ? Math.min(100, (v / magnitude) * 100) : 0}%`;
+    // Without motion there is no shrinking, and so no end of it, so it is simply not shown.
+    const leavingBar = leavingSegment && (
+        <div
+            className="motion-safe:animate-segment-out motion-reduce:hidden"
+            style={{ width: pct(leavingSegment.amount), background: leavingSegment.color }}
+            onAnimationEnd={() => setLeavingSegment(null)}
+        />
+    );
 
-    // Already linked hopps transactions
-    const linkedTx = allTx.filter((t) => matchedIds.has(t.id!));
+    const summary = [
+        { key: 'total', label: t('konten.drawer.sumAmount'), value: magnitude, color: 'var(--foreground)' },
+        {
+            key: 'assigned',
+            label: t('konten.drawer.sumAssigned'),
+            value: assigned + preview,
+            color: preview > EPS ? 'var(--purple-700)' : assigned > EPS ? 'var(--positive)' : 'var(--ink-faint)',
+        },
+        // Always there, also at 0,00 €, so the columns do not shift when the movement gets covered.
+        {
+            key: 'open',
+            label: t('konten.drawer.sumOpen'),
+            value: Math.max(0, rest - preview),
+            color: rest - preview > EPS ? 'var(--warning)' : 'var(--ink-faint)',
+        },
+    ];
 
-    // Lookup across the pool and the current search results so a selected transaction's amount is still counted after
-    // the search term changes.
-    const txById = new Map<number, TransactionResponse>();
-    [...allTx, ...searchResults].forEach((t) => {
-        if (t.id != null) txById.set(t.id, t);
-    });
-
-    // Allocation (used amount) of each already-linked transaction for THIS bank movement.
-    const allocByTx = new Map<number, number>();
-    (matchAllocs ?? []).forEach((m) => {
-        if (m.transactionId != null) allocByTx.set(m.transactionId, m.amount ?? 0);
-    });
-
-    const movementMagnitude = Math.abs(bankTx.amount ?? 0);
-
-    // Amount reconciliation. Every allocation in this drawer is a portion of THIS one bank movement, so it always
-    // counts in the movement's own direction (income +, expense −) — independent of the linked transaction's
-    // income/expense direction. Signing by the transaction's direction instead would double the difference (add instead
-    // of subtract) whenever the two directions differ, e.g. an income transaction linked to an income movement whose
-    // total happens to carry the opposite sign.
-    const movementSign = Math.sign(bankTx.amount ?? 0);
-    // Portion of the movement already allocated to OTHER (already-linked) transactions, signed to its direction.
-    const alreadyMatchedSum = linkedTx.reduce((s, t) => {
-        const alloc = allocByTx.get(t.id!) ?? Math.abs(t.total ?? 0);
-        return s + movementSign * alloc;
-    }, 0);
-    // Still-open magnitude of the movement — its amount minus what other transactions already use. A newly assigned
-    // transaction should fill only this open difference, not the movement's full amount.
-    const openMagnitude = Math.abs((bankTx.amount ?? 0) - alreadyMatchedSum);
-    // Whether part of the movement is already used up by other transactions.
-    const movementPartlyUsed = Math.abs(alreadyMatchedSum) > 0.005;
-
-    // Default allocation for a candidate: as much as the transaction needs, capped at the movement's STILL-OPEN amount
-    // (openMagnitude), so a partially pre-allocated movement pre-fills only the remaining difference. For a fully open
-    // movement openMagnitude equals its full magnitude, so this is unchanged there.
-    const defaultAlloc = (t: TransactionResponse) => Math.min(Math.abs(t.total ?? 0), openMagnitude);
-    // A user's per-row override, if it is a valid positive amount within the movement's own amount; otherwise null
-    // (fall back to the default). Capping at the movement still lets several movements over-cover a transaction.
-    const overrideAlloc = (id: number): number | null => {
-        if (!amounts.has(id)) return null;
-        const v = parseAllocationAmount(amounts.get(id) ?? '');
-        if (v == null || v <= 0 || v > movementMagnitude + 0.005) return null;
-        return v;
-    };
-
-    const selectedSum = Array.from(sel).reduce((s, id) => {
-        const t = txById.get(id);
-        if (!t) return s;
-        return s + movementSign * (overrideAlloc(id) ?? defaultAlloc(t));
-    }, 0);
-    const remaining = (bankTx.amount ?? 0) - alreadyMatchedSum - selectedSum;
-    const isFullyCovered = Math.abs(remaining) <= 0.005; // float tolerance
-
-    const toggle = (id: number) => {
-        setSel((prev) => {
-            const next = new Set(prev);
-            if (next.has(id)) {
-                next.delete(id);
-            } else {
-                next.add(id);
-            }
-            return next;
-        });
-        // Drop any typed partial amount when a row is toggled (deselecting discards it; reselecting starts fresh).
-        setAmounts((prev) => {
-            if (!prev.has(id)) return prev;
-            const next = new Map(prev);
-            next.delete(id);
-            return next;
-        });
-    };
-
-    const setRowAmount = (id: number, value: string) => {
-        setAmounts((prev) => {
-            const next = new Map(prev);
-            if (value === '') {
-                next.delete(id);
-            } else {
-                next.set(id, value);
-            }
-            return next;
-        });
-    };
-
-    const handleAssign = async () => {
+    // The new link replaces the suggestion or picker in one step (see useAddBankTransactionMatch).
+    async function link(tx: TransactionResponse, amount: number | undefined) {
+        if (tx.id == null) return;
+        setJustLinkedId(tx.id);
+        setPickerOpen(false);
+        setPreview(0);
         try {
-            for (const txId of sel) {
-                const tx = txById.get(txId);
-                // Without an explicit amount the backend allocates the movement's full amount. When the movement is
-                // already partly used, send the open-remainder allocation instead so the new match fills only the open
-                // difference.
-                const amount = overrideAlloc(txId) ?? (movementPartlyUsed && tx ? defaultAlloc(tx) : undefined);
-                await addMatch.mutateAsync({ bankTxId, transactionId: txId, amount: amount ?? undefined });
-            }
+            await addMatch.mutateAsync({
+                bankTxId,
+                transactionId: tx.id,
+                amount,
+                optimistic: { tx, amount: amount ?? defaultAllocation(tx, bankTx!.amount ?? 0) },
+            });
+            showSuccess(t('bankMatch.toast.linked'));
         } catch {
-            // Shown by the global mutation error handler.
-            return;
+            // Shown by the global mutation error handler; the mutation has taken the link back.
         }
-        showSuccess(t('bankMatch.toast.linked'));
-        setSel(new Set());
-        setAmounts(new Map());
-        onClose();
-    };
+    }
 
-    const handleUnlink = async (tx: TransactionResponse) => {
-        if (tx.status === 'CONFIRMED') {
-            setUnlinkPending(tx);
-            return;
+    // Unlinks straight away, unless the transaction is confirmed and would no longer be fully covered without this
+    // movement's part; that asks first and then reopens it.
+    function requestUnlink(tx: TransactionResponse, used: number) {
+        if (tx.id == null) return;
+        const coveredWithout = Math.abs(tx.coveredAmount ?? 0) - used;
+        if (tx.status === 'CONFIRMED' && Math.abs(tx.total ?? 0) - coveredWithout > EPS) {
+            setUnlinkPending(tx.id);
+        } else {
+            keepSegmentLeaving(tx.id);
+            removeMatch.mutate({ bankTxId, transactionId: tx.id });
         }
-        await removeMatch.mutateAsync({ bankTxId, transactionId: tx.id! });
-    };
+    }
 
-    const confirmUnlinkAndReopen = async () => {
-        const tx = unlinkPending;
-        if (!tx?.id) return;
-        await removeMatch.mutateAsync({ bankTxId, transactionId: tx.id });
-        await reopenTx.mutateAsync(tx.id);
+    // The link goes right away; its segment stays behind for a moment and shrinks.
+    function keepSegmentLeaving(transactionId: number) {
+        const index = matchAllocs.findIndex((m) => m.transactionId === transactionId);
+        if (index >= 0) setLeavingSegment({ index, amount: matchAllocs[index].amount ?? 0, color: segmentColor(index) });
+    }
+
+    async function confirmUnlinkAndReopen() {
+        if (unlinkPending == null) return;
+        keepSegmentLeaving(unlinkPending);
+        await removeMatch.mutateAsync({ bankTxId, transactionId: unlinkPending });
+        await reopenTx.mutateAsync(unlinkPending);
         setUnlinkPending(null);
-    };
+    }
 
-    const handleUpdateAlloc = async (txId: number, amount: number) => {
-        await updateMatchAmount.mutateAsync({ bankTxId, transactionId: txId, amount });
-    };
+    // Links a suggestion with what fits, like the picker's prefilled amount.
+    function linkSuggestion(tx: TransactionResponse) {
+        return link(tx, allocationFor(tx, fitOf(tx, rest), bankTx!.amount ?? 0));
+    }
 
-    const handleIgnore = async () => {
+    // "Vorschau": the receipt next to the drawer when there is one and room for it, otherwise the transaction in a new tab.
+    function previewSuggestion(tx: TransactionResponse) {
+        const documentId = tx.documentId;
+        if (documentId != null && receiptPanelFits) {
+            setPreviewDocId((prev) => (prev === documentId ? null : documentId));
+        } else {
+            window.open(`/transactions?id=${tx.id}`, '_blank', 'noopener,noreferrer');
+        }
+    }
+
+    function close() {
+        if (closing) return;
+        setClosing(true);
+        setTimeout(onClose, reducedMotion ? 0 : CLOSE_MS);
+    }
+
+    function closePicker() {
+        setPickerOpen(false);
+        setPreview(0);
+    }
+
+    async function handleIgnore() {
         try {
             await ignoreTx.mutateAsync(bankTxId);
         } catch {
@@ -361,375 +616,238 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
             return;
         }
         showSuccess(t('bankMatch.toast.ignored'));
-        onClose();
-    };
+        close();
+    }
 
     return (
         <>
             {/* Scrim */}
-            <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose} />
+            <div className={cn('fixed inset-0 z-40 bg-[rgba(18,17,24,0.42)] backdrop-blur-[2px]', closing ? FADE_OUT : FADE_IN)} onClick={close} />
 
-            {/* Linked-receipt preview to the left of the drawer (desktop only), toggled per candidate via its receipt
-                button. The wrapper ignores pointer events so clicks in the gap still fall through to the scrim; the
-                preview card itself re-enables them. `right` matches the drawer width (max-w-md = 28rem). */}
+            {/* A candidate's receipt to the left of the drawer (desktop only). The wrapper ignores pointer events so
+                clicks in the gap still reach the scrim. */}
             <div
                 className={cn(
-                    'hidden lg:flex fixed top-0 bottom-0 left-0 z-50 p-4 pointer-events-none transition-transform duration-300 ease-out',
-                    previewDoc ? 'translate-x-0' : '-translate-x-full'
+                    'pointer-events-none fixed bottom-0 left-0 top-0 z-50 hidden p-4 transition-transform duration-300 ease-out lg:flex',
+                    previewDoc && !closing ? 'translate-x-0' : '-translate-x-full'
                 )}
-                style={{ right: '28rem' }}
+                style={{ right: 'var(--drawer-w)' }}
             >
                 {previewDoc && <DocumentFilePreview doc={previewDoc} onClose={() => setPreviewDocId(null)} />}
             </div>
 
             {/* Drawer */}
-            <div className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-[var(--drawer-bg)] dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 z-50 flex flex-col shadow-2xl">
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
-                    <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('konten.drawer.title')}</div>
-                    <CloseButton onClick={onClose} />
-                </div>
-
-                {/* Scrollable body */}
-                <div className="flex-1 overflow-y-auto">
-                    <div className="px-6 py-5 flex flex-col gap-5">
-                        {/* Bank transaction summary */}
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4">
-                            <div className="flex items-start justify-between gap-3">
-                                <BookingMini tx={bankTx} />
-                                <SignedAmount amount={bankTx.amount} currency={bankTx.currency} size="base" />
-                            </div>
-                            <div className="flex gap-2 mt-3 flex-wrap">
-                                {bankTx.bankAccountName && (
-                                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-muted-foreground">
-                                        <span
-                                            className="inline-block w-2 h-2 rounded-full flex-shrink-0"
-                                            style={{ background: bankTx.bankAccountColor || '#9955CC' }}
-                                        />
-                                        {bankTx.bankAccountName}
-                                    </span>
-                                )}
-                                {bankTx.transactionType && (
-                                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-muted-foreground">
-                                        {bankTx.transactionType}
-                                    </span>
-                                )}
-                                {bankTx.status === 'IGNORED' && (
-                                    <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-500">
-                                        {t('konten.status.ignored')}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Upload a receipt (drag-and-drop or click) → creates & links a pre-filled transaction directly */}
-                        {bankTx.status !== 'IGNORED' && (
-                            <div
-                                {...getRootProps()}
-                                className={cn(
-                                    'w-full flex items-center gap-3 p-3.5 rounded-2xl border border-dashed transition-colors text-left cursor-pointer select-none',
-                                    isDragActive ? 'border-primary bg-primary/10' : 'border-primary/40 bg-primary/5 hover:bg-primary/10',
-                                    createReceipt.isPending && 'opacity-60 pointer-events-none cursor-not-allowed'
-                                )}
-                            >
-                                <input {...getInputProps()} />
-                                <span className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
-                                    {createReceipt.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
-                                </span>
-                                <span className="flex flex-col min-w-0">
-                                    <span className="text-sm font-bold">{t('konten.drawer.uploadReceipt')}</span>
-                                    <span className="text-xs text-muted-foreground">
-                                        {createReceipt.isPending
-                                            ? t('konten.drawer.uploadReceiptBusy')
-                                            : isDragActive
-                                              ? t('konten.drawer.uploadReceiptDrop')
-                                              : t('konten.drawer.uploadReceiptHint')}
-                                    </span>
-                                </span>
-                            </div>
-                        )}
-
-                        {/* Alternative: create a transaction without a receipt, prefilled from the bank movement */}
-                        {bankTx.status !== 'IGNORED' && (
-                            <button
-                                type="button"
-                                onClick={() => setShowCreate(true)}
-                                className="w-full flex items-center gap-3 p-3.5 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-primary/40 hover:bg-primary/5 transition-colors text-left"
-                            >
-                                <span className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-700 text-muted-foreground flex items-center justify-center flex-shrink-0">
-                                    <FilePlus className="w-5 h-5" />
-                                </span>
-                                <span className="flex flex-col min-w-0">
-                                    <span className="text-sm font-bold">{t('konten.drawer.createTransaction')}</span>
-                                    <span className="text-xs text-muted-foreground">{t('konten.drawer.createTransactionHint')}</span>
-                                </span>
-                            </button>
-                        )}
-
-                        {/* Already linked */}
-                        {linkedTx.length > 0 && (
-                            <div>
-                                <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">{t('konten.drawer.linked')}</div>
-                                <div className="flex flex-col gap-2">
-                                    {linkedTx.map((tx) => (
-                                        <div
-                                            key={tx.id}
-                                            className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-3 flex items-center gap-3"
-                                        >
-                                            <button
-                                                type="button"
-                                                onClick={() => navigate(`/transactions?id=${tx.id}`)}
-                                                title={t('konten.drawer.openTransaction')}
-                                                className="flex-1 min-w-0 flex items-center gap-3 text-left group"
-                                            >
-                                                <div className="flex-1 min-w-0">
-                                                    <HoppsTxMini tx={tx} />
-                                                </div>
-                                                <SignedAmount amount={tx.total} currency={tx.currencyCode} size="sm" />
-                                                <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
-                                            </button>
-                                            <MatchAllocationControl
-                                                amount={allocByTx.get(tx.id!) ?? defaultAlloc(tx)}
-                                                max={movementMagnitude}
-                                                currency={bankTx.currency}
-                                                pending={updateMatchAmount.isPending}
-                                                onSave={(v) => handleUpdateAlloc(tx.id!, v)}
-                                            />
-                                            <button
-                                                type="button"
-                                                className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex-shrink-0"
-                                                onClick={() => handleUnlink(tx)}
-                                                title={t('konten.drawer.unlink')}
-                                            >
-                                                <Unlink className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Amount reconciliation summary */}
-                        {bankTx.status !== 'IGNORED' && (
-                            <div
-                                className={cn(
-                                    'rounded-xl px-4 py-3 flex items-center justify-between gap-3 text-sm',
-                                    isFullyCovered ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-white dark:bg-gray-800'
-                                )}
-                            >
-                                <div className="flex flex-col gap-0.5">
-                                    <span className="text-xs text-muted-foreground font-medium">{t('konten.drawer.bankAmount')}</span>
-                                    <span className="font-bold tabular-nums">{format(absAmount, { currency: bankTx.currency })}</span>
-                                </div>
-                                {alreadyMatchedSum + selectedSum > 0 && (
-                                    <div className="flex flex-col gap-0.5 text-right">
-                                        <span className="text-xs text-muted-foreground font-medium">{t('konten.drawer.covered')}</span>
-                                        <span className="font-bold tabular-nums text-emerald-600">
-                                            {format(alreadyMatchedSum + selectedSum, { currency: bankTx.currency })}
-                                        </span>
-                                    </div>
-                                )}
-                                <div className="flex flex-col gap-0.5 text-right">
-                                    <span className="text-xs font-medium text-muted-foreground">
-                                        {isFullyCovered ? t('konten.drawer.fullyCovered') : t('konten.drawer.remaining')}
-                                    </span>
-                                    <span className={cn('font-bold tabular-nums', isFullyCovered ? 'text-emerald-600' : 'text-amber-600')}>
-                                        {isFullyCovered ? '✓' : (remaining < 0 ? '– ' : '+ ') + format(Math.abs(remaining), { currency: bankTx.currency })}
-                                    </span>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Select matching transaction */}
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{t('konten.drawer.selectTx')}</div>
-                                <span className="text-xs text-muted-foreground">{t('konten.drawer.multiSelect')}</span>
-                            </div>
-
-                            {/* Search transactions by amount (pre-filled) or name/counterparty */}
-                            <div className="flex items-center gap-2 px-3 py-2 mb-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                                <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                                <input
-                                    type="text"
-                                    value={txSearch}
-                                    onChange={(e) => setTxSearch(e.target.value)}
-                                    placeholder={t('konten.drawer.txSearchPlaceholder')}
-                                    className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
-                                />
-                                {txSearch && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setTxSearch('')}
-                                        className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
-                                    >
-                                        <X className="w-3.5 h-3.5" />
-                                    </button>
-                                )}
-                            </div>
-
-                            {openTx.length === 0 ? (
-                                <p className="text-sm text-muted-foreground py-2">{t('konten.drawer.noOpenTx')}</p>
-                            ) : (
-                                <div className="flex flex-col gap-2">
-                                    {openTx.map((tx) => {
-                                        const isSelected = sel.has(tx.id!);
-                                        const exactMatch = Math.abs(tx.total ?? 0) === Math.abs(bankTx.amount ?? 0);
-                                        // The entered "amount used" may not exceed this movement's own amount.
-                                        const rowParsed = parseAllocationAmount(amounts.get(tx.id!) ?? '');
-                                        const rowOverCap = rowParsed != null && rowParsed > movementMagnitude + 0.005;
-                                        return (
-                                            <div
-                                                key={tx.id}
-                                                onClick={() => toggle(tx.id!)}
-                                                className={cn(
-                                                    'bg-white dark:bg-gray-800 rounded-xl border p-3 flex items-center gap-3 cursor-pointer transition-all',
-                                                    isSelected
-                                                        ? 'border-primary shadow-[0_0_0_3px_var(--color-primary)/0.15]'
-                                                        : 'border-gray-100 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
-                                                )}
-                                            >
-                                                {/* Checkbox */}
-                                                <div
-                                                    className={cn(
-                                                        'w-5 h-5 rounded-md flex-shrink-0 border-2 flex items-center justify-center transition-colors',
-                                                        isSelected ? 'bg-primary border-primary' : 'border-gray-300 dark:border-gray-600'
-                                                    )}
-                                                >
-                                                    {isSelected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <HoppsTxMini tx={tx} />
-                                                </div>
-                                                {exactMatch && (
-                                                    <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700 flex-shrink-0">
-                                                        {t('konten.drawer.exactMatch')}
-                                                    </span>
-                                                )}
-                                                <SignedAmount amount={tx.total} currency={tx.currencyCode} size="sm" />
-                                                {/* Partial "amount used" for splitting this movement — appears only for a selected row. The
-                                                    placeholder shows the default (full) allocation; leave it empty to use that. */}
-                                                {isSelected && (
-                                                    <input
-                                                        type="text"
-                                                        inputMode="decimal"
-                                                        value={amounts.get(tx.id!) ?? ''}
-                                                        onClick={(e) => e.stopPropagation()}
-                                                        onChange={(e) => setRowAmount(tx.id!, e.target.value)}
-                                                        placeholder={format(defaultAlloc(tx), { currency: bankTx.currency })}
-                                                        title={t('konten.drawer.usedAmountHint')}
-                                                        aria-invalid={rowOverCap}
-                                                        className={cn(
-                                                            'w-[5.5rem] px-1.5 py-0.5 text-[12px] text-right tabular-nums rounded-md border bg-transparent outline-none flex-shrink-0',
-                                                            rowOverCap ? 'border-red-400 focus:border-red-500' : 'border-primary/40 focus:border-primary'
-                                                        )}
-                                                    />
-                                                )}
-                                                {/* Toggle the transaction's linked receipt in the left-hand preview. Only shown when a
-                                                    document is actually linked; stops propagation so it does not toggle the row selection. */}
-                                                {tx.documentId != null && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setPreviewDocId((prev) => (prev === tx.documentId ? null : tx.documentId!));
-                                                        }}
-                                                        aria-pressed={previewDocId === tx.documentId}
-                                                        title={previewDocId === tx.documentId ? t('konten.drawer.hideReceipt') : t('konten.drawer.showReceipt')}
-                                                        className={cn(
-                                                            'w-7 h-7 flex items-center justify-center rounded-full border transition-colors flex-shrink-0',
-                                                            previewDocId === tx.documentId
-                                                                ? 'border-primary/40 text-primary bg-primary/10'
-                                                                : 'border-gray-200 dark:border-gray-600 text-muted-foreground hover:text-primary hover:border-primary/40'
-                                                        )}
-                                                    >
-                                                        <FileText className="w-3.5 h-3.5" />
-                                                    </button>
-                                                )}
-                                                {/* Open the bookkeeping transaction's detail view in a new tab, so the
-                                                    current assignment context (this bank movement) stays open. */}
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        window.open(`/transactions?id=${tx.id}`, '_blank', 'noopener,noreferrer');
-                                                    }}
-                                                    title={t('konten.drawer.openTransactionNewTab')}
-                                                    className="w-7 h-7 flex items-center justify-center rounded-full border border-gray-200 dark:border-gray-600 text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors flex-shrink-0"
-                                                >
-                                                    <ExternalLink className="w-3.5 h-3.5" />
-                                                </button>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
+            <div
+                {...getRootProps()}
+                className={cn('fixed right-0 top-0 z-50 flex h-full flex-col', closing ? DRAWER_OUT : DRAWER_IN)}
+                style={{ width: 'var(--drawer-w)', maxWidth: '94vw', background: 'var(--drawer-bg)', boxShadow: 'var(--shadow-lg)', fontFamily: FONT }}
+            >
+                {/* Shown while a file is dragged over the drawer; the drawer itself is the drop target. */}
+                {isDragActive && (
+                    <div
+                        className="pointer-events-none absolute inset-3 z-10 flex items-center justify-center gap-2.5 rounded-[var(--r-card)] border-2 border-dashed border-primary text-[15px] font-extrabold text-[var(--purple-700)]"
+                        style={{ background: 'color-mix(in oklab, var(--accent-surface) 90%, transparent)' }}
+                    >
+                        <Upload size={20} />
+                        {t('konten.drawer.uploadReceiptDrop')}
                     </div>
+                )}
+
+                <div className="flex flex-shrink-0 items-center justify-between border-b border-border-soft px-6 py-5">
+                    <Eyebrow>{t('konten.drawer.title')}</Eyebrow>
+                    <CloseButton onClick={close} />
                 </div>
 
-                {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex items-center gap-3 flex-shrink-0">
-                    {bankTx.status === 'IGNORED' ? (
-                        <button
-                            type="button"
-                            className="px-3 py-2 rounded-lg text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
-                            onClick={async () => {
-                                try {
-                                    await unignoreTx.mutateAsync(bankTxId);
-                                } catch {
-                                    // Shown by the global mutation error handler.
-                                    return;
-                                }
-                                showSuccess(t('bankMatch.toast.unignored'));
-                                onClose();
-                            }}
-                            disabled={unignoreTx.isPending}
-                        >
-                            {t('konten.drawer.unignore')}
-                        </button>
-                    ) : (
-                        <button
-                            type="button"
-                            className="px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                            onClick={handleIgnore}
-                            disabled={ignoreTx.isPending}
-                        >
-                            {t('konten.drawer.ignore')}
-                        </button>
+                <div className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto p-6">
+                    {/* Always mounted: the upload buttons and dropping on the drawer both use it. */}
+                    <input {...getInputProps()} />
+                    <BankCard bankTx={bankTx} />
+
+                    {/* Summary: amount, linked parts, open rest, with the progress bar. Flat, like the summary tile of the
+                        transaction drawer. */}
+                    {!ignored && (
+                        <div className="rounded-[var(--r-card)] px-4 py-[13px]" style={{ background: 'var(--surface-track)' }}>
+                            <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${summary.length}, minmax(0, 1fr))` }}>
+                                {summary.map((col) => (
+                                    <div key={col.key} className="min-w-0">
+                                        <div className="truncate text-[12.5px] font-semibold text-muted-foreground">{col.label}</div>
+                                        <div
+                                            className="mt-[3px] text-[16px] font-extrabold tabular-nums transition-colors duration-300"
+                                            style={{ color: col.color }}
+                                        >
+                                            {format(col.value, { currency: bankTx.currency })}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            {/* One segment per linked transaction, then the preview in the next colour. */}
+                            <div className="mt-3 flex h-1.5 gap-[2px] overflow-hidden rounded-full" style={{ background: 'var(--background-secondary)' }}>
+                                {matchAllocs.map((m, i) => (
+                                    <Fragment key={m.transactionId}>
+                                        {leavingSegment?.index === i && leavingBar}
+                                        <div
+                                            className={cn(
+                                                'transition-[width,background-color] duration-300 ease-out',
+                                                m.transactionId === justLinkedId && 'motion-safe:animate-segment-in'
+                                            )}
+                                            style={{ width: pct(m.amount ?? 0), background: segmentColor(i) }}
+                                        />
+                                    </Fragment>
+                                ))}
+                                {leavingSegment != null && leavingSegment.index >= matchAllocs.length && leavingBar}
+                                {barPreview > EPS && <div style={{ width: pct(barPreview), background: segmentColor(matchAllocs.length), opacity: 0.4 }} />}
+                            </div>
+                        </div>
                     )}
-                    <div className="flex-1" />
-                    {bankTx.status !== 'IGNORED' && (
-                        <button
-                            type="button"
-                            className={cn(
-                                'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors',
-                                sel.size > 0
-                                    ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                                    : 'bg-gray-100 dark:bg-gray-700 text-muted-foreground cursor-not-allowed'
+
+                    {uploadingName && <ReadingCard fileName={uploadingName} />}
+
+                    {/* What is linked so far */}
+                    {!ignored && hasLinks && (
+                        <div className={firstLink ? LINK_ENTER : undefined}>
+                            <Eyebrow icon={<Link2 size={14} />} className="mb-[11px]">
+                                {t('konten.drawer.sumAssigned')}
+                            </Eyebrow>
+                            <div className="flex flex-col gap-[11px]">
+                                {matchAllocs.map((m, i) => (
+                                    <LinkedTxCard
+                                        key={m.transactionId}
+                                        entering={!firstLink && m.transactionId === justLinkedId}
+                                        color={segmentColor(i)}
+                                        txId={m.transactionId!}
+                                        used={m.amount}
+                                        movementMagnitude={magnitude}
+                                        currency={bankTx.currency}
+                                        busy={removeMatch.isPending || updateMatchAmount.isPending}
+                                        onUnlink={(tx) => requestUnlink(tx, m.amount ?? 0)}
+                                        onUpdateUsed={(amount) => updateMatchAmount.mutate({ bankTxId, transactionId: m.transactionId!, amount })}
+                                        onReview={setReviewDoc}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Everything that can still assign the open rest, most likely first */}
+                    {!ignored && !covered && !reading && settled && (
+                        <div className={cn('flex flex-col gap-[11px]', FADE_IN)}>
+                            {/* Strong matches, linked with one click. Hidden while the picker is open, which lists them too. */}
+                            {!pickerOpen && suggestions.length > 0 && (
+                                <>
+                                    <Eyebrow icon={<Sparkles size={14} />}>{t('konten.drawer.suggestionsTitle')}</Eyebrow>
+                                    {suggestions.map(({ tx, score }) => (
+                                        <SuggestionCard
+                                            key={tx.id}
+                                            tx={tx}
+                                            score={score}
+                                            disabled={addMatch.isPending}
+                                            canShowReceipt={tx.documentId != null && receiptPanelFits}
+                                            showingReceipt={tx.documentId != null && previewDocId === tx.documentId}
+                                            onPreview={() => previewSuggestion(tx)}
+                                            onLink={() => linkSuggestion(tx)}
+                                        />
+                                    ))}
+                                </>
                             )}
-                            disabled={sel.size === 0 || addMatch.isPending}
-                            onClick={handleAssign}
-                        >
-                            <Link2 className="w-4 h-4" />
-                            {t('konten.drawer.assign')}
-                            {sel.size > 0 && ` (${sel.size})`}
-                        </button>
+
+                            {pickerOpen ? (
+                                <TransactionMatchPicker
+                                    bankAmount={bankTx.amount ?? 0}
+                                    bookingDate={bankTx.bookingDate}
+                                    rest={rest}
+                                    linkedIds={linkedIds}
+                                    pending={addMatch.isPending}
+                                    onLink={link}
+                                    onPreview={setPreview}
+                                    onClose={closePicker}
+                                    previewDocId={previewDocId}
+                                    onTogglePreview={(id) => setPreviewDocId((prev) => (prev === id ? null : id))}
+                                />
+                            ) : (
+                                <button type="button" onClick={() => setPickerOpen(true)} className={cn(OPTION_BTN, 'w-full')}>
+                                    <Search size={15} className="flex-shrink-0" />
+                                    {suggestions.length > 0 ? t('konten.drawer.searchOther') : t('konten.drawer.searchTransaction')}
+                                </button>
+                            )}
+
+                            {/* Nothing fits: upload a receipt (also by dropping it on the drawer) or record it without one */}
+                            <Eyebrow className="mt-2.5">{t('konten.drawer.noMatchTitle')}</Eyebrow>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button type="button" onClick={openFilePicker} title={t('konten.drawer.uploadReceiptHint')} className={OPTION_BTN}>
+                                    <Upload size={15} className="flex-shrink-0" />
+                                    {hasLinks ? t('konten.drawer.uploadMore') : t('konten.drawer.uploadReceipt')}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCreate(true)}
+                                    title={t('konten.drawer.createTransactionHint')}
+                                    className={OPTION_BTN}
+                                >
+                                    <Plus size={15} className="flex-shrink-0" />
+                                    {hasLinks ? t('konten.drawer.restWithoutReceipt') : t('konten.drawer.createTransaction')}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Footer. Links are already saved, so the primary button only closes; its label shows the result. Once the
+                    movement is fully assigned only "Schließen" is left. */}
+                <div className="flex flex-shrink-0 items-center gap-2.5 border-t border-border-soft px-6 py-4" style={{ background: 'var(--drawer-bg)' }}>
+                    {covered ? (
+                        /* Fully assigned: nothing left to assign or ignore. */
+                        <>
+                            <div className="flex-1" />
+                            <BaseButton
+                                variant="ghost"
+                                className={cn(FOOTER_BTN, 'border border-border-soft text-foreground hover:bg-[var(--background-secondary)]')}
+                                onClick={close}
+                            >
+                                {t('common.close')}
+                            </BaseButton>
+                        </>
+                    ) : (
+                        <>
+                            {ignored ? (
+                                <BaseButton
+                                    variant="ghost"
+                                    className={cn(FOOTER_BTN, 'text-primary')}
+                                    disabled={unignoreTx.isPending}
+                                    onClick={() => unignoreTx.mutate(bankTxId)}
+                                >
+                                    {t('konten.drawer.unignore')}
+                                </BaseButton>
+                            ) : (
+                                <BaseButton
+                                    variant="ghost"
+                                    className={cn(FOOTER_BTN, 'text-muted-foreground')}
+                                    disabled={ignoreTx.isPending}
+                                    onClick={handleIgnore}
+                                >
+                                    {t('konten.drawer.ignore')}
+                                </BaseButton>
+                            )}
+                            <div className="flex-1" />
+                            {!ignored && hasLinks && (
+                                <BaseButton variant="default" className={FOOTER_BTN} onClick={close}>
+                                    <Link2 size={16} />
+                                    {t('konten.drawer.assignPartial')}
+                                </BaseButton>
+                            )}
+                        </>
                     )}
                 </div>
             </div>
 
-            {/* Create a linked transaction (no receipt), prefilled from this bank movement */}
+            {/* Create a linked transaction without a receipt, prefilled from the movement and its open rest. The drawer
+                stays open and shows the new link. */}
             <CreateTransactionDrawer
                 open={showCreate}
                 onClose={() => setShowCreate(false)}
                 bankTx={bankTx}
-                onCreated={() => {
-                    // Stay on the Konten page after creating the linked transaction so the user can move straight on to
-                    // the next bank movement; the list refreshes via query invalidation.
-                    setShowCreate(false);
-                    onClose();
-                }}
+                prefillAmount={rest > EPS ? rest : undefined}
+                stacked
+                onCreated={() => setShowCreate(false)}
             />
 
             <ConfirmDialog
@@ -742,6 +860,9 @@ export function MatchDrawer({ bankTxId, onClose, onReceiptUploaded }: MatchDrawe
                 destructive
                 loading={removeMatch.isPending || reopenTx.isPending}
             />
+
+            {/* "Beleg prüfen" on top of this drawer; closing it returns here. */}
+            <ReviewDrawer doc={reviewDoc} stacked onClose={() => setReviewDoc(null)} onDeleted={() => setReviewDoc(null)} />
         </>
     );
 }

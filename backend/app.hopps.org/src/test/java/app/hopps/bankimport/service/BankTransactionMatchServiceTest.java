@@ -9,6 +9,7 @@ import app.hopps.bankimport.domain.BankTransactionStatus;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.document.domain.Document;
 import app.hopps.organization.domain.Organization;
+import app.hopps.organization.domain.OrganizationType;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionStatus;
@@ -23,9 +24,11 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.NotFoundException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -340,6 +343,40 @@ class BankTransactionMatchServiceTest {
         assertEquals(BankTransactionStatus.FULLY_MATCHED, reloaded.getStatus());
         assertEquals(0, reloaded.getMatchedAmount().compareTo(new BigDecimal("791.07")),
                 "coverage is signed by the movement (positive for income), not the transaction");
+    }
+
+    /**
+     * A movement can only be linked to a transaction of its own organization: a transaction of another organization is
+     * not found, nothing is linked and its amount stays untouched.
+     */
+    @Test
+    @TestTransaction
+    void linkingATransactionOfAnotherOrganizationIsNotFound() {
+        Fixture f = createUnmatchedFixture("-49.90", "-49.90", "other-org");
+
+        Organization otherOrg = new Organization();
+        otherOrg.setName("Other e.V.");
+        otherOrg.setSlug("other-org-match");
+        otherOrg.setType(OrganizationType.EINGETRAGENER_VEREIN);
+        em.persist(otherOrg);
+
+        Transaction foreign = new Transaction();
+        foreign.setOrganization(otherOrg);
+        foreign.setCreatedBy("tester");
+        foreign.setStatus(TransactionStatus.DRAFT);
+        foreign.setName("Fremd");
+        foreign.setTotal(null);
+        em.persist(foreign);
+        em.flush();
+
+        assertThrows(NotFoundException.class,
+                () -> matchService.addMatch(f.bankTx().getId(), foreign.getId(), "tester"));
+
+        assertEquals(0L, em
+                .createQuery("SELECT COUNT(m) FROM BankTransactionMatch m WHERE m.transaction.id = :txId", Long.class)
+                .setParameter("txId", foreign.getId())
+                .getSingleResult());
+        assertNull(em.find(Transaction.class, foreign.getId()).getTotal(), "the foreign amount stays untouched");
     }
 
     // ── Test fixture ────────────────────────────────────────────────────────────

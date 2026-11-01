@@ -621,9 +621,10 @@ class DocumentResourceTest {
                 .then()
                 .statusCode(Response.Status.OK.getStatusCode())
                 .body("$", hasSize(2))
-                .body("[0].name", equalTo("Teil 1"))
-                .body("[0].bommelId", nullValue())
-                .body("[1].name", equalTo("Teil 2"));
+                // Parts are returned in id order. The tests reset the database sequence while Hibernate keeps its
+                // cached ids, so the two new parts may get their ids in either order here; only the set is checked.
+                .body("name", containsInAnyOrder("Teil 1", "Teil 2"))
+                .body("bommelId", everyItem(nullValue()));
 
         given()
                 .when()
@@ -730,7 +731,7 @@ class DocumentResourceTest {
         List<Integer> ids = splitAsDraft(documentId);
 
         // Keep the first part (new amount), drop the second, add a third.
-        List<Integer> after = given()
+        given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("""
                         { "confirmDocument": true, "parts": [
@@ -742,12 +743,11 @@ class DocumentResourceTest {
                 .then()
                 .statusCode(Response.Status.OK.getStatusCode())
                 .body("$", hasSize(2))
-                .body("[0].id", equalTo(ids.get(0)))
-                .body("[0].total", equalTo(-400.0f))
-                .body("[1].id", not(equalTo(ids.get(1))))
-                .body("[1].name", equalTo("Kühlmiete"))
-                .extract()
-                .path("id");
+                // Parts are returned in id order, and the new part may get the lower id: the tests reset the database
+                // sequence while Hibernate keeps its cached ids. So the parts are found by id and name, not position.
+                .body("id", hasItem(ids.get(0)))
+                .body("id", not(hasItem(ids.get(1))))
+                .body("name", hasItem("Kühlmiete"));
 
         // The dropped part is gone, the kept one survived with its id.
         given()
@@ -759,7 +759,7 @@ class DocumentResourceTest {
         given()
                 .basePath("/transactions")
                 .when()
-                .get("/{id}", after.get(0))
+                .get("/{id}", ids.get(0))
                 .then()
                 .statusCode(Response.Status.OK.getStatusCode())
                 .body("total", equalTo(-400.0f));
