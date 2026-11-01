@@ -19,7 +19,6 @@ import { TableSkeleton } from '@/components/Transactions/TransactionsSkeleton';
 import { TxIcon } from '@/components/Transactions/TxIcon';
 import { BulkActionBar } from '@/components/ui/BulkActionBar';
 import { DataTable, DataTableHeader, DataTableRow, HeaderCell, RowCheckbox } from '@/components/ui/DataTable';
-import { FilterBadge } from '@/components/ui/FilterBadge';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { StatusSegments } from '@/components/ui/StatusSegments';

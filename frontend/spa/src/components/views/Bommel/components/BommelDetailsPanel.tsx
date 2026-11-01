@@ -7,7 +7,7 @@ import { UploadLinkSection } from './UploadLinkSection';
 
 import { BommelTreeNodeModel } from '@/components/BommelTreeView/BommelTreeNodeModel';
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
-import { fmtCurrency, fmtDate } from '@/components/Transactions/format';
+import { fmtDate } from '@/components/Transactions/format';
 import { Badge, STATUS_STYLE } from '@/components/Transactions/StatusBadge';
 import { StatusIcon, type StatusIconKind } from '@/components/Transactions/StatusIcon';
 import { TxIcon } from '@/components/Transactions/TxIcon';
@@ -17,6 +17,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useApplicableCategoryGroups, useCategoryGroupValues } from '@/hooks/queries/useCategoryGroups';
 import { useDocuments } from '@/hooks/queries/useDocuments';
 import { useTransactionAggregate, useTransactions } from '@/hooks/queries/useTransactions';
+import { useCurrency } from '@/hooks/use-currency';
 import { getTransactionDisplayStatus, OPEN_TRANSACTION_STATUSES, type TransactionDisplayStatus } from '@/lib/transactionStatus';
 import { cn } from '@/lib/utils';
 
@@ -60,6 +61,7 @@ export function BommelDetailsPanel({
     onShowAllReceipts,
 }: BommelDetailsPanelProps) {
     const { t } = useTranslation();
+    const { format } = useCurrency();
     const income = Math.abs(node.data?.income ?? 0);
     const expenses = Math.abs(node.data?.expenses ?? 0);
     const total = node.data?.total ?? 0;
@@ -101,11 +103,11 @@ export function BommelDetailsPanel({
                 <div className="mb-[14px] flex gap-3">
                     <div className="flex-1">
                         <div className={EYEBROW}>{t('bommel.details.income')}</div>
-                        <div className="text-[17px] font-extrabold tabular-nums text-[var(--positive)]">+{fmtCurrency(income)}</div>
+                        <div className="text-[17px] font-extrabold tabular-nums text-[var(--positive)]">+{format(income)}</div>
                     </div>
                     <div className="flex-1">
                         <div className={EYEBROW}>{t('bommel.details.expenses')}</div>
-                        <div className="text-[17px] font-extrabold tabular-nums text-[var(--negative)]">−{fmtCurrency(expenses)}</div>
+                        <div className="text-[17px] font-extrabold tabular-nums text-[var(--negative)]">−{format(expenses)}</div>
                     </div>
                 </div>
 
@@ -120,7 +122,7 @@ export function BommelDetailsPanel({
                         )}
                     >
                         {total >= 0 ? '+' : '−'}
-                        {fmtCurrency(Math.abs(total))}
+                        {format(Math.abs(total))}
                     </div>
                 </div>
 
@@ -150,6 +152,7 @@ type OpenItemsProps = Pick<
 
 /** Category groups and the open transactions and receipts. Only mounted for real data, so the example never calls the API. */
 function OpenItems({ bommelId, scopeIds, bommelNames, onOpenTransaction, onOpenReceipt, onShowTransactions, onShowAllReceipts }: OpenItemsProps) {
+    const { format } = useCurrency();
     const { t } = useTranslation();
     const { data: groups } = useApplicableCategoryGroups(bommelId);
 
@@ -260,7 +263,7 @@ function OpenItems({ bommelId, scopeIds, bommelNames, onOpenTransaction, onOpenR
                             amount={
                                 <span className={cn('text-[13px] font-bold', amount >= 0 ? 'text-[var(--positive)]' : 'text-[var(--negative)]')}>
                                     {amount >= 0 ? '+ ' : '− '}
-                                    {fmtCurrency(Math.abs(amount))}
+                                    {format(Math.abs(amount))}
                                 </span>
                             }
                         />
@@ -299,7 +302,7 @@ function OpenItems({ bommelId, scopeIds, bommelNames, onOpenTransaction, onOpenR
                         status={<StatusMark kind="UNREVIEWED" label={t('receipts.filter.unreviewed')} />}
                         title={doc.senderName || doc.name || doc.fileName || ''}
                         meta={meta(doc.transactionTime ?? doc.createdAt, subName(doc.bommelId))}
-                        amount={<span className="text-[13px] font-extrabold text-foreground">{fmtCurrency(Math.abs(Number(doc.total ?? 0)))}</span>}
+                        amount={<span className="text-[13px] font-extrabold text-foreground">{format(Math.abs(Number(doc.total ?? 0)))}</span>}
                     />
                 ))}
             </Section>
