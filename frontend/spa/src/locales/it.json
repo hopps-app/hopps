@@ -1269,6 +1269,18 @@
             "to": "Al",
             "range": "{{from}} al {{to}}",
             "panelHint": "Importi per {{period}}"
+        },
+        "gettingStarted": {
+            "title": "Creare la struttura",
+            "text": "I Bommel sono gli ambiti dell’associazione, ad esempio sezioni, progetti o eventi. Ecco come si costruisce la struttura:",
+            "step1": "Scegliere Modifica.",
+            "step2": "Aggiungere un ambito al Bommel principale e dargli un nome.",
+            "step3": "Aggiungere altri ambiti sotto e, se serve, spostarli trascinandoli.",
+            "start": "Aggiungi il primo ambito"
+        },
+        "panelHint": {
+            "text": "Qui ci sono gli importi di questo Bommel, le transazioni e le ricevute aperte e il link di caricamento per inviare ricevute.",
+            "dismiss": "Ho capito"
         }
     },
     "bankAccounts": {

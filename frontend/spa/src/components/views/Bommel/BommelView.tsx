@@ -1,10 +1,10 @@
 import type { DocumentResponse } from '@hopps/api-client';
-import { RefreshCw, AlertCircle, Info, Lightbulb } from 'lucide-react';
+import { RefreshCw, AlertCircle, Info } from 'lucide-react';
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { BommelDetailsPanel, EditModeBanner, HintBanner, PeriodField, ToggleField } from './components';
+import { BommelDetailsPanel, EditModeBanner, GettingStartedCard, HintBanner, PeriodField, ToggleField } from './components';
 import { BommelSkeleton } from './components/BommelSkeleton';
 import { useBommelTree, useStatistics, useDemoTree } from './hooks';
 import { currentYearPeriod, parsePeriod, periodLabel, type Period } from './period';
@@ -66,6 +66,8 @@ function BommelView() {
     // The amounts cover one period, by default the current year; the choice is remembered like the status filters.
     const [storedPeriod, setPeriod] = usePersistedState<Period>('hopps.bommel.period', currentYearPeriod());
     const period = parsePeriod(storedPeriod);
+    // The note at the top of the details panel is shown until it was dismissed once.
+    const [panelHintSeen, setPanelHintSeen] = usePersistedState<boolean>('hopps.bommel.panelHintSeen', false);
     const { isLoading: isStatsLoading, bommelStats, options: statisticsOptions, setIncludeDrafts, setAggregate } = useStatistics(period);
     const isStatsLoaded = bommelStats !== null || !isStatsLoading;
 
@@ -282,9 +284,8 @@ function BommelView() {
                 </h1>
 
                 <div className="mb-4 flex flex-col gap-4 flex-shrink-0">
-                    {(isDemoMode || structureIsEmpty) && (
-                        <HintBanner icon={isDemoMode ? Info : Lightbulb}>{isDemoMode ? t('bommel.demoBanner') : t('bommel.emptyHint')}</HintBanner>
-                    )}
+                    {isDemoMode && <HintBanner icon={Info}>{t('bommel.demoBanner')}</HintBanner>}
+                    {!isDemoMode && structureIsEmpty && <GettingStartedCard isEditMode={isEditMode} onStartEditing={() => setIsEditMode(true)} />}
 
                     <div className="flex flex-wrap items-center gap-x-[30px] gap-y-3 rounded-[18px] border border-border-soft bg-background-secondary px-[18px] py-3 shadow-[var(--shadow-sm)]">
                         <ToggleField
@@ -377,6 +378,8 @@ function BommelView() {
                                 bommelNames={bommelNames}
                                 demo={isDemoMode}
                                 periodLabel={periodLabel(period, t, i18n.language)}
+                                showHint={!panelHintSeen}
+                                onDismissHint={() => setPanelHintSeen(true)}
                                 onClose={() => selectBommelAndUpdateUrl(null)}
                                 onOpenTransaction={(id) => navigate(`/transactions?id=${id}`)}
                                 onOpenReceipt={setOpenReceipt}

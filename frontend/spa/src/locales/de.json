@@ -1198,6 +1198,18 @@
             "to": "Bis",
             "range": "{{from}} bis {{to}}",
             "panelHint": "Beträge für {{period}}"
+        },
+        "gettingStarted": {
+            "title": "Struktur anlegen",
+            "text": "Bommel sind die Bereiche des Vereins, zum Beispiel Abteilungen, Projekte oder Veranstaltungen. So entsteht die Struktur:",
+            "step1": "Bearbeiten wählen.",
+            "step2": "Am obersten Bommel einen Bereich hinzufügen und benennen.",
+            "step3": "Weitere Bereiche darunter anlegen, bei Bedarf per Ziehen verschieben.",
+            "start": "Ersten Bereich anlegen"
+        },
+        "panelHint": {
+            "text": "Hier stehen die Beträge dieses Bommels, die offenen Transaktionen und Belege sowie der Upload-Link zum Einreichen von Belegen.",
+            "dismiss": "Verstanden"
         }
     },
     "dashboard": {

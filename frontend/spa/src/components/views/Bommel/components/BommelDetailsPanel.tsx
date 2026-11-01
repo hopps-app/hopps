@@ -1,5 +1,5 @@
 import type { CategoryGroupResponse, DocumentResponse, TransactionResponse } from '@hopps/api-client';
-import { Check, ChevronRight, FileText, Folder, X } from 'lucide-react';
+import { Check, ChevronRight, FileText, Folder, Info, X } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -38,6 +38,9 @@ interface BommelDetailsPanelProps {
     demo: boolean;
     /** The period the amounts cover, e.g. "2026" */
     periodLabel: string;
+    /** First visit: explain what the panel shows */
+    showHint?: boolean;
+    onDismissHint?: () => void;
     onClose: () => void;
     onOpenTransaction: (id: number) => void;
     onOpenReceipt: (doc: DocumentResponse) => void;
@@ -57,6 +60,8 @@ export function BommelDetailsPanel({
     bommelNames,
     demo,
     periodLabel,
+    showHint,
+    onDismissHint,
     onClose,
     onOpenTransaction,
     onOpenReceipt,
@@ -103,6 +108,21 @@ export function BommelDetailsPanel({
             </header>
 
             <div className="min-h-0 flex-1 overflow-y-auto px-[22px] pb-[26px] pt-5">
+                {showHint && !demo && (
+                    <div className="mb-[14px] flex items-start gap-2.5 rounded-[14px] border border-[var(--accent-surface-strong)] bg-[var(--accent-surface)] px-3.5 py-3 text-purple-600">
+                        <Info className="mt-px h-[16px] w-[16px] flex-shrink-0" aria-hidden="true" />
+                        <div className="min-w-0 flex-1">
+                            <p className="text-[12.5px] font-semibold leading-snug">{t('bommel.panelHint.text')}</p>
+                            <button
+                                type="button"
+                                onClick={onDismissHint}
+                                className="mt-1.5 text-[12.5px] font-extrabold underline underline-offset-2 hover:opacity-80"
+                            >
+                                {t('bommel.panelHint.dismiss')}
+                            </button>
+                        </div>
+                    </div>
+                )}
                 {!demo && <p className="mb-2 text-[11.5px] font-semibold text-muted-foreground">{t('bommel.period.panelHint', { period: periodLabel })}</p>}
                 <div className="mb-[14px] flex gap-3">
                     <div className="flex-1">

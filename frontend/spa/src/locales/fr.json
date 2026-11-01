@@ -1269,6 +1269,18 @@
             "to": "Au",
             "range": "{{from}} au {{to}}",
             "panelHint": "Montants pour {{period}}"
+        },
+        "gettingStarted": {
+            "title": "Créer la structure",
+            "text": "Les Bommel sont les domaines du club, par exemple des sections, des projets ou des événements. Voici comment construire la structure :",
+            "step1": "Choisir Modifier.",
+            "step2": "Ajouter un domaine au Bommel du haut et le nommer.",
+            "step3": "Ajouter d’autres domaines en dessous, les déplacer par glisser-déposer si besoin.",
+            "start": "Ajouter le premier domaine"
+        },
+        "panelHint": {
+            "text": "Ici figurent les montants de ce Bommel, les transactions et reçus ouverts ainsi que le lien d’envoi pour déposer des reçus.",
+            "dismiss": "Compris"
         }
     },
     "bankAccounts": {
