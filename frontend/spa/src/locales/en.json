@@ -1302,6 +1302,7 @@
         "uploadLink": {
             "title": "Upload link",
             "description": "Members without a Hopps account can submit receipts for this bommel through this link.",
+            "scope": "Applies to this Bommel only, not to the Bommel below it.",
             "create": "Create upload link",
             "expiresOn": "Valid until (optional)",
             "copy": "Copy link",

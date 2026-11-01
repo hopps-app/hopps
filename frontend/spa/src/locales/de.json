@@ -1166,6 +1166,7 @@
         "uploadLink": {
             "title": "Upload-Link",
             "description": "Über diesen Link können Mitglieder ohne Hopps-Konto Belege für diesen Bommel einreichen.",
+            "scope": "Gilt nur für diesen Bommel, nicht für die Bommel darunter.",
             "create": "Upload-Link erzeugen",
             "expiresOn": "Gültig bis (optional)",
             "copy": "Link kopieren",

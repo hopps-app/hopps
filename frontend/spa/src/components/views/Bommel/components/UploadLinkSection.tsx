@@ -1,13 +1,16 @@
-import { Copy, QrCode, RefreshCw, Trash2 } from 'lucide-react';
+import { Copy, Link2, QrCode } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Eyebrow } from '@/components/Transactions/Eyebrow';
+import { fmtDate } from '@/components/Transactions/format';
 import Button from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { uploadLinkUrl, useBommelUploadLink, useRegenerateUploadLink, useRevokeUploadLink } from '@/hooks/queries/useUploadLinks';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface UploadLinkSectionProps {
     bommelId: number;
@@ -26,29 +29,32 @@ function todayIso(): string {
 }
 
 /**
- * Upload link of a bommel: members without a hopps account submit receipts for the bommel through it. Create, copy,
- * show as QR code, regenerate (the old link stops working) and revoke.
+ * Upload link of a bommel: people without a hopps account submit receipts for the bommel through it. Without a link
+ * the section is one line and a button; with one it shows the link, how long it is valid, and the regenerate and
+ * revoke actions (the old link stops working).
  */
 export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionProps) {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const { showSuccess, showError } = useToast();
     const { data: link, isLoading } = useBommelUploadLink(bommelId);
     const regenerate = useRegenerateUploadLink(bommelId);
     const revoke = useRevokeUploadLink(bommelId);
 
     const [expiresOn, setExpiresOn] = useState('');
+    const [createOpen, setCreateOpen] = useState(false);
     const [qrOpen, setQrOpen] = useState(false);
     const [confirm, setConfirm] = useState<'regenerate' | 'revoke' | null>(null);
 
     const url = link?.token ? uploadLinkUrl(link.token) : null;
 
-    // Regenerating keeps a still valid expiry date; a new link takes the date picked in the form.
+    // Regenerating keeps a still valid expiry date; a new link takes the date picked in the dialog.
     const keptExpiry = link?.expiresAt && !link.expired ? link.expiresAt : undefined;
 
     const create = () =>
         regenerate.mutate(link ? keptExpiry : expiresOn ? endOfDay(expiresOn) : undefined, {
             onSuccess: () => {
                 setConfirm(null);
+                setCreateOpen(false);
                 setExpiresOn('');
                 showSuccess(t('bommel.uploadLink.created'));
             },
@@ -74,67 +80,89 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
         }
     };
 
-    const fmtDate = (date: Date) => date.toLocaleDateString(i18n.language, { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const footerAction = 'flex-1 px-3 py-2.5 text-[12.5px] font-bold transition-colors hover:bg-[var(--surface-sunken)]';
 
     return (
-        <div className="space-y-3 border-t border-border-soft pt-4">
-            <div>
-                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('bommel.uploadLink.title')}</p>
-                <p className="text-xs text-gray-600 dark:text-gray-400">{t('bommel.uploadLink.description')}</p>
+        <section className="mb-[18px]">
+            <div className="mb-[11px]">
+                <Eyebrow icon={<Link2 size={14} />}>{t('bommel.uploadLink.title')}</Eyebrow>
             </div>
 
-            {isLoading ? null : url && link ? (
-                <>
-                    <div className="flex items-center gap-2">
-                        <input
-                            readOnly
-                            value={url}
-                            aria-label={t('bommel.uploadLink.title')}
-                            onFocus={(e) => e.currentTarget.select()}
-                            className="min-w-0 flex-1 rounded-md border border-border-soft bg-transparent px-2 py-1.5 text-xs text-gray-700 dark:text-gray-300"
-                        />
-                        <Button variant="outline" size="icon" onClick={copy} aria-label={t('bommel.uploadLink.copy')}>
-                            <Copy size={14} />
-                        </Button>
-                        <Button variant="outline" size="icon" onClick={() => setQrOpen(true)} aria-label={t('bommel.uploadLink.showQr')}>
-                            <QrCode size={14} />
-                        </Button>
+            {isLoading ? (
+                <div className="h-[92px] animate-pulse rounded-[14px] bg-[var(--surface-sunken)]" />
+            ) : url && link ? (
+                <div className="overflow-hidden rounded-[14px] border border-border-soft">
+                    <div className="flex flex-col gap-2.5 px-[13px] py-3">
+                        <div className="flex items-center gap-2">
+                            <input
+                                readOnly
+                                value={url}
+                                aria-label={t('bommel.uploadLink.title')}
+                                onFocus={(e) => e.currentTarget.select()}
+                                className="min-w-0 flex-1 rounded-[10px] border border-border-soft bg-[var(--surface-sunken)] px-2.5 py-1.5 text-[12px] font-semibold text-foreground"
+                            />
+                            <Button variant="outline" size="icon" onClick={copy} aria-label={t('bommel.uploadLink.copy')}>
+                                <Copy size={14} />
+                            </Button>
+                            <Button variant="outline" size="icon" onClick={() => setQrOpen(true)} aria-label={t('bommel.uploadLink.showQr')}>
+                                <QrCode size={14} />
+                            </Button>
+                        </div>
+                        <p className={cn('text-[12px] font-semibold', link.expired ? 'text-[var(--negative)]' : 'text-muted-foreground')}>
+                            {link.expired
+                                ? t('bommel.uploadLink.expired')
+                                : link.expiresAt
+                                  ? t('bommel.uploadLink.validUntil', { date: fmtDate(link.expiresAt) })
+                                  : t('bommel.uploadLink.noExpiry')}
+                        </p>
+                        <p className="text-[11.5px] font-semibold text-muted-foreground">{t('bommel.uploadLink.scope')}</p>
                     </div>
-                    <p className={`text-xs ${link.expired ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'}`}>
-                        {link.expired
-                            ? t('bommel.uploadLink.expired')
-                            : link.expiresAt
-                              ? t('bommel.uploadLink.validUntil', { date: fmtDate(link.expiresAt) })
-                              : t('bommel.uploadLink.noExpiry')}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                        <Button variant="secondary" size="sm" onClick={() => setConfirm('regenerate')}>
-                            <RefreshCw size={14} />
+                    <div className="flex divide-x divide-border-soft border-t border-border-soft">
+                        <button type="button" onClick={() => setConfirm('regenerate')} className={cn(footerAction, 'text-foreground')}>
                             {t('bommel.uploadLink.regenerate')}
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => setConfirm('revoke')}>
-                            <Trash2 size={14} />
+                        </button>
+                        <button type="button" onClick={() => setConfirm('revoke')} className={cn(footerAction, 'text-[var(--negative)]')}>
                             {t('bommel.uploadLink.revoke')}
-                        </Button>
+                        </button>
                     </div>
-                </>
+                </div>
             ) : (
-                <div className="space-y-2">
-                    <label className="flex flex-col gap-1 text-xs text-gray-600 dark:text-gray-400">
+                <div className="flex flex-col gap-3 rounded-[14px] border border-border-soft px-[13px] py-3">
+                    <p className="text-[12.5px] font-semibold leading-snug text-muted-foreground">
+                        {t('bommel.uploadLink.description')} {t('bommel.uploadLink.scope')}
+                    </p>
+                    <Button className="w-full" variant="tonal" onClick={() => setCreateOpen(true)}>
+                        {t('bommel.uploadLink.create')}
+                    </Button>
+                </div>
+            )}
+
+            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                <DialogContent className="max-w-sm">
+                    <DialogHeader>
+                        <DialogTitle>{t('bommel.uploadLink.create')}</DialogTitle>
+                        <DialogDescription>{t('bommel.uploadLink.description')}</DialogDescription>
+                    </DialogHeader>
+                    <label className="flex flex-col gap-1.5 text-[12.5px] font-bold text-muted-foreground">
                         {t('bommel.uploadLink.expiresOn')}
                         <input
                             type="date"
                             min={todayIso()}
                             value={expiresOn}
                             onChange={(e) => setExpiresOn(e.target.value)}
-                            className="rounded-md border border-border-soft bg-transparent px-2 py-1.5 text-sm text-gray-900 dark:text-gray-100"
+                            className="rounded-[10px] border border-border-soft bg-transparent px-2.5 py-2 text-[14px] font-semibold text-foreground"
                         />
                     </label>
-                    <Button className="w-full" variant="secondary" onClick={create} disabled={regenerate.isPending}>
-                        {t('bommel.uploadLink.create')}
-                    </Button>
-                </div>
-            )}
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setCreateOpen(false)}>
+                            {t('common.cancel')}
+                        </Button>
+                        <Button onClick={create} disabled={regenerate.isPending}>
+                            {t('bommel.uploadLink.create')}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             <Dialog open={qrOpen} onOpenChange={setQrOpen}>
                 <DialogContent className="max-w-sm">
@@ -172,7 +200,7 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                 loading={revoke.isPending}
                 destructive
             />
-        </div>
+        </section>
     );
 }
 
