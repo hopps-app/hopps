@@ -21,6 +21,7 @@ import {
     ChevronRight,
     Info,
     Plus,
+    Tag,
 } from 'lucide-react';
 import { useCallback, useState, useRef, useEffect, useMemo } from 'react';
 import { useDropzone, FileRejection } from 'react-dropzone';
@@ -261,11 +262,15 @@ function sameCategoryValues(a: Record<number, string>, b: Record<number, string>
 
 export function ReviewDrawer({
     doc: docProp,
+    nextDoc,
+    onNext,
     onClose,
     onDeleted,
     stacked = false,
 }: {
     doc: DocumentResponse | null;
+    nextDoc?: DocumentResponse | null;
+    onNext?: (doc: DocumentResponse) => void;
     onClose: () => void;
     onDeleted: () => void;
     /** Opened on top of another drawer (e.g. "Kontoumsatz zuordnen"): layered above it, scrim included. */
@@ -766,6 +771,8 @@ export function ReviewDrawer({
         )
     );
     const canConfirmTx = txConfirmState.canConfirm && txMissingGroups.length === 0;
+    // All transactions of the receipt are confirmed: nothing is left to do here, so the review can move on.
+    const receiptBooked = (savedParts?.length ?? 0) > 0 ? (savedParts ?? []).every((p) => p.status === 'CONFIRMED') : linkedTx?.status === 'CONFIRMED';
     // A split can be changed as long as none of its transactions is confirmed.
     const canEditSplit = (savedParts?.length ?? 0) > 0 && (savedParts ?? []).every((p) => p.status !== 'CONFIRMED');
     // What is missing, then where to fill it in: the fields belong to the transaction (the card above opens it); the bank
@@ -1016,6 +1023,9 @@ export function ReviewDrawer({
                                         hints={{ expense: t('receipts.direction.incomingHint'), income: t('receipts.direction.outgoingHint') }}
                                         ariaLabel={t('receipts.direction.label')}
                                     />
+                                    <Field label={senderLabel}>
+                                        <DrawerInput value={senderName} onChange={setSenderName} loading={isAnalyzing && !senderName} />
+                                    </Field>
                                     <Field label={t('receipts.review.name')}>
                                         <DrawerInput value={name} onChange={setName} loading={isAnalyzing && !name} />
                                     </Field>
@@ -1047,39 +1057,12 @@ export function ReviewDrawer({
                                             <DrawerInput value={date} onChange={setDate} type="date" loading={isAnalyzing && !date} />
                                         </Field>
                                     </div>
-                                    <Field label={senderLabel}>
-                                        <DrawerInput value={senderName} onChange={setSenderName} loading={isAnalyzing && !senderName} />
-                                    </Field>
-                                    {!splitting && (
-                                        <Field label={t('receipts.review.bommel')}>
-                                            <BommelSelect
-                                                items={bommelItems}
-                                                value={bommelId ? Number(bommelId) : ALL_BOMMELS}
-                                                emptyLabel={t('invoiceUpload.selectBommel')}
-                                                onChange={(next) => {
-                                                    const id = next === ALL_BOMMELS ? null : Number(next);
-                                                    // Remember the choice for the next receipt, like the upload form does.
-                                                    cacheBommelChoice(id);
-                                                    setBommelId(id ? String(id) : '');
-                                                }}
-                                                triggerClassName={cn('sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none', pickerFocusCls)}
-                                                matchTriggerWidth
-                                            />
-                                        </Field>
-                                    )}
-
-                                    {/* Privately paid */}
-                                    <div
-                                        className="flex items-center gap-3.5 rounded-[13px] border border-border-soft px-[15px] py-[13px]"
-                                        style={{ background: 'var(--background-secondary)' }}
-                                    >
-                                        <label
-                                            htmlFor="receipt-privately-paid"
-                                            className="min-w-0 flex-1 cursor-pointer text-[13.5px] font-bold text-foreground"
-                                        >
+                                    {/* Privately paid: a side option, kept quiet. */}
+                                    <div className="-mt-1 flex items-center gap-2.5 px-0.5">
+                                        <BaseSwitch id="receipt-privately-paid" checked={privatelyPaid} onCheckedChange={setPrivatelyPaid} />
+                                        <label htmlFor="receipt-privately-paid" className="cursor-pointer text-[12.5px] font-semibold text-muted-foreground">
                                             {t('receipts.review.privatelyPaid')}
                                         </label>
-                                        <BaseSwitch id="receipt-privately-paid" checked={privatelyPaid} onCheckedChange={setPrivatelyPaid} />
                                     </div>
 
                                     {/* Not saved as a split yet: down to one part it goes back to the single booking right away.
@@ -1093,23 +1076,44 @@ export function ReviewDrawer({
                                         />
                                     ) : (
                                         <>
-                                            {/* Category groups belong to the transaction. Filtered by the chosen bommel; required ones
-                                                must be filled before the receipt can be confirmed. For a receipt without transaction the
-                                                values are sent along when it is confirmed. Draws its own divider and heading. */}
-                                            {
-                                                <CategoryGroupFields
-                                                    bommelId={bommelId ? Number(bommelId) : null}
-                                                    values={categoryValues}
-                                                    onChange={(groupId, value) => {
-                                                        setCategoryValues((prev) => {
-                                                            const next = { ...prev };
-                                                            if (value == null || value === '') delete next[groupId];
-                                                            else next[groupId] = value;
-                                                            return next;
-                                                        });
-                                                    }}
-                                                />
-                                            }
+                                            {/* Where the amount belongs: the bommel and, right below it, the category groups that apply
+                                                to it (filtered by the chosen bommel). Required groups must be filled before the receipt
+                                                can be confirmed. For a receipt without transaction the values are sent along when it
+                                                is confirmed. */}
+                                            <div className="flex flex-col gap-2.5 border-t border-border-soft pt-4">
+                                                <Eyebrow icon={<Tag size={14} />}>{t('receipts.review.assignment')}</Eyebrow>
+                                                <div className="flex flex-col gap-3.5">
+                                                    <BommelSelect
+                                                        items={bommelItems}
+                                                        value={bommelId ? Number(bommelId) : ALL_BOMMELS}
+                                                        emptyLabel={t('invoiceUpload.selectBommel')}
+                                                        onChange={(next) => {
+                                                            const id = next === ALL_BOMMELS ? null : Number(next);
+                                                            // Remember the choice for the next receipt, like the upload form does.
+                                                            cacheBommelChoice(id);
+                                                            setBommelId(id ? String(id) : '');
+                                                        }}
+                                                        triggerClassName={cn(
+                                                            'sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none',
+                                                            pickerFocusCls
+                                                        )}
+                                                        matchTriggerWidth
+                                                    />
+                                                    <CategoryGroupFields
+                                                        inline
+                                                        bommelId={bommelId ? Number(bommelId) : null}
+                                                        values={categoryValues}
+                                                        onChange={(groupId, value) => {
+                                                            setCategoryValues((prev) => {
+                                                                const next = { ...prev };
+                                                                if (value == null || value === '') delete next[groupId];
+                                                                else next[groupId] = value;
+                                                                return next;
+                                                            });
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
 
                                             {/* Several bommels/categories on one receipt: the split takes the place of the fields above.
                                                 Not while editing a confirmed receipt; its read view offers "Weitere Transaktion hinzufügen". */}
@@ -1427,17 +1431,24 @@ export function ReviewDrawer({
                                 </>
                             ) : locked ? (
                                 <>
-                                    {!isSplitDoc && linkedTx && (
-                                        <HintTooltip content={linkedTx.status === 'DRAFT' ? null : t('receipts.review.editReceiptLocked')}>
-                                            <BaseButton variant="tonal" onClick={startEditReceipt} disabled={linkedTx.status !== 'DRAFT'} className={footerBtn}>
-                                                <Pencil size={15} />
-                                                {t('receipts.review.editReceipt')}
-                                            </BaseButton>
-                                        </HintTooltip>
+                                    {!isSplitDoc && linkedTx?.status === 'DRAFT' && (
+                                        <BaseButton
+                                            variant="tonal"
+                                            onClick={startEditReceipt}
+                                            className={cn(footerBtn, 'animate-in fade-in slide-in-from-right-2 duration-300')}
+                                        >
+                                            <Pencil size={15} />
+                                            {t('receipts.review.editReceipt')}
+                                        </BaseButton>
                                     )}
                                     {isSplitDoc && (
                                         <HintTooltip content={canEditSplit ? null : t('receipts.split.editSplitLocked')}>
-                                            <BaseButton variant="tonal" onClick={startSplit} disabled={!canEditSplit} className={footerBtn}>
+                                            <BaseButton
+                                                variant="tonal"
+                                                onClick={startSplit}
+                                                disabled={!canEditSplit}
+                                                className={cn(footerBtn, 'animate-in fade-in slide-in-from-right-2 duration-300')}
+                                            >
                                                 <Pencil size={15} />
                                                 {t('receipts.split.editSplit')}
                                             </BaseButton>
@@ -1449,12 +1460,29 @@ export function ReviewDrawer({
                                                 variant="default"
                                                 onClick={handleConfirmTransaction}
                                                 disabled={confirmTransaction.isPending || !canConfirmTx}
-                                                className={footerBtn}
+                                                className={cn(footerBtn, 'animate-in fade-in slide-in-from-right-2 duration-300')}
                                             >
                                                 <Check size={16} strokeWidth={2.5} />
                                                 {confirmTransaction.isPending ? '…' : t('receipts.review.confirmTransaction')}
                                             </BaseButton>
                                         </HintTooltip>
+                                    )}
+                                    {/* Everything is saved at this point; only once everything is booked; a draft transaction still has its own confirm button. */}
+                                    {receiptBooked && (
+                                        <BaseButton
+                                            variant="default"
+                                            onClick={() => {
+                                                if (nextDoc && onNext) {
+                                                    onNext(nextDoc);
+                                                } else {
+                                                    showSuccess(t('receipts.toast.allDone'));
+                                                    onClose();
+                                                }
+                                            }}
+                                            className={cn(footerBtn, 'animate-in fade-in slide-in-from-right-2 duration-300')}
+                                        >
+                                            {nextDoc && onNext ? t('receipts.review.nextReceipt') : t('receipts.review.finish')}
+                                        </BaseButton>
                                     )}
                                 </>
                             ) : (
@@ -2274,7 +2302,17 @@ export function BelegeView() {
                 return d.createdAt ? new Date(d.createdAt).getTime() : 0;
         }
     };
-    const sorted = [...filtered].sort((a, b) => (sortDir === 'asc' ? sortValue(a) - sortValue(b) : sortValue(b) - sortValue(a)));
+    const compareDocs = (a: DocumentResponse, b: DocumentResponse) => (sortDir === 'asc' ? sortValue(a) - sortValue(b) : sortValue(b) - sortValue(a));
+    const sorted = [...filtered].sort(compareDocs);
+
+    // The receipt "next" leads to: the following unreviewed one in the list order, regardless of the status filter,
+    // otherwise the first unreviewed one. None left means the review is finished.
+    const nextDoc = (() => {
+        if (!selectedDoc) return null;
+        const queue = docs.filter((d) => d.id === selectedDoc.id || d.documentStatus !== 'CONFIRMED').sort(compareDocs);
+        const at = queue.findIndex((d) => d.id === selectedDoc.id);
+        return queue.slice(at + 1).find((d) => d.id !== selectedDoc.id) ?? queue.find((d) => d.id !== selectedDoc.id) ?? null;
+    })();
 
     // ── Bulk selection (for multi-delete) ──
     const pageIds = sorted.map((d) => d.id).filter((id): id is number => id != null);
@@ -2517,7 +2555,7 @@ export function BelegeView() {
             </div>
 
             {/* Review drawer */}
-            <ReviewDrawer doc={selectedDoc} onClose={closeDrawer} onDeleted={closeDrawer} />
+            <ReviewDrawer doc={selectedDoc} nextDoc={nextDoc} onNext={openDocument} onClose={closeDrawer} onDeleted={closeDrawer} />
 
             <ConfirmDialog
                 open={bulkDeleteOpen}

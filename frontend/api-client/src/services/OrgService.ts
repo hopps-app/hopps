@@ -6185,6 +6185,10 @@ export class Client {
             return response.text().then((_responseText) => {
             return throwException("Transaction not found", status, _responseText, _headers);
             });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("Transaction is confirmed and must be reopened before it can be changed", status, _responseText, _headers);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
