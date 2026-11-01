@@ -3,6 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { inputCls } from '@/components/Transactions/drawerParts';
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
 import { fmtDate } from '@/components/Transactions/format';
 import Button from '@/components/ui/Button';
@@ -99,7 +100,7 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                                 value={url}
                                 aria-label={t('bommel.uploadLink.title')}
                                 onFocus={(e) => e.currentTarget.select()}
-                                className="min-w-0 flex-1 rounded-[10px] border border-border-soft bg-[var(--surface-sunken)] px-2.5 py-1.5 text-[12px] font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                className={cn(inputCls, 'min-w-0 flex-1 bg-[var(--surface-sunken)] px-2.5 text-[12px] font-semibold')}
                             />
                             <Button variant="outline" size="icon" onClick={copy} aria-label={t('bommel.uploadLink.copy')}>
                                 <Copy size={14} />
@@ -149,7 +150,11 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                             min={todayIso()}
                             value={expiresOn}
                             onChange={(e) => setExpiresOn(e.target.value)}
-                            className="rounded-[10px] border border-border-soft bg-transparent px-2.5 py-2 text-[14px] font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary [&::-webkit-datetime-edit-day-field:focus]:bg-primary [&::-webkit-datetime-edit-day-field:focus]:text-white [&::-webkit-datetime-edit-month-field:focus]:bg-primary [&::-webkit-datetime-edit-month-field:focus]:text-white [&::-webkit-datetime-edit-year-field:focus]:bg-primary [&::-webkit-datetime-edit-year-field:focus]:text-white"
+                            className={cn(
+                                inputCls,
+                                'font-semibold',
+                                '[&::-webkit-datetime-edit-day-field:focus]:bg-primary [&::-webkit-datetime-edit-day-field:focus]:text-white [&::-webkit-datetime-edit-month-field:focus]:bg-primary [&::-webkit-datetime-edit-month-field:focus]:text-white [&::-webkit-datetime-edit-year-field:focus]:bg-primary [&::-webkit-datetime-edit-year-field:focus]:text-white'
+                            )}
                         />
                     </label>
                     <DialogFooter>
