@@ -259,7 +259,19 @@ function sameCategoryValues(a: Record<number, string>, b: Record<number, string>
     return keys.length === Object.keys(b).length && keys.every((k) => a[Number(k)] === b[Number(k)]);
 }
 
-export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: DocumentResponse | null; onClose: () => void; onDeleted: () => void }) {
+export function ReviewDrawer({
+    doc: docProp,
+    nextDoc,
+    onNext,
+    onClose,
+    onDeleted,
+}: {
+    doc: DocumentResponse | null;
+    nextDoc?: DocumentResponse | null;
+    onNext?: (doc: DocumentResponse) => void;
+    onClose: () => void;
+    onDeleted: () => void;
+}) {
     const { format, symbol } = useCurrency();
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
@@ -1387,13 +1399,11 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                 </>
                             ) : locked ? (
                                 <>
-                                    {!isSplitDoc && linkedTx && (
-                                        <HintTooltip content={linkedTx.status === 'DRAFT' ? null : t('receipts.review.editReceiptLocked')}>
-                                            <BaseButton variant="tonal" onClick={startEditReceipt} disabled={linkedTx.status !== 'DRAFT'} className={footerBtn}>
-                                                <Pencil size={15} />
-                                                {t('receipts.review.editReceipt')}
-                                            </BaseButton>
-                                        </HintTooltip>
+                                    {!isSplitDoc && linkedTx?.status === 'DRAFT' && (
+                                        <BaseButton variant="tonal" onClick={startEditReceipt} className={footerBtn}>
+                                            <Pencil size={15} />
+                                            {t('receipts.review.editReceipt')}
+                                        </BaseButton>
                                     )}
                                     {isSplitDoc && (
                                         <HintTooltip content={canEditSplit ? null : t('receipts.split.editSplitLocked')}>
@@ -1416,6 +1426,21 @@ export function ReviewDrawer({ doc: docProp, onClose, onDeleted }: { doc: Docume
                                             </BaseButton>
                                         </HintTooltip>
                                     )}
+                                    {/* Everything is saved at this point; this ends the review of the receipt. */}
+                                    <BaseButton
+                                        variant={!isSplitDoc && linkedTx?.status === 'DRAFT' ? 'tonal' : 'default'}
+                                        onClick={() => {
+                                            if (nextDoc && onNext) {
+                                                onNext(nextDoc);
+                                            } else {
+                                                showSuccess(t('receipts.toast.allDone'));
+                                                onClose();
+                                            }
+                                        }}
+                                        className={footerBtn}
+                                    >
+                                        {nextDoc && onNext ? t('receipts.review.nextReceipt') : t('receipts.review.finish')}
+                                    </BaseButton>
                                 </>
                             ) : (
                                 <>
@@ -2211,7 +2236,17 @@ export function BelegeView() {
                 return d.createdAt ? new Date(d.createdAt).getTime() : 0;
         }
     };
-    const sorted = [...filtered].sort((a, b) => (sortDir === 'asc' ? sortValue(a) - sortValue(b) : sortValue(b) - sortValue(a)));
+    const compareDocs = (a: DocumentResponse, b: DocumentResponse) => (sortDir === 'asc' ? sortValue(a) - sortValue(b) : sortValue(b) - sortValue(a));
+    const sorted = [...filtered].sort(compareDocs);
+
+    // The receipt "next" leads to: the following unreviewed one in the list order, regardless of the status filter,
+    // otherwise the first unreviewed one. None left means the review is finished.
+    const nextDoc = (() => {
+        if (!selectedDoc) return null;
+        const queue = docs.filter((d) => d.id === selectedDoc.id || d.documentStatus !== 'CONFIRMED').sort(compareDocs);
+        const at = queue.findIndex((d) => d.id === selectedDoc.id);
+        return queue.slice(at + 1).find((d) => d.id !== selectedDoc.id) ?? queue.find((d) => d.id !== selectedDoc.id) ?? null;
+    })();
 
     // ── Bulk selection (for multi-delete) ──
     const pageIds = sorted.map((d) => d.id).filter((id): id is number => id != null);
@@ -2454,7 +2489,7 @@ export function BelegeView() {
             </div>
 
             {/* Review drawer */}
-            <ReviewDrawer doc={selectedDoc} onClose={closeDrawer} onDeleted={closeDrawer} />
+            <ReviewDrawer doc={selectedDoc} nextDoc={nextDoc} onNext={openDocument} onClose={closeDrawer} onDeleted={closeDrawer} />
 
             <ConfirmDialog
                 open={bulkDeleteOpen}
