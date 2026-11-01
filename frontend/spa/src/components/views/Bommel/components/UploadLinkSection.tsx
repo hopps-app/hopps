@@ -90,7 +90,18 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
             <div className="mb-[11px] flex items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5">
                     <Eyebrow icon={<Link2 size={14} />}>{t('bommel.uploadLink.title')}</Eyebrow>
-                    {url && <InfoTooltip content={t('bommel.uploadLink.scope')} label={t('bommel.uploadLink.scope')} size={14} />}
+                    {url && (
+                        <InfoTooltip
+                            content={
+                                <>
+                                    {t('bommel.uploadLink.description')}
+                                    <span className="mt-1.5 block">{t('bommel.uploadLink.scope')}</span>
+                                </>
+                            }
+                            label={t('bommel.uploadLink.description')}
+                            size={14}
+                        />
+                    )}
                 </div>
                 {url && link && (
                     <span title={link.expired ? t('bommel.uploadLink.expired') : undefined}>
