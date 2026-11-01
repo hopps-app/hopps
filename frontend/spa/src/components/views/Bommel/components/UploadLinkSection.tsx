@@ -113,15 +113,15 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                     <p className="truncate text-[12.5px] font-semibold text-muted-foreground" title={url}>
                         {`${window.location.host}${PUBLIC_UPLOAD_PATH}/…${link.token?.slice(-4)}`}
                     </p>
-                    <div className="flex gap-2">
-                        <Button className="flex-1" variant="tonal" onClick={copy}>
+                    <div className="flex gap-1.5">
+                        <Button className="min-w-0 flex-1 gap-2 px-3" variant="tonal" onClick={copy}>
                             <Copy size={15} />
                             {t('bommel.uploadLink.copy')}
                         </Button>
                         <Button
                             variant="tonal"
                             size="icon"
-                            className="h-10 w-10 shrink-0"
+                            className="h-10 w-9 shrink-0"
                             onClick={() => setQrOpen(true)}
                             aria-label={t('bommel.uploadLink.showQr')}
                         >
@@ -131,7 +131,7 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                             <Button
                                 variant="tonal"
                                 size="icon"
-                                className="h-10 w-10 shrink-0"
+                                className="h-10 w-9 shrink-0"
                                 onClick={() => setConfirm('regenerate')}
                                 aria-label={t('bommel.uploadLink.regenerate')}
                             >
@@ -142,7 +142,7 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                             <Button
                                 variant="tonal"
                                 size="icon"
-                                className="h-10 w-10 shrink-0 text-[var(--negative)]"
+                                className="h-10 w-9 shrink-0 text-[var(--negative)]"
                                 onClick={() => setConfirm('revoke')}
                                 aria-label={t('bommel.uploadLink.revoke')}
                             >
