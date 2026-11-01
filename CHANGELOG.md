@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.3.0](https://github.com/hopps-app/hopps/compare/v2.2.0...v2.3.0) (2026-11-01)
+
+
+### Features
+
+* **receipts:** split a receipt into several transactions ([#889](https://github.com/hopps-app/hopps/issues/889)) ([2521434](https://github.com/hopps-app/hopps/commit/25214341df45513f1586de3ca75ed0b6da239a64))
+
+
+### Bug Fixes
+
+* **bommel:** deleting a bommel keeps its transactions, receipts and bank accounts ([#892](https://github.com/hopps-app/hopps/issues/892)) ([f6c69d4](https://github.com/hopps-app/hopps/commit/f6c69d43d1a6c59f4fbbe251290b4af9c5fdd304))
+* **receipts:** a split down to one part goes back to the single booking ([#890](https://github.com/hopps-app/hopps/issues/890)) ([8e0dde4](https://github.com/hopps-app/hopps/commit/8e0dde467947e5cb25f9d72193a6864f5e2bcc4d))
+* **receipts:** split validation and receipts UI polish ([#891](https://github.com/hopps-app/hopps/issues/891)) ([d41bd44](https://github.com/hopps-app/hopps/commit/d41bd4495ca7b10a6de50dcccc668e26ec4e0d6f))
+
 ## [2.2.0](https://github.com/hopps-app/hopps/compare/v2.1.0...v2.2.0) (2026-10-27)
 
 
