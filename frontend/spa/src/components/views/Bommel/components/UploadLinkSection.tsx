@@ -121,7 +121,7 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                             <QrCode size={16} />
                         </Button>
                     </div>
-                    <div className="flex flex-wrap justify-center gap-2">
+                    <div className="grid grid-cols-2 justify-items-center gap-2">
                         <button
                             type="button"
                             onClick={() => setConfirm('regenerate')}
