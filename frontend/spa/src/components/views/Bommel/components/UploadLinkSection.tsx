@@ -50,27 +50,27 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
             onSuccess: () => {
                 setConfirm(null);
                 setExpiresOn('');
-                showSuccess(t('organization.structure.uploadLink.created'));
+                showSuccess(t('bommel.uploadLink.created'));
             },
-            onError: () => showError(t('organization.structure.uploadLink.error')),
+            onError: () => showError(t('bommel.uploadLink.error')),
         });
 
     const remove = () =>
         revoke.mutate(undefined, {
             onSuccess: () => {
                 setConfirm(null);
-                showSuccess(t('organization.structure.uploadLink.revoked'));
+                showSuccess(t('bommel.uploadLink.revoked'));
             },
-            onError: () => showError(t('organization.structure.uploadLink.error')),
+            onError: () => showError(t('bommel.uploadLink.error')),
         });
 
     const copy = async () => {
         if (!url) return;
         try {
             await navigator.clipboard.writeText(url);
-            showSuccess(t('organization.structure.uploadLink.copied'));
+            showSuccess(t('bommel.uploadLink.copied'));
         } catch {
-            showError(t('organization.structure.uploadLink.copyFailed'));
+            showError(t('bommel.uploadLink.copyFailed'));
         }
     };
 
@@ -79,8 +79,8 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
     return (
         <div className="space-y-3 border-t border-border-soft pt-4">
             <div>
-                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('organization.structure.uploadLink.title')}</p>
-                <p className="text-xs text-gray-600 dark:text-gray-400">{t('organization.structure.uploadLink.description')}</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('bommel.uploadLink.title')}</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">{t('bommel.uploadLink.description')}</p>
             </div>
 
             {isLoading ? null : url && link ? (
@@ -89,39 +89,39 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                         <input
                             readOnly
                             value={url}
-                            aria-label={t('organization.structure.uploadLink.title')}
+                            aria-label={t('bommel.uploadLink.title')}
                             onFocus={(e) => e.currentTarget.select()}
                             className="min-w-0 flex-1 rounded-md border border-border-soft bg-transparent px-2 py-1.5 text-xs text-gray-700 dark:text-gray-300"
                         />
-                        <Button variant="outline" size="icon" onClick={copy} aria-label={t('organization.structure.uploadLink.copy')}>
+                        <Button variant="outline" size="icon" onClick={copy} aria-label={t('bommel.uploadLink.copy')}>
                             <Copy size={14} />
                         </Button>
-                        <Button variant="outline" size="icon" onClick={() => setQrOpen(true)} aria-label={t('organization.structure.uploadLink.showQr')}>
+                        <Button variant="outline" size="icon" onClick={() => setQrOpen(true)} aria-label={t('bommel.uploadLink.showQr')}>
                             <QrCode size={14} />
                         </Button>
                     </div>
                     <p className={`text-xs ${link.expired ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'}`}>
                         {link.expired
-                            ? t('organization.structure.uploadLink.expired')
+                            ? t('bommel.uploadLink.expired')
                             : link.expiresAt
-                              ? t('organization.structure.uploadLink.validUntil', { date: fmtDate(link.expiresAt) })
-                              : t('organization.structure.uploadLink.noExpiry')}
+                              ? t('bommel.uploadLink.validUntil', { date: fmtDate(link.expiresAt) })
+                              : t('bommel.uploadLink.noExpiry')}
                     </p>
                     <div className="flex flex-wrap gap-2">
                         <Button variant="secondary" size="sm" onClick={() => setConfirm('regenerate')}>
                             <RefreshCw size={14} />
-                            {t('organization.structure.uploadLink.regenerate')}
+                            {t('bommel.uploadLink.regenerate')}
                         </Button>
                         <Button variant="outline" size="sm" onClick={() => setConfirm('revoke')}>
                             <Trash2 size={14} />
-                            {t('organization.structure.uploadLink.revoke')}
+                            {t('bommel.uploadLink.revoke')}
                         </Button>
                     </div>
                 </>
             ) : (
                 <div className="space-y-2">
                     <label className="flex flex-col gap-1 text-xs text-gray-600 dark:text-gray-400">
-                        {t('organization.structure.uploadLink.expiresOn')}
+                        {t('bommel.uploadLink.expiresOn')}
                         <input
                             type="date"
                             min={todayIso()}
@@ -131,7 +131,7 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                         />
                     </label>
                     <Button className="w-full" variant="secondary" onClick={create} disabled={regenerate.isPending}>
-                        {t('organization.structure.uploadLink.create')}
+                        {t('bommel.uploadLink.create')}
                     </Button>
                 </div>
             )}
@@ -139,8 +139,8 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
             <Dialog open={qrOpen} onOpenChange={setQrOpen}>
                 <DialogContent className="max-w-sm">
                     <DialogHeader>
-                        <DialogTitle>{t('organization.structure.uploadLink.qrTitle', { name: bommelName })}</DialogTitle>
-                        <DialogDescription>{t('organization.structure.uploadLink.qrDescription')}</DialogDescription>
+                        <DialogTitle>{t('bommel.uploadLink.qrTitle', { name: bommelName })}</DialogTitle>
+                        <DialogDescription>{t('bommel.uploadLink.qrDescription')}</DialogDescription>
                     </DialogHeader>
                     {url && (
                         <div className="flex flex-col items-center gap-3">
@@ -156,18 +156,18 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
             <ConfirmDialog
                 open={confirm === 'regenerate'}
                 onOpenChange={(open) => !open && setConfirm(null)}
-                title={t('organization.structure.uploadLink.regenerateConfirmTitle')}
-                description={t('organization.structure.uploadLink.regenerateConfirmText')}
-                confirmLabel={t('organization.structure.uploadLink.regenerate')}
+                title={t('bommel.uploadLink.regenerateConfirmTitle')}
+                description={t('bommel.uploadLink.regenerateConfirmText')}
+                confirmLabel={t('bommel.uploadLink.regenerate')}
                 onConfirm={create}
                 loading={regenerate.isPending}
             />
             <ConfirmDialog
                 open={confirm === 'revoke'}
                 onOpenChange={(open) => !open && setConfirm(null)}
-                title={t('organization.structure.uploadLink.revokeConfirmTitle')}
-                description={t('organization.structure.uploadLink.revokeConfirmText')}
-                confirmLabel={t('organization.structure.uploadLink.revoke')}
+                title={t('bommel.uploadLink.revokeConfirmTitle')}
+                description={t('bommel.uploadLink.revokeConfirmText')}
+                confirmLabel={t('bommel.uploadLink.revoke')}
                 onConfirm={remove}
                 loading={revoke.isPending}
                 destructive
