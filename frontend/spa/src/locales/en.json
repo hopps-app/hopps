@@ -1314,6 +1314,7 @@
             "validUntil": "Valid until {{date}}",
             "noExpiry": "Does not expire",
             "expired": "Expired. Regenerate to keep using it.",
+            "expiredBadge": "Expired",
             "regenerate": "Regenerate",
             "regenerateConfirmTitle": "Regenerate upload link?",
             "regenerateConfirmText": "The current link stops working. Links and QR codes you already shared need to be replaced.",

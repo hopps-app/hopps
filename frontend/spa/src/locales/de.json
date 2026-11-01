@@ -1178,6 +1178,7 @@
             "validUntil": "Gültig bis {{date}}",
             "noExpiry": "Läuft nicht ab",
             "expired": "Abgelaufen. Zum Weiterverwenden neu erzeugen.",
+            "expiredBadge": "Abgelaufen",
             "regenerate": "Neu erzeugen",
             "regenerateConfirmTitle": "Upload-Link neu erzeugen?",
             "regenerateConfirmText": "Der bisherige Link funktioniert danach nicht mehr. Bereits geteilte Links und QR-Codes müssen ersetzt werden.",
