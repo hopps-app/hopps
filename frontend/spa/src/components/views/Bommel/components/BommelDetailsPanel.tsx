@@ -93,7 +93,7 @@ export function BommelDetailsPanel({
                     onClick={onClose}
                     aria-label={t('common.close')}
                     title={t('common.close')}
-                    className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-[var(--surface-sunken)] hover:text-foreground"
+                    className="grid h-8 w-8 flex-shrink-0 place-items-center rounded-[var(--btn-radius)] text-muted-foreground transition-colors hover:bg-[var(--surface-sunken)] hover:text-foreground"
                 >
                     <X className="h-[17px] w-[17px]" aria-hidden="true" />
                 </button>
