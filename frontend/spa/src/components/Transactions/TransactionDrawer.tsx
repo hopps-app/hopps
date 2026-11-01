@@ -644,10 +644,12 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                                     {t('transactions.detail.delete')}
                                 </BaseButton>
                                 <div className="flex-1" />
-                                <BaseButton variant="ghost" onClick={startEdit} className={cn(footerBtn, outlineBtn)}>
-                                    <Pencil size={15} />
-                                    {t('transactions.detail.edit')}
-                                </BaseButton>
+                                {tx.status === 'DRAFT' && (
+                                    <BaseButton variant="ghost" onClick={startEdit} className={cn(footerBtn, outlineBtn)}>
+                                        <Pencil size={15} />
+                                        {t('transactions.detail.edit')}
+                                    </BaseButton>
+                                )}
                                 {tx.status === 'DRAFT' ? (
                                     <HintTooltip content={confirmBlockers}>
                                         <BaseButton
