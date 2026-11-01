@@ -33,7 +33,7 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 | Prüfen/Bestätigen-Workflow | ✅ | Status `UPLOADED → ANALYZING → ANALYZED → CONFIRMED` / `FAILED`, Live-Updates per WebSocket | BE `document/domain/DocumentStatus`, `/ws/documents` |
 | Beleg bearbeiten (Betrag, Kategorie, Bommel, Tags, Steuer, Fälligkeit) | ✅ | Jedes Mitglied der Organisation (keine Rollenprüfung) | `PATCH /documents/{id}`, `PATCH /transactions/{id}` |
 | Beleg löschen | ✅ | **Hartes Löschen** inkl. Datei – kein Papierkorb, keine Rollenprüfung | `DELETE /documents/{id}` |
-| Beleg-Detailansicht mit Vorschau | ✅ | – | SPA `BelegeView` ReviewDrawer, `GET /documents/{id}/file` |
+| Beleg-Detailansicht mit Vorschau | ✅ | Nach dem Buchen führt „Weiter zum nächsten Beleg“ zum nächsten ungeprüften Beleg, beim letzten schließt „Abschließen“ die Prüfung (Stand 2026-11-01) | SPA `BelegeView` ReviewDrawer, `GET /documents/{id}/file` |
 | „Privat bezahlt" (Auslage) markieren | ✅ | Boolean `privatelyPaid`, filterbar | BE `document/domain/Document`, `GET /transactions?privatelyPaid=true` |
 | Auslagen-Erstattung (Empfänger, IBAN, Auszahlungsstatus) | ❌ / 💡 | Nur das Flag oben; keine Person/IBAN/Status/Summe pro Person | – |
 | Beleg auf mehrere Kategorien/Beträge aufteilen | ✅ | Beleg wird in mehrere Transaktionen geteilt (je Teil Betrag, Bommel, Kategoriewerte); Entwurf oder direkt erstellen, Teilsumme darf unter dem Belegbetrag liegen (Privatanteil); Bankabgleich je Teil (Stand 2026-10-12) | BE `PUT /documents/{id}/transactions`, SPA `Receipts/Split/SplitDrawer` |
