@@ -4,9 +4,10 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { BommelDetailsPanel, EditModeBanner, HintBanner, ToggleField } from './components';
+import { BommelDetailsPanel, EditModeBanner, HintBanner, PeriodField, ToggleField } from './components';
 import { BommelSkeleton } from './components/BommelSkeleton';
 import { useBommelTree, useStatistics, useDemoTree } from './hooks';
+import { currentYearPeriod, parsePeriod, periodLabel, type Period } from './period';
 
 import { BommelTreeComponent } from '@/components/BommelTreeView';
 import { BommelTreeNodeModel } from '@/components/BommelTreeView/BommelTreeNodeModel';
@@ -15,6 +16,7 @@ import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { ReviewDrawer } from '@/components/views/BelegeView';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
+import { usePersistedState } from '@/hooks/usePersistedState';
 import type { TransactionDisplayStatus } from '@/lib/transactionStatus';
 
 /** Width of the detail panel plus the gap to the tree, see the grid below */
@@ -34,7 +36,7 @@ function isSameOrBelow(tree: BommelTreeNodeModel[], id: number | string, ancesto
 }
 
 function BommelView() {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     usePageTitle(t('bommel.title'));
     const [searchParams, setSearchParams] = useSearchParams();
@@ -61,7 +63,10 @@ function BommelView() {
         }
     }, [searchParams, setSearchParams]);
 
-    const { isLoading: isStatsLoading, bommelStats, options: statisticsOptions, setIncludeDrafts, setAggregate } = useStatistics();
+    // The amounts cover one period, by default the current year; the choice is remembered like the status filters.
+    const [storedPeriod, setPeriod] = usePersistedState<Period>('hopps.bommel.period', currentYearPeriod());
+    const period = parsePeriod(storedPeriod);
+    const { isLoading: isStatsLoading, bommelStats, options: statisticsOptions, setIncludeDrafts, setAggregate } = useStatistics(period);
     const isStatsLoaded = bommelStats !== null || !isStatsLoading;
 
     const realTreeData = useBommelTree({ bommelStats });
@@ -294,6 +299,7 @@ function BommelView() {
                             checked={statisticsOptions.aggregate}
                             onCheckedChange={setAggregate}
                         />
+                        {!isDemoMode && <PeriodField period={period} onChange={setPeriod} />}
                         <ToggleField label={t('bommel.demoMode')} info={t('bommel.demoModeInfo')} checked={isDemoMode} onCheckedChange={handleDemoModeChange} />
                         {isEditMode && !isDemoMode && (
                             <ToggleField
@@ -362,6 +368,7 @@ function BommelView() {
                                 includesSubBommel={panelScopeIds.length > 1}
                                 bommelNames={bommelNames}
                                 demo={isDemoMode}
+                                periodLabel={periodLabel(period, t, i18n.language)}
                                 onClose={() => selectBommelAndUpdateUrl(null)}
                                 onOpenTransaction={(id) => navigate(`/transactions?id=${id}`)}
                                 onOpenReceipt={setOpenReceipt}

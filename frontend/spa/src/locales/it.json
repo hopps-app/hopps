@@ -1259,6 +1259,16 @@
             "openReceiptsHint_other": "Ultime {{count}} ricevute non verificate",
             "openTransactionsHintPartial": "Ultime {{shown}} di {{count}} transazioni non confermate",
             "openReceiptsHintPartial": "Ultime {{shown}} di {{count}} ricevute non verificate"
+        },
+        "period": {
+            "label": "Periodo",
+            "info": "Gli importi contano solo le transazioni di questo periodo. Le transazioni e le ricevute aperte nei dettagli mostrano tutto, a prescindere dalla data.",
+            "all": "Tutti gli anni",
+            "custom": "Scegli periodo",
+            "from": "Dal",
+            "to": "Al",
+            "range": "{{from}} al {{to}}",
+            "panelHint": "Importi per {{period}}"
         }
     },
     "bankAccounts": {

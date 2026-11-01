@@ -36,6 +36,8 @@ interface BommelDetailsPanelProps {
     bommelNames: Map<number, string>;
     /** Example data: no API, so only the amounts are shown */
     demo: boolean;
+    /** The period the amounts cover, e.g. "2026" */
+    periodLabel: string;
     onClose: () => void;
     onOpenTransaction: (id: number) => void;
     onOpenReceipt: (doc: DocumentResponse) => void;
@@ -54,6 +56,7 @@ export function BommelDetailsPanel({
     includesSubBommel,
     bommelNames,
     demo,
+    periodLabel,
     onClose,
     onOpenTransaction,
     onOpenReceipt,
@@ -100,6 +103,7 @@ export function BommelDetailsPanel({
             </header>
 
             <div className="min-h-0 flex-1 overflow-y-auto px-[22px] pb-[26px] pt-5">
+                {!demo && <p className="mb-2 text-[11.5px] font-semibold text-muted-foreground">{t('bommel.period.panelHint', { period: periodLabel })}</p>}
                 <div className="mb-[14px] flex gap-3">
                     <div className="flex-1">
                         <div className={EYEBROW}>{t('bommel.details.income')}</div>

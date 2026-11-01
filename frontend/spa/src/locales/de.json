@@ -1188,6 +1188,16 @@
             "created": "Upload-Link erzeugt",
             "revoked": "Upload-Link widerrufen",
             "error": "Der Upload-Link konnte nicht geändert werden"
+        },
+        "period": {
+            "label": "Zeitraum",
+            "info": "Die Beträge zählen nur Transaktionen aus diesem Zeitraum. Offene Transaktionen und Belege im Detailbereich zeigen alles, egal wann.",
+            "all": "Alle Jahre",
+            "custom": "Zeitraum wählen",
+            "from": "Von",
+            "to": "Bis",
+            "range": "{{from}} bis {{to}}",
+            "panelHint": "Beträge für {{period}}"
         }
     },
     "dashboard": {

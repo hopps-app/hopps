@@ -1324,6 +1324,16 @@
             "created": "Upload link created",
             "revoked": "Upload link revoked",
             "error": "Could not change the upload link"
+        },
+        "period": {
+            "label": "Period",
+            "info": "The amounts only count transactions from this period. Open transactions and receipts in the details always show everything, whatever the date.",
+            "all": "All years",
+            "custom": "Choose period",
+            "from": "From",
+            "to": "To",
+            "range": "{{from}} to {{to}}",
+            "panelHint": "Amounts for {{period}}"
         }
     },
     "bankAccounts": {

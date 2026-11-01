@@ -1259,6 +1259,16 @@
             "openReceiptsHint_other": "Les {{count}} derniers justificatifs non vérifiés",
             "openTransactionsHintPartial": "Les {{shown}} dernières des {{count}} transactions non confirmées",
             "openReceiptsHintPartial": "Les {{shown}} derniers des {{count}} justificatifs non vérifiés"
+        },
+        "period": {
+            "label": "Période",
+            "info": "Les montants ne comptent que les transactions de cette période. Les transactions et reçus ouverts dans les détails montrent tout, quelle que soit la date.",
+            "all": "Toutes les années",
+            "custom": "Choisir une période",
+            "from": "Du",
+            "to": "Au",
+            "range": "{{from}} au {{to}}",
+            "panelHint": "Montants pour {{period}}"
         }
     },
     "bankAccounts": {

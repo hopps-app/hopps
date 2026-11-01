@@ -78,7 +78,7 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 
 | Funktion | Status | Details | Beleg |
 |---|---|---|---|
-| Einnahmen/Ausgaben/Saldo pro Organisation & Bommel (rekursiv) | ✅ | – | BE `statistics/`, `GET /statistics/bommels/{id}` |
+| Einnahmen/Ausgaben/Saldo pro Organisation & Bommel (rekursiv) | ✅ | Auf der Bommel-Seite nach Zeitraum filterbar: ein Jahr (Standard: laufendes Jahr), alle Jahre oder ein freier Zeitraum, z. B. ein Geschäftsjahr; gezählt wird nach Transaktionsdatum. Offene Transaktionen und Belege im Detailbereich bleiben ungefiltert (Stand 2026-11-01) | BE `statistics/` (`startDate`/`endDate`), `GET /statistics/bommels/{id}`, SPA `views/Bommel/components/PeriodField` |
 | Summen pro Kategorie, filterbar nach Bommel & Zeitraum | ✅ | – | `GET /category-groups/{id}/report`, SPA `/reports` |
 | CSV-Export der Kategorie-Auswertung | 🟡 | Clientseitig im Browser, nur Summen | SPA `components/views/ReportsView.tsx` (`exportCsv`) |
 | Export Belegliste / Transaktionen (CSV/Excel) | ❌ / 💡 | Keine Export-Endpoints | – |
