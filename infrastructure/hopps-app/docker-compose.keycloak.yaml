@@ -65,7 +65,7 @@ services:
 
   keycloak:
     # Keycloak plus the Hopps login theme the realm refers to.
-    image: ghcr.io/hopps-app/hopps/hopps-keycloak:${TAG:-2.1.0} # x-release-please-version
+    image: ghcr.io/hopps-app/hopps/hopps-keycloak:${TAG:-2.2.0} # x-release-please-version
     restart: unless-stopped
     # The realm template is rendered from .env before the import runs, so redirect
     # URIs and the brokered identity provider follow the environment instead of
