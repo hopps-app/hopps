@@ -79,6 +79,15 @@ public class Document extends PanacheEntity {
     @Enumerated(EnumType.STRING)
     private DocumentDirection direction;
 
+    // How the file got into hopps (in the app, or through a bommel's public upload link)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UploadChannel uploadChannel = UploadChannel.APP;
+
+    // Free-text note the submitter left on the upload-link page
+    @Column(columnDefinition = "TEXT")
+    private String uploaderComment;
+
     // User tracking for multi-user scenarios
     private String uploadedBy;
     private String analyzedBy;
@@ -476,6 +485,22 @@ public class Document extends PanacheEntity {
 
     public void setDocumentStatus(DocumentStatus documentStatus) {
         this.documentStatus = documentStatus;
+    }
+
+    public UploadChannel getUploadChannel() {
+        return uploadChannel;
+    }
+
+    public void setUploadChannel(UploadChannel uploadChannel) {
+        this.uploadChannel = uploadChannel;
+    }
+
+    public String getUploaderComment() {
+        return uploaderComment;
+    }
+
+    public void setUploaderComment(String uploaderComment) {
+        this.uploaderComment = uploaderComment;
     }
 
     public String getUploadedBy() {
