@@ -757,6 +757,8 @@ export function ReviewDrawer({
         )
     );
     const canConfirmTx = txConfirmState.canConfirm && txMissingGroups.length === 0;
+    // All transactions of the receipt are confirmed: nothing is left to do here, so the review can move on.
+    const receiptBooked = (savedParts?.length ?? 0) > 0 ? (savedParts ?? []).every((p) => p.status === 'CONFIRMED') : linkedTx?.status === 'CONFIRMED';
     // A split can be changed as long as none of its transactions is confirmed.
     const canEditSplit = (savedParts?.length ?? 0) > 0 && (savedParts ?? []).every((p) => p.status !== 'CONFIRMED');
     // What is missing, then where to fill it in: the fields belong to the transaction (the card above opens it); the bank
@@ -1400,14 +1402,23 @@ export function ReviewDrawer({
                             ) : locked ? (
                                 <>
                                     {!isSplitDoc && linkedTx?.status === 'DRAFT' && (
-                                        <BaseButton variant="tonal" onClick={startEditReceipt} className={footerBtn}>
+                                        <BaseButton
+                                            variant="tonal"
+                                            onClick={startEditReceipt}
+                                            className={cn(footerBtn, 'animate-in fade-in slide-in-from-right-2 duration-300')}
+                                        >
                                             <Pencil size={15} />
                                             {t('receipts.review.editReceipt')}
                                         </BaseButton>
                                     )}
                                     {isSplitDoc && (
                                         <HintTooltip content={canEditSplit ? null : t('receipts.split.editSplitLocked')}>
-                                            <BaseButton variant="tonal" onClick={startSplit} disabled={!canEditSplit} className={footerBtn}>
+                                            <BaseButton
+                                                variant="tonal"
+                                                onClick={startSplit}
+                                                disabled={!canEditSplit}
+                                                className={cn(footerBtn, 'animate-in fade-in slide-in-from-right-2 duration-300')}
+                                            >
                                                 <Pencil size={15} />
                                                 {t('receipts.split.editSplit')}
                                             </BaseButton>
@@ -1419,28 +1430,30 @@ export function ReviewDrawer({
                                                 variant="default"
                                                 onClick={handleConfirmTransaction}
                                                 disabled={confirmTransaction.isPending || !canConfirmTx}
-                                                className={footerBtn}
+                                                className={cn(footerBtn, 'animate-in fade-in slide-in-from-right-2 duration-300')}
                                             >
                                                 <Check size={16} strokeWidth={2.5} />
                                                 {confirmTransaction.isPending ? '…' : t('receipts.review.confirmTransaction')}
                                             </BaseButton>
                                         </HintTooltip>
                                     )}
-                                    {/* Everything is saved at this point; this ends the review of the receipt. */}
-                                    <BaseButton
-                                        variant={!isSplitDoc && linkedTx?.status === 'DRAFT' ? 'tonal' : 'default'}
-                                        onClick={() => {
-                                            if (nextDoc && onNext) {
-                                                onNext(nextDoc);
-                                            } else {
-                                                showSuccess(t('receipts.toast.allDone'));
-                                                onClose();
-                                            }
-                                        }}
-                                        className={footerBtn}
-                                    >
-                                        {nextDoc && onNext ? t('receipts.review.nextReceipt') : t('receipts.review.finish')}
-                                    </BaseButton>
+                                    {/* Everything is saved at this point; only once everything is booked; a draft transaction still has its own confirm button. */}
+                                    {receiptBooked && (
+                                        <BaseButton
+                                            variant="default"
+                                            onClick={() => {
+                                                if (nextDoc && onNext) {
+                                                    onNext(nextDoc);
+                                                } else {
+                                                    showSuccess(t('receipts.toast.allDone'));
+                                                    onClose();
+                                                }
+                                            }}
+                                            className={cn(footerBtn, 'animate-in fade-in slide-in-from-right-2 duration-300')}
+                                        >
+                                            {nextDoc && onNext ? t('receipts.review.nextReceipt') : t('receipts.review.finish')}
+                                        </BaseButton>
+                                    )}
                                 </>
                             ) : (
                                 <>
