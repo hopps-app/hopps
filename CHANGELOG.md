@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.1](https://github.com/hopps-app/hopps/compare/v2.3.0...v2.3.1) (2026-11-01)
+
+
+### Bug Fixes
+
+* **receipts:** next receipt after booking, lock confirmed transactions, regroup review form ([#908](https://github.com/hopps-app/hopps/issues/908)) ([25b9bb5](https://github.com/hopps-app/hopps/commit/25b9bb534c31d7095321cdd43af9bfdd56976fc4))
+
 ## [2.3.0](https://github.com/hopps-app/hopps/compare/v2.2.0...v2.3.0) (2026-11-01)
 
 
