@@ -1204,7 +1204,7 @@
             "dismiss": "Verstanden"
         },
         "guide": {
-            "label": "Einführung",
+            "label": "Rundgang",
             "progress": "Schritt {{current}} von {{total}}",
             "skip": "Überspringen",
             "back": "Zurück",
@@ -1229,7 +1229,7 @@
                 "step2": "Am obersten Bommel einen Bereich hinzufügen und benennen.",
                 "start": "Ersten Bommel anlegen"
             },
-            "start": "Einführung starten"
+            "start": "Rundgang starten"
         }
     },
     "dashboard": {

@@ -1340,7 +1340,7 @@
             "dismiss": "Got it"
         },
         "guide": {
-            "label": "Introduction",
+            "label": "Tour",
             "progress": "Step {{current}} of {{total}}",
             "skip": "Skip",
             "back": "Back",
@@ -1365,7 +1365,7 @@
                 "step2": "Add an area to the top Bommel and name it.",
                 "start": "Add the first Bommel"
             },
-            "start": "Start the introduction"
+            "start": "Start the tour"
         }
     },
     "bankAccounts": {

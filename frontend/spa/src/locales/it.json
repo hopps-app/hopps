@@ -1275,7 +1275,7 @@
             "dismiss": "Ho capito"
         },
         "guide": {
-            "label": "Introduzione",
+            "label": "Tour guidato",
             "progress": "Passo {{current}} di {{total}}",
             "skip": "Salta",
             "back": "Indietro",
@@ -1300,7 +1300,7 @@
                 "step2": "Aggiungere un ambito al Bommel principale e dargli un nome.",
                 "start": "Crea il primo Bommel"
             },
-            "start": "Avvia l'introduzione"
+            "start": "Avvia il tour guidato"
         }
     },
     "bankAccounts": {

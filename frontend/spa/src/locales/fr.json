@@ -1275,7 +1275,7 @@
             "dismiss": "Compris"
         },
         "guide": {
-            "label": "Introduction",
+            "label": "Visite guidée",
             "progress": "Étape {{current}} sur {{total}}",
             "skip": "Passer",
             "back": "Retour",
@@ -1300,7 +1300,7 @@
                 "step2": "Ajouter un domaine au Bommel du haut et le nommer.",
                 "start": "Créer le premier Bommel"
             },
-            "start": "Démarrer l'introduction"
+            "start": "Démarrer la visite guidée"
         }
     },
     "bankAccounts": {
