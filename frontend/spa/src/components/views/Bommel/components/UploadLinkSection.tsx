@@ -126,7 +126,7 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                             type="button"
                             onClick={() => setConfirm('regenerate')}
                             className={cn(
-                                'inline-flex h-7 items-center gap-1.5 rounded-[var(--btn-radius)] border border-[var(--border-strong)] bg-transparent px-2.5 text-[12px] font-bold transition-colors hover:bg-[var(--background-secondary)]',
+                                'inline-flex h-7 items-center gap-1.5 rounded-[var(--btn-radius)] border border-border-soft bg-[var(--background-secondary)] px-2.5 text-[12px] font-bold transition-colors hover:border-[var(--border-strong)]',
                                 'text-foreground'
                             )}
                         >
@@ -137,7 +137,7 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                             type="button"
                             onClick={() => setConfirm('revoke')}
                             className={cn(
-                                'inline-flex h-7 items-center gap-1.5 rounded-[var(--btn-radius)] border border-[var(--border-strong)] bg-transparent px-2.5 text-[12px] font-bold transition-colors hover:bg-[var(--background-secondary)]',
+                                'inline-flex h-7 items-center gap-1.5 rounded-[var(--btn-radius)] border border-border-soft bg-[var(--background-secondary)] px-2.5 text-[12px] font-bold transition-colors hover:border-[var(--border-strong)]',
                                 'text-[var(--negative)]'
                             )}
                         >
