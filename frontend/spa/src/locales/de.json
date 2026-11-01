@@ -1199,17 +1199,37 @@
             "range": "{{from}} bis {{to}}",
             "panelHint": "Beträge für {{period}}"
         },
-        "gettingStarted": {
-            "title": "Struktur anlegen",
-            "text": "Bommel sind die Bereiche des Vereins, zum Beispiel Abteilungen, Projekte oder Veranstaltungen. So entsteht die Struktur:",
-            "step1": "Bearbeiten wählen.",
-            "step2": "Am obersten Bommel einen Bereich hinzufügen und benennen.",
-            "step3": "Weitere Bereiche darunter anlegen, bei Bedarf per Ziehen verschieben.",
-            "start": "Ersten Bereich anlegen"
-        },
         "panelHint": {
             "text": "Hier stehen die Beträge dieses Bommels, die offenen Transaktionen und Belege sowie der Upload-Link zum Einreichen von Belegen.",
             "dismiss": "Verstanden"
+        },
+        "guide": {
+            "label": "Einführung",
+            "progress": "Schritt {{current}} von {{total}}",
+            "restart": "Einführung",
+            "skip": "Überspringen",
+            "back": "Zurück",
+            "next": "Weiter",
+            "finish": "Fertig",
+            "example": {
+                "title": "Das Beispiel",
+                "text": "Das ist eine Beispielstruktur. Jeder Kasten ist ein Bommel, also ein Bereich des Vereins wie eine Abteilung, ein Projekt oder eine Veranstaltung. Ein Klick auf einen Bommel öffnet seine Details."
+            },
+            "move": {
+                "title": "Bommel verschieben",
+                "text": "Verschieben ist jetzt eingeschaltet. Einen Bommel auf einen anderen ziehen, um ihn darunter einzuordnen. Am Beispiel wird nichts gespeichert."
+            },
+            "sums": {
+                "title": "So summieren sich die Beträge",
+                "text": "Mit dem Schalter Unterbommel einbeziehen zeigt jeder Bommel seine eigenen Beträge plus die aller Bommel darunter. Ausgeschaltet zählt nur, was direkt auf ihm gebucht ist. Den Schalter umlegen und die Zahlen vergleichen."
+            },
+            "own": {
+                "title": "Die eigene Struktur anlegen",
+                "text": "Jetzt geht es mit der eigenen Struktur weiter:",
+                "step1": "Bearbeiten wählen.",
+                "step2": "Am obersten Bommel einen Bereich hinzufügen und benennen.",
+                "start": "Ersten Bommel anlegen"
+            }
         }
     },
     "dashboard": {

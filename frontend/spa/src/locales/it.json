@@ -1270,17 +1270,37 @@
             "range": "{{from}} al {{to}}",
             "panelHint": "Importi per {{period}}"
         },
-        "gettingStarted": {
-            "title": "Creare la struttura",
-            "text": "I Bommel sono gli ambiti dell’associazione, ad esempio sezioni, progetti o eventi. Ecco come si costruisce la struttura:",
-            "step1": "Scegliere Modifica.",
-            "step2": "Aggiungere un ambito al Bommel principale e dargli un nome.",
-            "step3": "Aggiungere altri ambiti sotto e, se serve, spostarli trascinandoli.",
-            "start": "Aggiungi il primo ambito"
-        },
         "panelHint": {
             "text": "Qui ci sono gli importi di questo Bommel, le transazioni e le ricevute aperte e il link di caricamento per inviare ricevute.",
             "dismiss": "Ho capito"
+        },
+        "guide": {
+            "label": "Introduzione",
+            "progress": "Passo {{current}} di {{total}}",
+            "restart": "Introduzione",
+            "skip": "Salta",
+            "back": "Indietro",
+            "next": "Avanti",
+            "finish": "Fatto",
+            "example": {
+                "title": "L'esempio",
+                "text": "Questa è una struttura di esempio. Ogni riquadro è un Bommel, un ambito dell'associazione come una sezione, un progetto o un evento. Un clic su un Bommel ne apre i dettagli."
+            },
+            "move": {
+                "title": "Spostare un Bommel",
+                "text": "Lo spostamento è attivo. Trascinare un Bommel su un altro per metterlo sotto. Nell'esempio non viene salvato nulla."
+            },
+            "sums": {
+                "title": "Come si sommano gli importi",
+                "text": "Con l'interruttore Includi i sotto-Bommel, ogni Bommel mostra i propri importi più quelli di tutti i Bommel sotto di esso. Disattivato, conta solo ciò che è registrato direttamente. Cambiare l'interruttore e confrontare i numeri."
+            },
+            "own": {
+                "title": "Creare la propria struttura",
+                "text": "Ora si passa alla propria struttura:",
+                "step1": "Scegliere Modifica.",
+                "step2": "Aggiungere un ambito al Bommel principale e dargli un nome.",
+                "start": "Crea il primo Bommel"
+            }
         }
     },
     "bankAccounts": {

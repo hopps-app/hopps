@@ -1,10 +1,10 @@
 import type { DocumentResponse } from '@hopps/api-client';
-import { RefreshCw, AlertCircle, Info } from 'lucide-react';
+import { RefreshCw, AlertCircle, Info, Lightbulb } from 'lucide-react';
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { BommelDetailsPanel, EditModeBanner, GettingStartedCard, HintBanner, PeriodField, ToggleField } from './components';
+import { BommelDetailsPanel, EditModeBanner, GuideCard, HintBanner, PeriodField, ToggleField, type GuideStep } from './components';
 import { BommelSkeleton } from './components/BommelSkeleton';
 import { useBommelTree, useStatistics, useDemoTree } from './hooks';
 import { currentYearPeriod, parsePeriod, periodLabel, type Period } from './period';
@@ -47,6 +47,10 @@ function BommelView() {
     const [isEditMode, setIsEditMode] = useState(() => searchParams.get('edit') === '1');
     const [isDragDropMode, setIsDragDropMode] = useState(false);
     const [isDemoMode, setIsDemoMode] = useState(false);
+    // The guided walk through the page; null while it is closed. Done or skipped once, it does not start by itself again.
+    const [guideStep, setGuideStep] = useState<GuideStep | null>(null);
+    const [guideDone, setGuideDone] = usePersistedState<boolean>('hopps.bommel.guideDone', false);
+    const guideAutoStarted = useRef(false);
     const [selectedBommel, setSelectedBommel] = useState<BommelTreeNodeModel | null>(null);
     const [bommelNotFound, setBommelNotFound] = useState(false);
     // Receipt drawer opened from the detail panel (transactions navigate to their page instead)
@@ -72,7 +76,7 @@ function BommelView() {
     const isStatsLoaded = bommelStats !== null || !isStatsLoading;
 
     const realTreeData = useBommelTree({ bommelStats });
-    const demoTreeData = useDemoTree();
+    const demoTreeData = useDemoTree(statisticsOptions.aggregate);
 
     // Select data source based on demo mode
     const activeData = isDemoMode ? demoTreeData : realTreeData;
@@ -80,6 +84,39 @@ function BommelView() {
 
     // Only the organisation itself (the root) exists yet
     const structureIsEmpty = !isLoading && !tree.some((node) => !node.data?.isRoot);
+
+    // The guide looks at the real structure, whatever the page shows right now (the example in the first steps).
+    const realStructureLoaded = !realTreeData.isLoading;
+    const hasFirstBommel = realStructureLoaded && realTreeData.tree.some((node) => !node.data?.isRoot);
+
+    // First visit with nothing below the root yet: start the guide once.
+    useEffect(() => {
+        if (guideAutoStarted.current || guideDone || !realStructureLoaded || hasFirstBommel) return;
+        guideAutoStarted.current = true;
+        setGuideStep('example');
+    }, [guideDone, realStructureLoaded, hasFirstBommel]);
+
+    // The guide decides what the page shows: the example in the first steps, the own structure in the last one.
+    const resetDemo = demoTreeData.reset;
+    useEffect(() => {
+        if (!guideStep) return;
+        const onExample = guideStep !== 'own';
+        setIsDemoMode(onExample);
+        setSelectedBommel(null);
+        setIsDragDropMode(guideStep === 'move');
+        if (onExample) setIsEditMode(false);
+        if (guideStep === 'example') resetDemo();
+        if (guideStep === 'sums') setAggregate(true);
+        if (guideStep === 'own') setAggregate(false);
+    }, [guideStep, resetDemo, setAggregate]);
+
+    const closeGuide = useCallback(() => {
+        setGuideStep(null);
+        setGuideDone(true);
+        setIsDemoMode(false);
+        setIsDragDropMode(false);
+        setSelectedBommel(null);
+    }, [setGuideDone]);
 
     // Reset selection when switching between demo and real mode
     const handleDemoModeChange = useCallback((enabled: boolean) => {
@@ -281,19 +318,40 @@ function BommelView() {
                 <h1 className="mb-4 flex items-center gap-2 text-[27px] font-extrabold leading-tight tracking-[-0.02em] text-foreground">
                     {t('bommel.title')}
                     <InfoTooltip content={t('bommel.titleInfo')} label={t('bommel.titleInfoLabel')} size={17} />
+                    {!guideStep && (
+                        <button
+                            type="button"
+                            onClick={() => setGuideStep('example')}
+                            className="ml-1 text-[13px] font-bold text-purple-700 transition-colors hover:text-purple-900"
+                        >
+                            {t('bommel.guide.restart')}
+                        </button>
+                    )}
                 </h1>
 
                 <div className="mb-4 flex flex-col gap-4 flex-shrink-0">
-                    {isDemoMode && <HintBanner icon={Info}>{t('bommel.demoBanner')}</HintBanner>}
-                    {!isDemoMode && structureIsEmpty && <GettingStartedCard isEditMode={isEditMode} onStartEditing={() => setIsEditMode(true)} />}
+                    {guideStep && (
+                        <GuideCard
+                            step={guideStep}
+                            isEditMode={isEditMode}
+                            hasFirstBommel={hasFirstBommel}
+                            onStep={setGuideStep}
+                            onStartEditing={() => setIsEditMode(true)}
+                            onClose={closeGuide}
+                        />
+                    )}
+                    {!guideStep && isDemoMode && <HintBanner icon={Info}>{t('bommel.demoBanner')}</HintBanner>}
+                    {!guideStep && !isDemoMode && structureIsEmpty && <HintBanner icon={Lightbulb}>{t('bommel.emptyHint')}</HintBanner>}
 
                     <div className="flex flex-wrap items-center gap-x-[30px] gap-y-3 rounded-[18px] border border-border-soft bg-background-secondary px-[18px] py-3 shadow-[var(--shadow-sm)]">
-                        <ToggleField
-                            label={t('bommel.includeDrafts')}
-                            info={t('bommel.includeDraftsInfo')}
-                            checked={statisticsOptions.includeDrafts}
-                            onCheckedChange={setIncludeDrafts}
-                        />
+                        {!isDemoMode && (
+                            <ToggleField
+                                label={t('bommel.includeDrafts')}
+                                info={t('bommel.includeDraftsInfo')}
+                                checked={statisticsOptions.includeDrafts}
+                                onCheckedChange={setIncludeDrafts}
+                            />
+                        )}
                         <ToggleField
                             label={t('bommel.aggregate')}
                             info={t('bommel.aggregateInfo')}
@@ -302,7 +360,7 @@ function BommelView() {
                         />
                         {!isDemoMode && <PeriodField period={period} onChange={setPeriod} />}
                         {/* Not while editing: switching to the example data would drop the user out of the edit. */}
-                        {!isEditMode && (
+                        {!isEditMode && !guideStep && (
                             <ToggleField
                                 label={t('bommel.demoMode')}
                                 info={t('bommel.demoModeInfo')}
@@ -338,7 +396,7 @@ function BommelView() {
                     </div>
 
                     {/* One notice at a time: the example banner and the empty-structure hint (which already says what to do) win over it */}
-                    {isEditMode && !isDemoMode && !structureIsEmpty && <EditModeBanner />}
+                    {isEditMode && !isDemoMode && !structureIsEmpty && !guideStep && <EditModeBanner />}
 
                     {/* Only while the broken link is still in the URL: selecting or deleting a Bommel replaces it */}
                     {bommelNotFound && searchParams.has('bommelId') && (
@@ -356,7 +414,7 @@ function BommelView() {
                             tree={tree}
                             rootBommel={rootBommel}
                             editable={isDemoMode ? false : isEditMode}
-                            dragDropEnabled={isDemoMode ? false : isDragDropMode}
+                            dragDropEnabled={isDragDropMode}
                             selectedId={selectedBommel ? Number(selectedBommel.id) : null}
                             // Fit as if the panel were not there, so opening it crops the tree instead of rescaling it
                             fitExtraWidth={selectedBommel && panelBeside ? PANEL_SPACE : 0}

@@ -1335,17 +1335,37 @@
             "range": "{{from}} to {{to}}",
             "panelHint": "Amounts for {{period}}"
         },
-        "gettingStarted": {
-            "title": "Set up the structure",
-            "text": "Bommel are the areas of the club, for example departments, projects or events. This is how the structure is built:",
-            "step1": "Choose Edit.",
-            "step2": "Add an area to the top Bommel and name it.",
-            "step3": "Add more areas below it and drag them to move if needed.",
-            "start": "Add the first area"
-        },
         "panelHint": {
             "text": "This shows the amounts of this Bommel, the open transactions and receipts, and the upload link for submitting receipts.",
             "dismiss": "Got it"
+        },
+        "guide": {
+            "label": "Introduction",
+            "progress": "Step {{current}} of {{total}}",
+            "restart": "Introduction",
+            "skip": "Skip",
+            "back": "Back",
+            "next": "Next",
+            "finish": "Done",
+            "example": {
+                "title": "The example",
+                "text": "This is an example structure. Every box is a Bommel, an area of the club such as a department, a project or an event. Clicking a Bommel opens its details."
+            },
+            "move": {
+                "title": "Moving a Bommel",
+                "text": "Moving is switched on now. Drag a Bommel onto another one to place it below. Nothing is saved on the example."
+            },
+            "sums": {
+                "title": "How the amounts add up",
+                "text": "With the switch Include sub-Bommel, every Bommel shows its own amounts plus those of all Bommel below it. Switched off, only what is booked directly on it counts. Flip the switch and compare the numbers."
+            },
+            "own": {
+                "title": "Set up your own structure",
+                "text": "Now on to your own structure:",
+                "step1": "Choose Edit.",
+                "step2": "Add an area to the top Bommel and name it.",
+                "start": "Add the first Bommel"
+            }
         }
     },
     "bankAccounts": {

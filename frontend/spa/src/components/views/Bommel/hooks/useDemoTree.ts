@@ -1,5 +1,5 @@
 import { Bommel, BommelStatistics, BommelStatisticsMap } from '@hopps/api-client';
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { BommelTreeNodeModel } from '@/components/BommelTreeView/BommelTreeNodeModel';
 
@@ -29,100 +29,88 @@ const DEMO_IDS = {
     WEIHNACHTSFEIER: -11,
 } as const;
 
-function buildDemoTree(): BommelTreeNodeModel[] {
-    return [
-        // Root node
-        {
-            id: DEMO_IDS.ROOT,
-            parent: 0,
-            text: 'Sportverein',
-            droppable: false,
-            data: { emoji: 'herb', id: DEMO_IDS.ROOT, isRoot: true, total: 12450, income: 18200, expenses: 5750, transactionsCount: 47, subBommelsCount: 3 },
-        },
-        // Level 1
-        {
-            id: DEMO_IDS.FUSSBALL,
-            parent: 0,
-            text: 'Fußball',
-            droppable: true,
-            data: { emoji: 'soccer', id: DEMO_IDS.FUSSBALL, total: 5200, income: 8500, expenses: 3300, transactionsCount: 18, subBommelsCount: 2 },
-        },
-        {
-            id: DEMO_IDS.HANDBALL,
-            parent: 0,
-            text: 'Handball',
-            droppable: true,
+interface DemoBommel {
+    id: number;
+    parent: number;
+    text: string;
+    emoji: string;
+    /** Amounts booked directly on this bommel; sums over the bommels below are worked out from these. */
+    income: number;
+    expenses: number;
+    transactionsCount: number;
+}
+
+/**
+ * The example structure. Every bommel carries its own amounts, so the totals can be shown either way: only what is
+ * booked on it, or including everything below it. Moving a bommel therefore changes the sums, like in the real page.
+ */
+const DEMO_BOMMELS: DemoBommel[] = [
+    { id: DEMO_IDS.ROOT, parent: 0, text: 'Sportverein', emoji: 'herb', income: 1200, expenses: 300, transactionsCount: 3 },
+    { id: DEMO_IDS.FUSSBALL, parent: 0, text: 'Fußball', emoji: 'soccer', income: 1500, expenses: 900, transactionsCount: 6 },
+    { id: DEMO_IDS.HANDBALL, parent: 0, text: 'Handball', emoji: 'person_playing_handball', income: 800, expenses: 400, transactionsCount: 4 },
+    { id: DEMO_IDS.EVENTS, parent: 0, text: 'Events/Feiern', emoji: 'balloon', income: 600, expenses: 250, transactionsCount: 3 },
+    { id: DEMO_IDS.LIGA_1, parent: DEMO_IDS.FUSSBALL, text: '1. Liga', emoji: 'one', income: 3000, expenses: 1000, transactionsCount: 5 },
+    { id: DEMO_IDS.LIGA_2, parent: DEMO_IDS.FUSSBALL, text: '2. Liga', emoji: 'two', income: 3500, expenses: 1500, transactionsCount: 8 },
+    { id: DEMO_IDS.FANARTIKEL, parent: DEMO_IDS.LIGA_1, text: 'Fanartikel', emoji: 'sparkling_heart', income: 2000, expenses: 800, transactionsCount: 5 },
+    { id: DEMO_IDS.TEAM_U13, parent: DEMO_IDS.HANDBALL, text: 'Team U13', emoji: 'boy', income: 2600, expenses: 800, transactionsCount: 7 },
+    { id: DEMO_IDS.TEAM_U18, parent: DEMO_IDS.HANDBALL, text: 'Team U18', emoji: 'child', income: 2600, expenses: 600, transactionsCount: 7 },
+    { id: DEMO_IDS.SOMMERFEST, parent: DEMO_IDS.EVENTS, text: 'Sommerfest', emoji: 'sunny', income: 2500, expenses: 700, transactionsCount: 8 },
+    { id: DEMO_IDS.WEIHNACHTSFEIER, parent: DEMO_IDS.EVENTS, text: 'Weihnachtsfeier', emoji: 'santa', income: 2000, expenses: 350, transactionsCount: 7 },
+];
+
+/** The ids of a bommel and everything below it, for the given parent assignment. */
+function withDescendants(id: number, parents: Record<number, number>): number[] {
+    const ids = [id];
+    for (const [child, parent] of Object.entries(parents)) {
+        if (parent === id) ids.push(...withDescendants(Number(child), parents));
+    }
+    return ids;
+}
+
+function initialParents(): Record<number, number> {
+    return Object.fromEntries(DEMO_BOMMELS.filter((b) => b.id !== DEMO_IDS.ROOT).map((b) => [b.id, b.parent === 0 ? DEMO_IDS.ROOT : b.parent]));
+}
+
+interface DemoAmounts {
+    income: number;
+    expenses: number;
+    transactionsCount: number;
+}
+
+function amountsOf(id: number, parents: Record<number, number>, aggregate: boolean): DemoAmounts {
+    const ids = aggregate ? withDescendants(id, parents) : [id];
+    return DEMO_BOMMELS.filter((b) => ids.includes(b.id)).reduce<DemoAmounts>(
+        (sum, b) => ({
+            income: sum.income + b.income,
+            expenses: sum.expenses + b.expenses,
+            transactionsCount: sum.transactionsCount + b.transactionsCount,
+        }),
+        { income: 0, expenses: 0, transactionsCount: 0 }
+    );
+}
+
+function buildDemoTree(parents: Record<number, number>, aggregate: boolean): BommelTreeNodeModel[] {
+    return DEMO_BOMMELS.map((bommel) => {
+        const isRoot = bommel.id === DEMO_IDS.ROOT;
+        const { income, expenses, transactionsCount } = amountsOf(bommel.id, parents, aggregate);
+        return {
+            id: bommel.id,
+            // The tree models the root as parent 0 and its children as top level, like the real data
+            parent: isRoot || parents[bommel.id] === DEMO_IDS.ROOT ? 0 : parents[bommel.id],
+            text: bommel.text,
+            droppable: !isRoot,
             data: {
-                emoji: 'person_playing_handball',
-                id: DEMO_IDS.HANDBALL,
-                total: 3800,
-                income: 5200,
-                expenses: 1400,
-                transactionsCount: 14,
-                subBommelsCount: 2,
+                emoji: bommel.emoji,
+                id: bommel.id,
+                ...(isRoot ? { isRoot: true } : {}),
+                total: income - expenses,
+                income,
+                expenses,
+                transactionsCount,
+                subBommelsCount: Object.values(parents).filter((parent) => parent === bommel.id).length,
             },
-        },
-        {
-            id: DEMO_IDS.EVENTS,
-            parent: 0,
-            text: 'Events/Feiern',
-            droppable: true,
-            data: { emoji: 'balloon', id: DEMO_IDS.EVENTS, total: 3450, income: 4500, expenses: 1050, transactionsCount: 15, subBommelsCount: 2 },
-        },
-        // Level 2 - Fußball children
-        {
-            id: DEMO_IDS.LIGA_1,
-            parent: DEMO_IDS.FUSSBALL,
-            text: '1. Liga',
-            droppable: true,
-            data: { emoji: 'one', id: DEMO_IDS.LIGA_1, total: 3200, income: 5000, expenses: 1800, transactionsCount: 10, subBommelsCount: 1 },
-        },
-        {
-            id: DEMO_IDS.LIGA_2,
-            parent: DEMO_IDS.FUSSBALL,
-            text: '2. Liga',
-            droppable: true,
-            data: { emoji: 'two', id: DEMO_IDS.LIGA_2, total: 2000, income: 3500, expenses: 1500, transactionsCount: 8, subBommelsCount: 0 },
-        },
-        // Level 3 - Fußball > 1. Liga children
-        {
-            id: DEMO_IDS.FANARTIKEL,
-            parent: DEMO_IDS.LIGA_1,
-            text: 'Fanartikel',
-            droppable: true,
-            data: { emoji: 'sparkling_heart', id: DEMO_IDS.FANARTIKEL, total: 1200, income: 2000, expenses: 800, transactionsCount: 5, subBommelsCount: 0 },
-        },
-        // Level 2 - Handball children
-        {
-            id: DEMO_IDS.TEAM_U13,
-            parent: DEMO_IDS.HANDBALL,
-            text: 'Team U13',
-            droppable: true,
-            data: { emoji: 'boy', id: DEMO_IDS.TEAM_U13, total: 1800, income: 2600, expenses: 800, transactionsCount: 7, subBommelsCount: 0 },
-        },
-        {
-            id: DEMO_IDS.TEAM_U18,
-            parent: DEMO_IDS.HANDBALL,
-            text: 'Team U18',
-            droppable: true,
-            data: { emoji: 'child', id: DEMO_IDS.TEAM_U18, total: 2000, income: 2600, expenses: 600, transactionsCount: 7, subBommelsCount: 0 },
-        },
-        // Level 2 - Events children
-        {
-            id: DEMO_IDS.SOMMERFEST,
-            parent: DEMO_IDS.EVENTS,
-            text: 'Sommerfest',
-            droppable: true,
-            data: { emoji: 'sunny', id: DEMO_IDS.SOMMERFEST, total: 1800, income: 2500, expenses: 700, transactionsCount: 8, subBommelsCount: 0 },
-        },
-        {
-            id: DEMO_IDS.WEIHNACHTSFEIER,
-            parent: DEMO_IDS.EVENTS,
-            text: 'Weihnachtsfeier',
-            droppable: true,
-            data: { emoji: 'santa', id: DEMO_IDS.WEIHNACHTSFEIER, total: 1650, income: 2000, expenses: 350, transactionsCount: 7, subBommelsCount: 0 },
-        },
-    ];
+        };
+    });
 }
 
 function buildDemoRootBommel(): Bommel {
@@ -134,44 +122,59 @@ function buildDemoRootBommel(): Bommel {
     });
 }
 
-function buildDemoStatistics(): BommelStatisticsMap {
+function buildDemoStatistics(tree: BommelTreeNodeModel[], aggregate: boolean): BommelStatisticsMap {
     const statsMap = new BommelStatisticsMap();
     statsMap.statistics = {};
     statsMap.includeDrafts = false;
-    statsMap.aggregated = false;
+    statsMap.aggregated = aggregate;
 
-    const demoTree = buildDemoTree();
-    for (const node of demoTree) {
-        const id = String(node.id);
-        statsMap.statistics[id] = new BommelStatistics({
+    for (const node of tree) {
+        statsMap.statistics[String(node.id)] = new BommelStatistics({
             bommelId: node.id as number,
             bommelName: node.text,
             total: node.data?.total ?? 0,
             income: node.data?.income ?? 0,
             expenses: node.data?.expenses ?? 0,
             transactionsCount: node.data?.transactionsCount ?? 0,
-            aggregated: false,
+            aggregated: aggregate,
         });
     }
 
     return statsMap;
 }
 
-export function useDemoTree(): BommelTreeData & { bommelStats: BommelStatisticsMap } {
-    const tree = useMemo(() => buildDemoTree(), []);
+/**
+ * The example structure for the demo mode and the guide. Moving a bommel works in memory only (nothing is saved), and
+ * `reset` puts everything back; `aggregate` decides whether the amounts include the bommels below.
+ */
+export function useDemoTree(aggregate: boolean = false): BommelTreeData & { bommelStats: BommelStatisticsMap; reset: () => void } {
+    const [parents, setParents] = useState<Record<number, number>>(initialParents);
+
+    const tree = useMemo(() => buildDemoTree(parents, aggregate), [parents, aggregate]);
     const rootBommel = useMemo(() => buildDemoRootBommel(), []);
-    const bommelStats = useMemo(() => buildDemoStatistics(), []);
+    const bommelStats = useMemo(() => buildDemoStatistics(tree, aggregate), [tree, aggregate]);
+
+    const moveTreeNode = useCallback(async (node: BommelTreeNodeModel): Promise<boolean> => {
+        const id = Number(node.id);
+        const target = node.parent === 0 ? DEMO_IDS.ROOT : Number(node.parent);
+        // A bommel cannot go below itself or below one of its own sub-bommels
+        setParents((current) => (withDescendants(id, current).includes(target) ? current : { ...current, [id]: target }));
+        return true;
+    }, []);
+
+    const reset = useCallback(() => setParents(initialParents()), []);
 
     return {
         isOrganizationError: false,
         isLoading: false,
         rootBommel,
         tree,
+        bommelStats,
+        reset,
         createChildBommel: async (_parentId: number): Promise<number | boolean> => false,
         updateTreeNode: async (_node: BommelTreeNodeModel): Promise<boolean> => false,
-        moveTreeNode: async (_node: BommelTreeNodeModel): Promise<boolean> => false,
+        moveTreeNode,
         deleteTreeNode: async (_id: string | number): Promise<boolean> => false,
-        bommelStats,
     };
 }
 

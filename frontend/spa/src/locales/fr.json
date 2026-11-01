@@ -1270,17 +1270,37 @@
             "range": "{{from}} au {{to}}",
             "panelHint": "Montants pour {{period}}"
         },
-        "gettingStarted": {
-            "title": "Créer la structure",
-            "text": "Les Bommel sont les domaines du club, par exemple des sections, des projets ou des événements. Voici comment construire la structure :",
-            "step1": "Choisir Modifier.",
-            "step2": "Ajouter un domaine au Bommel du haut et le nommer.",
-            "step3": "Ajouter d’autres domaines en dessous, les déplacer par glisser-déposer si besoin.",
-            "start": "Ajouter le premier domaine"
-        },
         "panelHint": {
             "text": "Ici figurent les montants de ce Bommel, les transactions et reçus ouverts ainsi que le lien d’envoi pour déposer des reçus.",
             "dismiss": "Compris"
+        },
+        "guide": {
+            "label": "Introduction",
+            "progress": "Étape {{current}} sur {{total}}",
+            "restart": "Introduction",
+            "skip": "Passer",
+            "back": "Retour",
+            "next": "Suivant",
+            "finish": "Terminé",
+            "example": {
+                "title": "L'exemple",
+                "text": "Voici une structure d'exemple. Chaque case est un Bommel, un domaine du club comme une section, un projet ou un événement. Un clic sur un Bommel ouvre ses détails."
+            },
+            "move": {
+                "title": "Déplacer un Bommel",
+                "text": "Le déplacement est activé. Glisser un Bommel sur un autre pour le placer en dessous. Rien n'est enregistré sur l'exemple."
+            },
+            "sums": {
+                "title": "Comment les montants s’additionnent",
+                "text": "Avec l'interrupteur Inclure les sous-Bommel, chaque Bommel affiche ses propres montants plus ceux de tous les Bommel en dessous. Désactivé, seul ce qui est comptabilisé directement compte. Basculer l'interrupteur et comparer les chiffres."
+            },
+            "own": {
+                "title": "Créer sa propre structure",
+                "text": "Place maintenant à votre propre structure :",
+                "step1": "Choisir Modifier.",
+                "step2": "Ajouter un domaine au Bommel du haut et le nommer.",
+                "start": "Créer le premier Bommel"
+            }
         }
     },
     "bankAccounts": {
