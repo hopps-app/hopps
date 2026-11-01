@@ -30,11 +30,13 @@ import { getErrorBody, getErrorStatus } from '@/utils/errorUtils';
 
 type WizardState = 'drop' | 'previewing' | 'preview' | 'importing' | 'done';
 
-/** Body of the 409 the backend answers when the file's currency does not fit the account (see BankImportRejectedException). */
+/** Body of the 409 the backend answers when the file cannot go into this account (see BankImportRejectedException). */
 type ImportConflict = {
-    code?: 'CURRENCY_MISMATCH';
+    code?: 'CURRENCY_MISMATCH' | 'FILE_ALREADY_IMPORTED';
     fileCurrencies?: string[];
     accountCurrency?: string;
+    accountName?: string;
+    accountArchived?: boolean;
 };
 
 interface ImportWizardProps {
@@ -182,7 +184,7 @@ export function ImportWizard({ accountId, onClose, onViewTransactions }: ImportW
             const result = await startImportMutation.mutateAsync({ accountId, file, schemaId: resolvedSchemaId });
             setImportId(result.id ?? null);
         } catch (error) {
-            // The backend checks the file's currency before queueing it; back to the preview to explain.
+            // The backend checks the file before queueing it; back to the preview to explain.
             setState('preview');
             const body = getErrorStatus(error) === 409 ? getErrorBody<ImportConflict>(error) : undefined;
             if (body?.code === 'CURRENCY_MISMATCH') {
@@ -193,6 +195,13 @@ export function ImportWizard({ accountId, onClose, onViewTransactions }: ImportW
                         (body.fileCurrencies?.length ?? 0) > 1
                             ? t('bankImport.check.mixedCurrencies', { fileCurrencies })
                             : t('bankImport.check.currencyMismatch', { fileCurrencies, accountCurrency: body.accountCurrency }),
+                });
+            } else if (body?.code === 'FILE_ALREADY_IMPORTED') {
+                setStartError({
+                    title: t('bankImport.check.alreadyImportedTitle'),
+                    message: t(body.accountArchived ? 'bankImport.check.alreadyImportedArchived' : 'bankImport.check.alreadyImported', {
+                        account: body.accountName,
+                    }),
                 });
             } else {
                 setStartError({ message: t('bankImport.check.startError') });
@@ -508,7 +517,6 @@ export function ImportWizardDialog({ accountId, open, onOpenChange, onViewTransa
             <DialogContent className="max-w-4xl w-[90vw]">
                 <DialogHeader>
                     <DialogTitle>{t('bankImport.title')}</DialogTitle>
-                    <p className="text-sm text-muted-foreground">{t('bankImport.wizard.dropSubtitle')}</p>
                 </DialogHeader>
                 {accountId != null && (
                     <ImportWizard accountId={accountId} onClose={() => onOpenChange(false)} onViewTransactions={() => onViewTransactions?.(accountId)} />

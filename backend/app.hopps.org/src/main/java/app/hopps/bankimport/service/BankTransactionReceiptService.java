@@ -23,6 +23,7 @@ import app.hopps.transaction.repository.TransactionRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.ClientErrorException;
@@ -35,14 +36,16 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Creates a receipt (Document) together with a pre-filled bookkeeping {@link Transaction} for an existing
  * {@link BankTransaction}, and links all three (Document &harr; Transaction, BankTransaction &harr; Transaction).
  * <p>
  * The transaction is seeded from the bank movement (counterparty &rarr; trade party, amount, purpose &rarr; name) so it
- * can be reconciled immediately. The document is still analysed by the Document-AI; the user later decides per field
- * whether to keep the bank-derived value or the AI-extracted one (see the receipt review screen).
+ * can be reconciled immediately. The document is still analysed by the Document-AI. Once it is, the receipt fills in
+ * what the bank movement cannot know (see {@link #applyAnalysedReceipt}); for everything else the user decides per
+ * field whether to keep the bank-derived value or the AI-extracted one (see the receipt review screen).
  */
 @ApplicationScoped
 public class BankTransactionReceiptService {
@@ -80,6 +83,9 @@ public class BankTransactionReceiptService {
 
     @Inject
     OrganizationContext organizationContext;
+
+    @Inject
+    EntityManager em;
 
     @Transactional
     public DocumentResponse createReceiptForBankTransaction(Long bankTxId, FileUpload file, boolean analyze,
@@ -168,5 +174,52 @@ public class BankTransactionReceiptService {
         LOG.info("Created receipt+transaction for bank transaction: bankTxId={}, documentId={}, transactionId={}",
                 bankTxId, document.getId(), transaction.getId());
         return DocumentResponse.from(document);
+    }
+
+    /**
+     * Takes over what the bank movement cannot know from the analysed receipt onto the DRAFT transaction created when
+     * the receipt was uploaded onto a bank transaction: the tax, and the receipt's name in place of the bank purpose. A
+     * field is only filled while it is empty or still holds the untouched bank value, so nothing the user typed is
+     * overwritten. Amount, date and counterparty stay as the bank has them.
+     * <p>
+     * Applies to a receipt that is not confirmed yet and has exactly one transaction, a draft matched to a bank
+     * transaction. Anything else (a split, a receipt uploaded on the receipts page) is left alone. Runs in the caller's
+     * transaction, without an organization context (the analysis runs in the background).
+     */
+    public void applyAnalysedReceipt(Document document) {
+        if (document.getDocumentStatus() == DocumentStatus.CONFIRMED || document.getTransactions().size() != 1) {
+            return;
+        }
+        Transaction transaction = document.getTransactions().get(0);
+        if (transaction.getStatus() != TransactionStatus.DRAFT) {
+            return;
+        }
+        List<String> bankPurposes = em.createQuery(
+                "SELECT m.bankTransaction.purpose FROM BankTransactionMatch m WHERE m.transaction.id = :txId",
+                String.class)
+                .setParameter("txId", transaction.getId())
+                .getResultList();
+        if (bankPurposes.isEmpty()) {
+            return;
+        }
+
+        Map<String, Object> before = transactionAuditor.snapshot(transaction);
+        boolean changed = false;
+        if (transaction.getTotalTax() == null && document.getTotalTax() != null) {
+            transaction.setTotalTax(document.getTotalTax());
+            changed = true;
+        }
+        String name = transaction.getName();
+        boolean untouchedName = name == null || name.isBlank() || bankPurposes.contains(name);
+        if (untouchedName && document.getName() != null && !document.getName().isBlank()
+                && !document.getName().equals(name)) {
+            transaction.setName(document.getName());
+            changed = true;
+        }
+        if (changed) {
+            transactionAuditor.updated(transaction, before);
+            LOG.info("Applied analysed receipt to its bank draft: documentId={}, transactionId={}", document.getId(),
+                    transaction.getId());
+        }
     }
 }

@@ -7,6 +7,12 @@
 @config '../../tailwind.config.js';
 
 @layer base {
+    /* Tailwind 4 no longer gives buttons a pointer cursor. */
+    button:not(:disabled),
+    [role='button']:not(:disabled) {
+        cursor: pointer;
+    }
+
     h1 {
         @apply text-2xl;
     }

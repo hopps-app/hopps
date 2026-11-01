@@ -1,5 +1,6 @@
 package app.hopps.bankimport.service;
 
+import app.hopps.bankimport.audit.BankTransactionAuditor;
 import app.hopps.bankimport.domain.BankTransaction;
 import app.hopps.bankimport.domain.BankTransactionMatch;
 import app.hopps.bankimport.domain.BankTransactionMatchType;
@@ -10,6 +11,7 @@ import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.audit.TransactionAuditor;
 import app.hopps.transaction.domain.Transaction;
+import app.hopps.transaction.repository.TransactionRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -31,6 +33,9 @@ public class BankTransactionMatchService {
     BankTransactionRepository bankTransactionRepository;
 
     @Inject
+    TransactionRepository transactionRepository;
+
+    @Inject
     EntityManager em;
 
     @Inject
@@ -38,6 +43,9 @@ public class BankTransactionMatchService {
 
     @Inject
     TransactionAuditor transactionAuditor;
+
+    @Inject
+    BankTransactionAuditor bankTransactionAuditor;
 
     @Transactional
     public void addMatch(Long bankTxId, Long transactionId, String username) {
@@ -60,9 +68,14 @@ public class BankTransactionMatchService {
             throw new BadRequestException("Cannot match an ignored bank transaction");
         }
 
-        Transaction tx = em.find(Transaction.class, transactionId);
+        // Scoped like the bank transaction, so a movement can only be linked to a transaction of the same organization.
+        Transaction tx = transactionRepository.findByIdScoped(transactionId);
         if (tx == null) {
             throw new NotFoundException("Transaction not found");
+        }
+
+        if (isLinked(bankTxId, transactionId)) {
+            return;
         }
 
         boolean manual = requestedAmount != null;
@@ -75,10 +88,6 @@ public class BankTransactionMatchService {
         if (!manual && tx.getTotal() == null) {
             tx.setTotal(bankTx.getAmount());
             adoptedTotal = true;
-        }
-
-        if (isLinked(bankTxId, transactionId)) {
-            return;
         }
 
         // matchedAmount is the covered magnitude (always positive). Both bank amount and transaction total share the
@@ -151,6 +160,27 @@ public class BankTransactionMatchService {
             transactionAuditor.linked(part, bankTx.getId(), allocation, partial, false);
             remaining = remaining.subtract(allocation);
         }
+    }
+
+    /**
+     * The same as {@link #linkOtherReceiptParts} for a receipt that was split after it was linked, as in the bank
+     * drawer. Splitting turns the receipt's one transaction into several. If the bank movement linked to one of them
+     * has the amount of the whole receipt, it paid all of them, so it gets linked to the other transactions as well. A
+     * movement of another amount stays linked to its one transaction only.
+     */
+    @Transactional
+    public void linkOtherParts(Document document, String username) {
+        List<BankTransactionMatch> matches = em.createQuery(
+                "SELECT m FROM BankTransactionMatch m WHERE m.transaction.document.id = :documentId",
+                BankTransactionMatch.class)
+                .setParameter("documentId", document.getId())
+                .getResultList();
+        Map<BankTransaction, Transaction> linkedPartByMovement = new HashMap<>();
+        matches.forEach(match -> linkedPartByMovement.putIfAbsent(match.getBankTransaction(), match.getTransaction()));
+        linkedPartByMovement.forEach((bankTx, part) -> {
+            linkOtherReceiptParts(bankTx, part, username);
+            recomputeStatus(bankTx);
+        });
     }
 
     private boolean isLinked(Long bankTxId, Long transactionId) {
@@ -338,8 +368,10 @@ public class BankTransactionMatchService {
         if (bankTx == null) {
             throw new NotFoundException("Bank transaction not found");
         }
+        BankTransactionStatus before = bankTx.getStatus();
         bankTx.setStatus(BankTransactionStatus.IGNORED);
         bankTx.setMatchedAmount(BigDecimal.ZERO);
+        bankTransactionAuditor.ignored(bankTx, before);
     }
 
     @Transactional
@@ -348,7 +380,11 @@ public class BankTransactionMatchService {
         if (bankTx == null) {
             throw new NotFoundException("Bank transaction not found");
         }
+        BankTransactionStatus before = bankTx.getStatus();
         recomputeStatus(bankTx);
+        if (before == BankTransactionStatus.IGNORED) {
+            bankTransactionAuditor.unignored(bankTx, before);
+        }
     }
 
     /**

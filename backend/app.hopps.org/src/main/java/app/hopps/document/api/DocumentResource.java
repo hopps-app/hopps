@@ -476,9 +476,9 @@ public class DocumentResource {
 
         String principal = securityIdentity.getPrincipal().getName();
 
-        // If a transaction is already linked (e.g. the document was created from a bank transaction), do not create a
-        // second one — the user has reconciled the values onto the existing transaction; just mark the document
-        // reviewed.
+        // A transaction can already be linked: a split saved as draft, or a receipt uploaded onto a bank transaction,
+        // which gets its DRAFT transaction, already matched, at upload time. Keep it instead of creating a second one,
+        // and only mark the document confirmed.
         if (document.hasLinkedTransactions()) {
             applyCategoryValues(document.getTransactions().get(0), request);
             DocumentStatus previousStatus = document.getDocumentStatus();
