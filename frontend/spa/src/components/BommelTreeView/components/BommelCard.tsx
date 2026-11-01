@@ -69,6 +69,8 @@ export function BommelCard({
     }, [autoEdit]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleClick = () => {
+        // While bommels can be moved, pressing one starts a drag: the click that ends it must not open the details.
+        if (dragDropEnabled && !isRoot) return;
         if (!isEditing && onNodeClick && node.attributes) {
             onNodeClick({ name: node.name, attributes: node.attributes });
         }
