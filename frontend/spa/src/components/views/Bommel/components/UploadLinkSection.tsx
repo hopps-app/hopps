@@ -99,7 +99,7 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                                 value={url}
                                 aria-label={t('bommel.uploadLink.title')}
                                 onFocus={(e) => e.currentTarget.select()}
-                                className="min-w-0 flex-1 rounded-[10px] border border-border-soft bg-[var(--surface-sunken)] px-2.5 py-1.5 text-[12px] font-semibold text-foreground"
+                                className="min-w-0 flex-1 rounded-[10px] border border-border-soft bg-[var(--surface-sunken)] px-2.5 py-1.5 text-[12px] font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                             />
                             <Button variant="outline" size="icon" onClick={copy} aria-label={t('bommel.uploadLink.copy')}>
                                 <Copy size={14} />
@@ -149,7 +149,7 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                             min={todayIso()}
                             value={expiresOn}
                             onChange={(e) => setExpiresOn(e.target.value)}
-                            className="rounded-[10px] border border-border-soft bg-transparent px-2.5 py-2 text-[14px] font-semibold text-foreground"
+                            className="rounded-[10px] border border-border-soft bg-transparent px-2.5 py-2 text-[14px] font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary [&::-webkit-datetime-edit-day-field:focus]:bg-primary [&::-webkit-datetime-edit-day-field:focus]:text-white [&::-webkit-datetime-edit-month-field:focus]:bg-primary [&::-webkit-datetime-edit-month-field:focus]:text-white [&::-webkit-datetime-edit-year-field:focus]:bg-primary [&::-webkit-datetime-edit-year-field:focus]:text-white"
                         />
                     </label>
                     <DialogFooter>
