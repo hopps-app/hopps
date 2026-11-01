@@ -93,37 +93,15 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                     {url && <InfoTooltip content={t('bommel.uploadLink.scope')} label={t('bommel.uploadLink.scope')} size={14} />}
                 </div>
                 {url && link && (
-                    <div className="flex items-center gap-1">
-                        <span title={link.expired ? t('bommel.uploadLink.expired') : undefined}>
-                            <Badge tone={link.expired ? 'neg' : 'neutral'}>
-                                {link.expired
-                                    ? t('bommel.uploadLink.expiredBadge')
-                                    : link.expiresAt
-                                      ? t('bommel.uploadLink.validUntil', { date: fmtDate(link.expiresAt) })
-                                      : t('bommel.uploadLink.noExpiry')}
-                            </Badge>
-                        </span>
-                        <HintTooltip content={t('bommel.uploadLink.regenerate')}>
-                            <button
-                                type="button"
-                                onClick={() => setConfirm('regenerate')}
-                                aria-label={t('bommel.uploadLink.regenerate')}
-                                className="grid h-7 w-7 place-items-center rounded-[var(--btn-radius)] text-muted-foreground transition-colors hover:bg-[var(--surface-sunken)] hover:text-foreground"
-                            >
-                                <RefreshCw size={15} aria-hidden="true" />
-                            </button>
-                        </HintTooltip>
-                        <HintTooltip content={t('bommel.uploadLink.revoke')}>
-                            <button
-                                type="button"
-                                onClick={() => setConfirm('revoke')}
-                                aria-label={t('bommel.uploadLink.revoke')}
-                                className="grid h-7 w-7 place-items-center rounded-[var(--btn-radius)] text-muted-foreground transition-colors hover:bg-[var(--surface-sunken)] hover:text-[var(--negative)]"
-                            >
-                                <Trash2 size={15} aria-hidden="true" />
-                            </button>
-                        </HintTooltip>
-                    </div>
+                    <span title={link.expired ? t('bommel.uploadLink.expired') : undefined}>
+                        <Badge tone={link.expired ? 'neg' : 'neutral'}>
+                            {link.expired
+                                ? t('bommel.uploadLink.expiredBadge')
+                                : link.expiresAt
+                                  ? t('bommel.uploadLink.validUntil', { date: fmtDate(link.expiresAt) })
+                                  : t('bommel.uploadLink.noExpiry')}
+                        </Badge>
+                    </span>
                 )}
             </div>
 
@@ -140,9 +118,37 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                             <Copy size={15} />
                             {t('bommel.uploadLink.copy')}
                         </Button>
-                        <Button variant="tonal" size="icon" onClick={() => setQrOpen(true)} aria-label={t('bommel.uploadLink.showQr')}>
+                        <Button
+                            variant="tonal"
+                            size="icon"
+                            className="h-10 w-10 shrink-0"
+                            onClick={() => setQrOpen(true)}
+                            aria-label={t('bommel.uploadLink.showQr')}
+                        >
                             <QrCode size={16} />
                         </Button>
+                        <HintTooltip content={t('bommel.uploadLink.regenerate')}>
+                            <Button
+                                variant="tonal"
+                                size="icon"
+                                className="h-10 w-10 shrink-0"
+                                onClick={() => setConfirm('regenerate')}
+                                aria-label={t('bommel.uploadLink.regenerate')}
+                            >
+                                <RefreshCw size={16} />
+                            </Button>
+                        </HintTooltip>
+                        <HintTooltip content={t('bommel.uploadLink.revoke')}>
+                            <Button
+                                variant="tonal"
+                                size="icon"
+                                className="h-10 w-10 shrink-0 text-[var(--negative)]"
+                                onClick={() => setConfirm('revoke')}
+                                aria-label={t('bommel.uploadLink.revoke')}
+                            >
+                                <Trash2 size={16} />
+                            </Button>
+                        </HintTooltip>
                     </div>
                 </div>
             ) : (
