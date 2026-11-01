@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { isValidRange, yearOptions, type Period } from '../period';
 
-import { inputCls } from '@/components/Transactions/drawerParts';
+import { inputCls, pickerFocusCls } from '@/components/Transactions/drawerParts';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { BaseSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/shadecn/BaseSelect';
 import { useTransactions } from '@/hooks/queries/useTransactions';
@@ -79,7 +79,7 @@ export function PeriodField({ period, onChange }: PeriodFieldProps) {
                 <InfoTooltip content={t('bommel.period.info')} label={t('bommel.period.info')} />
             </div>
             <BaseSelect value={selectValue} onValueChange={handleSelect}>
-                <SelectTrigger id={id} className="h-9 w-[170px] rounded-[10px] border-border-soft bg-background-secondary font-semibold">
+                <SelectTrigger id={id} className={cn('h-9 w-[170px] rounded-[10px] border-border-soft bg-background-secondary font-semibold', pickerFocusCls)}>
                     <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
