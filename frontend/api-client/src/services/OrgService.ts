@@ -14,7 +14,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8101";
+        this.baseUrl = baseUrl ?? "http://localhost:8080";
     }
 
     /**
@@ -5697,10 +5697,12 @@ export class Client {
      * Get bommel statistics
      * @param bommelId The bommel ID
      * @param aggregate (optional) Whether to aggregate statistics from all child bommels
+     * @param endDate (optional) Only transactions up to and including this date (yyyy-MM-dd)
      * @param includeDrafts (optional) Whether to include draft transactions in the statistics
+     * @param startDate (optional) Only transactions on or after this date (yyyy-MM-dd)
      * @return Bommel statistics
      */
-    bommels(bommelId: number, aggregate: boolean | undefined, includeDrafts: boolean | undefined): Promise<BommelStatistics> {
+    bommels(bommelId: number, aggregate: boolean | undefined, endDate: string | undefined, includeDrafts: boolean | undefined, startDate: string | undefined): Promise<BommelStatistics> {
         let url_ = this.baseUrl + "/statistics/bommels/{bommelId}?";
         if (bommelId === undefined || bommelId === null)
             throw new globalThis.Error("The parameter 'bommelId' must be defined.");
@@ -5709,10 +5711,18 @@ export class Client {
             throw new globalThis.Error("The parameter 'aggregate' cannot be null.");
         else if (aggregate !== undefined)
             url_ += "aggregate=" + encodeURIComponent("" + aggregate) + "&";
+        if (endDate === null)
+            throw new globalThis.Error("The parameter 'endDate' cannot be null.");
+        else if (endDate !== undefined)
+            url_ += "endDate=" + encodeURIComponent("" + endDate) + "&";
         if (includeDrafts === null)
             throw new globalThis.Error("The parameter 'includeDrafts' cannot be null.");
         else if (includeDrafts !== undefined)
             url_ += "includeDrafts=" + encodeURIComponent("" + includeDrafts) + "&";
+        if (startDate === null)
+            throw new globalThis.Error("The parameter 'startDate' cannot be null.");
+        else if (startDate !== undefined)
+            url_ += "startDate=" + encodeURIComponent("" + startDate) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -5736,6 +5746,10 @@ export class Client {
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result200 = BommelStatistics.fromJS(resultData200);
             return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A date is not in the format yyyy-MM-dd", status, _responseText, _headers);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
@@ -5816,10 +5830,12 @@ export class Client {
      * Get statistics for all bommels in an organization
      * @param orgId The organization ID
      * @param aggregate (optional) Whether to aggregate statistics from all child bommels
+     * @param endDate (optional) Only transactions up to and including this date (yyyy-MM-dd)
      * @param includeDrafts (optional) Whether to include draft transactions in the statistics
+     * @param startDate (optional) Only transactions on or after this date (yyyy-MM-dd)
      * @return Map of bommel statistics
      */
-    bommels2(orgId: number, aggregate: boolean | undefined, includeDrafts: boolean | undefined): Promise<BommelStatisticsMap> {
+    bommels2(orgId: number, aggregate: boolean | undefined, endDate: string | undefined, includeDrafts: boolean | undefined, startDate: string | undefined): Promise<BommelStatisticsMap> {
         let url_ = this.baseUrl + "/statistics/organizations/{orgId}/bommels?";
         if (orgId === undefined || orgId === null)
             throw new globalThis.Error("The parameter 'orgId' must be defined.");
@@ -5828,10 +5844,18 @@ export class Client {
             throw new globalThis.Error("The parameter 'aggregate' cannot be null.");
         else if (aggregate !== undefined)
             url_ += "aggregate=" + encodeURIComponent("" + aggregate) + "&";
+        if (endDate === null)
+            throw new globalThis.Error("The parameter 'endDate' cannot be null.");
+        else if (endDate !== undefined)
+            url_ += "endDate=" + encodeURIComponent("" + endDate) + "&";
         if (includeDrafts === null)
             throw new globalThis.Error("The parameter 'includeDrafts' cannot be null.");
         else if (includeDrafts !== undefined)
             url_ += "includeDrafts=" + encodeURIComponent("" + includeDrafts) + "&";
+        if (startDate === null)
+            throw new globalThis.Error("The parameter 'startDate' cannot be null.");
+        else if (startDate !== undefined)
+            url_ += "startDate=" + encodeURIComponent("" + startDate) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
