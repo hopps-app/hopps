@@ -7,6 +7,7 @@ import { AccountDot, AccountMultiSelect } from '@/components/BankAccounts/Accoun
 import { FilterBadge } from '@/components/Transactions/FilterBadge';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import type { BankTxFilterState } from '@/hooks/useBankTxFilters';
+import { FILTER_HINT, cn } from '@/lib/utils';
 
 const inputCls =
     'w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-2.5 py-1.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-colors';
@@ -17,9 +18,20 @@ const isoToDe = (iso: string) => iso.split('-').reverse().join('.');
 /**
  * Renders the search box plus a toggle that reveals the column filters (booking-date range and amount-magnitude range)
  * for a bank-transaction feed. Filter changes propagate immediately (no debounce, matching the detail-view search). With
- * `accounts`, for a feed spanning several accounts, the panel also narrows it by account.
+ * `accounts`, for a feed spanning several accounts, the panel also narrows it by account. With `highlight`, whatever is
+ * filled in blinks, to point out filters left over from an earlier visit.
  */
-export function BankTxFilterBar({ filters, accounts = [], actions }: { filters: BankTxFilterState; accounts?: BankAccountResponse[]; actions?: ReactNode }) {
+export function BankTxFilterBar({
+    filters,
+    accounts = [],
+    actions,
+    highlight = false,
+}: {
+    filters: BankTxFilterState;
+    accounts?: BankAccountResponse[];
+    actions?: ReactNode;
+    highlight?: boolean;
+}) {
     const { t } = useTranslation();
     // Auto-open the panel when a cached column filter is already active, so the user sees why the list is narrowed.
     const [open, setOpen] = useState(filters.columnFilterCount > 0);
@@ -66,7 +78,10 @@ export function BankTxFilterBar({ filters, accounts = [], actions }: { filters: 
                         value={filters.search}
                         onChange={(e) => filters.setSearch(e.target.value)}
                         placeholder={t('konten.filter.searchPlaceholder')}
-                        className="h-11 w-full rounded-xl border border-border-soft bg-[var(--background-secondary)] pl-[38px] pr-9 text-[14.5px] text-foreground transition-shadow placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-surface)]"
+                        className={cn(
+                            'h-11 w-full rounded-xl border border-border-soft bg-[var(--background-secondary)] pl-[38px] pr-9 text-[14.5px] text-foreground transition-shadow placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-[var(--accent-surface)]',
+                            highlight && filters.search.trim() && FILTER_HINT
+                        )}
                     />
                     {filters.search && (
                         <button
@@ -85,7 +100,10 @@ export function BankTxFilterBar({ filters, accounts = [], actions }: { filters: 
                     type="button"
                     onClick={() => setOpen((o) => !o)}
                     aria-expanded={open}
-                    className="inline-flex h-11 items-center gap-[7px] whitespace-nowrap font-semibold transition-colors"
+                    className={cn(
+                        'inline-flex h-11 items-center gap-[7px] whitespace-nowrap font-semibold transition-colors',
+                        highlight && filters.columnFilterCount > 0 && FILTER_HINT
+                    )}
                     style={{
                         fontSize: 13.5,
                         padding: '0 14px',
@@ -166,7 +184,7 @@ export function BankTxFilterBar({ filters, accounts = [], actions }: { filters: 
             {activeFilters.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2">
                     {activeFilters.map((f) => (
-                        <FilterBadge key={f.key} label={f.label} onRemove={f.clear} />
+                        <FilterBadge key={f.key} label={f.label} onRemove={f.clear} className={highlight ? FILTER_HINT : undefined} />
                     ))}
                     <BaseButton
                         variant="ghost"

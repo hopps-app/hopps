@@ -1462,12 +1462,12 @@
             "deleteTitle": "Dieses Konto löschen?",
             "deleteText": "Das Konto hat keine Importe und keine Umsätze. Es wird endgültig gelöscht.",
             "archiveTitle": "Dieses Konto archivieren?",
-            "archiveText": "Das Konto hat Importe oder Umsätze und kann deshalb nicht gelöscht werden. Es wird ausgeblendet, alle Daten bleiben erhalten, und es lässt sich jederzeit wiederherstellen.",
+            "archiveText": "Das Konto hat Importe oder Umsätze und kann deshalb nicht gelöscht werden. Es wird ausgeblendet, alle Daten bleiben erhalten, und es lässt sich jederzeit wiederherstellen. Zum vollständigen Löschen des Kontos müssen zuerst alle Importe gelöscht werden.",
             "ibanArchived": "Diese IBAN gehört zum archivierten Konto „{{name}}“.",
             "restoreAccount": "Konto wiederherstellen",
             "restoreIbanInUse": "Ein aktives Konto nutzt bereits diese IBAN.",
             "archiveBlocked": "Dieses Konto hat zugeordnete Umsätze und lässt sich deshalb nicht archivieren.",
-            "archiveOpenWarning": "Noch offene Umsätze: {{count}}. Diese werden aus dem Abgleich ausgeblendet und sind nach dem Wiederherstellen wieder sichtbar.",
+            "archiveOpenWarning": "Noch offene Umsätze: {{count}}. Diese werden ausgeblendet und sind nach dem Wiederherstellen wieder sichtbar.",
             "archivedTitle": "Archivierte Konten ({{count}})",
             "restore": "Wiederherstellen"
         },
@@ -1482,7 +1482,7 @@
         "assign": "Zuordnen",
         "unknownCounterparty": "Unbekannt",
         "tabs": {
-            "abgleich": "Abgleich",
+            "all": "Alle",
             "importe": "Importe"
         },
         "status": {
@@ -1508,9 +1508,6 @@
             "clearAll": "Filter zurücksetzen"
         },
         "abgleich": {
-            "allMatched": "Alles zugeordnet.",
-            "openTitle_one": "offener Umsatz",
-            "openTitle_other": "offene Umsätze",
             "noData": "Noch keine Umsätze",
             "noDataDesc": "Einen Kontoauszug importieren, um den Abgleich zu starten."
         },
@@ -1521,7 +1518,6 @@
             "status": "Status"
         },
         "pagination": {
-            "page": "Seite {{page}}",
             "pageOf": "Seite {{page}} von {{total}}"
         },
         "imports": {

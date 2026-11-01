@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { ABGLEICH_COLUMNS } from '@/components/BankAccounts/kontenLayout';
+import { ALL_TX_COLUMNS } from '@/components/BankAccounts/kontenLayout';
 import { Skeleton } from '@/components/Dashboard/SectionState';
 import { cn } from '@/lib/utils';
 
@@ -89,8 +89,8 @@ export function KontenTableSkeleton({
 }
 
 /**
- * Whole-page placeholder while the page's code or the accounts load: title, account pills, tab bar and the Abgleich
- * table (the default tab).
+ * Whole-page placeholder while the page's code or the accounts load: title, account pills, tab bar and the table of
+ * the "Alle" tab.
  */
 export function KontenPageSkeleton() {
     return (
@@ -102,7 +102,7 @@ export function KontenPageSkeleton() {
                 ))}
             </div>
             <Skeleton className="h-9 w-80 rounded-xl" />
-            <KontenTableSkeleton columns={ABGLEICH_COLUMNS} cells={['date', 'text', 'twoLines', 'amount', 'pill', 'button']} />
+            <KontenTableSkeleton columns={ALL_TX_COLUMNS} cells={['date', 'text', 'twoLines', 'amount', 'pill', 'button']} />
         </div>
     );
 }

@@ -1430,12 +1430,12 @@
             "deleteTitle": "Supprimer ce compte ?",
             "deleteText": "Ce compte n'a ni importation ni opération. Il sera supprimé définitivement.",
             "archiveTitle": "Archiver ce compte ?",
-            "archiveText": "Ce compte a des importations ou des opérations et ne peut donc pas être supprimé. Il sera masqué, toutes les données sont conservées et il peut être restauré à tout moment.",
+            "archiveText": "Ce compte a des importations ou des opérations et ne peut donc pas être supprimé. Il sera masqué, toutes les données sont conservées et il peut être restauré à tout moment. Pour supprimer complètement le compte, il faut d'abord supprimer toutes ses importations.",
             "ibanArchived": "Cet IBAN appartient au compte archivé « {{name}} ».",
             "restoreAccount": "Restaurer le compte",
             "restoreIbanInUse": "Un compte actif utilise déjà cet IBAN.",
             "archiveBlocked": "Ce compte a des opérations affectées et ne peut donc pas être archivé.",
-            "archiveOpenWarning": "Opérations ouvertes : {{count}}. Elles seront masquées du rapprochement et réapparaîtront à la restauration du compte.",
+            "archiveOpenWarning": "Opérations ouvertes : {{count}}. Elles seront masquées et réapparaîtront à la restauration du compte.",
             "archivedTitle": "Comptes archivés ({{count}})",
             "restore": "Restaurer"
         },
@@ -1453,7 +1453,7 @@
         "assign": "Affecter",
         "unknownCounterparty": "Inconnue",
         "tabs": {
-            "abgleich": "Rapprochement",
+            "all": "Tous",
             "importe": "Imports"
         },
         "status": {
@@ -1496,7 +1496,6 @@
             "status": "Statut"
         },
         "pagination": {
-            "page": "Page {{page}}",
             "pageOf": "Page {{page}} sur {{total}}"
         },
         "imports": {

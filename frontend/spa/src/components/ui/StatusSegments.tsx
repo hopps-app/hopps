@@ -1,5 +1,7 @@
 import { Fragment } from 'react';
 
+import { FILTER_HINT, cn } from '@/lib/utils';
+
 export interface StatusSegment<T extends string> {
     id: T;
     label: string;
@@ -15,13 +17,15 @@ interface StatusSegmentsProps<T extends string> {
     selected: T[];
     onToggle: (id: T) => void;
     ariaLabel: string;
+    /** Lets the selected segments blink, e.g. when they are left over from an earlier visit. */
+    highlight?: boolean;
 }
 
 /**
  * Multi-select status filter: independent toggles with a count badge each, no "all" segment. Nothing selected means
  * every status. A hairline between the segments reads as one filter group rather than a tab row.
  */
-export function StatusSegments<T extends string>({ segments, selected, onToggle, ariaLabel }: StatusSegmentsProps<T>) {
+export function StatusSegments<T extends string>({ segments, selected, onToggle, ariaLabel, highlight = false }: StatusSegmentsProps<T>) {
     return (
         <div
             role="group"
@@ -44,7 +48,7 @@ export function StatusSegments<T extends string>({ segments, selected, onToggle,
                             type="button"
                             aria-pressed={on}
                             onClick={() => onToggle(seg.id)}
-                            className="inline-flex h-9 items-center gap-[7px] px-4 font-bold transition-colors"
+                            className={cn('inline-flex h-9 items-center gap-[7px] px-4 font-bold transition-colors', highlight && on && FILTER_HINT)}
                             style={{
                                 fontSize: 13.5,
                                 borderRadius: 'var(--btn-radius)',

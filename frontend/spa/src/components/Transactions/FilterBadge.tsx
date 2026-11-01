@@ -3,13 +3,17 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { FONT } from '@/components/Transactions/layout';
+import { cn } from '@/lib/utils';
 
 /** Removable badge for one active filter. */
-export function FilterBadge({ label, onRemove }: { label: ReactNode; onRemove: () => void }) {
+export function FilterBadge({ label, onRemove, className }: { label: ReactNode; onRemove: () => void; className?: string }) {
     const { t } = useTranslation();
     return (
         <span
-            className="inline-flex cursor-default items-center gap-2 rounded-[var(--btn-radius)] border py-1.5 pl-3 pr-2 text-[13px] font-semibold"
+            className={cn(
+                'inline-flex cursor-default items-center gap-2 rounded-[var(--btn-radius)] border py-1.5 pl-3 pr-2 text-[13px] font-semibold',
+                className
+            )}
             style={{
                 fontFamily: FONT,
                 background: 'var(--accent-surface)',

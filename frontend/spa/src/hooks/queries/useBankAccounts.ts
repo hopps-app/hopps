@@ -65,16 +65,7 @@ export interface BankTxFilter {
 
 export const bankTransactionKeys = {
     all: ['bankTransactions'] as const,
-    byAccount: (
-        accountId: number,
-        page?: number,
-        size?: number,
-        status?: string,
-        sort?: BankTransactionSortField,
-        direction?: SortDirection,
-        filter?: BankTxFilter
-    ) => [...bankTransactionKeys.all, 'account', accountId, { page, size, status, sort, direction, ...filter }] as const,
-    // Cross-account listing (all accounts when accountIds is omitted).
+    // Listing across the accounts in accountIds, all of them when it is omitted.
     list: (status?: string, page?: number, size?: number, sort?: BankTransactionSortField, direction?: SortDirection, filter?: BankTxFilter) =>
         [...bankTransactionKeys.all, 'list', { status, page, size, sort, direction, ...filter }] as const,
     // Aggregate totals + true (uncapped) count for a filter set.
@@ -529,41 +520,9 @@ export function useIgnoreBankTransaction() {
     });
 }
 
-export function useBankTransactionsByAccount(
-    accountId: number,
-    page = 0,
-    size = 50,
-    status?: string,
-    sort: BankTransactionSortField = 'bookingDate',
-    direction: SortDirection = 'desc',
-    filter: BankTxFilter = {}
-) {
-    return useQuery({
-        queryKey: bankTransactionKeys.byAccount(accountId, page, size, status, sort, direction, filter),
-        queryFn: () =>
-            apiService.orgService.byAccount(
-                accountId,
-                filter.dateFrom || undefined,
-                filter.dateTo || undefined,
-                direction,
-                filter.maxAmount || undefined,
-                filter.minAmount || undefined,
-                page,
-                filter.search || undefined,
-                size,
-                sort,
-                status
-            ),
-        enabled: !!accountId,
-        // Keep the current rows on screen while a changed filter/page/sort refetches, so the list (and the search box
-        // above it) never blanks out into the loading state between keystrokes.
-        placeholderData: keepPreviousData,
-    });
-}
-
 /**
- * Cross-account bank transaction listing (all accounts) with server-side paging. Used by the reconciliation feed so
- * that more than one page of open transactions can be reached.
+ * Bank transaction listing with server-side paging, across the accounts in {@code filter.accountIds} or all of them
+ * when it is left out.
  */
 export function useAllBankTransactions(
     status: string | undefined,
@@ -589,8 +548,8 @@ export function useAllBankTransactions(
                 sort,
                 status
             ),
-        // Keep the previous page/filter results visible while the changed query refetches (see byAccount above), so the
-        // reconciliation feed and its filter bar don't collapse into the full-page loading state on every keystroke.
+        // Keep the previous page/filter results visible while the changed query refetches, so the list (and the search box
+        // above it) never blanks out into the loading state between keystrokes.
         placeholderData: keepPreviousData,
     });
 }

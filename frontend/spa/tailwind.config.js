@@ -91,10 +91,16 @@ export default {
                 // A progress segment growing to its width, which is set inline.
                 'segment-in': { from: { width: '0' } },
                 'segment-out': { to: { width: '0' } },
+                // A ring pulsing around a filter, to point out that it is set.
+                'filter-hint': {
+                    '0%, 100%': { boxShadow: '0 0 0 0 color-mix(in oklch, var(--primary) 0%, transparent)' },
+                    '50%': { boxShadow: '0 0 0 3px color-mix(in oklch, var(--primary) 70%, transparent)' },
+                },
             },
             animation: {
                 'segment-in': 'segment-in 320ms ease-out',
                 'segment-out': 'segment-out 320ms ease-out forwards',
+                'filter-hint': 'filter-hint 600ms ease-in-out 3',
             },
         },
     },

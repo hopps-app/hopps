@@ -1463,12 +1463,12 @@
             "deleteTitle": "Delete this account?",
             "deleteText": "This account has no imports and no transactions. It will be deleted permanently.",
             "archiveTitle": "Archive this account?",
-            "archiveText": "This account has imports or transactions, so it cannot be deleted. It will be hidden, all data stays, and you can restore it at any time.",
+            "archiveText": "This account has imports or transactions, so it cannot be deleted. It will be hidden, all data stays, and you can restore it at any time. To delete the account completely, delete all of its imports first.",
             "ibanArchived": "This IBAN belongs to the archived account “{{name}}”.",
             "restoreAccount": "Restore account",
             "restoreIbanInUse": "An active account already uses this IBAN.",
             "archiveBlocked": "This account has assigned bank transactions, so it cannot be archived.",
-            "archiveOpenWarning": "Open bank transactions: {{count}}. They will be hidden from the reconciliation list and come back when the account is restored.",
+            "archiveOpenWarning": "Open bank transactions: {{count}}. They will be hidden and come back when the account is restored.",
             "archivedTitle": "Archived accounts ({{count}})",
             "restore": "Restore"
         },
@@ -1483,7 +1483,7 @@
         "assign": "Assign",
         "unknownCounterparty": "Unknown",
         "tabs": {
-            "abgleich": "Reconciliation",
+            "all": "All",
             "importe": "Imports"
         },
         "status": {
@@ -1510,10 +1510,7 @@
         },
         "abgleich": {
             "noData": "No transactions yet",
-            "noDataDesc": "Import a bank statement to start reconciliation.",
-            "allMatched": "Everything is assigned.",
-            "openTitle_one": "open transaction",
-            "openTitle_other": "open transactions"
+            "noDataDesc": "Import a bank statement to start reconciliation."
         },
         "table": {
             "date": "Date",
@@ -1522,7 +1519,6 @@
             "status": "Status"
         },
         "pagination": {
-            "page": "Page {{page}}",
             "pageOf": "Page {{page}} of {{total}}"
         },
         "imports": {

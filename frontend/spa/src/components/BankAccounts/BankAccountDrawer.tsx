@@ -119,7 +119,7 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRe
     // Linked movements keep the account: it can be neither deleted nor archived.
     const linked = account?.linked === true;
     const removeLabel = t(deletable ? 'konten.accountActions.delete' : 'konten.accountActions.archive');
-    // Open movements leave the Abgleich list with the account, so the confirmation points them out.
+    // Open movements leave the lists with the account, so the confirmation points them out.
     const openAggregate = useBankTransactionAggregate(
         account?.id != null ? String(account.id) : undefined,
         'UNMATCHED,PARTIALLY_MATCHED',

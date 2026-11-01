@@ -1,6 +1,6 @@
 import { BankAccountResponse, IBankImportResponse } from '@hopps/api-client';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
-import { Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Edit, Landmark, Plus, Search, Sheet, Trash2, Unlink, Upload } from 'lucide-react';
+import { Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Edit, Landmark, Plus, Search, Sheet, Trash2, Upload } from 'lucide-react';
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
@@ -10,8 +10,9 @@ import { BankAccountDrawer } from '@/components/BankAccounts/BankAccountDrawer';
 import { BANK_STATUS_STYLE, BankStatusBadge, type BankTransactionStatusValue } from '@/components/BankAccounts/BankStatusBadge';
 import { BankTxFilterBar } from '@/components/BankAccounts/BankTxFilterBar';
 import { ImportWizardDialog } from '@/components/BankAccounts/ImportWizard';
-import { ABGLEICH_COLUMNS, ACCOUNT_TX_COLUMNS, IMPORT_COLUMNS } from '@/components/BankAccounts/kontenLayout';
+import { ACCOUNT_TX_COLUMNS, ALL_TX_COLUMNS, IMPORT_COLUMNS } from '@/components/BankAccounts/kontenLayout';
 import { KontenPageSkeleton, KontenTableSkeleton } from '@/components/BankAccounts/KontenSkeleton';
+import { ALL_TAB, IMPORTS_TAB, hasAllTab, resolveKontenTab, type KontenTabId } from '@/components/BankAccounts/kontenTabs';
 import { MatchDrawer } from '@/components/BankAccounts/MatchDrawer';
 import { NextStepCard, TableEmptyState } from '@/components/common';
 import { Badge, type BadgeTone } from '@/components/Transactions/StatusBadge';
@@ -27,7 +28,6 @@ import {
     useBankAccounts,
     useRestoreBankAccount,
     useDeleteBankAccount,
-    useBankTransactionsByAccount,
     useAllBankTransactions,
     useBankTransactionAggregate,
     useRollbackImport,
@@ -39,6 +39,7 @@ import type { SortDirection } from '@/hooks/queries/useTransactions';
 import { useCurrency } from '@/hooks/use-currency';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useBankTxFilters } from '@/hooks/useBankTxFilters';
+import { useFilterHint } from '@/hooks/useFilterHint';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService';
@@ -250,255 +251,73 @@ function AccountPill({ account, openCount, active, onClick }: { account: BankAcc
     );
 }
 
-// ─── Abgleich Tab ─────────────────────────────────────────────────────────────
+// ─── Transactions Tab ─────────────────────────────────────────────────────────
 
-const ABGLEICH_PAGE_SIZE = 25;
-
-function AbgleichTab({ accounts, onOpenDrawer }: { accounts: BankAccountResponse[]; onOpenDrawer: (id: number) => void }) {
-    const { t } = useTranslation();
-    const { format } = useCurrency();
-    const [page, setPage] = useState(0);
-    const [sortBy, setSortBy] = usePersistedState<BankTransactionSortField>('hopps.konten.abgleich.sortBy', 'bookingDate');
-    const [sortDir, setSortDir] = usePersistedState<SortDirection>('hopps.konten.abgleich.sortDir', 'desc');
-    const filters = useBankTxFilters('hopps.konten.abgleich', accounts);
-
-    // Server-side filtering narrows the feed across all pages, so reset to the first page when a filter value changes.
-    const { search, minAmount, maxAmount, dateFrom, dateTo } = filters;
-    const selectedAccounts = filters.filter.accountIds;
-    useEffect(() => {
-        setPage(0);
-    }, [search, minAmount, maxAmount, dateFrom, dateTo, selectedAccounts]);
-
-    // Toggle direction on the active column, otherwise switch column (default descending). Sorting is server-side and
-    // spans all pages, so reset to the first page.
-    const handleSort = (field: BankTransactionSortField) => {
-        if (sortBy === field) {
-            setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-        } else {
-            setSortBy(field);
-            setSortDir('desc');
-        }
-        setPage(0);
-    };
-
-    // Open = not yet fully covered: unmatched or partially matched. Counts come from the aggregate endpoint so they
-    // reflect the true totals (not a single capped page), while the feed itself is paged server-side. The active
-    // search/column filters are applied to both, so the badges and pagination stay consistent with the filtered feed.
-    const openAgg = useBankTransactionAggregate(undefined, 'UNMATCHED,PARTIALLY_MATCHED', true, filters.filter);
-    const matchedAgg = useBankTransactionAggregate(undefined, 'FULLY_MATCHED', true, filters.filter);
-    const feed = useAllBankTransactions('UNMATCHED,PARTIALLY_MATCHED', page, ABGLEICH_PAGE_SIZE, sortBy, sortDir, filters.filter);
-
-    const openCount = openAgg.data?.count ?? 0;
-    const matchedCount = matchedAgg.data?.count ?? 0;
-    const unmatchedTx = feed.data ?? [];
-    const totalPages = Math.max(1, Math.ceil(openCount / ABGLEICH_PAGE_SIZE));
-
-    // Reconciling items shrinks the open set; clamp the page so we never sit on a now-empty page past the end.
-    useEffect(() => {
-        if (page > 0 && page >= totalPages) setPage(totalPages - 1);
-    }, [page, totalPages]);
-
-    if (openAgg.isLoading || feed.isLoading) {
-        return (
-            <div className="flex flex-col gap-4">
-                <BankTxFilterBar filters={filters} accounts={accounts} />
-                <KontenTableSkeleton columns={ABGLEICH_COLUMNS} cells={['date', 'text', 'twoLines', 'amount', 'pill', 'button']} />
-            </div>
-        );
-    }
-
-    const noData = openCount === 0 && matchedCount === 0 && !filters.hasAnyFilter;
-    const noFilterMatch = openCount === 0 && filters.hasAnyFilter;
-    // Sum of the open movements' amounts, by magnitude, so income and expenses add up to the volume still to assign.
-    const openSum = Math.abs(openAgg.data?.sumIncoming ?? 0) + Math.abs(openAgg.data?.sumOutgoing ?? 0);
-
-    // Empty state when there are no bank transactions at all.
-    if (noData) {
-        return (
-            <div className={cn(cardShadow, 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700')}>
-                <TableEmptyState icon={Unlink} title={t('konten.abgleich.noData')} text={t('konten.abgleich.noDataDesc')} />
-            </div>
-        );
-    }
-
-    return (
-        <div className="flex flex-col gap-4">
-            <BankTxFilterBar filters={filters} accounts={accounts} />
-
-            <div className={cn(cardShadow, 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden')}>
-                {/* Title: the number of open movements first, then their total on the right */}
-                <div className="flex flex-wrap items-center gap-3 border-b border-gray-100 px-5 py-[15px] dark:border-gray-700">
-                    <h3 className="min-w-[180px] flex-1 text-[16px] font-extrabold">
-                        <span className="tabular-nums text-purple-700">{openCount}</span>{' '}
-                        <span className="font-semibold text-muted-foreground">{t('konten.abgleich.openTitle', { count: openCount })}</span>
-                    </h3>
-                    <span className="text-[18px] font-extrabold tabular-nums">{format(openSum)}</span>
-                </div>
-
-                {openCount === 0 ? (
-                    noFilterMatch ? (
-                        <TableEmptyState
-                            icon={Search}
-                            title={t('konten.empty.noMatchTitle')}
-                            text={t('konten.empty.noMatchText')}
-                            action={
-                                <button type="button" onClick={filters.clear} className="text-xs font-semibold text-primary hover:underline">
-                                    {t('konten.filter.clearAll')}
-                                </button>
-                            }
-                        />
-                    ) : (
-                        <p className="px-5 py-[30px] text-center text-[13.5px] text-muted-foreground">{t('konten.abgleich.allMatched')}</p>
-                    )
-                ) : (
-                    <>
-                        {/* Header */}
-                        <div
-                            className="grid items-center gap-3 border-b border-gray-100 px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.07em] text-[var(--ink-faint)] dark:border-gray-700"
-                            style={{ gridTemplateColumns: ABGLEICH_COLUMNS }}
-                        >
-                            <SortHeader
-                                label={t('konten.table.date')}
-                                active={sortBy === 'bookingDate'}
-                                direction={sortDir}
-                                onClick={() => handleSort('bookingDate')}
-                            />
-                            <span>{t('konten.imports.account')}</span>
-                            <SortHeader
-                                label={t('konten.table.counterparty')}
-                                active={sortBy === 'counterpartyName'}
-                                direction={sortDir}
-                                onClick={() => handleSort('counterpartyName')}
-                            />
-                            <SortHeader
-                                label={t('konten.table.amount')}
-                                active={sortBy === 'amount'}
-                                direction={sortDir}
-                                onClick={() => handleSort('amount')}
-                                align="right"
-                            />
-                            <span className="text-center">{t('konten.table.status')}</span>
-                            {/* Spacer above the per-row action */}
-                            <span aria-hidden />
-                        </div>
-                        {unmatchedTx.map((tx, i) => {
-                            const acct = accounts.find((a) => a.id === tx.bankAccountId);
-                            return (
-                                <div
-                                    key={tx.id}
-                                    onClick={() => tx.id && onOpenDrawer(tx.id)}
-                                    className={cn(
-                                        'grid cursor-pointer items-center gap-3 px-5 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50',
-                                        i < unmatchedTx.length - 1 && 'border-b border-gray-100 dark:border-gray-700'
-                                    )}
-                                    style={{ gridTemplateColumns: ABGLEICH_COLUMNS }}
-                                >
-                                    <span className="text-sm tabular-nums text-muted-foreground">{fmtDate(tx.bookingDate)}</span>
-                                    <span className="flex min-w-0 items-center gap-2">
-                                        {acct && <AccountDot color={acct.color} />}
-                                        <span className="truncate text-sm font-semibold">{acct?.name ?? tx.bankAccountName ?? '—'}</span>
-                                    </span>
-                                    <div className="min-w-0">
-                                        <div className="truncate text-sm font-bold">{tx.counterpartyName || t('konten.unknownCounterparty')}</div>
-                                        <div className="truncate text-xs text-muted-foreground">{tx.purpose}</div>
-                                    </div>
-                                    <span className="text-right">
-                                        <SignedAmount amount={tx.amount} currency={tx.currency} size="sm" />
-                                    </span>
-                                    <span className="flex justify-center">
-                                        <BankStatusBadge status={tx.status} />
-                                    </span>
-                                    <span className="flex justify-end">
-                                        <RowAction
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (tx.id) onOpenDrawer(tx.id);
-                                            }}
-                                        >
-                                            {t('konten.assign')}
-                                        </RowAction>
-                                    </span>
-                                </div>
-                            );
-                        })}
-                        {/* Pagination */}
-                        {totalPages > 1 && (
-                            <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50/60 px-5 py-2.5 dark:border-gray-700 dark:bg-gray-800/40">
-                                <span className="text-xs text-muted-foreground">{t('konten.pagination.pageOf', { page: page + 1, total: totalPages })}</span>
-                                <div className="flex items-center gap-1">
-                                    <button
-                                        type="button"
-                                        onClick={() => setPage((p) => Math.max(0, p - 1))}
-                                        disabled={page === 0}
-                                        className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:pointer-events-none transition-colors"
-                                    >
-                                        <ChevronLeft className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setPage((p) => p + 1)}
-                                        disabled={page + 1 >= totalPages}
-                                        className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:pointer-events-none transition-colors"
-                                    >
-                                        <ChevronRight className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </>
-                )}
-            </div>
-        </div>
-    );
-}
-
-// ─── Account Tab ──────────────────────────────────────────────────────────────
-
-// Statuses of the account tab's filter, one toggle each, in this order.
-const ACCOUNT_STATUSES: BankTransactionStatusValue[] = ['UNMATCHED', 'PARTIALLY_MATCHED', 'FULLY_MATCHED', 'IGNORED'];
+// Statuses of the transaction filter, one toggle each, in this order.
+const BANK_STATUSES: BankTransactionStatusValue[] = ['UNMATCHED', 'PARTIALLY_MATCHED', 'FULLY_MATCHED', 'IGNORED'];
 
 const PAGE_SIZE = 50;
 
-function AccountTab({
+/**
+ * The bank movements of one account, or of all accounts when `account` is left out. The overview adds the account column
+ * and narrows by account; the account tab shows its IBAN and offers the import, which needs an unambiguous target.
+ */
+function TransactionsTab({
     account,
+    accounts,
     statuses,
     setStatuses,
+    highlightFilters,
     onOpenDrawer,
     onImport,
 }: {
-    account: BankAccountResponse;
+    account?: BankAccountResponse;
+    accounts: BankAccountResponse[];
     statuses: BankTransactionStatusValue[];
     setStatuses: Dispatch<SetStateAction<BankTransactionStatusValue[]>>;
+    highlightFilters: boolean;
     onOpenDrawer: (id: number) => void;
     onImport: (accountId: number) => void;
 }) {
     const { t } = useTranslation();
+    const keyPrefix = account ? 'hopps.konten.account' : 'hopps.konten.all';
+    const columns = account ? ACCOUNT_TX_COLUMNS : ALL_TX_COLUMNS;
     const [page, setPage] = useState(0);
-    const [sortBy, setSortBy] = usePersistedState<BankTransactionSortField>('hopps.konten.account.sortBy', 'bookingDate');
-    const [sortDir, setSortDir] = usePersistedState<SortDirection>('hopps.konten.account.sortDir', 'desc');
-    const filters = useBankTxFilters('hopps.konten.account');
+    const [sortBy, setSortBy] = usePersistedState<BankTransactionSortField>(`${keyPrefix}.sortBy`, 'bookingDate');
+    const [sortDir, setSortDir] = usePersistedState<SortDirection>(`${keyPrefix}.sortDir`, 'desc');
+    const filters = useBankTxFilters(keyPrefix, account ? undefined : accounts);
+    const filter = account ? { ...filters.filter, accountIds: String(account.id) } : filters.filter;
 
     // Server-side filtering reorders/narrows the whole result set, so jump back to the first page whenever a filter
     // value changes (same reasoning as the sort/status resets below).
     const { search, minAmount, maxAmount, dateFrom, dateTo } = filters;
+    const selectedAccounts = filters.filter.accountIds;
     useEffect(() => {
         setPage(0);
-    }, [search, minAmount, maxAmount, dateFrom, dateTo, statuses]);
+    }, [search, minAmount, maxAmount, dateFrom, dateTo, selectedAccounts, statuses]);
 
-    const apiStatus = statuses.length > 0 ? statuses.join(',') : undefined;
-    // Counts per status for the filter, following the other filters (search, amount, date).
-    const accountIds = String(account.id);
-    const unmatchedAgg = useBankTransactionAggregate(accountIds, 'UNMATCHED', true, filters.filter);
-    const partialAgg = useBankTransactionAggregate(accountIds, 'PARTIALLY_MATCHED', true, filters.filter);
-    const matchedAgg = useBankTransactionAggregate(accountIds, 'FULLY_MATCHED', true, filters.filter);
-    const ignoredAgg = useBankTransactionAggregate(accountIds, 'IGNORED', true, filters.filter);
+    // Counts per status for the filter, following the other filters (search, amount, date, account). They come from the
+    // aggregate endpoint, so they are the true totals, not a single capped page.
+    const unmatchedAgg = useBankTransactionAggregate(undefined, 'UNMATCHED', true, filter);
+    const partialAgg = useBankTransactionAggregate(undefined, 'PARTIALLY_MATCHED', true, filter);
+    const matchedAgg = useBankTransactionAggregate(undefined, 'FULLY_MATCHED', true, filter);
+    const ignoredAgg = useBankTransactionAggregate(undefined, 'IGNORED', true, filter);
     const statusCounts: Record<BankTransactionStatusValue, number> = {
         UNMATCHED: unmatchedAgg.data?.count ?? 0,
         PARTIALLY_MATCHED: partialAgg.data?.count ?? 0,
         FULLY_MATCHED: matchedAgg.data?.count ?? 0,
         IGNORED: ignoredAgg.data?.count ?? 0,
     };
-    const { data: transactions = [], isLoading } = useBankTransactionsByAccount(account.id!, page, PAGE_SIZE, apiStatus, sortBy, sortDir, filters.filter);
+    const apiStatus = statuses.length > 0 ? statuses.join(',') : undefined;
+    const { data: transactions = [], isLoading } = useAllBankTransactions(apiStatus, page, PAGE_SIZE, sortBy, sortDir, filter);
+
+    const shownCount = (statuses.length > 0 ? statuses : BANK_STATUSES).reduce((sum, s) => sum + statusCounts[s], 0);
+    const totalPages = Math.max(1, Math.ceil(shownCount / PAGE_SIZE));
+
+    // Reconciling items shrinks the shown set; clamp the page so we never sit on a now-empty page past the end.
+    useEffect(() => {
+        if (page > 0 && page >= totalPages) setPage(totalPages - 1);
+    }, [page, totalPages]);
 
     // Toggle direction when re-clicking the active column, otherwise switch column and default to descending.
     // Reset to the first page since server-side sorting reorders the whole result set.
@@ -512,19 +331,14 @@ function AccountTab({
         setPage(0);
     };
 
-    const filtered = transactions;
     // Movements the search/column filters match but the selected status toggles hide, like on the Transaktionen page.
-    const hiddenByStatus = statuses.length > 0 ? ACCOUNT_STATUSES.filter((s) => !statuses.includes(s)).reduce((sum, s) => sum + statusCounts[s], 0) : 0;
+    const hiddenByStatus = statuses.length > 0 ? BANK_STATUSES.filter((s) => !statuses.includes(s)).reduce((sum, s) => sum + statusCounts[s], 0) : 0;
     const toggleStatus = (id: BankTransactionStatusValue) => {
         setStatuses((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
-        setPage(0);
     };
-    const showAllStatuses = () => {
-        setStatuses([]);
-        setPage(0);
-    };
+    const showAllStatuses = () => setStatuses([]);
 
-    const statusSegments: StatusSegment<BankTransactionStatusValue>[] = ACCOUNT_STATUSES.map((status) => ({
+    const statusSegments: StatusSegment<BankTransactionStatusValue>[] = BANK_STATUSES.map((status) => ({
         id: status,
         label: t(BANK_STATUS_STYLE[status].labelKey),
         count: statusCounts[status],
@@ -535,30 +349,45 @@ function AccountTab({
     return (
         <div>
             <div className="flex flex-wrap items-center gap-3 mb-4">
-                <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-                    <AccountDot color={account.color} />
-                    <span className="font-mono">{account.iban}</span>
-                </span>
+                {account && (
+                    <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                        <AccountDot color={account.color} />
+                        <span className="font-mono">{account.iban}</span>
+                    </span>
+                )}
                 <div className="ml-auto">
-                    <StatusSegments ariaLabel={t('konten.table.status')} segments={statusSegments} selected={statuses} onToggle={toggleStatus} />
+                    <StatusSegments
+                        ariaLabel={t('konten.table.status')}
+                        segments={statusSegments}
+                        selected={statuses}
+                        onToggle={toggleStatus}
+                        highlight={highlightFilters}
+                    />
                 </div>
             </div>
 
             <div className="mb-4">
                 <BankTxFilterBar
                     filters={filters}
+                    accounts={account ? undefined : accounts}
+                    highlight={highlightFilters}
                     actions={
-                        <BaseButton size="sm" className="h-11 gap-1.5 whitespace-nowrap" onClick={() => onImport(account.id!)}>
-                            <Upload className="w-4 h-4" />
-                            {t('konten.import')}
-                        </BaseButton>
+                        account && (
+                            <BaseButton size="sm" className="h-11 gap-1.5 whitespace-nowrap" onClick={() => onImport(account.id!)}>
+                                <Upload className="w-4 h-4" />
+                                {t('konten.import')}
+                            </BaseButton>
+                        )
                     }
                 />
             </div>
 
             {isLoading ? (
-                <KontenTableSkeleton columns={ACCOUNT_TX_COLUMNS} cells={['date', 'twoLines', 'amount', 'pill', 'button']} />
-            ) : filtered.length === 0 ? (
+                <KontenTableSkeleton
+                    columns={columns}
+                    cells={account ? ['date', 'twoLines', 'amount', 'pill', 'button'] : ['date', 'text', 'twoLines', 'amount', 'pill', 'button']}
+                />
+            ) : transactions.length === 0 ? (
                 <div className={cn(cardShadow, 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700')}>
                     {hiddenByStatus > 0 ? (
                         <TableEmptyState
@@ -582,16 +411,18 @@ function AccountTab({
                                 </button>
                             }
                         />
-                    ) : (
+                    ) : account ? (
                         <TableEmptyState icon={Landmark} title={t('konten.empty.noTransactionsTitle')} text={t('konten.empty.noTransactionsText')} />
+                    ) : (
+                        <TableEmptyState icon={Landmark} title={t('konten.abgleich.noData')} text={t('konten.abgleich.noDataDesc')} />
                     )}
                 </div>
             ) : (
                 <div className={cn(cardShadow, 'bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden')}>
                     {/* Header */}
                     <div
-                        className="grid text-[11px] font-bold uppercase tracking-[0.07em] text-[var(--ink-faint)] px-4 py-2.5 border-b border-gray-100 dark:border-gray-700"
-                        style={{ gridTemplateColumns: ACCOUNT_TX_COLUMNS }}
+                        className="grid items-center gap-3 border-b border-gray-100 px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.07em] text-[var(--ink-faint)] dark:border-gray-700"
+                        style={{ gridTemplateColumns: columns }}
                     >
                         <SortHeader
                             label={t('konten.table.date')}
@@ -599,6 +430,7 @@ function AccountTab({
                             direction={sortDir}
                             onClick={() => handleSort('bookingDate')}
                         />
+                        {!account && <span>{t('konten.imports.account')}</span>}
                         <SortHeader
                             label={t('konten.table.counterparty')}
                             active={sortBy === 'counterpartyName'}
@@ -616,45 +448,56 @@ function AccountTab({
                         {/* Spacer above the per-row action */}
                         <span aria-hidden />
                     </div>
-                    {filtered.map((tx, i) => (
-                        <div
-                            key={tx.id}
-                            onClick={() => tx.id && onOpenDrawer(tx.id)}
-                            className={cn(
-                                'grid items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer',
-                                i < filtered.length - 1 && 'border-b border-gray-100 dark:border-gray-700'
-                            )}
-                            style={{ gridTemplateColumns: ACCOUNT_TX_COLUMNS }}
-                        >
-                            <span className="text-sm text-muted-foreground tabular-nums">{fmtDate(tx.bookingDate)}</span>
-                            <div className="min-w-0">
-                                <div className="text-sm font-bold truncate">{tx.counterpartyName || '—'}</div>
-                                <div className="text-xs text-muted-foreground truncate">{tx.purpose}</div>
+                    {transactions.map((tx, i) => {
+                        const acct = accounts.find((a) => a.id === tx.bankAccountId);
+                        const open = tx.status === 'UNMATCHED' || tx.status === 'PARTIALLY_MATCHED';
+                        return (
+                            <div
+                                key={tx.id}
+                                onClick={() => tx.id && onOpenDrawer(tx.id)}
+                                className={cn(
+                                    'grid cursor-pointer items-center gap-3 px-5 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50',
+                                    i < transactions.length - 1 && 'border-b border-gray-100 dark:border-gray-700'
+                                )}
+                                style={{ gridTemplateColumns: columns }}
+                            >
+                                <span className="text-sm tabular-nums text-muted-foreground">{fmtDate(tx.bookingDate)}</span>
+                                {!account && (
+                                    <span className="flex min-w-0 items-center gap-2">
+                                        {acct && <AccountDot color={acct.color} />}
+                                        <span className="truncate text-sm font-semibold">{acct?.name ?? tx.bankAccountName ?? '—'}</span>
+                                    </span>
+                                )}
+                                <div className="min-w-0">
+                                    <div className="truncate text-sm font-bold">{tx.counterpartyName || t('konten.unknownCounterparty')}</div>
+                                    <div className="truncate text-xs text-muted-foreground">{tx.purpose}</div>
+                                </div>
+                                <span className="text-right">
+                                    <SignedAmount amount={tx.amount} currency={tx.currency} size="sm" />
+                                </span>
+                                <span className="flex justify-center">
+                                    <BankStatusBadge status={tx.status} />
+                                </span>
+                                {/* Every row ends with its action: "Zuordnen" while something is open, otherwise the quieter
+                                    "Ansehen". Both open the same drawer. */}
+                                <span className="flex justify-end">
+                                    <RowAction
+                                        variant={open ? 'primary' : 'neutral'}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (tx.id) onOpenDrawer(tx.id);
+                                        }}
+                                    >
+                                        {open ? t('konten.assign') : t('konten.view')}
+                                    </RowAction>
+                                </span>
                             </div>
-                            <span className="text-right">
-                                <SignedAmount amount={tx.amount} currency={tx.currency} size="sm" />
-                            </span>
-                            <span className="flex justify-center">
-                                <BankStatusBadge status={tx.status} />
-                            </span>
-                            {/* Every row ends with its action: "Zuordnen" while something is open, otherwise the quieter
-                                "Ansehen". Both open the same drawer. */}
-                            <span className="flex justify-end">
-                                <RowAction
-                                    variant={tx.status === 'UNMATCHED' || tx.status === 'PARTIALLY_MATCHED' ? 'primary' : 'neutral'}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (tx.id) onOpenDrawer(tx.id);
-                                    }}
-                                >
-                                    {tx.status === 'UNMATCHED' || tx.status === 'PARTIALLY_MATCHED' ? t('konten.assign') : t('konten.view')}
-                                </RowAction>
-                            </span>
-                        </div>
-                    ))}
-                    {(page > 0 || filtered.length === PAGE_SIZE) && (
-                        <div className="flex items-center justify-between px-4 py-2.5 border-t border-gray-100 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/40">
-                            <span className="text-xs text-muted-foreground">{t('konten.pagination.page', { page: page + 1 })}</span>
+                        );
+                    })}
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50/60 px-5 py-2.5 dark:border-gray-700 dark:bg-gray-800/40">
+                            <span className="text-xs text-muted-foreground">{t('konten.pagination.pageOf', { page: page + 1, total: totalPages })}</span>
                             <div className="flex items-center gap-1">
                                 <button
                                     type="button"
@@ -667,7 +510,7 @@ function AccountTab({
                                 <button
                                     type="button"
                                     onClick={() => setPage((p) => p + 1)}
-                                    disabled={filtered.length < PAGE_SIZE}
+                                    disabled={page + 1 >= totalPages}
                                     className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:pointer-events-none transition-colors"
                                 >
                                     <ChevronRight className="w-4 h-4" />
@@ -1010,24 +853,25 @@ function ArchivedAccounts() {
     );
 }
 
-type TabId = 'abgleich' | 'importe' | string; // string = account id as string
+const STATUS_FILTER_KEY = 'hopps.konten.bankStatuses';
 
 export function KontenView() {
     const { t } = useTranslation();
     usePageTitle(t('konten.title'), 'CardStack');
 
     const { data: accounts = [], isLoading, refetch } = useBankAccounts(false);
-    const [tab, setTab] = useState<TabId>('abgleich');
+    // What the user clicked last; the tab actually shown follows the accounts (see resolveKontenTab).
+    const [selectedTab, setTab] = useState<KontenTabId | null>(null);
+    const tab = resolveKontenTab(selectedTab, accounts);
     const [drawerAccount, setDrawerAccount] = useState<BankAccountResponse | 'new' | null>(null);
     // The account stays set while the dialog closes, so it keeps its content during the closing animation.
     const [importAccountId, setImportAccountId] = useState<number | null>(null);
     const [importOpen, setImportOpen] = useState(false);
-    // Status filter of the account tab. Several can be selected; none selected shows every movement. Starts on the
-    // worklist: Offen and Teilverknüpft. Lives here so that finishing an import can set it.
-    const [accountStatuses, setAccountStatuses] = usePersistedState<BankTransactionStatusValue[]>('hopps.konten.account.bankStatuses', [
-        'UNMATCHED',
-        'PARTIALLY_MATCHED',
-    ]);
+    // Status filter of the transaction tabs, shared between them. Several can be selected; none selected shows every
+    // movement. Starts on the worklist: Offen and Teilverknüpft. Lives here so that finishing an import can set it.
+    const [statuses, setStatuses] = usePersistedState<BankTransactionStatusValue[]>(STATUS_FILTER_KEY, ['UNMATCHED', 'PARTIALLY_MATCHED']);
+    // Returning to the page: what is still set blinks once, so a narrowed list does not go unnoticed.
+    const highlightFilters = useFilterHint(!isLoading, STATUS_FILTER_KEY);
     const [matchDrawerBankTxId, setMatchDrawerBankTxId] = useState<number | null>(null);
     // The account cards take up a lot of room; keep them collapsed to compact pills by default and only show the full
     // cards when the user actively expands the section. Cached like the other Konten preferences.
@@ -1085,10 +929,12 @@ export function KontenView() {
     });
     const importCount = importResults.reduce((sum, r) => sum + (r.data?.length ?? 0), 0);
 
-    // Each tab carries a counter: Abgleich the open movements and Importe the number of imports, both in grey, an
-    // account its open movements in the account's colour.
-    const tabs: { id: TabId; label: string; badge?: number; color?: string; tint?: string }[] = [
-        { id: 'abgleich', label: t('konten.tabs.abgleich'), badge: totalOpen, color: 'var(--muted-foreground)', tint: 'var(--surface-track)' },
+    // Each tab carries a counter: Alle the open movements and Importe the number of imports, both in grey, an account its
+    // open movements in the account's colour.
+    const tabs: { id: KontenTabId; label: string; badge?: number; color?: string; tint?: string }[] = [
+        ...(hasAllTab(accounts)
+            ? [{ id: ALL_TAB, label: t('konten.tabs.all'), badge: totalOpen, color: 'var(--muted-foreground)', tint: 'var(--surface-track)' }]
+            : []),
         ...accounts.map((a) => {
             const c = a.color || '#9955CC';
             return {
@@ -1099,7 +945,7 @@ export function KontenView() {
                 tint: `color-mix(in srgb, ${c} 16%, transparent)`,
             };
         }),
-        { id: 'importe', label: t('konten.tabs.importe'), badge: importCount, color: 'var(--muted-foreground)', tint: 'var(--surface-track)' },
+        { id: IMPORTS_TAB, label: t('konten.tabs.importe'), badge: importCount, color: 'var(--muted-foreground)', tint: 'var(--surface-track)' },
     ];
 
     if (isLoading) {
@@ -1217,17 +1063,19 @@ export function KontenView() {
                     </div>
 
                     {/* Tab content */}
-                    {tab === 'abgleich' && <AbgleichTab accounts={accounts} onOpenDrawer={openMatchDrawer} />}
-                    {activeAccount && (
-                        <AccountTab
+                    {tab !== IMPORTS_TAB && (
+                        <TransactionsTab
+                            key={tab}
                             account={activeAccount}
-                            statuses={accountStatuses}
-                            setStatuses={setAccountStatuses}
+                            accounts={accounts}
+                            statuses={statuses}
+                            setStatuses={setStatuses}
+                            highlightFilters={highlightFilters}
                             onOpenDrawer={openMatchDrawer}
                             onImport={openImport}
                         />
                     )}
-                    {tab === 'importe' && <ImporteTab accounts={accounts} />}
+                    {tab === IMPORTS_TAB && <ImporteTab accounts={accounts} />}
                 </>
             )}
 
@@ -1243,14 +1091,11 @@ export function KontenView() {
                     if (!open) setDrawerAccount(null);
                 }}
                 account={drawerAccount !== 'new' ? (drawerAccount ?? undefined) : undefined}
-                onSuccess={(saved) => {
-                    // The first account opens on its own tab, where importing statements is the next step.
-                    if (accounts.length === 0 && saved.id != null) setTab(String(saved.id));
+                onSuccess={() => {
                     refetch();
                     setDrawerAccount(null);
                 }}
-                onRemoved={(id) => {
-                    if (tab === String(id)) setTab('abgleich');
+                onRemoved={() => {
                     refetch();
                     setDrawerAccount(null);
                 }}
@@ -1268,7 +1113,7 @@ export function KontenView() {
                 }}
                 onViewTransactions={(id) => {
                     // What was just imported is what needs assigning next.
-                    setAccountStatuses(['UNMATCHED']);
+                    setStatuses(['UNMATCHED']);
                     setTab(String(id));
                 }}
             />

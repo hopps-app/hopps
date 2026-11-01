@@ -1430,12 +1430,12 @@
             "deleteTitle": "Eliminare questo conto?",
             "deleteText": "Questo conto non ha importazioni né movimenti. Verrà eliminato definitivamente.",
             "archiveTitle": "Archiviare questo conto?",
-            "archiveText": "Questo conto ha importazioni o movimenti e quindi non può essere eliminato. Verrà nascosto, tutti i dati restano e può essere ripristinato in qualsiasi momento.",
+            "archiveText": "Questo conto ha importazioni o movimenti e quindi non può essere eliminato. Verrà nascosto, tutti i dati restano e può essere ripristinato in qualsiasi momento. Per eliminare completamente il conto, occorre prima eliminare tutte le sue importazioni.",
             "ibanArchived": "Questo IBAN appartiene al conto archiviato «{{name}}».",
             "restoreAccount": "Ripristina conto",
             "restoreIbanInUse": "Un conto attivo usa già questo IBAN.",
             "archiveBlocked": "Questo conto ha movimenti assegnati e quindi non può essere archiviato.",
-            "archiveOpenWarning": "Movimenti aperti: {{count}}. Verranno nascosti dalla riconciliazione e torneranno visibili al ripristino del conto.",
+            "archiveOpenWarning": "Movimenti aperti: {{count}}. Verranno nascosti e torneranno visibili al ripristino del conto.",
             "archivedTitle": "Conti archiviati ({{count}})",
             "restore": "Ripristina"
         },
@@ -1453,7 +1453,7 @@
         "assign": "Assegna",
         "unknownCounterparty": "Sconosciuta",
         "tabs": {
-            "abgleich": "Riconciliazione",
+            "all": "Tutti",
             "importe": "Importazioni"
         },
         "status": {
@@ -1496,7 +1496,6 @@
             "status": "Stato"
         },
         "pagination": {
-            "page": "Pagina {{page}}",
             "pageOf": "Pagina {{page}} di {{total}}"
         },
         "imports": {
