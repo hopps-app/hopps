@@ -300,7 +300,15 @@ function BommelView() {
                             onCheckedChange={setAggregate}
                         />
                         {!isDemoMode && <PeriodField period={period} onChange={setPeriod} />}
-                        <ToggleField label={t('bommel.demoMode')} info={t('bommel.demoModeInfo')} checked={isDemoMode} onCheckedChange={handleDemoModeChange} />
+                        {/* Not while editing: switching to the example data would drop the user out of the edit. */}
+                        {!isEditMode && (
+                            <ToggleField
+                                label={t('bommel.demoMode')}
+                                info={t('bommel.demoModeInfo')}
+                                checked={isDemoMode}
+                                onCheckedChange={handleDemoModeChange}
+                            />
+                        )}
                         {isEditMode && !isDemoMode && (
                             <ToggleField
                                 label={t('bommel.dragDrop')}
