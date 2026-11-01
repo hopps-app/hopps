@@ -21,6 +21,7 @@ import {
     ChevronRight,
     Info,
     Plus,
+    Tag,
 } from 'lucide-react';
 import { useCallback, useState, useRef, useEffect, useMemo } from 'react';
 import { useDropzone, FileRejection } from 'react-dropzone';
@@ -990,6 +991,9 @@ export function ReviewDrawer({
                                         hints={{ expense: t('receipts.direction.incomingHint'), income: t('receipts.direction.outgoingHint') }}
                                         ariaLabel={t('receipts.direction.label')}
                                     />
+                                    <Field label={senderLabel}>
+                                        <DrawerInput value={senderName} onChange={setSenderName} loading={isAnalyzing && !senderName} />
+                                    </Field>
                                     <Field label={t('receipts.review.name')}>
                                         <DrawerInput value={name} onChange={setName} loading={isAnalyzing && !name} />
                                     </Field>
@@ -1021,39 +1025,12 @@ export function ReviewDrawer({
                                             <DrawerInput value={date} onChange={setDate} type="date" loading={isAnalyzing && !date} />
                                         </Field>
                                     </div>
-                                    <Field label={senderLabel}>
-                                        <DrawerInput value={senderName} onChange={setSenderName} loading={isAnalyzing && !senderName} />
-                                    </Field>
-                                    {!splitting && (
-                                        <Field label={t('receipts.review.bommel')}>
-                                            <BommelSelect
-                                                items={bommelItems}
-                                                value={bommelId ? Number(bommelId) : ALL_BOMMELS}
-                                                emptyLabel={t('invoiceUpload.selectBommel')}
-                                                onChange={(next) => {
-                                                    const id = next === ALL_BOMMELS ? null : Number(next);
-                                                    // Remember the choice for the next receipt, like the upload form does.
-                                                    cacheBommelChoice(id);
-                                                    setBommelId(id ? String(id) : '');
-                                                }}
-                                                triggerClassName={cn('sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none', pickerFocusCls)}
-                                                matchTriggerWidth
-                                            />
-                                        </Field>
-                                    )}
-
-                                    {/* Privately paid */}
-                                    <div
-                                        className="flex items-center gap-3.5 rounded-[13px] border border-border-soft px-[15px] py-[13px]"
-                                        style={{ background: 'var(--background-secondary)' }}
-                                    >
-                                        <label
-                                            htmlFor="receipt-privately-paid"
-                                            className="min-w-0 flex-1 cursor-pointer text-[13.5px] font-bold text-foreground"
-                                        >
+                                    {/* Privately paid: a side option, kept quiet. */}
+                                    <div className="-mt-1 flex items-center gap-2.5 px-0.5">
+                                        <BaseSwitch id="receipt-privately-paid" checked={privatelyPaid} onCheckedChange={setPrivatelyPaid} />
+                                        <label htmlFor="receipt-privately-paid" className="cursor-pointer text-[12.5px] font-semibold text-muted-foreground">
                                             {t('receipts.review.privatelyPaid')}
                                         </label>
-                                        <BaseSwitch id="receipt-privately-paid" checked={privatelyPaid} onCheckedChange={setPrivatelyPaid} />
                                     </div>
 
                                     {/* Not saved as a split yet: down to one part it goes back to the single booking right away.
@@ -1067,23 +1044,44 @@ export function ReviewDrawer({
                                         />
                                     ) : (
                                         <>
-                                            {/* Category groups belong to the transaction. Filtered by the chosen bommel; required ones
-                                                must be filled before the receipt can be confirmed. For a receipt without transaction the
-                                                values are sent along when it is confirmed. Draws its own divider and heading. */}
-                                            {
-                                                <CategoryGroupFields
-                                                    bommelId={bommelId ? Number(bommelId) : null}
-                                                    values={categoryValues}
-                                                    onChange={(groupId, value) => {
-                                                        setCategoryValues((prev) => {
-                                                            const next = { ...prev };
-                                                            if (value == null || value === '') delete next[groupId];
-                                                            else next[groupId] = value;
-                                                            return next;
-                                                        });
-                                                    }}
-                                                />
-                                            }
+                                            {/* Where the amount belongs: the bommel and, right below it, the category groups that apply
+                                                to it (filtered by the chosen bommel). Required groups must be filled before the receipt
+                                                can be confirmed. For a receipt without transaction the values are sent along when it
+                                                is confirmed. */}
+                                            <div className="flex flex-col gap-2.5 border-t border-border-soft pt-4">
+                                                <Eyebrow icon={<Tag size={14} />}>{t('receipts.review.assignment')}</Eyebrow>
+                                                <div className="flex flex-col gap-3.5">
+                                                    <BommelSelect
+                                                        items={bommelItems}
+                                                        value={bommelId ? Number(bommelId) : ALL_BOMMELS}
+                                                        emptyLabel={t('invoiceUpload.selectBommel')}
+                                                        onChange={(next) => {
+                                                            const id = next === ALL_BOMMELS ? null : Number(next);
+                                                            // Remember the choice for the next receipt, like the upload form does.
+                                                            cacheBommelChoice(id);
+                                                            setBommelId(id ? String(id) : '');
+                                                        }}
+                                                        triggerClassName={cn(
+                                                            'sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none',
+                                                            pickerFocusCls
+                                                        )}
+                                                        matchTriggerWidth
+                                                    />
+                                                    <CategoryGroupFields
+                                                        inline
+                                                        bommelId={bommelId ? Number(bommelId) : null}
+                                                        values={categoryValues}
+                                                        onChange={(groupId, value) => {
+                                                            setCategoryValues((prev) => {
+                                                                const next = { ...prev };
+                                                                if (value == null || value === '') delete next[groupId];
+                                                                else next[groupId] = value;
+                                                                return next;
+                                                            });
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
 
                                             {/* Several bommels/categories on one receipt: the split takes the place of the fields above.
                                                 Not while editing a confirmed receipt; its read view offers "Weitere Transaktion hinzufügen". */}

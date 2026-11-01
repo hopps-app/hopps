@@ -1013,6 +1013,7 @@
             "eyebrowView": "Beleg",
             "editReceipt": "Beleg bearbeiten",
             "nextReceipt": "Weiter zum nächsten Beleg",
+            "assignment": "Bommel & Kategorie",
             "finish": "Abschließen",
             "editReceiptLocked": "Die Transaktion ist bereits bestätigt. Zum Bearbeiten des Belegs muss sie wieder geöffnet werden.",
             "saveDraftHint": "Speichert die Angaben als Entwurf. Der Beleg bleibt in Prüfung.",

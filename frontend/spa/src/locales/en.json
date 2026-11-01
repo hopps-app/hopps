@@ -1149,6 +1149,7 @@
             "eyebrowView": "Receipt",
             "editReceipt": "Edit receipt",
             "nextReceipt": "Continue to next receipt",
+            "assignment": "Bommel & category",
             "finish": "Finish",
             "editReceiptLocked": "The transaction is already confirmed. Reopen it to edit the receipt.",
             "saveDraftHint": "Saves the details as a draft. The receipt stays in review.",
