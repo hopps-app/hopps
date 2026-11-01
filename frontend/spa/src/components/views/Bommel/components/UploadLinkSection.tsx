@@ -136,7 +136,8 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
             )}
 
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                <DialogContent className="max-w-sm">
+                {/* The date is optional: no field should open focused, or the date picker starts selecting a day. */}
+                <DialogContent className="max-w-sm" onOpenAutoFocus={(e) => e.preventDefault()}>
                     <DialogHeader>
                         <DialogTitle>{t('bommel.uploadLink.create')}</DialogTitle>
                         <DialogDescription>{t('bommel.uploadLink.description')}</DialogDescription>
