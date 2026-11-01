@@ -127,10 +127,8 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col gap-3 rounded-[14px] border border-border-soft px-[13px] py-3">
-                    <p className="text-[12.5px] font-semibold leading-snug text-muted-foreground">
-                        {t('bommel.uploadLink.description')} {t('bommel.uploadLink.scope')}
-                    </p>
+                <div className="flex flex-col gap-3 rounded-[14px] bg-[var(--surface-sunken)] px-[13px] py-3">
+                    <p className="text-[12.5px] font-semibold leading-snug text-muted-foreground">{t('bommel.uploadLink.description')}</p>
                     <Button className="w-full" variant="tonal" onClick={() => setCreateOpen(true)}>
                         {t('bommel.uploadLink.create')}
                     </Button>
