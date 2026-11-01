@@ -1,4 +1,4 @@
-import { Copy, Link2, QrCode } from 'lucide-react';
+import { Copy, Link2, QrCode, RefreshCw, Trash2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -121,12 +121,27 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                             <QrCode size={16} />
                         </Button>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[12px] font-semibold text-muted-foreground">
-                        <button type="button" onClick={() => setConfirm('regenerate')} className="transition-colors hover:text-foreground">
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setConfirm('regenerate')}
+                            className={cn(
+                                'inline-flex h-7 items-center gap-1.5 rounded-[var(--btn-radius)] border border-[var(--border-strong)] bg-transparent px-2.5 text-[12px] font-bold transition-colors hover:bg-[var(--background-secondary)]',
+                                'text-foreground'
+                            )}
+                        >
+                            <RefreshCw size={13} aria-hidden="true" />
                             {t('bommel.uploadLink.regenerate')}
                         </button>
-                        <span aria-hidden="true">·</span>
-                        <button type="button" onClick={() => setConfirm('revoke')} className="transition-colors hover:text-[var(--negative)]">
+                        <button
+                            type="button"
+                            onClick={() => setConfirm('revoke')}
+                            className={cn(
+                                'inline-flex h-7 items-center gap-1.5 rounded-[var(--btn-radius)] border border-[var(--border-strong)] bg-transparent px-2.5 text-[12px] font-bold transition-colors hover:bg-[var(--background-secondary)]',
+                                'text-[var(--negative)]'
+                            )}
+                        >
+                            <Trash2 size={13} aria-hidden="true" />
                             {t('bommel.uploadLink.revoke')}
                         </button>
                     </div>
