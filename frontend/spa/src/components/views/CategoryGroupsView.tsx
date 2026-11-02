@@ -65,13 +65,6 @@ function CategoryGroupsView() {
         }
     };
 
-    const importButton = (
-        <Button variant="outline" size="sm" className="h-10" onClick={() => setImportOpen(true)}>
-            <FileUp />
-            {t('categoryGroups.import.button')}
-        </Button>
-    );
-
     const confirmDelete = async () => {
         if (!toDelete?.id) {
             return;
@@ -93,8 +86,8 @@ function CategoryGroupsView() {
                 <CategoryGroupsSkeleton />
             ) : isSetup ? (
                 <>
-                    <PageHeader title={t('categoryGroups.setup.title')} action={importButton} />
-                    <CategoryGroupSetup templates={templates} onCreated={refetch} />
+                    <PageHeader title={t('categoryGroups.setup.title')} />
+                    <CategoryGroupSetup templates={templates} onCreated={refetch} onImport={() => setImportOpen(true)} />
                 </>
             ) : (
                 <>
@@ -102,7 +95,10 @@ function CategoryGroupsView() {
                         title={t('categoryGroups.title')}
                         action={
                             <div className="flex gap-2.5">
-                                {importButton}
+                                <Button variant="outline" size="sm" className="h-10" onClick={() => setImportOpen(true)}>
+                                    <FileUp />
+                                    {t('categoryGroups.import.button')}
+                                </Button>
                                 <Button size="sm" className="h-10" onClick={openCreate}>
                                     <Plus />
                                     {t('categoryGroups.addButton')}

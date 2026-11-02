@@ -86,7 +86,8 @@
             "moreValues": "+{{count}} de plus",
             "noTemplatesTitle": "Créez votre premier groupe de catégories",
             "ownGroupTitle": "Votre propre groupe de catégories",
-            "ownGroupText": "Pas encore de catégories, vous les créez vous-même."
+            "ownGroupText": "Pas encore de catégories, vous les créez vous-même.",
+            "importFile": "Importer depuis un fichier"
         }
     },
     "banner": {

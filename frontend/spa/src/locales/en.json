@@ -87,7 +87,8 @@
             "moreValues": "+{{count}} more",
             "noTemplatesTitle": "Create your first category group",
             "ownGroupTitle": "Your own category group",
-            "ownGroupText": "No categories yet, you create them yourself."
+            "ownGroupText": "No categories yet, you create them yourself.",
+            "importFile": "Import from file"
         },
         "export": "Export as file",
         "values": {

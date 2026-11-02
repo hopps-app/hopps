@@ -87,7 +87,8 @@
             "moreValues": "+{{count}} weitere",
             "noTemplatesTitle": "Erste Kategoriegruppe anlegen",
             "ownGroupTitle": "Eigene Kategoriegruppe",
-            "ownGroupText": "Noch keine Kategorien, sie werden selbst angelegt."
+            "ownGroupText": "Noch keine Kategorien, sie werden selbst angelegt.",
+            "importFile": "Aus Datei importieren"
         },
         "export": "Als Datei exportieren",
         "values": {
