@@ -13,13 +13,15 @@ type CategoryGroupFieldsProps = {
     bommelId: number | null | undefined;
     values: Record<number, string>;
     onChange: (groupId: number, value: string | undefined) => void;
+    /** Without its own divider and heading, for use inside a card that already has a title. */
+    inline?: boolean;
 };
 
 /**
  * Renders a value picker for every category group applicable to the selected bommel (assigned to it or an ancestor).
  * Renders nothing when no group applies. Required groups without a value get a warn-coloured border (no inline error).
  */
-const CategoryGroupFields: FC<CategoryGroupFieldsProps> = ({ bommelId, values, onChange }) => {
+const CategoryGroupFields: FC<CategoryGroupFieldsProps> = ({ bommelId, values, onChange, inline }) => {
     const { t } = useTranslation();
     const { data: groups = [] } = useCategoryGroups();
     const allBommels = useBommelsStore((s) => s.allBommels);
@@ -34,11 +36,13 @@ const CategoryGroupFields: FC<CategoryGroupFieldsProps> = ({ bommelId, values, o
     }
 
     return (
-        <div className="flex flex-col gap-3 border-t border-border-soft pt-4">
-            <div className="flex items-center gap-1.5">
-                <Tag className="h-3.5 w-3.5 text-purple-700" />
-                <span className="text-[12px] font-bold uppercase tracking-[0.07em] text-purple-700">{t('categoryGroups.fields.eyebrow')}</span>
-            </div>
+        <div className={inline ? 'flex flex-col gap-3' : 'flex flex-col gap-3 border-t border-border-soft pt-4'}>
+            {!inline && (
+                <div className="flex items-center gap-1.5">
+                    <Tag className="h-3.5 w-3.5 text-purple-700" />
+                    <span className="text-[12px] font-bold uppercase tracking-[0.07em] text-purple-700">{t('categoryGroups.fields.eyebrow')}</span>
+                </div>
+            )}
             {applicable.map((group) => {
                 const groupId = group.id as number;
                 const value = values[groupId];
