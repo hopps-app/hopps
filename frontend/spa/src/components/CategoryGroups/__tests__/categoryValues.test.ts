@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { categoryLabel, inTreeOrder, parseCategoryGroupFile, PendingCategory, withoutCategory } from '../categoryValues';
+import { inTreeOrder, parseCategoryGroupFile, PendingCategory, withoutCategory } from '../categoryValues';
 
 const pending = (value: string, parent?: string): PendingCategory => ({ value, parent, bookable: true, hidden: false });
 
@@ -21,16 +21,6 @@ describe('withoutCategory', () => {
         const rest = withoutCategory([pending('Einnahmen'), pending('Beitrag', 'Einnahmen'), pending('Sonstiges')], 'Einnahmen');
 
         expect(rest).toEqual([pending('Beitrag'), pending('Sonstiges')]);
-    });
-});
-
-describe('categoryLabel', () => {
-    it('shows the position of a child', () => {
-        expect(categoryLabel({ value: 'Spende', parentValue: 'Einnahmen' })).toBe('Einnahmen › Spende');
-    });
-
-    it('shows a top-level category as it is', () => {
-        expect(categoryLabel({ value: 'Sonstiges' })).toBe('Sonstiges');
     });
 });
 

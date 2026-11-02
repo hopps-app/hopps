@@ -4,7 +4,7 @@ import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { RequiredBadge } from './CategoryGroupSetup';
-import { categoryLabel } from './categoryValues';
+import CategoryLabel from './CategoryLabel';
 
 import Emoji from '@/components/ui/Emoji';
 import { useCategoryGroupValues } from '@/hooks/queries/useCategoryGroups';
@@ -115,7 +115,7 @@ const CategoryGroupCard: FC<CategoryGroupCardProps> = ({ group, rootId, onEdit, 
                                 (item.hidden || item.parentHidden) && 'opacity-50'
                             )}
                         >
-                            {categoryLabel(item)}
+                            <CategoryLabel item={item} />
                         </span>
                     ))}
                     {valueCount > shown.length && shown.length > 0 && (

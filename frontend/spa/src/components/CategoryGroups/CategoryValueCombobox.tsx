@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 import { FC, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { categoryLabel } from './categoryValues';
+import CategoryLabel from './CategoryLabel';
 
 import { pickerFocusCls } from '@/components/Transactions/drawerParts';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/Command';
@@ -94,7 +94,7 @@ const CategoryValueCombobox: FC<CategoryValueComboboxProps> = ({ groupId, value,
                                             setOpen(false);
                                         }}
                                     >
-                                        <span className="truncate">{categoryLabel(item)}</span>
+                                        <CategoryLabel item={item} className="truncate" />
                                         <CheckIcon className={cn('ml-auto h-4 w-4', value === item.value ? 'opacity-100' : 'opacity-0')} aria-hidden="true" />
                                     </CommandItem>
                                 ))}

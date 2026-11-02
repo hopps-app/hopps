@@ -18,11 +18,6 @@ export function withoutCategory(categories: PendingCategory[], value: string): P
     return categories.filter((c) => c.value !== value).map((c) => (c.parent === value ? { ...c, parent: undefined } : c));
 }
 
-/** A category's position for display, e.g. "Einnahmen › Spenden". */
-export function categoryLabel(item: { value?: string; parentValue?: string }): string {
-    return item.parentValue ? `${item.parentValue} › ${item.value ?? ''}` : (item.value ?? '');
-}
-
 /** Reads an export file; null when the text is not one this app can import. */
 export function parseCategoryGroupFile(text: string): CategoryGroupExport | null {
     let data: unknown;
