@@ -73,7 +73,7 @@ import {
     getDocumentReviewStatus,
     documentKeys,
 } from '@/hooks/queries/useDocuments';
-import { transactionKeys, useTransaction, useUpdateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
+import { transactionKeys, usePrefetchTransaction, useTransaction, useUpdateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
 import { useCurrency } from '@/hooks/use-currency';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
@@ -311,8 +311,10 @@ export function ReviewDrawer({
     // Receipts created from a bank movement already carry a (draft) transaction before they are confirmed. Their form
     // edits that transaction.
     const isBankReconcile = hasLinkedTransaction && !locked && !isSplitDoc;
-    const { data: linkedTx } = useTransaction(linkedTransactionId ?? 0);
+    const { data: linkedTx, isLoading: linkedTxLoading } = useTransaction(linkedTransactionId ?? 0);
     const { data: linkedBankTxns = [] } = useBankTransactionsForTransaction(linkedTransactionId);
+    // The form of such a receipt can only be filled once its transaction is there.
+    const formLoading = isBankReconcile && linkedTxLoading;
 
     const [name, setName] = useState('');
     const [amount, setAmount] = useState('');
@@ -357,8 +359,21 @@ export function ReviewDrawer({
         if (initializedIdRef.current === docProp.id) return;
 
         if (hasLinkedTransaction && docProp.documentStatus !== 'CONFIRMED' && (docProp.transactionIds?.length ?? 0) <= 1) {
-            // Bank-origin receipt: seed the form from its transaction; wait until it has loaded.
-            if (!linkedTx) return;
+            // Bank-origin receipt: seed the form from its transaction; wait until it has loaded. Until then the form is
+            // empty, or it would show the values of the receipt opened before.
+            if (!linkedTx) {
+                applyForm({
+                    name: '',
+                    amount: '',
+                    date: '',
+                    senderName: '',
+                    bommelId: '',
+                    privatelyPaid: false,
+                    direction: docProp.direction ?? 'INCOMING',
+                    categoryValues: {},
+                });
+                return;
+            }
             initializedIdRef.current = docProp.id ?? null;
             const cv: Record<number, string> = {};
             (linkedTx.categoryValues ?? []).forEach((c) => {
@@ -454,9 +469,11 @@ export function ReviewDrawer({
     // The analysis replaces the bank purpose of a bank-origin draft with the receipt's name. Take that over while the
     // name field still holds the loaded value; a name the user typed meanwhile is kept.
     useEffect(() => {
-        if (!isBankReconcile || !baseline || !linkedTx?.name || linkedTx.name === baseline.name) return;
-        if (name === baseline.name) setName(linkedTx.name);
-        setBaseline({ ...baseline, name: linkedTx.name });
+        const txName = linkedTx?.name;
+        if (!isBankReconcile || !baseline || !txName || txName === baseline.name) return;
+        if (name === baseline.name) setName(txName);
+        // As an update: when the transaction just arrived, the form was set in this same pass and `baseline` is outdated.
+        setBaseline((b) => (b ? { ...b, name: txName } : b));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [linkedTx?.name]);
 
@@ -748,7 +765,13 @@ export function ReviewDrawer({
     // Required category groups of the form's bommel that still have no value; they block "Transaktion erstellen".
     const formMissingGroups = missingRequiredGroups(categoryGroups, bommelId ? Number(bommelId) : null, buildBommelIndex(reviewAllBommels), categoryValues);
 
-    const busy = updateMutation.isPending || confirmMutation.isPending || updateTransaction.isPending || confirmTransaction.isPending || replaceParts.isPending;
+    const busy =
+        formLoading ||
+        updateMutation.isPending ||
+        confirmMutation.isPending ||
+        updateTransaction.isPending ||
+        confirmTransaction.isPending ||
+        replaceParts.isPending;
 
     // Whether the linked draft transaction may be confirmed from the read view: its saved values complete, the amount
     // exactly covered by the linked bank movements, and required category groups filled.
@@ -1024,10 +1047,10 @@ export function ReviewDrawer({
                                         ariaLabel={t('receipts.direction.label')}
                                     />
                                     <Field label={senderLabel}>
-                                        <DrawerInput value={senderName} onChange={setSenderName} loading={isAnalyzing && !senderName} />
+                                        <DrawerInput value={senderName} onChange={setSenderName} loading={formLoading || (isAnalyzing && !senderName)} />
                                     </Field>
                                     <Field label={t('receipts.review.name')}>
-                                        <DrawerInput value={name} onChange={setName} loading={isAnalyzing && !name} />
+                                        <DrawerInput value={name} onChange={setName} loading={formLoading || (isAnalyzing && !name)} />
                                     </Field>
                                     <div className="grid grid-cols-2 gap-3.5">
                                         <Field label={`${t('receipts.review.amount')} (${symbol})`}>
@@ -1036,7 +1059,7 @@ export function ReviewDrawer({
                                                     value={amount}
                                                     onChange={setAmount}
                                                     inputMode="decimal"
-                                                    loading={isAnalyzing && !amount}
+                                                    loading={formLoading || (isAnalyzing && !amount)}
                                                     warn={splitting && !splitEditor.hasTotal}
                                                     error={amountInvalid}
                                                 />
@@ -1054,7 +1077,7 @@ export function ReviewDrawer({
                                             </div>
                                         </Field>
                                         <Field label={t('receipts.review.date')}>
-                                            <DrawerInput value={date} onChange={setDate} type="date" loading={isAnalyzing && !date} />
+                                            <DrawerInput value={date} onChange={setDate} type="date" loading={formLoading || (isAnalyzing && !date)} />
                                         </Field>
                                     </div>
                                     {/* Privately paid: a side option, kept quiet. */}
@@ -1588,12 +1611,19 @@ function DocumentRow({
     const { format } = useCurrency();
     const { t } = useTranslation();
     const hideBommel = useMediaQuery(HIDE_BOMMEL_QUERY);
+    const prefetchTransaction = usePrefetchTransaction();
     const status = getDocumentReviewStatus(doc);
     const amount = doc.total != null ? Number(doc.total) : null;
     const outgoing = doc.direction === 'OUTGOING';
+    const transactionId = doc.transactionId;
 
     return (
-        <DataTableRow columns={hideBommel ? DOC_GRID_NARROW : DOC_GRID} highlighted={selected || bulkSelected} onClick={onClick}>
+        <DataTableRow
+            columns={hideBommel ? DOC_GRID_NARROW : DOC_GRID}
+            highlighted={selected || bulkSelected}
+            onClick={onClick}
+            onHoverIntent={transactionId != null ? () => prefetchTransaction(transactionId) : undefined}
+        >
             <RowCheckbox checked={bulkSelected} onToggle={onToggleBulk} ariaLabel={t('receipts.bulk.selectRow')} />
 
             {/* Document name */}
