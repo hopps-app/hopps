@@ -86,7 +86,8 @@
             "moreValues": "+{{count}} altre",
             "noTemplatesTitle": "Crea il tuo primo gruppo di categorie",
             "ownGroupTitle": "Il tuo gruppo di categorie",
-            "ownGroupText": "Ancora nessuna categoria, le crei tu."
+            "ownGroupText": "Ancora nessuna categoria, le crei tu.",
+            "importFile": "Importa da file"
         }
     },
     "banner": {

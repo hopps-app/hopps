@@ -1,8 +1,8 @@
-import { Trash2, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Download, FileUp, Trash2, X } from 'lucide-react';
+import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { deleteTemplate, fetchCategoryGroupTemplate, saveCategoryGroupTemplate } from './api';
+import { deleteTemplate, exportCategoryGroupTemplate, fetchCategoryGroupTemplate, parseTemplateFile, saveCategoryGroupTemplate } from './api';
 import TemplateValuesEditor from './TemplateValuesEditor';
 import type { CategoryGroupTemplate } from './types';
 
@@ -25,6 +25,7 @@ const EMPTY: CategoryGroupTemplate = {
     required: false,
     values: [],
     usageCount: 0,
+    sourceKey: null,
 };
 
 /**
@@ -38,6 +39,7 @@ export default function CategoryGroupTemplateDrawer({ templateId, onClose, onCha
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [confirmDelete, setConfirmDelete] = useState(false);
+    const fileInput = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (templateId === null) return;
@@ -78,6 +80,30 @@ export default function CategoryGroupTemplateDrawer({ templateId, onClose, onCha
             console.error('Failed to save template:', e);
             setError(t('templates.editor.saveError'));
             setBusy(false);
+        }
+    };
+
+    const handleExport = async () => {
+        if (!template?.id) return;
+        setError(null);
+        try {
+            await exportCategoryGroupTemplate(template.id);
+        } catch (e) {
+            console.error('Failed to export template:', e);
+            setError(t('templates.editor.exportError'));
+        }
+    };
+
+    const handleFile = async (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (!file) return;
+        const parsed = parseTemplateFile(await file.text());
+        if (parsed) {
+            setError(null);
+            update(parsed);
+        } else {
+            setError(t('templates.editor.invalidFile'));
         }
     };
 
@@ -138,6 +164,27 @@ export default function CategoryGroupTemplateDrawer({ templateId, onClose, onCha
                                 onChange={(e) => update({ name: e.target.value })}
                             />
                         </Field>
+
+                        <div className="flex items-center gap-2.5">
+                            <input
+                                ref={fileInput}
+                                type="file"
+                                accept=".json,application/json"
+                                className="hidden"
+                                aria-label={t('templates.editor.loadFile')}
+                                onChange={handleFile}
+                            />
+                            <Button variant="outline" className="px-4" disabled={busy} onClick={() => fileInput.current?.click()}>
+                                <FileUp />
+                                {t('templates.editor.loadFile')}
+                            </Button>
+                            {!isNew && (
+                                <Button variant="outline" className="px-4" disabled={busy} onClick={handleExport}>
+                                    <Download />
+                                    {t('templates.editor.export')}
+                                </Button>
+                            )}
+                        </div>
 
                         <TemplateValuesEditor values={template.values} disabled={busy} onChange={(values) => update({ values })} />
 

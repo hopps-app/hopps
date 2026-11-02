@@ -3,8 +3,10 @@ package app.hopps.category.api;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
 import app.hopps.category.api.dto.CategoryGroupCreateRequest;
+import app.hopps.category.api.dto.CategoryGroupExport;
+import app.hopps.category.api.dto.CategoryGroupImportRequest;
+import app.hopps.category.api.dto.CategoryGroupImportResponse;
 import app.hopps.category.api.dto.CategoryGroupReportResponse;
-import app.hopps.category.api.dto.CategoryGroupReportRow;
 import app.hopps.category.api.dto.CategoryGroupResponse;
 import app.hopps.category.api.dto.CategoryGroupTemplateDetail;
 import app.hopps.category.api.dto.CategoryGroupTemplateOption;
@@ -12,6 +14,8 @@ import app.hopps.category.api.dto.CategoryGroupUpdateRequest;
 import app.hopps.category.api.dto.CategoryGroupUsageResponse;
 import app.hopps.category.api.dto.CategoryGroupValueCreateRequest;
 import app.hopps.category.api.dto.CategoryGroupValueResponse;
+import app.hopps.category.api.dto.CategoryGroupValueUpdateRequest;
+import app.hopps.category.api.dto.CategoryValueEntry;
 import app.hopps.category.api.dto.PagedValuesResponse;
 import app.hopps.category.api.dto.ReopenImpactRequest;
 import app.hopps.category.api.dto.ReopenImpactResponse;
@@ -23,7 +27,6 @@ import app.hopps.category.service.CategoryGroupService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.template.domain.CategoryGroupTemplate;
-import app.hopps.template.domain.TemplateCategoryValue;
 import app.hopps.template.repository.CategoryGroupTemplateRepository;
 import io.quarkus.panache.common.Page;
 import io.quarkus.security.Authenticated;
@@ -31,6 +34,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.DefaultValue;
@@ -58,6 +62,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * CRUD for category groups plus the searchable value sub-resource and the re-draft impact preview.
@@ -152,25 +157,30 @@ public class CategoryGroupResource {
                 template.getName(),
                 template.getDescription(),
                 template.isRequired(),
-                template.getValues().stream().map(TemplateCategoryValue::getValue).toList());
+                template.toEntries());
     }
 
     @GET
     @Path("/{id}/values")
-    @Operation(summary = "Search a group's values", description = "Paginated, optionally filtered values of one group — the source for the value picker. Scales to very large value sets.")
+    @Operation(summary = "Search a group's values", description = "Paginated, optionally filtered values of one group in tree order — the source for the value picker. The search also matches the parent, so a parent finds its children. Scales to very large value sets.")
     @APIResponse(responseCode = "200", description = "A page of values", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PagedValuesResponse.class)))
     @APIResponse(responseCode = "404", description = "Group not found")
     public PagedValuesResponse values(
             @PathParam("id") Long id,
             @QueryParam("query") String query,
             @QueryParam("page") @DefaultValue("0") int page,
-            @QueryParam("size") @DefaultValue("25") int size) {
+            @QueryParam("size") @DefaultValue("25") int size,
+            @QueryParam("selection") @DefaultValue("false") @org.eclipse.microprofile.openapi.annotations.parameters.Parameter(description = "Leave out hidden values, as the picker for new bookings does. Parents that cannot be booked stay in, marked as not selectable.") boolean selection,
+            @QueryParam("topLevel") @DefaultValue("false") @org.eclipse.microprofile.openapi.annotations.parameters.Parameter(description = "Only values without a parent") boolean topLevel) {
         requireGroup(id);
-        List<CategoryGroupValueResponse> items = categoryGroupValueRepository.search(id, query, new Page(page, size))
-                .stream()
-                .map(CategoryGroupValueResponse::from)
+        List<CategoryGroupValue> values = categoryGroupValueRepository.search(id, query, selection, topLevel,
+                new Page(page, size));
+        Map<Long, Long> childCounts = categoryGroupValueRepository
+                .childCounts(values.stream().map(CategoryGroupValue::getId).toList());
+        List<CategoryGroupValueResponse> items = values.stream()
+                .map(v -> CategoryGroupValueResponse.from(v, childCounts.getOrDefault(v.getId(), 0L)))
                 .toList();
-        long total = categoryGroupValueRepository.countSearch(id, query);
+        long total = categoryGroupValueRepository.countSearch(id, query, selection, topLevel);
         return new PagedValuesResponse(items, total);
     }
 
@@ -188,11 +198,13 @@ public class CategoryGroupResource {
         group.setOrganization(org);
         group.setBommels(resolveBommels(request.bommelIds(), org));
         if (request.templateId() != null) {
-            group.setTemplateId(requireActiveTemplate(request.templateId()).getId());
+            CategoryGroupTemplate template = requireActiveTemplate(request.templateId());
+            group.setTemplateId(template.getId());
+            group.setSourceKey(template.getSourceKey());
         }
         categoryGroupRepository.persist(group);
 
-        addValues(group, request.values());
+        categoryGroupService.addEntries(group, request.values());
 
         if (request.reopenAffectedTransactions()) {
             categoryGroupService.reopenTransactions(
@@ -232,29 +244,71 @@ public class CategoryGroupResource {
     @POST
     @Path("/{id}/values")
     @Transactional
-    @Operation(summary = "Add values to a group", description = "Adds one or more values. Duplicates within the group are ignored.")
+    @Operation(summary = "Add values to a group", description = "Adds one or more values, optionally under a top-level value. Duplicates within the group are ignored.")
     @APIResponse(responseCode = "200", description = "Values added", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CategoryGroupResponse.class)))
+    @APIResponse(responseCode = "400", description = "The parent is not a top-level value of this group")
     @APIResponse(responseCode = "404", description = "Group not found")
     public CategoryGroupResponse addValues(@PathParam("id") Long id, CategoryGroupValueCreateRequest request) {
         CategoryGroup group = requireGroup(id);
-        addValues(group, request == null ? null : request.values());
+        if (request != null && request.values() != null) {
+            String parent = request.parentId() == null ? null : requireParent(id, request.parentId()).getValue();
+            List<CategoryValueEntry> entries = new ArrayList<>();
+            if (parent != null) {
+                // already in the group, so it is not added again; the list only has to be complete
+                entries.add(CategoryValueEntry.of(parent));
+            }
+            request.values().forEach(value -> entries.add(new CategoryValueEntry(value, parent, null, null)));
+            categoryGroupService.addEntries(group, entries);
+        }
         long valueCount = categoryGroupValueRepository.count("categoryGroup.id", id);
         return CategoryGroupResponse.from(group, valueCount);
+    }
+
+    @PUT
+    @Path("/{id}/values/{valueId}")
+    @Transactional
+    @Operation(summary = "Update a value", description = "Moves a value in the hierarchy and sets whether it can be booked and whether it is hidden. Existing bookings keep the value either way. The value itself is not renamed: transactions store it as text.")
+    @APIResponse(responseCode = "200", description = "Value updated", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CategoryGroupValueResponse.class)))
+    @APIResponse(responseCode = "400", description = "The hierarchy would become deeper than two levels")
+    @APIResponse(responseCode = "404", description = "Group or value not found")
+    @APIResponse(responseCode = "409", description = "A mandatory group would be left without any value that can be chosen")
+    public CategoryGroupValueResponse updateValue(@PathParam("id") Long id, @PathParam("valueId") Long valueId,
+            @Valid CategoryGroupValueUpdateRequest request) {
+        CategoryGroup group = requireGroup(id);
+        CategoryGroupValue value = requireValue(id, valueId);
+        long selectableBefore = categoryGroupValueRepository.countSelectable(id);
+        long childCount = categoryGroupValueRepository.childCounts(List.of(valueId)).getOrDefault(valueId, 0L);
+
+        if (request.parentId() == null) {
+            value.setParent(null);
+        } else {
+            if (request.parentId().equals(valueId)) {
+                throw new BadRequestException("A category cannot be its own parent");
+            }
+            if (childCount > 0) {
+                throw new BadRequestException("A category with children cannot be moved under another one");
+            }
+            value.setParent(requireParent(id, request.parentId()));
+        }
+        value.setBookable(request.bookable());
+        value.setHidden(request.hidden());
+
+        if (group.isRequired() && selectableBefore > 0 && categoryGroupValueRepository.countSelectable(id) == 0) {
+            throw new ClientErrorException("A mandatory group needs at least one value that can be chosen",
+                    Response.Status.CONFLICT);
+        }
+        return CategoryGroupValueResponse.from(value, childCount);
     }
 
     @DELETE
     @Path("/{id}/values/{valueId}")
     @Transactional
-    @Operation(summary = "Remove a value from a group", description = "Deletes a single value. Values already recorded on transactions are kept as historical text.")
+    @Operation(summary = "Remove a value from a group", description = "Deletes a single value; its children move to the top level. Values already recorded on transactions are kept as historical text.")
     @APIResponse(responseCode = "204", description = "Value removed")
     @APIResponse(responseCode = "404", description = "Group or value not found")
     public Response removeValue(@PathParam("id") Long id, @PathParam("valueId") Long valueId) {
         requireGroup(id);
-        CategoryGroupValue value = categoryGroupValueRepository.findById(valueId);
-        if (value == null || !value.getCategoryGroup().getId().equals(id)) {
-            throw new NotFoundException("Value not found");
-        }
-        categoryGroupValueRepository.delete(value);
+        categoryGroupValueRepository.delete(requireValue(id, valueId));
         return Response.noContent().build();
     }
 
@@ -281,6 +335,67 @@ public class CategoryGroupResource {
         return Response.noContent().build();
     }
 
+    @GET
+    @Path("/{id}/export")
+    @Transactional
+    @Operation(operationId = "exportCategoryGroup", summary = "Export a category group", description = "The group with its hierarchy and settings as a portable file. A group that was never exported gets its stable source key here. Bommel assignments are not part of the file.")
+    @APIResponse(responseCode = "200", description = "Export file", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CategoryGroupExport.class)))
+    @APIResponse(responseCode = "404", description = "Group not found")
+    public CategoryGroupExport export(@PathParam("id") Long id) {
+        CategoryGroup group = requireGroup(id);
+        if (group.getSourceKey() == null) {
+            group.setSourceKey(UUID.randomUUID().toString());
+        }
+        List<CategoryValueEntry> values = categoryGroupValueRepository.allInTreeOrder(id)
+                .stream()
+                .map(v -> new CategoryValueEntry(v.getValue(), v.getParent() == null ? null : v.getParent().getValue(),
+                        v.isBookable(), v.isHidden()))
+                .toList();
+        return new CategoryGroupExport(CategoryGroupExport.FORMAT_VERSION, group.getSourceKey(), group.getName(),
+                group.isRequired(), values);
+    }
+
+    @POST
+    @Path("/import")
+    @Transactional
+    @Operation(operationId = "importCategoryGroup", summary = "Import a category group", description = "Creates a group from an export file. If the organization already has a group from the same source, its missing categories are added instead; existing categories and the group's settings stay as they are.")
+    @APIResponse(responseCode = "200", description = "Import done", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CategoryGroupImportResponse.class)))
+    @APIResponse(responseCode = "400", description = "Invalid or unsupported file")
+    public CategoryGroupImportResponse importGroup(@Valid CategoryGroupImportRequest request) {
+        Organization org = requireOrganization();
+        CategoryGroupExport file = request.file();
+        if (file.formatVersion() != CategoryGroupExport.FORMAT_VERSION) {
+            throw new BadRequestException("Unsupported file format version: " + file.formatVersion());
+        }
+        if (file.name() == null || file.name().isBlank()) {
+            throw new BadRequestException("The file has no group name");
+        }
+
+        boolean hasKey = file.sourceKey() != null && !file.sourceKey().isBlank();
+        CategoryGroup group = hasKey ? categoryGroupRepository.findBySourceKeyForCurrentOrg(file.sourceKey().trim())
+                : null;
+        boolean created = group == null;
+        if (created) {
+            group = new CategoryGroup();
+            group.setName(file.name().trim());
+            group.setRequired(file.required());
+            group.setOrganization(org);
+            group.setBommels(resolveBommels(request.bommelIds(), org));
+            group.setSourceKey(hasKey ? file.sourceKey().trim() : UUID.randomUUID().toString());
+            categoryGroupRepository.persist(group);
+        }
+
+        int added = categoryGroupService.addEntries(group, file.values());
+
+        if (created && request.reopenAffectedTransactions()) {
+            categoryGroupService.reopenTransactions(
+                    categoryGroupService.affectedConfirmedTransactionIds(file.required(), request.bommelIds(), null));
+        }
+
+        long valueCount = categoryGroupValueRepository.count("categoryGroup.id", group.getId());
+        return new CategoryGroupImportResponse(CategoryGroupResponse.from(group, valueCount), created, added);
+    }
+
     @POST
     @Path("/reopen-impact")
     @Operation(summary = "Preview the re-draft impact", description = "For a pending group state (creating or editing), returns the already-confirmed transactions that would be reset to draft if the group became mandatory for its bommels.")
@@ -294,7 +409,7 @@ public class CategoryGroupResource {
 
     @GET
     @Path("/{id}/report")
-    @Operation(summary = "Category-group report", description = "Aggregates transaction totals grouped by this group's recorded values within an optional transaction-date range (inclusive). Returns per-value income/expense/count plus the overall totals.")
+    @Operation(summary = "Category-group report", description = "Aggregates transaction totals grouped by this group's recorded values within an optional transaction-date range (inclusive). Returns per-value income/expense/count, rolled up to parent values, plus the overall totals.")
     @APIResponse(responseCode = "200", description = "Aggregated report", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CategoryGroupReportResponse.class)))
     @APIResponse(responseCode = "404", description = "Group not found")
     public CategoryGroupReportResponse report(
@@ -315,22 +430,17 @@ public class CategoryGroupResource {
         }
 
         List<Object[]> raw = categoryGroupService.valueSumsForReport(id, startInstant, endInstant, bommelIds);
-        List<CategoryGroupReportRow> rows = new ArrayList<>();
         BigDecimal totalIncome = BigDecimal.ZERO;
         BigDecimal totalExpense = BigDecimal.ZERO;
         long totalCount = 0;
         for (Object[] r : raw) {
-            String value = (String) r[0];
-            BigDecimal income = (BigDecimal) r[1];
-            BigDecimal expense = (BigDecimal) r[2];
-            long count = ((Number) r[3]).longValue();
-            rows.add(new CategoryGroupReportRow(value, count, income, expense));
-            totalIncome = totalIncome.add(income);
-            totalExpense = totalExpense.add(expense);
-            totalCount += count;
+            totalIncome = totalIncome.add((BigDecimal) r[1]);
+            totalExpense = totalExpense.add((BigDecimal) r[2]);
+            totalCount += ((Number) r[3]).longValue();
         }
-        return new CategoryGroupReportResponse(id, group.getName(), startDate, endDate, rows, totalIncome, totalExpense,
-                totalCount);
+        return new CategoryGroupReportResponse(id, group.getName(), startDate, endDate,
+                CategoryGroupService.reportRows(raw, categoryGroupValueRepository.parentsByValue(id)), totalIncome,
+                totalExpense, totalCount);
     }
 
     // ── helpers ────────────────────────────────────────────────────────────────
@@ -380,25 +490,23 @@ public class CategoryGroupResource {
         return result;
     }
 
-    /** Appends the given values to a group, skipping blanks and values that already exist in the group. */
-    private void addValues(CategoryGroup group, List<String> values) {
-        if (values == null || values.isEmpty()) {
-            return;
+    private CategoryGroupValue requireValue(Long groupId, Long valueId) {
+        CategoryGroupValue value = categoryGroupValueRepository.findById(valueId);
+        if (value == null || !value.getCategoryGroup().getId().equals(groupId)) {
+            throw new NotFoundException("Value not found");
         }
-        Set<String> existing = new HashSet<>();
-        for (CategoryGroupValue v : group.getValues()) {
-            existing.add(v.getValue());
+        return value;
+    }
+
+    /** A value that can take children: top-level and in this group. */
+    private CategoryGroupValue requireParent(Long groupId, Long parentId) {
+        CategoryGroupValue parent = categoryGroupValueRepository.findById(parentId);
+        if (parent == null || !parent.getCategoryGroup().getId().equals(groupId)) {
+            throw new BadRequestException("Parent is not part of this group: " + parentId);
         }
-        int nextIndex = categoryGroupValueRepository.maxSortIndex(group.getId()) + 1;
-        for (String raw : values) {
-            if (raw == null || raw.isBlank()) {
-                continue;
-            }
-            String value = raw.trim();
-            if (!existing.add(value)) {
-                continue;
-            }
-            group.getValues().add(new CategoryGroupValue(group, value, nextIndex++));
+        if (parent.getParent() != null) {
+            throw new BadRequestException("Categories can only be nested one level deep");
         }
+        return parent;
     }
 }

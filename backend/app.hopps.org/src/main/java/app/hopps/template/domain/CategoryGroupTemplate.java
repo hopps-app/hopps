@@ -1,5 +1,7 @@
 package app.hopps.template.domain;
 
+import app.hopps.category.api.dto.CategoryValueEntry;
+import app.hopps.category.service.CategoryValueTree;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
@@ -16,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * A template for a category group: the group's settings plus its values. Applying it creates a regular
@@ -29,6 +32,10 @@ public class CategoryGroupTemplate extends Template {
 
     @Column(nullable = false)
     private boolean required;
+
+    /** Stable id of this template, carried by its export file. See {@code CategoryGroup#getSourceKey()}. */
+    @Column(name = "source_key", nullable = false)
+    private String sourceKey = UUID.randomUUID().toString();
 
     @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sortIndex")
@@ -47,46 +54,60 @@ public class CategoryGroupTemplate extends Template {
         this.required = required;
     }
 
+    public String getSourceKey() {
+        return sourceKey;
+    }
+
+    public void setSourceKey(String sourceKey) {
+        this.sourceKey = sourceKey;
+    }
+
     public List<TemplateCategoryValue> getValues() {
         return values;
     }
 
-    /**
-     * Replaces the values with the given list, in order. Blank entries are skipped, the rest are trimmed and
-     * de-duplicated (first occurrence wins). Values that stay keep their row, so a large template is not rewritten on
-     * every save.
-     */
+    /** Replaces the values with plain top-level categories. See {@link #replaceEntries(List)}. */
     public void replaceValues(List<String> newValues) {
-        List<String> cleaned = new ArrayList<>();
-        Set<String> seen = new HashSet<>();
-        if (newValues != null) {
-            for (String raw : newValues) {
-                if (raw == null || raw.isBlank()) {
-                    continue;
-                }
-                String value = raw.trim();
-                if (seen.add(value)) {
-                    cleaned.add(value);
-                }
-            }
+        replaceEntries(newValues == null ? null : newValues.stream().map(CategoryValueEntry::of).toList());
+    }
+
+    /**
+     * Replaces the values with the given entries, in tree order (see {@link CategoryValueTree#normalize(List)}). Values
+     * that stay keep their row, so a large template is not rewritten on every save.
+     */
+    public void replaceEntries(List<CategoryValueEntry> entries) {
+        List<CategoryValueEntry> cleaned = CategoryValueTree.normalize(entries);
+        Set<String> kept = new HashSet<>();
+        for (CategoryValueEntry entry : cleaned) {
+            kept.add(entry.value());
         }
 
-        Map<String, TemplateCategoryValue> existing = new HashMap<>();
+        Map<String, TemplateCategoryValue> rows = new HashMap<>();
         for (TemplateCategoryValue v : values) {
-            existing.put(v.getValue(), v);
+            rows.put(v.getValue(), v);
         }
-        values.removeIf(v -> !seen.contains(v.getValue()));
+        values.removeIf(v -> !kept.contains(v.getValue()));
 
         for (int i = 0; i < cleaned.size(); i++) {
-            String value = cleaned.get(i);
-            TemplateCategoryValue row = existing.get(value);
+            CategoryValueEntry entry = cleaned.get(i);
+            TemplateCategoryValue row = rows.get(entry.value());
             if (row == null) {
-                values.add(new TemplateCategoryValue(this, value, i));
+                row = new TemplateCategoryValue(this, entry.value(), i);
+                rows.put(entry.value(), row);
+                values.add(row);
             } else {
                 row.setSortIndex(i);
             }
+            row.setParent(entry.parent() == null ? null : rows.get(entry.parent()));
+            row.setBookable(entry.bookable());
+            row.setHidden(entry.hidden());
         }
         // kept rows were updated in place; restore list order so callers see the new order before a reload
         values.sort(Comparator.comparingInt(TemplateCategoryValue::getSortIndex));
+    }
+
+    /** All values as flat list entries, in tree order. */
+    public List<CategoryValueEntry> toEntries() {
+        return values.stream().map(TemplateCategoryValue::toEntry).toList();
     }
 }
