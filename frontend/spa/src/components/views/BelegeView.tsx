@@ -326,6 +326,12 @@ export function ReviewDrawer({
     const [direction, setDirection] = useState<DocumentDirection>('INCOMING');
     const { data: categoryGroups = [] } = useCategoryGroups();
     const reviewAllBommels = useBommelsStore((s) => s.allBommels);
+    const loadBommels = useBommelsStore((s) => s.loadBommels);
+    const { organization } = useStore();
+    // The bommels load once with the page. If that failed, e.g. while the backend restarted, opening a receipt tries again.
+    useEffect(() => {
+        if (docProp?.id != null && organization?.id && reviewAllBommels.length === 0) loadBommels(organization.id);
+    }, [docProp?.id, organization?.id, reviewAllBommels.length, loadBommels]);
     // Without a root id the tree keeps the root bommel itself, so a receipt can be booked on the whole organization.
     const bommelItems = useMemo(() => flattenBommelTree(reviewAllBommels), [reviewAllBommels]);
     const [detailTab, setDetailTab] = useState<'transaction' | 'receipt'>('transaction');
