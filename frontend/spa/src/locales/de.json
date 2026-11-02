@@ -93,7 +93,9 @@
         "export": "Als Datei exportieren",
         "values": {
             "collection": "Sammlung",
+            "collectionHint": "Dient nur als Oberbegriff für Unterkategorien. Gebucht wird auf die Unterkategorien, nicht auf die Sammlung selbst.",
             "hidden": "Ausgeblendet",
+            "hiddenHint": "Für neue Buchungen nicht wählbar. Vorhandene Buchungen und Auswertungen bleiben unverändert.",
             "addChild": "Unterkategorie zu {{name}} hinzufügen",
             "addingUnder": "Neue Kategorie unter {{name}}",
             "makeCollection": "{{name}} nur als Sammlung führen (nicht buchbar)",

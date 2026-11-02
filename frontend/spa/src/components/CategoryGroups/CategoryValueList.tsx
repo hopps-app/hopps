@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/Command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn/Popover';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/shadecn/Tooltip';
 import { useCategoryGroupValues } from '@/hooks/queries/useCategoryGroups';
 import { cn } from '@/lib/utils';
 
@@ -54,8 +55,8 @@ const CategoryValueList: FC<CategoryValueListProps> = ({ rows, parentOptions, gr
                         <span className={cn('min-w-0 flex-1 truncate text-[13.5px] font-semibold text-[var(--font-color)]', hidden && 'opacity-50')}>
                             {row.value}
                         </span>
-                        {!row.bookable && <Badge>{t('categoryGroups.values.collection')}</Badge>}
-                        {hidden && <Badge>{t('categoryGroups.values.hidden')}</Badge>}
+                        {!row.bookable && <Badge hint={t('categoryGroups.values.collectionHint')}>{t('categoryGroups.values.collection')}</Badge>}
+                        {hidden && <Badge hint={t('categoryGroups.values.hiddenHint')}>{t('categoryGroups.values.hidden')}</Badge>}
 
                         <div className="flex shrink-0 items-center">
                             {!isChild && (
@@ -111,8 +112,26 @@ const CategoryValueList: FC<CategoryValueListProps> = ({ rows, parentOptions, gr
     );
 };
 
-const Badge: FC<{ children: ReactNode }> = ({ children }) => (
-    <span className="shrink-0 rounded-[var(--r-sm)] bg-[var(--surface-track)] px-1.5 py-0.5 text-[11px] font-bold text-[var(--muted)]">{children}</span>
+const Badge: FC<{ hint: string; children: ReactNode }> = ({ hint, children }) => (
+    <TooltipProvider delayDuration={100}>
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <span
+                    tabIndex={0}
+                    className="shrink-0 cursor-help rounded-[var(--r-sm)] bg-[var(--surface-track)] px-1.5 py-0.5 text-[11px] font-bold text-[var(--muted)]"
+                >
+                    {children}
+                </span>
+            </TooltipTrigger>
+            {/* Portalled: the list scrolls and would clip it, and it has to sit above the group dialog. */}
+            <TooltipContent
+                side="top"
+                className="z-[120] max-w-[280px] rounded-[10px] bg-[#1B1B1F] px-3.5 py-2.5 text-[12.5px] font-medium leading-snug text-white"
+            >
+                {hint}
+            </TooltipContent>
+        </Tooltip>
+    </TooltipProvider>
 );
 
 type ParentPickerProps = {
