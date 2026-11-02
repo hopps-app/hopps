@@ -41,6 +41,9 @@ public class TestdataBootstrapper {
     @Inject
     Instance<EntityDataLoader<?>> dataLoaders;
 
+    @Inject
+    DocumentDataLoader documentDataLoader;
+
     @ConfigProperty(name = "app.hopps.testdata.enabled", defaultValue = "true")
     boolean testdataEnabled;
 
@@ -81,6 +84,7 @@ public class TestdataBootstrapper {
                     .getSingleResult();
             if (orgCount > 0) {
                 Log.info("Testdata already loaded (organizations exist), skipping");
+                documentDataLoader.restoreReceiptFiles(entityManager);
                 return;
             }
 
