@@ -1672,7 +1672,7 @@
         "chooseFiles": "Choose files",
         "allowedTypes": "PNG, JPEG or PDF, several receipts at once",
         "removeFile": "Remove file",
-        "name": "Name",
+        "name": "Your name",
         "nameRequired": "Please enter your name",
         "comment": "Comment (optional)",
         "commentPlaceholder": "e.g. what the receipt is for",
