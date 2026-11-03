@@ -1,4 +1,5 @@
-import { useEffect, useId, useState } from 'react';
+import { X } from 'lucide-react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { isValidRange, yearOptions, type Period } from '../period';
@@ -38,6 +39,9 @@ export function PeriodField({ period, onChange }: PeriodFieldProps) {
     const [startDate, setStartDate] = useState(period.kind === 'custom' ? period.startDate : '');
     const [endDate, setEndDate] = useState(period.kind === 'custom' ? period.endDate : '');
     const [pickingRange, setPickingRange] = useState(period.kind === 'custom');
+    // The year or "all" chosen before the free range, restored by its X
+    const lastPreset = useRef<Period>(period.kind === 'custom' ? { kind: 'year', year: new Date().getFullYear() } : period);
+    if (period.kind !== 'custom') lastPreset.current = period;
 
     useEffect(() => {
         if (period.kind === 'custom') {
@@ -67,6 +71,13 @@ export function PeriodField({ period, onChange }: PeriodFieldProps) {
         if (isValidRange(nextStart, nextEnd)) onChange({ kind: 'custom', startDate: nextStart, endDate: nextEnd });
     };
 
+    const clearRange = () => {
+        setPickingRange(false);
+        setStartDate('');
+        setEndDate('');
+        onChange(lastPreset.current);
+    };
+
     const rangeInvalid = pickingRange && startDate !== '' && endDate !== '' && !isValidRange(startDate, endDate);
     const dateCls = cn(inputCls, 'h-9 w-[150px] px-2.5 text-[13px] font-semibold', rangeInvalid && 'border-[var(--negative)]');
 
@@ -78,38 +89,52 @@ export function PeriodField({ period, onChange }: PeriodFieldProps) {
                 </label>
                 <InfoTooltip content={t('bommel.period.info')} label={t('bommel.period.info')} />
             </div>
-            <BaseSelect value={selectValue} onValueChange={handleSelect}>
-                <SelectTrigger id={id} className={cn('h-9 w-[170px] rounded-[10px] border-border-soft bg-background-secondary font-semibold', pickerFocusCls)}>
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    {years.map((year) => (
-                        <SelectItem key={year} value={String(year)}>
-                            {year}
-                        </SelectItem>
-                    ))}
-                    <SelectItem value={ALL}>{t('bommel.period.all')}</SelectItem>
-                    <SelectItem value={CUSTOM}>{t('bommel.period.custom')}</SelectItem>
-                </SelectContent>
-            </BaseSelect>
-            {pickingRange && (
-                <div className="flex items-center gap-2">
-                    <input
-                        type="date"
-                        aria-label={t('bommel.period.from')}
-                        value={startDate}
-                        onChange={(e) => handleDate('start', e.target.value)}
-                        className={dateCls}
-                    />
-                    <input
-                        type="date"
-                        aria-label={t('bommel.period.to')}
-                        value={endDate}
-                        min={startDate || undefined}
-                        onChange={(e) => handleDate('end', e.target.value)}
-                        className={dateCls}
-                    />
+            {/* While a free range is picked the select gives way to the two days; X goes back to the year or "all" from before */}
+            {pickingRange ? (
+                <div className="flex flex-wrap items-center gap-2">
+                    <label className="flex items-center gap-1.5 text-[13px] font-semibold text-muted-foreground">
+                        {t('bommel.period.from')}
+                        <input id={id} type="date" value={startDate} onChange={(e) => handleDate('start', e.target.value)} className={dateCls} />
+                    </label>
+                    <label className="flex items-center gap-1.5 text-[13px] font-semibold text-muted-foreground">
+                        {t('bommel.period.to')}
+                        <input
+                            type="date"
+                            value={endDate}
+                            min={startDate || undefined}
+                            onChange={(e) => handleDate('end', e.target.value)}
+                            className={dateCls}
+                        />
+                    </label>
+                    <button
+                        type="button"
+                        onClick={clearRange}
+                        aria-label={t('bommel.period.clearRange')}
+                        title={t('bommel.period.clearRange')}
+                        // -mr-2 cancels the button's padding, so the toolbar gap is measured from the icon like the other controls
+                        className="-mr-2 grid h-8 w-8 place-items-center rounded-[var(--btn-radius)] text-muted-foreground transition-colors hover:bg-[var(--surface-sunken)] hover:text-foreground"
+                    >
+                        <X className="h-4 w-4" aria-hidden="true" />
+                    </button>
                 </div>
+            ) : (
+                <BaseSelect value={selectValue} onValueChange={handleSelect}>
+                    <SelectTrigger
+                        id={id}
+                        className={cn('h-9 w-[170px] rounded-[10px] border-border-soft bg-background-secondary font-semibold', pickerFocusCls)}
+                    >
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {years.map((year) => (
+                            <SelectItem key={year} value={String(year)}>
+                                {year}
+                            </SelectItem>
+                        ))}
+                        <SelectItem value={ALL}>{t('bommel.period.all')}</SelectItem>
+                        <SelectItem value={CUSTOM}>{t('bommel.period.custom')}</SelectItem>
+                    </SelectContent>
+                </BaseSelect>
             )}
         </div>
     );

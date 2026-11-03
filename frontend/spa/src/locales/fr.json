@@ -1267,7 +1267,8 @@
             "from": "Du",
             "to": "Au",
             "range": "{{from}} au {{to}}",
-            "panelHint": "Montants pour {{period}}"
+            "panelHint": "Montants pour {{period}}",
+            "clearRange": "Supprimer la période personnalisée"
         },
         "panelHint": {
             "text": "Ici figurent les montants de ce Bommel, les transactions et reçus ouverts ainsi que le lien d’envoi pour déposer des reçus.",

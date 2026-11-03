@@ -1362,7 +1362,8 @@
             "from": "From",
             "to": "To",
             "range": "{{from}} to {{to}}",
-            "panelHint": "Amounts for {{period}}"
+            "panelHint": "Amounts for {{period}}",
+            "clearRange": "Remove custom range"
         },
         "panelHint": {
             "text": "This shows the amounts of this Bommel, the open transactions and receipts, and the upload link for submitting receipts.",

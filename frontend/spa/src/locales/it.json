@@ -1267,7 +1267,8 @@
             "from": "Dal",
             "to": "Al",
             "range": "{{from}} al {{to}}",
-            "panelHint": "Importi per {{period}}"
+            "panelHint": "Importi per {{period}}",
+            "clearRange": "Rimuovi periodo personalizzato"
         },
         "panelHint": {
             "text": "Qui ci sono gli importi di questo Bommel, le transazioni e le ricevute aperte e il link di caricamento per inviare ricevute.",

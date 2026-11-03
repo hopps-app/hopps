@@ -1226,7 +1226,8 @@
             "from": "Von",
             "to": "Bis",
             "range": "{{from}} bis {{to}}",
-            "panelHint": "Beträge für {{period}}"
+            "panelHint": "Beträge für {{period}}",
+            "clearRange": "Eigenen Zeitraum entfernen"
         },
         "panelHint": {
             "text": "Hier stehen die Beträge dieses Bommels, die offenen Transaktionen und Belege sowie der Upload-Link zum Einreichen von Belegen.",
