@@ -122,7 +122,10 @@ export function PeriodField({ period, onChange }: PeriodFieldProps) {
                     <SelectTrigger
                         id={id}
                         // Fills the row on small screens, fixed width next to the switches from sm up
-                        className={cn('h-9 min-w-0 flex-1 sm:w-[170px] sm:flex-none rounded-[10px] border-border-soft bg-background-secondary font-semibold', pickerFocusCls)}
+                        className={cn(
+                            'h-9 min-w-0 flex-1 sm:w-[170px] sm:flex-none rounded-[10px] border-border-soft bg-background-secondary font-semibold',
+                            pickerFocusCls
+                        )}
                     >
                         <SelectValue />
                     </SelectTrigger>
