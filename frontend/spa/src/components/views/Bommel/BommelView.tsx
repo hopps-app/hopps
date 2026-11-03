@@ -315,10 +315,27 @@ function BommelView() {
     return (
         <>
             <div className="h-full flex flex-col font-hanken">
-                <h1 className="mb-4 flex items-center gap-2 text-[27px] font-extrabold leading-tight tracking-[-0.02em] text-foreground">
-                    {t('bommel.title')}
-                    <InfoTooltip content={t('bommel.titleInfo')} label={t('bommel.titleInfoLabel')} size={17} />
-                </h1>
+                {/* Title with the edit action, like the actions in the Transaktionen header */}
+                <div className="mb-4 flex items-center justify-between gap-4">
+                    <h1 className="flex items-center gap-2 text-[27px] font-extrabold leading-tight tracking-[-0.02em] text-foreground">
+                        {t('bommel.title')}
+                        <InfoTooltip content={t('bommel.titleInfo')} label={t('bommel.titleInfoLabel')} size={17} />
+                    </h1>
+                    {!isDemoMode && (
+                        <Button
+                            size="sm"
+                            variant={isEditMode ? 'default' : 'outline'}
+                            icon={isEditMode ? 'Check' : 'Pencil2'}
+                            onClick={() => {
+                                const newEditMode = !isEditMode;
+                                setIsEditMode(newEditMode);
+                                if (!newEditMode) setIsDragDropMode(false);
+                            }}
+                        >
+                            {isEditMode ? t('bommel.done') : t('bommel.edit')}
+                        </Button>
+                    )}
+                </div>
 
                 <div className="mb-4 flex flex-col gap-4 flex-shrink-0">
                     {guideStep && (
@@ -364,8 +381,8 @@ function BommelView() {
                             />
                         )}
 
-                        {/* Modes on the right, apart from the filters */}
-                        <div className="ml-auto flex items-center gap-[30px]">
+                        {/* Modes on the right, apart from the filters; on small screens a row under them, aligned left */}
+                        <div className="flex items-center gap-[30px] sm:ml-auto">
                             {/* Not while editing: switching to the example data would drop the user out of the edit. */}
                             {!isEditMode && !guideStep && (
                                 <ToggleField
@@ -382,20 +399,6 @@ function BommelView() {
                                     checked={isDragDropMode}
                                     onCheckedChange={setIsDragDropMode}
                                 />
-                            )}
-                            {!isDemoMode && (
-                                <Button
-                                    size="sm"
-                                    variant={isEditMode ? 'default' : 'outline'}
-                                    icon={isEditMode ? 'Check' : 'Pencil2'}
-                                    onClick={() => {
-                                        const newEditMode = !isEditMode;
-                                        setIsEditMode(newEditMode);
-                                        if (!newEditMode) setIsDragDropMode(false);
-                                    }}
-                                >
-                                    {isEditMode ? t('bommel.done') : t('bommel.edit')}
-                                </Button>
                             )}
                         </div>
                     </div>

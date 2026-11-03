@@ -82,7 +82,7 @@ export function PeriodField({ period, onChange }: PeriodFieldProps) {
     const dateCls = cn(inputCls, 'h-9 w-[150px] px-2.5 text-[13px] font-semibold', rangeInvalid && 'border-[var(--negative)]');
 
     return (
-        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2">
+        <div className="flex w-full flex-wrap items-center gap-x-2.5 gap-y-2 sm:w-auto">
             <div className="flex items-center gap-1.5">
                 <label htmlFor={id} className="text-[13.5px] font-bold text-foreground">
                     {t('bommel.period.label')}
@@ -121,7 +121,8 @@ export function PeriodField({ period, onChange }: PeriodFieldProps) {
                 <BaseSelect value={selectValue} onValueChange={handleSelect}>
                     <SelectTrigger
                         id={id}
-                        className={cn('h-9 w-[170px] rounded-[10px] border-border-soft bg-background-secondary font-semibold', pickerFocusCls)}
+                        // Fills the row on small screens, fixed width next to the switches from sm up
+                        className={cn('h-9 min-w-0 flex-1 sm:w-[170px] sm:flex-none rounded-[10px] border-border-soft bg-background-secondary font-semibold', pickerFocusCls)}
                     >
                         <SelectValue />
                     </SelectTrigger>
