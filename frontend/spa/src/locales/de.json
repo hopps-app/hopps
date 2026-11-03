@@ -1190,13 +1190,7 @@
             "noValues": "Keine Werte",
             "openInReceipts": "In Belege öffnen",
             "hasReceipt": "Hat einen Beleg",
-            "showAll": "Alle anzeigen",
-            "openTransactionsHint_one": "1 noch nicht bestätigte Transaktion",
-            "openTransactionsHint_other": "Letzte {{count}} noch nicht bestätigte Transaktionen",
-            "openReceiptsHint_one": "1 ungeprüfter Beleg",
-            "openReceiptsHint_other": "Letzte {{count}} ungeprüfte Belege",
-            "openTransactionsHintPartial": "Letzte {{shown}} von {{count}} noch nicht bestätigten Transaktionen",
-            "openReceiptsHintPartial": "Letzte {{shown}} von {{count}} ungeprüften Belegen"
+            "showAll": "Alle anzeigen"
         },
         "uploadLink": {
             "title": "Upload-Link",

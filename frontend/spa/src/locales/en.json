@@ -1326,13 +1326,7 @@
             "noValues": "No values",
             "openInReceipts": "Open in Receipts",
             "hasReceipt": "Has a receipt",
-            "showAll": "Show all",
-            "openTransactionsHint_one": "1 unconfirmed transaction",
-            "openTransactionsHint_other": "Latest {{count}} unconfirmed transactions",
-            "openReceiptsHint_one": "1 unreviewed receipt",
-            "openReceiptsHint_other": "Latest {{count}} unreviewed receipts",
-            "openTransactionsHintPartial": "Latest {{shown}} of {{count}} unconfirmed transactions",
-            "openReceiptsHintPartial": "Latest {{shown}} of {{count}} unreviewed receipts"
+            "showAll": "Show all"
         },
         "uploadLink": {
             "title": "Upload link",

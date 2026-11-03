@@ -1257,13 +1257,7 @@
             "noValues": "Aucune valeur",
             "openInReceipts": "Ouvrir dans Justificatifs",
             "hasReceipt": "A un justificatif",
-            "showAll": "Tout afficher",
-            "openTransactionsHint_one": "1 transaction non confirmée",
-            "openTransactionsHint_other": "Les {{count}} dernières transactions non confirmées",
-            "openReceiptsHint_one": "1 justificatif non vérifié",
-            "openReceiptsHint_other": "Les {{count}} derniers justificatifs non vérifiés",
-            "openTransactionsHintPartial": "Les {{shown}} dernières des {{count}} transactions non confirmées",
-            "openReceiptsHintPartial": "Les {{shown}} derniers des {{count}} justificatifs non vérifiés"
+            "showAll": "Tout afficher"
         },
         "period": {
             "label": "Période",

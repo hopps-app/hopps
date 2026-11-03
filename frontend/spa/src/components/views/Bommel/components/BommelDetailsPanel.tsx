@@ -8,7 +8,7 @@ import { UploadLinkSection } from './UploadLinkSection';
 import { BommelTreeNodeModel } from '@/components/BommelTreeView/BommelTreeNodeModel';
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
 import { fmtDate } from '@/components/Transactions/format';
-import { Badge, STATUS_STYLE } from '@/components/Transactions/StatusBadge';
+import { STATUS_STYLE } from '@/components/Transactions/StatusBadge';
 import { StatusIcon, type StatusIconKind } from '@/components/Transactions/StatusIcon';
 import { TxIcon } from '@/components/Transactions/TxIcon';
 import Emoji from '@/components/ui/Emoji';
@@ -95,7 +95,31 @@ export function BommelDetailsPanel({
                         <Folder className="h-5 w-5" aria-hidden="true" />
                     </span>
                 )}
-                <h2 className="min-w-0 flex-1 truncate text-[17px] font-extrabold tracking-[-0.02em] text-foreground">{node.text}</h2>
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                    <h2 className="min-w-0 truncate text-[17px] font-extrabold tracking-[-0.02em] text-foreground">{node.text}</h2>
+                    {/* Info badge; the period the amounts cover is its tooltip and accessible name */}
+                    {!demo && (
+                        <TooltipProvider delayDuration={100}>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <span
+                                        tabIndex={0}
+                                        aria-label={t('bommel.period.panelHint', { period: periodLabel })}
+                                        className="grid h-6 w-6 flex-shrink-0 cursor-help place-items-center rounded-full bg-[var(--info-surface)] text-[var(--info)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                    >
+                                        <Info className="h-3.5 w-3.5" aria-hidden="true" />
+                                    </span>
+                                </TooltipTrigger>
+                                <TooltipContent
+                                    side="bottom"
+                                    className="z-[120] max-w-[240px] rounded-[10px] bg-[#1B1B1F] px-3 py-1.5 text-[12px] font-semibold leading-snug text-white"
+                                >
+                                    {t('bommel.period.panelHint', { period: periodLabel })}
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    )}
+                </div>
                 <button
                     type="button"
                     onClick={onClose}
@@ -123,7 +147,6 @@ export function BommelDetailsPanel({
                         </div>
                     </div>
                 )}
-                {!demo && <p className="mb-2 text-[11.5px] font-semibold text-muted-foreground">{t('bommel.period.panelHint', { period: periodLabel })}</p>}
                 <div className="mb-[14px] flex gap-3">
                     <div className="flex-1">
                         <div className={EYEBROW}>{t('bommel.details.income')}</div>
@@ -208,9 +231,6 @@ function OpenItems({ bommelId, scopeIds, bommelNames, onOpenTransaction, onOpenR
     // Items booked on a sub-Bommel name it, items on the selected Bommel itself do not
     const subName = (id: number | undefined) => (id != null && id !== bommelId ? bommelNames.get(id) : undefined);
 
-    // Tooltip on a section's count: which of the open items the list shows (the latest MAX_ROWS of them)
-    const countHint = (key: string, count: number) => (count > MAX_ROWS ? t(`${key}Partial`, { shown: MAX_ROWS, count }) : t(key, { count }));
-
     const statusLabel = (status: TransactionDisplayStatus, count: number) =>
         t(status === 'DRAFT' && count !== 1 ? 'transactions.status.drafts' : STATUS_STYLE[status].labelKey);
 
@@ -220,13 +240,17 @@ function OpenItems({ bommelId, scopeIds, bommelNames, onOpenTransaction, onOpenR
                 <Eyebrow icon={<TagIcon size={14} />} className="mb-[11px]">
                     {t('bommel.panel.categories')}
                 </Eyebrow>
-                <div className="flex flex-wrap gap-1.5">
-                    {groups && groups.length > 0 ? (
-                        groups.map((group) => <CategoryGroupBadge key={group.id} group={group} />)
-                    ) : (
-                        <span className="text-[12.5px] font-semibold text-muted-foreground">{groups ? t('bommel.panel.noCategories') : '…'}</span>
-                    )}
-                </div>
+                {groups && groups.length > 0 ? (
+                    <div className="flex flex-wrap gap-[7px]">
+                        {groups.map((group) => (
+                            <CategoryGroupBadge key={group.id} group={group} />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="rounded-[14px] bg-[var(--surface-sunken)] px-[13px] py-2.5 text-[12.5px] font-semibold text-muted-foreground">
+                        {groups ? t('bommel.panel.noCategories') : '…'}
+                    </div>
+                )}
             </section>
 
             <Section
@@ -235,7 +259,6 @@ function OpenItems({ bommelId, scopeIds, bommelNames, onOpenTransaction, onOpenR
                 loading={transactions.isLoading}
                 error={transactions.isError}
                 count={txCount}
-                countHint={countHint('bommel.panel.openTransactionsHint', txCount)}
                 emptyText={t('bommel.panel.allConfirmed')}
                 footer={
                     <div className="flex items-center gap-2 border-t border-border-soft bg-[var(--surface-sunken)] py-1.5 pl-2 pr-1.5">
@@ -301,17 +324,19 @@ function OpenItems({ bommelId, scopeIds, bommelNames, onOpenTransaction, onOpenR
                 loading={documents.isLoading}
                 error={documents.isError}
                 count={openReceipts.length}
-                countHint={countHint('bommel.panel.openReceiptsHint', openReceipts.length)}
                 emptyText={t('bommel.panel.noUnreviewed')}
                 footer={
-                    <button
-                        type="button"
-                        onClick={onShowAllReceipts}
-                        className="flex w-full items-center justify-between gap-2 border-t border-border-soft bg-[var(--surface-sunken)] px-[13px] py-[9px] text-left text-[12.5px] font-bold text-purple-600 transition-colors hover:text-purple-700"
-                    >
-                        <span>{t('bommel.panel.openInReceipts')}</span>
-                        <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                    </button>
+                    // Same bar as the Transaktionen footer, with the link on the right
+                    <div className="flex items-center justify-end border-t border-border-soft bg-[var(--surface-sunken)] py-1.5 pl-2 pr-1.5">
+                        <button
+                            type="button"
+                            onClick={onShowAllReceipts}
+                            className="inline-flex flex-shrink-0 items-center gap-1 rounded-md px-1.5 py-1 text-[12.5px] font-bold text-purple-600 transition-colors hover:bg-[var(--background-secondary)] hover:text-purple-700"
+                        >
+                            {t('bommel.panel.openInReceipts')}
+                            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                        </button>
+                    </div>
                 }
             >
                 {openReceipts.slice(0, MAX_ROWS).map((doc) => (
@@ -343,10 +368,8 @@ interface SectionProps {
     title: string;
     loading: boolean;
     error: boolean;
-    /** Total number of open items (shown next to the heading); the list shows at most MAX_ROWS of them */
+    /** Total number of open items; the list shows at most MAX_ROWS of them */
     count: number;
-    /** Tooltip on the count, saying what it counts */
-    countHint: string;
     emptyText: string;
     /** Bottom bar of the list, leading to the full list page */
     footer: ReactNode;
@@ -354,7 +377,7 @@ interface SectionProps {
 }
 
 /** A titled list of up to three open items with a footer bar, or an empty state */
-function Section({ icon, title, loading, error, count, countHint, emptyText, footer, children }: SectionProps) {
+function Section({ icon, title, loading, error, count, emptyText, footer, children }: SectionProps) {
     const { t } = useTranslation();
     let body: ReactNode;
     if (loading) {
@@ -383,21 +406,9 @@ function Section({ icon, title, loading, error, count, countHint, emptyText, foo
 
     return (
         <section className="mb-[18px]">
-            <div className="mb-[11px] flex items-center justify-between gap-2">
-                <Eyebrow icon={icon}>{title}</Eyebrow>
-                {!loading && count > 0 && (
-                    <HoverLabel label={countHint}>
-                        <span
-                            tabIndex={0}
-                            aria-label={countHint}
-                            // Same neutral count bubble as the status filters on the Transaktionen and Belege pages
-                            className="grid h-5 min-w-5 cursor-help place-items-center rounded-full bg-[color-mix(in_oklch,var(--surface-track)_60%,var(--background-secondary))] px-[5px] text-[11.5px] font-extrabold tabular-nums text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                        >
-                            {count}
-                        </span>
-                    </HoverLabel>
-                )}
-            </div>
+            <Eyebrow icon={icon} className="mb-[11px]">
+                {title}
+            </Eyebrow>
             {body}
         </section>
     );
@@ -474,8 +485,12 @@ function CategoryGroupBadge({ group }: { group: CategoryGroupResponse }) {
                 }}
             >
                 <TooltipTrigger asChild>
-                    <button type="button" className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-                        <Badge>{group.name}</Badge>
+                    {/* Same chip as the values on the Kategorien page */}
+                    <button
+                        type="button"
+                        className="inline-flex items-center rounded-[var(--r-sm)] border border-[var(--border-soft)] px-[11px] py-[5px] text-[13px] font-semibold text-[var(--font-color)] transition-colors hover:bg-[var(--surface-sunken)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:border-white"
+                    >
+                        {group.name}
                     </button>
                 </TooltipTrigger>
                 <TooltipContent
