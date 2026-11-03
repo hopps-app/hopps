@@ -1,13 +1,28 @@
-import { CategoryGroupCreateRequest, CategoryGroupResponse, CategoryGroupUpdateRequest, CategoryGroupValueCreateRequest } from '@hopps/api-client';
+import {
+    CategoryGroupCreateRequest,
+    CategoryGroupImportRequest,
+    CategoryGroupResponse,
+    CategoryGroupUpdateRequest,
+    CategoryGroupValueCreateRequest,
+    CategoryGroupValueUpdateRequest,
+} from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { SETUP_PROGRESS_KEY } from '@/components/Dashboard/setupProgressKey';
 import apiService from '@/services/ApiService';
 
+/** Which values a list shows. Without a scope that is all of them, as the administration needs it. */
+export type CategoryValueScope = {
+    /** Leave out hidden values, for pickers on new bookings. */
+    selection?: boolean;
+    /** Only top-level values, the candidates for a parent. */
+    topLevel?: boolean;
+};
+
 export const categoryGroupKeys = {
     all: ['category-groups'] as const,
     lists: () => [...categoryGroupKeys.all, 'list'] as const,
-    values: (groupId: number, query: string) => [...categoryGroupKeys.all, 'values', groupId, query] as const,
+    values: (groupId: number, query: string, scope: CategoryValueScope = {}) => [...categoryGroupKeys.all, 'values', groupId, query, scope] as const,
 };
 
 /** All category groups of the current organization (lightweight — no value lists). */
@@ -48,10 +63,11 @@ export function useCategoryGroupTemplate(templateId: number | undefined) {
  * Searchable, paginated values of a single group — the source for the value picker. Kept small (server-side search)
  * so it scales to very large value sets (e.g. a whole SKR04 chart of accounts).
  */
-export function useCategoryGroupValues(groupId: number | undefined, query: string, enabled = true) {
+export function useCategoryGroupValues(groupId: number | undefined, query: string, enabled = true, scope: CategoryValueScope = {}) {
     return useQuery({
-        queryKey: categoryGroupKeys.values(groupId ?? 0, query),
-        queryFn: () => apiService.orgService.valuesGET(groupId as number, 0, query || undefined, 50),
+        queryKey: categoryGroupKeys.values(groupId ?? 0, query, scope),
+        // api-client orders params alphabetically: valuesGET(id, page, query, selection, size, topLevel)
+        queryFn: () => apiService.orgService.valuesGET(groupId as number, 0, query || undefined, scope.selection, 50, scope.topLevel),
         enabled: enabled && !!groupId,
     });
 }
@@ -117,10 +133,33 @@ export function useDeleteCategoryGroup() {
 export function useAddCategoryGroupValues() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ id, values }: { id: number; values: string[] }) => apiService.orgService.valuesPOST(id, new CategoryGroupValueCreateRequest({ values })),
-        onSuccess: (_res: CategoryGroupResponse, variables) => {
+        mutationFn: ({ id, values, parentId }: { id: number; values: string[]; parentId?: number }) =>
+            apiService.orgService.valuesPOST(id, new CategoryGroupValueCreateRequest({ values, parentId })),
+        onSuccess: (_res: CategoryGroupResponse) => {
             queryClient.invalidateQueries({ queryKey: categoryGroupKeys.all });
-            queryClient.invalidateQueries({ queryKey: categoryGroupKeys.values(variables.id, '') });
+        },
+    });
+}
+
+export function useUpdateCategoryGroupValue() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, valueId, body }: { id: number; valueId: number; body: CategoryGroupValueUpdateRequest }) =>
+            apiService.orgService.valuesPUT(id, valueId, body),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: categoryGroupKeys.all });
+        },
+    });
+}
+
+export function useImportCategoryGroup() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (body: CategoryGroupImportRequest) => apiService.orgService.importCategoryGroup(body),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: SETUP_PROGRESS_KEY });
+            queryClient.invalidateQueries({ queryKey: categoryGroupKeys.all });
+            queryClient.invalidateQueries({ queryKey: ['transactions'] });
         },
     });
 }
@@ -129,9 +168,8 @@ export function useDeleteCategoryGroupValue() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: ({ id, valueId }: { id: number; valueId: number }) => apiService.orgService.valuesDELETE(id, valueId),
-        onSuccess: (_res, variables) => {
+        onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: categoryGroupKeys.all });
-            queryClient.invalidateQueries({ queryKey: categoryGroupKeys.values(variables.id, '') });
         },
     });
 }

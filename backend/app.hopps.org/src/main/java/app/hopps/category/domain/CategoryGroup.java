@@ -51,6 +51,14 @@ public class CategoryGroup extends PanacheEntity {
     @JsonIgnore
     private Long templateId;
 
+    /**
+     * Identifies the template or export file this group came from, so that importing the same file again extends this
+     * group. Null until the group is exported or when it was created by hand.
+     */
+    @Column(name = "source_key")
+    @JsonIgnore
+    private String sourceKey;
+
     @NotNull
     @ManyToOne(optional = false)
     @JoinColumn(name = "organization_id")
@@ -96,6 +104,14 @@ public class CategoryGroup extends PanacheEntity {
 
     public void setTemplateId(Long templateId) {
         this.templateId = templateId;
+    }
+
+    public String getSourceKey() {
+        return sourceKey;
+    }
+
+    public void setSourceKey(String sourceKey) {
+        this.sourceKey = sourceKey;
     }
 
     public Organization getOrganization() {

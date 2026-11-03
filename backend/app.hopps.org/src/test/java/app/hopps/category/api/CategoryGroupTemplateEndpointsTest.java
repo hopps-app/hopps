@@ -105,7 +105,7 @@ class CategoryGroupTemplateEndpointsTest {
                 .statusCode(200)
                 .body("name", is("SKR 49"))
                 .body("required", is(true))
-                .body("values", contains("1000", "2000", "3000", "4000", "5000", "6000"));
+                .body("values.value", contains("1000", "2000", "3000", "4000", "5000", "6000"));
     }
 
     @Test
@@ -160,7 +160,7 @@ class CategoryGroupTemplateEndpointsTest {
                         "name", "SKR 49",
                         "required", false,
                         "bommelIds", List.of(rootBommelId),
-                        "values", List.of("1000", "2000"),
+                        "values", List.of(Map.of("value", "1000"), Map.of("value", "2000")),
                         "reopenAffectedTransactions", false,
                         "templateId", templateId))
                 .when()

@@ -86,7 +86,8 @@
             "moreValues": "+{{count}} de plus",
             "noTemplatesTitle": "Créez votre premier groupe de catégories",
             "ownGroupTitle": "Votre propre groupe de catégories",
-            "ownGroupText": "Pas encore de catégories, vous les créez vous-même."
+            "ownGroupText": "Pas encore de catégories, vous les créez vous-même.",
+            "importFile": "Importer depuis un fichier"
         }
     },
     "banner": {
@@ -1034,6 +1035,9 @@
             "createTransaction": "Créer la transaction",
             "eyebrowView": "Reçu",
             "editReceipt": "Modifier le reçu",
+            "nextReceipt": "Passer au reçu suivant",
+            "assignment": "Bommel et catégorie",
+            "finish": "Terminer",
             "editReceiptLocked": "La transaction est déjà confirmée. Rouvrez-la pour modifier le reçu.",
             "saveDraftHint": "Enregistre les informations comme brouillon. Le reçu reste en vérification.",
             "unsaved": "Non enregistré",
@@ -1129,6 +1133,7 @@
             "reanalyzeError": "L'analyse n'a pas pu être lancée",
             "saved": "Reçu enregistré",
             "transactionCreated": "Transaction créée",
+            "allDone": "Tous les reçus sont vérifiés",
             "receiptConfirmed": "Reçu confirmé",
             "deleted": "Reçu supprimé",
             "reanalyzeStarted": "Nouvelle analyse lancée",

@@ -1,0 +1,28 @@
+{
+  "formatVersion": 1,
+  "sourceKey": "demo-pr913-kostenart",
+  "name": "Kostenart (geändert)",
+  "required": true,
+  "values": [
+    { "value": "Personal", "parent": null, "bookable": false, "hidden": false },
+    { "value": "Honorare Regie", "parent": "Personal", "bookable": true, "hidden": false },
+    { "value": "Honorare Technik", "parent": "Personal", "bookable": true, "hidden": false },
+    { "value": "Aushilfen", "parent": "Personal", "bookable": true, "hidden": false },
+    { "value": "Honorare Schauspiel", "parent": "Personal", "bookable": true, "hidden": false },
+
+    { "value": "Technik", "parent": null, "bookable": false, "hidden": false },
+    { "value": "Licht", "parent": "Technik", "bookable": true, "hidden": true },
+    { "value": "Ton", "parent": "Technik", "bookable": true, "hidden": false },
+    { "value": "Mietgeräte", "parent": "Technik", "bookable": true, "hidden": true },
+
+    { "value": "Öffentlichkeitsarbeit", "parent": null, "bookable": false, "hidden": true },
+    { "value": "Plakate", "parent": "Öffentlichkeitsarbeit", "bookable": true, "hidden": false },
+    { "value": "Social Media", "parent": "Öffentlichkeitsarbeit", "bookable": true, "hidden": false },
+
+    { "value": "Sonstiges", "parent": null, "bookable": true, "hidden": false },
+
+    { "value": "Reisekosten", "parent": null, "bookable": false, "hidden": false },
+    { "value": "Fahrtkosten", "parent": "Reisekosten", "bookable": true, "hidden": false },
+    { "value": "Übernachtung", "parent": "Reisekosten", "bookable": true, "hidden": false }
+  ]
+}

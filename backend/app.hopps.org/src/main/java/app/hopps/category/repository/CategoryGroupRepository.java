@@ -3,6 +3,7 @@ package app.hopps.category.repository;
 import app.hopps.category.domain.CategoryGroup;
 import app.hopps.shared.security.OrganizationContext;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
+import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -25,6 +26,12 @@ public class CategoryGroupRepository implements PanacheRepository<CategoryGroup>
     public CategoryGroup findByIdScoped(Long id) {
         Long orgId = organizationContext.getCurrentOrganizationId();
         return find("id = ?1 and organization.id = ?2", id, orgId).firstResult();
+    }
+
+    /** The current organization's oldest group from this template or export file, or null. */
+    public CategoryGroup findBySourceKeyForCurrentOrg(String sourceKey) {
+        Long orgId = organizationContext.getCurrentOrganizationId();
+        return find("organization.id = ?1 and sourceKey = ?2", Sort.by("id"), orgId, sourceKey).firstResult();
     }
 
     /**

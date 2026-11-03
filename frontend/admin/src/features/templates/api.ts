@@ -1,6 +1,13 @@
-import { CategoryGroupTemplateRequest, TemplateOrderRequest, type CategoryGroupTemplateResponse, type TemplateSummaryResponse } from '@hopps/api-client';
+import {
+    CategoryGroupExport,
+    CategoryGroupTemplateRequest,
+    CategoryValueEntry,
+    TemplateOrderRequest,
+    type CategoryGroupTemplateResponse,
+    type TemplateSummaryResponse,
+} from '@hopps/api-client';
 
-import type { CategoryGroupTemplate, TemplateRow } from './types';
+import type { CategoryGroupTemplate, TemplateRow, TemplateValue } from './types';
 
 import { apiClient } from '@/services/apiClient';
 
@@ -28,6 +35,10 @@ function mapRow(r: TemplateSummaryResponse): TemplateRow {
     };
 }
 
+function mapValue(v: CategoryValueEntry): TemplateValue {
+    return { value: v.value ?? '', parent: v.parent ?? undefined, bookable: v.bookable ?? true, hidden: v.hidden ?? false };
+}
+
 function mapCategoryGroupTemplate(r: CategoryGroupTemplateResponse): CategoryGroupTemplate {
     return {
         id: r.id ?? null,
@@ -35,8 +46,9 @@ function mapCategoryGroupTemplate(r: CategoryGroupTemplateResponse): CategoryGro
         description: r.description ?? '',
         active: r.active ?? false,
         required: r.required ?? false,
-        values: r.values ?? [],
+        values: (r.values ?? []).map(mapValue),
         usageCount: r.usageCount ?? 0,
+        sourceKey: r.sourceKey ?? null,
     };
 }
 
@@ -55,11 +67,42 @@ export async function saveCategoryGroupTemplate(template: CategoryGroupTemplate)
         description: template.description,
         active: template.active,
         required: template.required,
-        values: template.values,
+        values: template.values.map((v) => new CategoryValueEntry(v)),
+        sourceKey: template.sourceKey ?? undefined,
     });
     const saved =
         template.id === null ? await apiClient.createAdminCategoryGroupTemplate(body) : await apiClient.updateAdminCategoryGroupTemplate(template.id, body);
     return mapCategoryGroupTemplate(saved);
+}
+
+/** Format of the export file this app can read. */
+const EXPORT_FORMAT_VERSION = 1;
+
+/** Downloads a template as an export file, in the format organizations use for their groups. */
+export async function exportCategoryGroupTemplate(id: number): Promise<void> {
+    const file = await apiClient.exportAdminCategoryGroupTemplate(id);
+    const blob = new Blob([JSON.stringify(file, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `kategorien_${(file.name ?? 'export').replace(/[^\p{L}\p{N}_-]+/gu, '_')}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+}
+
+/** The part of a template an export file fills in; null when the text is not a file this app can read. */
+export function parseTemplateFile(text: string): Pick<CategoryGroupTemplate, 'name' | 'required' | 'values' | 'sourceKey'> | null {
+    let data: { formatVersion?: unknown; name?: unknown; values?: unknown } | null;
+    try {
+        data = JSON.parse(text);
+    } catch {
+        return null;
+    }
+    if (data?.formatVersion !== EXPORT_FORMAT_VERSION || typeof data.name !== 'string' || !data.name.trim() || !Array.isArray(data.values)) {
+        return null;
+    }
+    const file = CategoryGroupExport.fromJS(data);
+    return { name: file.name ?? '', required: file.required ?? false, values: (file.values ?? []).map(mapValue), sourceKey: file.sourceKey ?? null };
 }
 
 /** Saves the order of all templates, first to last. */

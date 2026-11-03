@@ -216,7 +216,21 @@
             "save": "Speichern",
             "saving": "Wird gespeichert…",
             "delete": "Löschen",
-            "deleteConfirm": "Endgültig löschen"
+            "deleteConfirm": "Endgültig löschen",
+            "collection": "Sammlung",
+            "hidden": "Ausgeblendet",
+            "addChild": "Unterkategorie zu {{value}} hinzufügen",
+            "addingUnder": "Neuer Wert unter {{value}}",
+            "makeCollection": "{{value}} nur als Sammlung führen (nicht buchbar)",
+            "makeBookable": "{{value}} direkt buchbar machen",
+            "hide": "{{value}} ausblenden",
+            "show": "{{value}} einblenden",
+            "move": "{{value}} einer Oberkategorie zuordnen",
+            "topLevel": "Keine Oberkategorie",
+            "loadFile": "Aus Datei laden",
+            "export": "Exportieren",
+            "exportError": "Export fehlgeschlagen. Bitte erneut versuchen.",
+            "invalidFile": "Diese Datei lässt sich nicht importieren."
         }
     },
     "home": {

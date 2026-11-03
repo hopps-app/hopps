@@ -258,12 +258,17 @@ public class TransactionResource {
     @Operation(summary = "Update a transaction", description = "Updates a transaction with user-provided data")
     @APIResponse(responseCode = "200", description = "Transaction updated", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TransactionResponse.class)))
     @APIResponse(responseCode = "404", description = "Transaction not found")
+    @APIResponse(responseCode = "409", description = "Transaction is confirmed and must be reopened before it can be changed")
     public TransactionResponse updateTransaction(
             @PathParam("id") @Parameter(description = "Transaction ID") Long id,
             TransactionUpdateRequest request) {
         Transaction transaction = transactionRepository.findByIdScoped(id);
         if (transaction == null) {
             throw new NotFoundException("Transaction not found");
+        }
+        if (transaction.isConfirmed()) {
+            throw new ClientErrorException("Transaction is confirmed, reopen it before changing it",
+                    Response.Status.CONFLICT);
         }
 
         BigDecimal previousTotal = transaction.getTotal();

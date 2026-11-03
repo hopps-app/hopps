@@ -1,5 +1,6 @@
 package app.hopps.template.api.dto;
 
+import app.hopps.category.api.dto.CategoryValueEntry;
 import jakarta.validation.constraints.NotBlank;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
@@ -11,5 +12,6 @@ public record CategoryGroupTemplateRequest(
         @Schema(description = "Short explanation shown to organizations when they pick a template") String description,
         @Schema(description = "Whether organizations can pick this template") boolean active,
         @Schema(description = "Whether the created group is mandatory before a transaction can be confirmed") boolean required,
-        @Schema(description = "The values, in order. Blanks are skipped, duplicates are removed.") List<String> values) {
+        @Schema(description = "The categories, in order. Blanks are skipped, duplicates are removed.") List<CategoryValueEntry> values,
+        @Schema(description = "Stable id taken over from an export file, so that the template and that file count as the same source. Keeps the current key when null.") String sourceKey) {
 }

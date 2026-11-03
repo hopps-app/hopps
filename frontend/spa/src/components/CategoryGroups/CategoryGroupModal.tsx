@@ -3,13 +3,19 @@ import {
     CategoryGroupResponse,
     CategoryGroupTemplateDetail,
     CategoryGroupUpdateRequest,
+    CategoryGroupValueResponse,
+    CategoryGroupValueUpdateRequest,
+    CategoryValueEntry,
     ReopenImpactRequest,
+    ApiException,
 } from '@hopps/api-client';
-import { Check, Plus, X } from 'lucide-react';
+import { Check, CornerDownRight, Plus, X } from 'lucide-react';
 import { FC, ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import BommelMultiSelector from './BommelMultiSelector';
+import CategoryValueList, { CategoryRow, ParentOption } from './CategoryValueList';
+import { inTreeOrder, PendingCategory, withoutCategory } from './categoryValues';
 import ReopenAffectedTransactionsDialog from './ReopenAffectedTransactionsDialog';
 
 import Button from '@/components/ui/Button';
@@ -25,6 +31,7 @@ import {
     useCreateCategoryGroup,
     useDeleteCategoryGroupValue,
     useUpdateCategoryGroup,
+    useUpdateCategoryGroupValue,
 } from '@/hooks/queries/useCategoryGroups';
 import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
@@ -53,7 +60,9 @@ const CategoryGroupModal: FC<CategoryGroupModalProps> = ({ open, group, template
     const [name, setName] = useState('');
     const [required, setRequired] = useState(false);
     const [bommelIds, setBommelIds] = useState<number[]>([]);
-    const [pendingValues, setPendingValues] = useState<string[]>([]);
+    const [pendingValues, setPendingValues] = useState<PendingCategory[]>([]);
+    /** The parent the next added category goes under; set from a row's plus button. */
+    const [addUnder, setAddUnder] = useState<ParentOption | undefined>(undefined);
     const [templateId, setTemplateId] = useState<number | undefined>(undefined);
     const [valueInput, setValueInput] = useState('');
     const [valueQuery, setValueQuery] = useState('');
@@ -65,6 +74,7 @@ const CategoryGroupModal: FC<CategoryGroupModalProps> = ({ open, group, template
     const updateMutation = useUpdateCategoryGroup();
     const addValuesMutation = useAddCategoryGroupValues();
     const deleteValueMutation = useDeleteCategoryGroupValue();
+    const updateValueMutation = useUpdateCategoryGroupValue();
 
     // A template passed in from the setup screen fixes the source; otherwise a new group can still start from one.
     const fromSetupTemplate = template != null;
@@ -78,7 +88,9 @@ const CategoryGroupModal: FC<CategoryGroupModalProps> = ({ open, group, template
         setTemplateId(tpl?.id);
         setName(tpl?.name ?? '');
         setRequired(tpl?.required ?? false);
-        setPendingValues(tpl?.values ?? []);
+        setPendingValues(
+            (tpl?.values ?? []).map((v) => ({ value: v.value ?? '', parent: v.parent ?? undefined, bookable: v.bookable ?? true, hidden: v.hidden ?? false }))
+        );
     };
 
     useEffect(() => {
@@ -94,6 +106,7 @@ const CategoryGroupModal: FC<CategoryGroupModalProps> = ({ open, group, template
             setBommelIds(group?.bommelIds ?? []);
             setValueInput('');
             setValueQuery('');
+            setAddUnder(undefined);
             setWizardOpen(false);
         }
     }, [open, group, template]);
@@ -119,23 +132,50 @@ const CategoryGroupModal: FC<CategoryGroupModalProps> = ({ open, group, template
             return;
         }
         if (isCreate) {
-            if (!pendingValues.includes(value)) {
-                setPendingValues((prev) => [...prev, value]);
+            if (!pendingValues.some((v) => v.value === value)) {
+                setPendingValues((prev) => [...prev, { value, parent: addUnder?.value, bookable: true, hidden: false }]);
             }
         } else {
-            addValuesMutation.mutate({ id: group.id as number, values: [value] }, { onError: () => showError(t('categoryGroups.toast.error')) });
+            addValuesMutation.mutate(
+                { id: group.id as number, values: [value], parentId: addUnder?.id },
+                { onError: () => showError(t('categoryGroups.toast.error')) }
+            );
         }
         setValueInput('');
     };
 
-    const removePendingValue = (value: string) => setPendingValues((prev) => prev.filter((v) => v !== value));
+    const patchPending = (value: string, patch: Partial<PendingCategory>) =>
+        setPendingValues((prev) => prev.map((v) => (v.value === value ? { ...v, ...patch } : v)));
+
+    /** Saves a changed category. A mandatory group refuses to lose its last category that can be chosen. */
+    const updateServerValue = (item: CategoryGroupValueResponse, patch: { parentId?: number; bookable?: boolean; hidden?: boolean }) => {
+        const body = new CategoryGroupValueUpdateRequest({
+            parentId: 'parentId' in patch ? patch.parentId : item.parentId,
+            bookable: patch.bookable ?? item.bookable,
+            hidden: patch.hidden ?? item.hidden,
+        });
+        updateValueMutation.mutate(
+            { id: group?.id as number, valueId: item.id as number, body },
+            {
+                onError: (e) =>
+                    showError(ApiException.isApiException(e) && e.status === 409 ? t('categoryGroups.toast.lastSelectable') : t('categoryGroups.toast.error')),
+            }
+        );
+    };
 
     const doSave = async (reopenAffectedTransactions: boolean) => {
         setSaving(true);
         try {
             if (isCreate) {
                 await createMutation.mutateAsync(
-                    new CategoryGroupCreateRequest({ name: name.trim(), required, bommelIds, values: pendingValues, reopenAffectedTransactions, templateId })
+                    new CategoryGroupCreateRequest({
+                        name: name.trim(),
+                        required,
+                        bommelIds,
+                        values: pendingValues.map((v) => new CategoryValueEntry(v)),
+                        reopenAffectedTransactions,
+                        templateId,
+                    })
                 );
                 showSuccess(t('categoryGroups.toast.created'));
             } else {
@@ -182,18 +222,19 @@ const CategoryGroupModal: FC<CategoryGroupModalProps> = ({ open, group, template
           : t('categoryGroups.modal.editTitle');
     const subtitle = fromSetupTemplate ? t('categoryGroups.modal.templateSubtitle') : t('categoryGroups.modal.subtitle');
 
-    const valueChips = isCreate
-        ? pendingValues.map((value) => (
-              <ValueChip key={value} label={value} onRemove={() => removePendingValue(value)} removeLabel={t('categoryGroups.modal.remove', { name: value })} />
-          ))
-        : (serverValues?.items ?? []).map((item) => (
-              <ValueChip
-                  key={item.id}
-                  label={item.value ?? ''}
-                  removeLabel={t('categoryGroups.modal.remove', { name: item.value ?? '' })}
-                  onRemove={() => deleteValueMutation.mutate({ id: group.id as number, valueId: item.id as number })}
-              />
-          ));
+    const serverItems = serverValues?.items ?? [];
+    const orderedPending = inTreeOrder(pendingValues);
+    const valueRows: CategoryRow[] = isCreate
+        ? orderedPending.map((v) => ({ ...v, parentHidden: false, childCount: pendingValues.filter((c) => c.parent === v.value).length }))
+        : serverItems.map((item) => ({
+              value: item.value ?? '',
+              parent: item.parentValue ?? undefined,
+              bookable: item.bookable ?? true,
+              hidden: item.hidden ?? false,
+              parentHidden: item.parentHidden ?? false,
+              childCount: item.childCount ?? 0,
+          }));
+    const serverItem = (row: CategoryRow) => serverItems.find((item) => item.value === row.value) as CategoryGroupValueResponse;
 
     return (
         <>
@@ -239,6 +280,20 @@ const CategoryGroupModal: FC<CategoryGroupModalProps> = ({ open, group, template
                         </Field>
 
                         <Field label={t('categoryGroups.modal.values')}>
+                            {addUnder && (
+                                <div className="mb-2 flex items-center gap-1.5 text-[13px] font-semibold text-purple-700">
+                                    <CornerDownRight size={14} aria-hidden="true" />
+                                    {t('categoryGroups.values.addingUnder', { name: addUnder.value })}
+                                    <button
+                                        type="button"
+                                        className="grid text-[var(--ink-faint)] hover:text-[var(--negative)]"
+                                        aria-label={t('common.cancel')}
+                                        onClick={() => setAddUnder(undefined)}
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                </div>
+                            )}
                             <div className="flex gap-2.5">
                                 <BaseInput
                                     value={valueInput}
@@ -268,8 +323,33 @@ const CategoryGroupModal: FC<CategoryGroupModalProps> = ({ open, group, template
                             )}
 
                             <div className="mt-2.5">
-                                {valueChips.length > 0 ? (
-                                    <div className="flex max-h-56 flex-wrap gap-[7px] overflow-y-auto">{valueChips}</div>
+                                {valueRows.length > 0 ? (
+                                    <CategoryValueList
+                                        rows={valueRows}
+                                        groupId={group?.id}
+                                        parentOptions={pendingValues.filter((v) => v.parent == null).map((v) => ({ value: v.value }))}
+                                        onMove={(row, parent) =>
+                                            isCreate
+                                                ? patchPending(row.value, { parent: parent?.value })
+                                                : updateServerValue(serverItem(row), { parentId: parent?.id })
+                                        }
+                                        onToggleBookable={(row) =>
+                                            isCreate
+                                                ? patchPending(row.value, { bookable: !row.bookable })
+                                                : updateServerValue(serverItem(row), { bookable: !row.bookable })
+                                        }
+                                        onToggleHidden={(row) =>
+                                            isCreate
+                                                ? patchPending(row.value, { hidden: !row.hidden })
+                                                : updateServerValue(serverItem(row), { hidden: !row.hidden })
+                                        }
+                                        onAddChild={(row) => setAddUnder({ id: isCreate ? undefined : serverItem(row).id, value: row.value })}
+                                        onRemove={(row) =>
+                                            isCreate
+                                                ? setPendingValues((prev) => withoutCategory(prev, row.value))
+                                                : deleteValueMutation.mutate({ id: group.id as number, valueId: serverItem(row).id as number })
+                                        }
+                                    />
                                 ) : (
                                     <div className="text-[13px] text-[var(--ink-faint)]">{t('categoryGroups.modal.noValues')}</div>
                                 )}
@@ -310,21 +390,6 @@ const Field: FC<{ label: string; info?: string; children: ReactNode }> = ({ labe
         </div>
         {children}
     </div>
-);
-
-/** A category as a removable chip, as in the first-use design. */
-const ValueChip: FC<{ label: string; removeLabel: string; onRemove: () => void }> = ({ label, removeLabel, onRemove }) => (
-    <span className="inline-flex items-center gap-1.5 rounded-[var(--r-sm)] border border-[var(--border-soft)] dark:border-white bg-[var(--background-secondary)] py-[5px] pl-[11px] pr-2 text-[13px] font-semibold text-[var(--font-color)]">
-        {label}
-        <button
-            type="button"
-            aria-label={removeLabel}
-            onClick={onRemove}
-            className="grid text-[var(--ink-faint)] transition-colors hover:text-[var(--negative)]"
-        >
-            <X size={13} />
-        </button>
-    </span>
 );
 
 export default CategoryGroupModal;

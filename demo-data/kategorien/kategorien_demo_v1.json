@@ -1,0 +1,23 @@
+{
+  "formatVersion": 1,
+  "sourceKey": "demo-pr913-kostenart",
+  "name": "Kostenart",
+  "required": false,
+  "values": [
+    { "value": "Personal", "parent": null, "bookable": false, "hidden": false },
+    { "value": "Honorare Regie", "parent": "Personal", "bookable": true, "hidden": false },
+    { "value": "Honorare Technik", "parent": "Personal", "bookable": true, "hidden": false },
+    { "value": "Aushilfen", "parent": "Personal", "bookable": true, "hidden": false },
+
+    { "value": "Technik", "parent": null, "bookable": true, "hidden": false },
+    { "value": "Licht", "parent": "Technik", "bookable": true, "hidden": false },
+    { "value": "Ton", "parent": "Technik", "bookable": true, "hidden": false },
+    { "value": "Mietgeräte", "parent": "Technik", "bookable": true, "hidden": true },
+
+    { "value": "Öffentlichkeitsarbeit", "parent": null, "bookable": false, "hidden": true },
+    { "value": "Plakate", "parent": "Öffentlichkeitsarbeit", "bookable": true, "hidden": false },
+    { "value": "Social Media", "parent": "Öffentlichkeitsarbeit", "bookable": true, "hidden": false },
+
+    { "value": "Sonstiges", "parent": null, "bookable": true, "hidden": false }
+  ]
+}

@@ -1,5 +1,6 @@
 package app.hopps.template.api;
 
+import app.hopps.category.api.dto.CategoryGroupExport;
 import app.hopps.template.api.dto.CategoryGroupTemplateRequest;
 import app.hopps.template.api.dto.CategoryGroupTemplateResponse;
 import app.hopps.template.api.dto.TemplateOrderRequest;
@@ -135,6 +136,21 @@ public class AdminTemplateResource {
         return toResponse(template);
     }
 
+    @GET
+    @Path("/category-groups/{id}/export")
+    @Transactional
+    @Operation(operationId = "exportAdminCategoryGroupTemplate", summary = "Export a category group template", description = "The template as an export file, in the same format organizations use for their groups.")
+    @APIResponse(responseCode = "200", description = "Export file", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CategoryGroupExport.class)))
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "403", description = "User is not an admin")
+    @APIResponse(responseCode = "404", description = "Template not found")
+    public CategoryGroupExport exportCategoryGroupTemplate(
+            @PathParam("id") @Parameter(description = "The template id") Long id) {
+        CategoryGroupTemplate template = requireCategoryGroupTemplate(id);
+        return new CategoryGroupExport(CategoryGroupExport.FORMAT_VERSION, template.getSourceKey(), template.getName(),
+                template.isRequired(), template.toEntries());
+    }
+
     @PUT
     @Path("/order")
     @Transactional
@@ -199,7 +215,11 @@ public class AdminTemplateResource {
         template.setDescription(description == null || description.isBlank() ? null : description.trim());
         template.setActive(request.active());
         template.setRequired(request.required());
-        template.replaceValues(request.values());
+        template.replaceEntries(request.values());
+        String sourceKey = request.sourceKey();
+        if (sourceKey != null && !sourceKey.isBlank()) {
+            template.setSourceKey(sourceKey.trim());
+        }
     }
 
     private CategoryGroupTemplateResponse toResponse(CategoryGroupTemplate template) {

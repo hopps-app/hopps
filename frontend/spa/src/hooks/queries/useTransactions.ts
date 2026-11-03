@@ -1,6 +1,7 @@
 import type { TransactionDisplayStatus, TransactionStatus } from '@hopps/api-client';
 import { TransactionCreateRequest, TransactionResponse, TransactionUpdateRequest } from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 import i18n from '@/i18n';
 import apiService from '@/services/ApiService';
@@ -119,6 +120,15 @@ export function useTransaction(id: number) {
         queryFn: () => apiService.orgService.transactionsGET(id),
         enabled: !!id,
     });
+}
+
+/** Loads a transaction ahead of time (e.g. when hovering a list row), so the view that needs it opens without waiting. */
+export function usePrefetchTransaction() {
+    const queryClient = useQueryClient();
+    return useCallback(
+        (id: number) => queryClient.prefetchQuery({ queryKey: transactionKeys.detail(id), queryFn: () => apiService.orgService.transactionsGET(id) }),
+        [queryClient]
+    );
 }
 
 export function useCreateTransaction() {

@@ -140,6 +140,7 @@ const TransactionCategoryFilter: FC<TransactionCategoryFilterProps> = ({ groups,
                             {group?.id != null && (
                                 <div className="w-full sm:w-48">
                                     <CategoryValueCombobox
+                                        forFilter
                                         groupId={group.id}
                                         value={row.value}
                                         placeholder={t('transactions.filters.selectValue')}
