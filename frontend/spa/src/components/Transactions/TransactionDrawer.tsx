@@ -1,5 +1,5 @@
 import { TransactionUpdateRequest } from '@hopps/api-client';
-import { AlertTriangle, Check, ExternalLink, FileText, Pencil, RotateCcw, Trash2 } from 'lucide-react';
+import { AlertTriangle, Check, ExternalLink, FileText, Pencil, RotateCcw, Tag, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -12,7 +12,7 @@ import { getLastBommelId } from '@/components/InvoiceUploadForm/InvoiceUploadFor
 import { DeleteTransactionDialog } from '@/components/Receipts/DeleteTransactionDialog';
 import { DocumentFilePreview } from '@/components/Receipts/DocumentFilePreview';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
-import { DirectionCards, Field, footerBtn, inputCls, outlineBtn } from '@/components/Transactions/drawerParts';
+import { DirectionCards, Field, footerBtn, inputCls, outlineBtn, pickerFocusCls } from '@/components/Transactions/drawerParts';
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
 import { fmtDate } from '@/components/Transactions/format';
 import { FONT } from '@/components/Transactions/layout';
@@ -24,6 +24,7 @@ import { CloseButton } from '@/components/ui/CloseButton';
 import Emoji from '@/components/ui/Emoji';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
+import { BaseSwitch } from '@/components/ui/shadecn/BaseSwitch';
 import TextField from '@/components/ui/TextField';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
@@ -295,9 +296,10 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
         </>
     );
 
-    // Master data rows of the read view. Bommel stays empty when the transaction has none.
+    // Rows of the read view, in the order of the edit form: master data with tags and "privately paid" under them, then
+    // the bommel and its category values. Bommel stays empty when the transaction has none.
     const bommelEmoji = tx?.bommelId != null ? allBommels.find((b) => b.id === tx.bommelId)?.emoji : undefined;
-    const detailRows: [string, ReactNode][] = tx
+    const assignmentRows: [string, ReactNode][] = tx
         ? [
               [
                   t('transactions.detail.bommel'),
@@ -306,14 +308,17 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                       {tx.bommelName ?? ''}
                   </span>,
               ],
-              [t('transactions.detail.date'), fmtDate(tx.transactionTime)],
-              [t('transactions.detail.privatelyPaid'), tx.privatelyPaid ? t('transactions.detail.yes') : t('transactions.detail.no')],
               ...(tx.categoryValues ?? [])
                   .filter((c) => c.value)
                   .map((c): [string, ReactNode] => [
                       categoryGroups.find((g) => g.id === c.groupId)?.name ?? t('categoryGroups.fields.eyebrow'),
                       c.value ?? '—',
                   ]),
+          ]
+        : [];
+    const detailRows: [string, ReactNode][] = tx
+        ? [
+              [t('transactions.detail.date'), fmtDate(tx.transactionTime)],
               ...(tx.tags?.length
                   ? [
                         [
@@ -332,6 +337,7 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                         ] as [string, ReactNode],
                     ]
                   : []),
+              [t('transactions.detail.privatelyPaid'), tx.privatelyPaid ? t('transactions.detail.yes') : t('transactions.detail.no')],
           ]
         : [];
 
@@ -409,16 +415,14 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                         </div>
 
                         {/* Master data */}
-                        <div
-                            className="mt-[22px] rounded-[var(--r-card)] px-[18px] py-1.5"
-                            style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-md)' }}
-                        >
-                            {detailRows.map(([label, value]) => (
-                                <div key={label} className="flex items-center justify-between gap-4 border-b border-border-soft py-[13px] last:border-b-0">
-                                    <span className="text-[13.5px] font-semibold text-muted-foreground">{label}</span>
-                                    <span className="text-right text-[14px] font-bold text-foreground">{value}</span>
-                                </div>
-                            ))}
+                        <DetailCard rows={detailRows} className="mt-[22px]" />
+
+                        {/* Bommel & Kategorie */}
+                        <div className="mt-6">
+                            <Eyebrow icon={<Tag size={14} />} className="mb-[11px]">
+                                {t('receipts.review.assignment')}
+                            </Eyebrow>
+                            <DetailCard rows={assignmentRows} />
                         </div>
 
                         {/* Linked receipt */}
@@ -518,61 +522,48 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                                 <TextField value={senderName} onValueChange={setSenderName} />
                             </Field>
 
-                            {/* Bommel */}
-                            <Field label={t('transactions.detail.bommel')}>
-                                <BommelSelect
-                                    items={drawerBommelItems}
-                                    value={bommelId ? Number(bommelId) : ALL_BOMMELS}
-                                    emptyLabel={t('invoiceUpload.selectBommel')}
-                                    onChange={(next) => setBommelId(next === ALL_BOMMELS ? '' : String(next))}
-                                    triggerClassName="sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none"
-                                    matchTriggerWidth
-                                />
-                            </Field>
-
-                            {/* Privately paid */}
-                            <div
-                                className="flex items-center gap-3.5 rounded-[13px] border border-border-soft px-[15px] py-[13px]"
-                                style={{ background: 'var(--background-secondary)' }}
-                            >
-                                <div className="min-w-0 flex-1 text-[13.5px] font-bold text-foreground">{t('transactions.detail.privatelyPaid')}</div>
-                                <button
-                                    type="button"
-                                    role="switch"
-                                    aria-checked={privatelyPaid}
-                                    aria-label={t('transactions.detail.privatelyPaid')}
-                                    onClick={() => setPrivatelyPaid((v) => !v)}
-                                    className="flex h-[27px] w-[46px] flex-shrink-0 rounded-full p-[3px] transition-colors duration-[var(--dur-mid)]"
-                                    style={{
-                                        background: privatelyPaid ? 'var(--primary)' : 'var(--border-strong)',
-                                        justifyContent: privatelyPaid ? 'flex-end' : 'flex-start',
-                                    }}
-                                >
-                                    <span className="h-[21px] w-[21px] rounded-full bg-white shadow-[0_1px_3px_rgba(24,16,40,0.25)]" />
-                                </button>
-                            </div>
-
                             {/* Tags */}
                             <Field label={t('transactions.create.tags')}>
                                 <TagInput value={tags} onChange={setTags} placeholder={t('transactions.create.tagsPlaceholder')} />
                             </Field>
+                            {/* Privately paid: a side option, kept quiet under the tags like in the receipt form. */}
+                            <div className="-mt-1 flex items-center gap-2.5 px-0.5">
+                                <BaseSwitch id="transaction-privately-paid" checked={privatelyPaid} onCheckedChange={setPrivatelyPaid} />
+                                <label htmlFor="transaction-privately-paid" className="cursor-pointer text-[12.5px] font-semibold text-muted-foreground">
+                                    {t('transactions.detail.privatelyPaid')}
+                                </label>
+                            </div>
 
-                            {/* Category groups (applicable to the selected bommel); draws its own divider and heading. */}
-                            <CategoryGroupFields
-                                bommelId={bommelId ? Number(bommelId) : null}
-                                values={categoryValues}
-                                onChange={(groupId, value) =>
-                                    setCategoryValues((prev) => {
-                                        const next = { ...prev };
-                                        if (value == null || value === '') {
-                                            delete next[groupId];
-                                        } else {
-                                            next[groupId] = value;
+                            {/* Where the amount belongs: the bommel and, right below it, the category groups that apply to it. */}
+                            <div className="flex flex-col gap-2.5 border-t border-border-soft pt-4">
+                                <Eyebrow icon={<Tag size={14} />}>{t('receipts.review.assignment')}</Eyebrow>
+                                <div className="flex flex-col gap-3.5">
+                                    <BommelSelect
+                                        items={drawerBommelItems}
+                                        value={bommelId ? Number(bommelId) : ALL_BOMMELS}
+                                        emptyLabel={t('invoiceUpload.selectBommel')}
+                                        onChange={(next) => setBommelId(next === ALL_BOMMELS ? '' : String(next))}
+                                        triggerClassName={cn('sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none', pickerFocusCls)}
+                                        matchTriggerWidth
+                                    />
+                                    <CategoryGroupFields
+                                        inline
+                                        bommelId={bommelId ? Number(bommelId) : null}
+                                        values={categoryValues}
+                                        onChange={(groupId, value) =>
+                                            setCategoryValues((prev) => {
+                                                const next = { ...prev };
+                                                if (value == null || value === '') {
+                                                    delete next[groupId];
+                                                } else {
+                                                    next[groupId] = value;
+                                                }
+                                                return next;
+                                            })
                                         }
-                                        return next;
-                                    })
-                                }
-                            />
+                                    />
+                                </div>
+                            </div>
                         </div>
 
                         {/* Zahlungsabgleich – Banktransaktionen direkt beim Bearbeiten verknüpfen. currentTotal feeds
@@ -693,5 +684,22 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                 onCancel={() => setConfirmDeleteOpen(false)}
             />
         </>
+    );
+}
+
+/** Label and value rows in a card, as in the read view of the drawer */
+function DetailCard({ rows, className }: { rows: [string, ReactNode][]; className?: string }) {
+    return (
+        <div
+            className={cn('rounded-[var(--r-card)] px-[18px] py-1.5', className)}
+            style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-md)' }}
+        >
+            {rows.map(([label, value]) => (
+                <div key={label} className="flex items-center justify-between gap-4 border-b border-border-soft py-[13px] last:border-b-0">
+                    <span className="text-[13.5px] font-semibold text-muted-foreground">{label}</span>
+                    <span className="text-right text-[14px] font-bold text-foreground">{value}</span>
+                </div>
+            ))}
+        </div>
     );
 }
