@@ -347,6 +347,14 @@ function BommelView() {
                     {!guideStep && !isDemoMode && structureIsEmpty && <HintBanner icon={Lightbulb}>{t('bommel.emptyHint')}</HintBanner>}
 
                     <div className="flex flex-wrap items-center gap-x-[30px] gap-y-3 rounded-[18px] border border-border-soft bg-background-secondary px-[18px] py-3 shadow-[var(--shadow-sm)]">
+                        {/* Filters from broad to narrow: which period, which Bommel, which transactions */}
+                        {!isDemoMode && <PeriodField period={period} onChange={setPeriod} />}
+                        <ToggleField
+                            label={t('bommel.aggregate')}
+                            info={t('bommel.aggregateInfo')}
+                            checked={statisticsOptions.aggregate}
+                            onCheckedChange={setAggregate}
+                        />
                         {!isDemoMode && (
                             <ToggleField
                                 label={t('bommel.includeDrafts')}
@@ -355,32 +363,26 @@ function BommelView() {
                                 onCheckedChange={setIncludeDrafts}
                             />
                         )}
-                        <ToggleField
-                            label={t('bommel.aggregate')}
-                            info={t('bommel.aggregateInfo')}
-                            checked={statisticsOptions.aggregate}
-                            onCheckedChange={setAggregate}
-                        />
-                        {!isDemoMode && <PeriodField period={period} onChange={setPeriod} />}
-                        {/* Not while editing: switching to the example data would drop the user out of the edit. */}
-                        {!isEditMode && !guideStep && (
-                            <ToggleField
-                                label={t('bommel.demoMode')}
-                                info={t('bommel.demoModeInfo')}
-                                checked={isDemoMode}
-                                onCheckedChange={handleDemoModeChange}
-                            />
-                        )}
-                        {isEditMode && !isDemoMode && (
-                            <ToggleField
-                                label={t('bommel.dragDrop')}
-                                info={t('bommel.dragDropInfo')}
-                                checked={isDragDropMode}
-                                onCheckedChange={setIsDragDropMode}
-                            />
-                        )}
 
-                        <div className="ml-auto flex items-center gap-2">
+                        {/* Modes on the right, apart from the filters */}
+                        <div className="ml-auto flex items-center gap-[30px]">
+                            {/* Not while editing: switching to the example data would drop the user out of the edit. */}
+                            {!isEditMode && !guideStep && (
+                                <ToggleField
+                                    label={t('bommel.demoMode')}
+                                    info={t('bommel.demoModeInfo')}
+                                    checked={isDemoMode}
+                                    onCheckedChange={handleDemoModeChange}
+                                />
+                            )}
+                            {isEditMode && !isDemoMode && (
+                                <ToggleField
+                                    label={t('bommel.dragDrop')}
+                                    info={t('bommel.dragDropInfo')}
+                                    checked={isDragDropMode}
+                                    onCheckedChange={setIsDragDropMode}
+                                />
+                            )}
                             {!isDemoMode && (
                                 <Button
                                     size="sm"
