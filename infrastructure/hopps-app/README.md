@@ -78,6 +78,52 @@ Service-to-service traffic uses the compose network names and is unaffected.
    so Keycloak trusts the `X-Forwarded-*` headers.
 3. Recreate the stack: `docker compose up -d`.
 
+### Passwords and keys as files
+
+Passwords and keys can also be loaded from files, for example, Docker secrets mounted under `/run/secrets/`. Set `<NAME>_FILE` to the file path instead of `<NAME>`. Setting both variables causes the container to exit with an error. This feature requires Hopps images newer than 2.3.1.
+
+| Service | Variables that support `_FILE` |
+|---|---|
+| `postgres` | `POSTGRES_PASSWORD` |
+| `org` | `QUARKUS_DATASOURCE_PASSWORD`, `QUARKUS_KEYCLOAK_ADMIN_CLIENT_PASSWORD`, `QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_SECRET_ACCESS_KEY`, `HOPPS_AUTHENTIK_API_TOKEN` |
+| `zugferd` | `HOPPS_AZURE_OPENAI_KEY` |
+| `az-document-ai` | `HOPPS_AZURE_DOCUMENT_AI_KEY`, `HOPPS_AZURE_OPENAI_KEY` |
+| `minio` | `MINIO_ROOT_PASSWORD` |
+
+The bundled Keycloak (`docker-compose.keycloak.yaml`) does not support file-based passwords and continues to read them from `.env`.
+
+To load additional variables of the `org`, `zugferd` or `az-document-ai` services from files, add their names to `HOPPS_EXTRA_SECRET_VARS` (space-separated). This extends the list of variables already supported by the image. Then set the corresponding `_FILE` variable:
+
+```yaml
+org:
+  environment:
+    HOPPS_EXTRA_SECRET_VARS: QUARKUS_OIDC_CREDENTIALS_SECRET
+    QUARKUS_OIDC_CREDENTIALS_SECRET_FILE: /run/secrets/oidc_client_secret
+```
+
+For example, the following configuration can be added through a Compose overlay. The password is stored in `./secrets/postgres_password`, while `POSTGRES_PASSWORD` is left empty in `.env`:
+
+```yaml
+services:
+  postgres:
+    secrets:
+      - postgres_password
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+
+  org:
+    secrets:
+      - postgres_password
+    environment:
+      QUARKUS_DATASOURCE_PASSWORD_FILE: /run/secrets/postgres_password
+
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password
+```
+
+Add the overlay file to `COMPOSE_FILE`. Note that `docker-compose.override.yaml` is not loaded automatically when `COMPOSE_FILE` is explicitly set.
+
 ## Identity provider
 
 Hopps supports two, selected with `HOPPS_AUTH_PROVIDER` in `.env`. The
