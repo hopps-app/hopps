@@ -24,6 +24,8 @@ import java.time.temporal.ChronoUnit;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
@@ -104,6 +106,24 @@ class PublicUploadResourceTest {
             assertEquals("Getränke fürs Sommerfest", document.getUploaderComment());
             assertTrue(document.isPrivatelyPaid());
             assertEquals(4L, document.getOrganization().getId());
+        });
+    }
+
+    @Test
+    void commentAndPrivatelyPaidAreOptional() {
+        String token = createLink(null);
+        given().contentType(MediaType.MULTIPART_FORM_DATA)
+                .multiPart("file", "beleg.pdf", pdf("minimal"), "application/pdf")
+                .multiPart("name", "Max")
+                .when()
+                .post("/public/upload-links/{token}", token)
+                .then()
+                .statusCode(201);
+
+        QuarkusTransaction.requiringNew().run(() -> {
+            Document document = documentRepository.find("uploadChannel", UploadChannel.UPLOAD_LINK).singleResult();
+            assertNull(document.getUploaderComment());
+            assertFalse(document.isPrivatelyPaid());
         });
     }
 

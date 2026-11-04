@@ -5796,13 +5796,13 @@ export class Client {
     /**
      * Submit a receipt through an upload link
      * @param token The upload link token
-     * @param file (optional) 
-     * @param name (optional) 
-     * @param comment (optional) 
-     * @param privatelyPaid (optional) 
+     * @param file (optional) The receipt (PNG, JPEG or PDF)
+     * @param name (optional) Name of the submitter
+     * @param comment (optional) Optional note for the treasurer
+     * @param privatelyPaid (optional) Whether the submitter paid privately
      * @return Receipt submitted
      */
-    submitPublicReceipt(token: string, file: FileParameter | undefined, name: string | undefined, comment: string | undefined, privatelyPaid: boolean | undefined): Promise<PublicUploadResponse> {
+    submitPublicReceipt(token: string, file: FileParameter | undefined, name: string | undefined, comment: string | null | undefined, privatelyPaid: boolean | null | undefined): Promise<PublicUploadResponse> {
         let url_ = this.baseUrl + "/public/upload-links/{token}";
         if (token === undefined || token === null)
             throw new globalThis.Error("The parameter 'token' must be defined.");
@@ -5818,13 +5818,9 @@ export class Client {
             throw new globalThis.Error("The parameter 'name' cannot be null.");
         else
             content_.append("name", name.toString());
-        if (comment === null || comment === undefined)
-            throw new globalThis.Error("The parameter 'comment' cannot be null.");
-        else
+        if (comment !== null && comment !== undefined)
             content_.append("comment", comment.toString());
-        if (privatelyPaid === null || privatelyPaid === undefined)
-            throw new globalThis.Error("The parameter 'privatelyPaid' cannot be null.");
-        else
+        if (privatelyPaid !== null && privatelyPaid !== undefined)
             content_.append("privatelyPaid", privatelyPaid.toString());
 
         let options_: RequestInit = {
@@ -12621,6 +12617,84 @@ export interface IPagedValuesResponse {
 }
 
 export type Permission = "MANAGE_MEMBERS";
+
+export class PublicReceiptForm implements IPublicReceiptForm {
+    /** The receipt (PNG, JPEG or PDF) */
+    file!: string;
+    /** Name of the submitter */
+    name!: string;
+    /** Optional note for the treasurer */
+    comment?: string | undefined;
+    /** Whether the submitter paid privately */
+    privatelyPaid?: boolean | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IPublicReceiptForm) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.privatelyPaid = false;
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.file = _data["file"];
+            this.name = _data["name"];
+            this.comment = _data["comment"];
+            this.privatelyPaid = _data["privatelyPaid"] !== undefined ? _data["privatelyPaid"] : false;
+        }
+    }
+
+    static fromJS(data: any): PublicReceiptForm {
+        data = typeof data === 'object' ? data : {};
+        let result = new PublicReceiptForm();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["file"] = this.file;
+        data["name"] = this.name;
+        data["comment"] = this.comment;
+        data["privatelyPaid"] = this.privatelyPaid;
+        return data;
+    }
+
+    clone(): PublicReceiptForm {
+        const json = this.toJSON();
+        let result = new PublicReceiptForm();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IPublicReceiptForm {
+    /** The receipt (PNG, JPEG or PDF) */
+    file: string;
+    /** Name of the submitter */
+    name: string;
+    /** Optional note for the treasurer */
+    comment?: string | undefined;
+    /** Whether the submitter paid privately */
+    privatelyPaid?: boolean | undefined;
+
+    [key: string]: any;
+}
 
 export class PublicUploadLinkInfo implements IPublicUploadLinkInfo {
     organizationName?: string;
