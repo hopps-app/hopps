@@ -88,10 +88,13 @@ COPY --chown=185 target/quarkus-app/*.jar /deployments/
 COPY --chown=185 target/quarkus-app/app/ /deployments/app/
 COPY --chown=185 target/quarkus-app/quarkus/ /deployments/quarkus/
 
+# Reads VAR_FILE=/run/secrets/... into VAR (Docker secrets), then starts run-java.sh. See entrypoint.sh.
+COPY --chmod=0755 src/main/docker/entrypoint.sh /usr/local/bin/hopps-entrypoint.sh
+
 EXPOSE 8080
 USER 185
 ENV JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
 ENV JAVA_APP_JAR="/deployments/quarkus-run.jar"
 
-ENTRYPOINT [ "/opt/jboss/container/java/run/run-java.sh" ]
+ENTRYPOINT [ "/usr/local/bin/hopps-entrypoint.sh" ]
 

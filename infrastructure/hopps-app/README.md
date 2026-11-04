@@ -78,6 +78,50 @@ Service-to-service traffic uses the compose network names and is unaffected.
    so Keycloak trusts the `X-Forwarded-*` headers.
 3. Recreate the stack: `docker compose up -d`.
 
+### Passwords and keys as Docker secrets
+
+The Hopps backend images (`org`, `zugferd`, `az-document-ai`) follow the
+`_FILE` convention of the official Postgres image: instead of a variable, set
+the same name with `_FILE` appended to the path of a
+[Docker secret](https://docs.docker.com/compose/how-tos/use-secrets/). The
+container reads the file at startup and sets the variable from its content.
+This works for every variable, e.g. `QUARKUS_DATASOURCE_PASSWORD`,
+`HOPPS_AUTHENTIK_API_TOKEN` or `HOPPS_AZURE_OPENAI_KEY`.
+
+One secret can serve Postgres and Hopps at the same time:
+
+```yaml
+# docker-compose.override.yaml
+services:
+  org:
+    environment:
+      QUARKUS_DATASOURCE_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+  postgres:
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+```
+
+Add `docker-compose.override.yaml` to `COMPOSE_FILE` in `.env`, and set
+`POSTGRES_PASSWORD=` in `.env` to an empty value.
+
+- Only files under `/run/secrets/` are read, which is where Compose mounts
+  secrets. Other `*_FILE` variables, such as Quarkus's own
+  `QUARKUS_HTTP_SSL_CERTIFICATE_KEY_STORE_FILE`, keep their usual meaning.
+- Set either the variable or its `_FILE` variant; an empty variable counts as
+  not set. If both have a value, or the file cannot be read, the container
+  stops with an error.
+- A trailing newline in the file is ignored.
+- The Keycloak overlay passes `POSTGRES_PASSWORD` to Keycloak, which has no
+  `_FILE` support. With that overlay, keep the database password in `.env`.
+
 ## Identity provider
 
 Hopps supports two, selected with `HOPPS_AUTH_PROVIDER` in `.env`. The

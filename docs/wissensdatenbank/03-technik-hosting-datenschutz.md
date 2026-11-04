@@ -39,6 +39,9 @@ Hetzner/DigitalOcean-Infrastruktur nicht Richtung Azure.
 - Für KI-Auslesung sind **eigene** Azure-Zugänge nötig (Document Intelligence + Azure OpenAI); ohne KI nutzbar
   (Analyse deaktivieren). ❓ `az-document-ai` startet derzeit nicht ohne Azure-Credentials.
 - Externer Identity-Provider (OIDC) per `.env`: `infrastructure/hopps-app/EXTERNAL-IDP.md`.
+- Passwörter und Schlüssel auch als **Docker Secrets**: jede Variable der Backend-Images lässt sich
+  als `<NAME>_FILE=/run/secrets/…` setzen (z. B. `QUARKUS_DATASOURCE_PASSWORD_FILE`), wie beim
+  Postgres-Image – `infrastructure/hopps-app/README.md` (Stand 2026-11-04).
 - Lizenz MIT → keine Lizenzkosten.
 
 ## Datenschutz (DSGVO / Schweizer nDSG)

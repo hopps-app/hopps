@@ -4,3 +4,4 @@
 !target/*.jar
 !target/lib/*
 !target/quarkus-app/*
+!src/main/docker/entrypoint.sh
