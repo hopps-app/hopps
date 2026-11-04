@@ -98,3 +98,10 @@ USER 185
 ENV JAVA_OPTS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
 ENV JAVA_APP_JAR="/deployments/quarkus-run.jar"
 
+# Each of these may also be passed as <NAME>_FILE, e.g. a Docker secret. See load-secrets.sh.
+ENV HOPPS_SECRET_VARS="QUARKUS_DATASOURCE_PASSWORD QUARKUS_KEYCLOAK_ADMIN_CLIENT_PASSWORD QUARKUS_S3_AWS_CREDENTIALS_STATIC_PROVIDER_SECRET_ACCESS_KEY HOPPS_AUTHENTIK_API_TOKEN"
+COPY --chown=185 --chmod=0755 src/main/docker/load-secrets.sh /deployments/load-secrets.sh
+
+ENTRYPOINT [ "/deployments/load-secrets.sh" ]
+CMD [ "/opt/jboss/container/java/run/run-java.sh" ]
+

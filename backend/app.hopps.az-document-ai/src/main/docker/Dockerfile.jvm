@@ -93,5 +93,10 @@ USER 185
 ENV JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
 ENV JAVA_APP_JAR="/deployments/quarkus-run.jar"
 
-ENTRYPOINT [ "/opt/jboss/container/java/run/run-java.sh" ]
+# Each of these may also be passed as <NAME>_FILE, e.g. a Docker secret. See load-secrets.sh.
+ENV HOPPS_SECRET_VARS="HOPPS_AZURE_DOCUMENT_AI_KEY HOPPS_AZURE_OPENAI_KEY"
+COPY --chown=185 --chmod=0755 src/main/docker/load-secrets.sh /deployments/load-secrets.sh
+
+ENTRYPOINT [ "/deployments/load-secrets.sh" ]
+CMD [ "/opt/jboss/container/java/run/run-java.sh" ]
 
