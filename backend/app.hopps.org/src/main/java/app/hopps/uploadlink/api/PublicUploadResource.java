@@ -6,6 +6,7 @@ import app.hopps.document.domain.DocumentDirection;
 import app.hopps.document.domain.UploadChannel;
 import app.hopps.document.service.DocumentUploadService;
 import app.hopps.organization.domain.Organization;
+import app.hopps.uploadlink.api.dto.PublicReceiptForm;
 import app.hopps.uploadlink.api.dto.PublicUploadLinkInfo;
 import app.hopps.uploadlink.api.dto.PublicUploadResponse;
 import app.hopps.uploadlink.domain.BommelUploadLink;
@@ -15,6 +16,7 @@ import io.vertx.core.http.HttpServerRequest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -29,8 +31,8 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
-import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,6 +84,7 @@ public class PublicUploadResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
     @Operation(operationId = "submitPublicReceipt", summary = "Submit a receipt through an upload link", description = "Uploads one receipt file (PNG, JPEG or PDF) for the link's bommel and starts its analysis. Public; no authentication required. Rate-limited per link and client.")
+    @RequestBody(required = true, content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA, schema = @Schema(ref = "PublicReceiptForm")))
     @APIResponse(responseCode = "201", description = "Receipt submitted", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PublicUploadResponse.class)))
     @APIResponse(responseCode = "400", description = "Missing file or name, or a field is too long")
     @APIResponse(responseCode = "404", description = "Unknown or revoked upload link")
@@ -91,10 +94,11 @@ public class PublicUploadResource {
     @APIResponse(responseCode = "429", description = "Too many uploads through this link from this client")
     public Response submitReceipt(
             @PathParam("token") @Parameter(description = "The upload link token") String token,
-            @RestForm("file") FileUpload file,
-            @RestForm("name") @Parameter(description = "Name of the submitter (required)") String name,
-            @RestForm("comment") @Parameter(description = "Optional note for the treasurer") String comment,
-            @RestForm("privatelyPaid") @Parameter(description = "Whether the submitter paid privately") boolean privatelyPaid) {
+            @BeanParam PublicReceiptForm form) {
+        FileUpload file = form.file();
+        String name = form.name();
+        String comment = form.comment();
+        boolean privatelyPaid = Boolean.TRUE.equals(form.privatelyPaid());
         BommelUploadLink link = uploadLinkService.resolveActive(token);
         rateLimiter.acquire(link.id + ":" + httpRequest.remoteAddress().hostAddress());
 

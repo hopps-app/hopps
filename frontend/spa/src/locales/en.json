@@ -198,7 +198,7 @@
         "register": "Register organization",
         "login": "Login",
         "setup": "Start initial setup",
-        "setupSubtitle": "This installation has not been set up yet. Create your association and the first administrator account.",
+        "setupSubtitle": "This installation has not been set up yet. Create your association and the first administrator account, or sign in with an existing account and create the association from there.",
         "singleTenantSubtitle": "Accounting for {{organization}}. Sign in with your account."
     },
     "invoiceUpload": {
@@ -393,6 +393,7 @@
         "setup": {
             "header": "Initial setup",
             "subtitle": "Create your association and the first administrator account. Invite further members from the settings afterwards.",
+            "existingAccountSubtitle": "You are signed in and this installation has no association yet. Create it now; your account becomes its first administrator. Invite further members from the settings afterwards.",
             "submit": "Complete setup",
             "successHeading": "Your association is set up. Sign in with the account you just created.",
             "alreadyDone": "This installation is already set up. Please sign in."
@@ -508,7 +509,7 @@
         "transactions": "Transactions",
         "reports": "Reports",
         "admin": "Admin",
-        "ngo-details": "Ngo Details",
+        "ngo-details": "NGO Details",
         "categories": "Categories",
         "collapse": "Collapse",
         "expand": "Expand",
@@ -1782,6 +1783,8 @@
         "takePhoto": "Take photo",
         "chooseFiles": "Choose files",
         "allowedTypes": "PNG, JPEG or PDF, several receipts at once",
+        "dropHint": "or drag files here",
+        "dropActive": "Drop to add the receipts",
         "removeFile": "Remove file",
         "name": "Name",
         "nameRequired": "Please enter your name",
@@ -1810,7 +1813,12 @@
             "tooLarge": "The file is too large.",
             "rateLimit": "Too many uploads. Please try again later.",
             "linkInvalid": "The link is no longer valid.",
-            "generic": "Upload failed. Please try again."
+            "generic": "The receipt could not be uploaded. Please try again, or contact whoever shared this link.",
+            "invalid": "The receipt was not accepted. Please check the file and the name.",
+            "network": "No connection to the server. Please check the internet connection and try again.",
+            "server": "Something went wrong on our side. Please try again in a few minutes.",
+            "summary_one": "{{count}} receipt could not be uploaded. Use the button below to try again.",
+            "summary_other": "{{count}} receipts could not be uploaded. Use the button below to try again."
         }
     }
 }

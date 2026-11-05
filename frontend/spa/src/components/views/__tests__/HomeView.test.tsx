@@ -32,11 +32,11 @@ describe('HomeView', () => {
         expect(screen.getByRole('button', { name: 'Login' })).toBeInTheDocument();
     });
 
-    it('offers only the initial setup while a single-tenant installation is not set up', () => {
+    it('offers the initial setup and the login for an existing account while a single-tenant installation is not set up', () => {
         renderHome({ tenancy: 'single', setupRequired: true, organizationName: null });
 
         expect(screen.getByRole('button', { name: 'Start initial setup' })).toBeInTheDocument();
-        expect(screen.queryByRole('button', { name: 'Login' })).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Login' })).toBeInTheDocument();
         expect(screen.getByText(/has not been set up yet/)).toBeInTheDocument();
     });
 
