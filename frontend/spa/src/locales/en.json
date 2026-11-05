@@ -198,7 +198,7 @@
         "register": "Register organization",
         "login": "Login",
         "setup": "Start initial setup",
-        "setupSubtitle": "This installation has not been set up yet. Create your association and the first administrator account.",
+        "setupSubtitle": "This installation has not been set up yet. Create your association and the first administrator account, or sign in with an existing account and create the association from there.",
         "singleTenantSubtitle": "Accounting for {{organization}}. Sign in with your account."
     },
     "invoiceUpload": {
@@ -498,6 +498,7 @@
         "setup": {
             "header": "Initial setup",
             "subtitle": "Create your association and the first administrator account. Invite further members from the settings afterwards.",
+            "existingAccountSubtitle": "You are signed in and this installation has no association yet. Create it now; your account becomes its first administrator. Invite further members from the settings afterwards.",
             "submit": "Complete setup",
             "successHeading": "Your association is set up. Sign in with the account you just created.",
             "alreadyDone": "This installation is already set up. Please sign in."

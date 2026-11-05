@@ -198,7 +198,7 @@
         "register": "Organisation registrieren",
         "login": "Anmelden",
         "setup": "Ersteinrichtung starten",
-        "setupSubtitle": "Diese Installation ist noch nicht eingerichtet. Zuerst den Verein und das erste Administrator-Konto anlegen.",
+        "setupSubtitle": "Diese Installation ist noch nicht eingerichtet. Zuerst den Verein und das erste Administrator-Konto anlegen oder mit einem bestehenden Konto anmelden und den Verein dort anlegen.",
         "singleTenantSubtitle": "Buchhaltung von {{organization}}. Anmeldung mit dem eigenen Konto."
     },
     "invoiceUpload": {
@@ -497,6 +497,7 @@
         "setup": {
             "header": "Ersteinrichtung",
             "subtitle": "Zuerst den Verein und das erste Administrator-Konto anlegen. Weitere Mitglieder lassen sich anschließend in den Einstellungen einladen.",
+            "existingAccountSubtitle": "Angemeldet, und diese Installation hat noch keinen Verein. Jetzt den Verein anlegen; das eigene Konto wird sein erstes Administrator-Konto. Weitere Mitglieder lassen sich anschließend in den Einstellungen einladen.",
             "submit": "Einrichtung abschließen",
             "successHeading": "Der Verein ist eingerichtet. Die Anmeldung ist jetzt mit dem gerade angelegten Konto möglich.",
             "alreadyDone": "Diese Installation ist bereits eingerichtet. Bitte anmelden."

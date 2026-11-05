@@ -110,22 +110,54 @@ class SingleTenantOrganizationResourceTest {
                 .body("code", is(TenancyService.SETUP_COMPLETE));
     }
 
+    private static final String MY_ORGANIZATION_BODY = """
+            {"name": "Eigener Verein", "slug": "eigener-verein", "type": "EINGETRAGENER_VEREIN"}
+            """;
+
     @Test
-    @DisplayName("never lets a logged-in user create an organization of their own")
+    @DisplayName("lets an account the identity provider already knows do the initial setup")
     @TestSecurity(user = "someone@example.test")
     @OidcSecurity(claims = {
             @Claim(key = "sub", value = "11111111-2222-3333-4444-555555555555"),
             @Claim(key = "email", value = "someone@example.test")
     })
-    void noSelfServiceOrganizations() {
+    void existingAccountDoesSetup() {
         given()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body("{\"name\": \"Eigener Verein\", \"slug\": \"eigener-verein\", \"type\": \"EINGETRAGENER_VEREIN\"}")
+                .body(MY_ORGANIZATION_BODY)
+                .when()
+                .post("/organization/my")
+                .then()
+                .statusCode(201)
+                .body("slug", is("eigener-verein"));
+
+        given()
+                .when()
+                .get("/instance")
+                .then()
+                .statusCode(200)
+                .body("setupRequired", is(false))
+                .body("organizationName", is("Eigener Verein"));
+    }
+
+    @Test
+    @DisplayName("never lets a logged-in user create an organization once the setup is done")
+    @TestSecurity(user = "someone@example.test")
+    @OidcSecurity(claims = {
+            @Claim(key = "sub", value = "11111111-2222-3333-4444-555555555555"),
+            @Claim(key = "email", value = "someone@example.test")
+    })
+    void noSelfServiceOrganizationsAfterSetup() {
+        setUpOrganization();
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(MY_ORGANIZATION_BODY)
                 .when()
                 .post("/organization/my")
                 .then()
                 .statusCode(403)
-                .body("code", is(TenancyService.SINGLE_TENANT));
+                .body("code", is(TenancyService.SETUP_COMPLETE));
     }
 
     @Test

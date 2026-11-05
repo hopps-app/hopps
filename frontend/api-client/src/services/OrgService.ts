@@ -5259,7 +5259,7 @@ export class Client {
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
-            return throwException("Single-tenant installation, organizations cannot be created by users (code SINGLE_TENANT)", status, _responseText, _headers);
+            return throwException("Single-tenant installation that already has its organization (code SETUP_COMPLETE)", status, _responseText, _headers);
             });
         } else if (status === 409) {
             return response.text().then((_responseText) => {

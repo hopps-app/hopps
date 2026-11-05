@@ -252,11 +252,11 @@ public class OrganizationResource {
     @Authenticated
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create my organization", description = "Creates a new organization and links it to the already-authenticated user (found or created by their Keycloak id) — without provisioning a new Keycloak user. The organization becomes the user's default organization on the next login. Not available on a single-tenant installation (403, code SINGLE_TENANT).")
+    @Operation(summary = "Create my organization", description = "Creates a new organization and links it to the already-authenticated user (found or created by their Keycloak id) — without provisioning a new Keycloak user. The organization becomes the user's default organization on the next login. On a single-tenant installation this is the initial setup for an existing account, allowed only while no organization exists (afterwards 403, code SETUP_COMPLETE).")
     @APIResponse(responseCode = "201", description = "Organization created and linked to the current user", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
     @APIResponse(responseCode = "400", description = "Validation of fields failed")
     @APIResponse(responseCode = "401", description = "User not logged in")
-    @APIResponse(responseCode = "403", description = "Single-tenant installation, organizations cannot be created by users (code SINGLE_TENANT)")
+    @APIResponse(responseCode = "403", description = "Single-tenant installation that already has its organization (code SETUP_COMPLETE)")
     @APIResponse(responseCode = "409", description = "Slug already exists, or the user is already assigned to an organization")
     public Response createMyOrganization(OrganizationInput input) {
         requireSupportedCountry(input.country());
