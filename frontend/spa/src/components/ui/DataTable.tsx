@@ -1,4 +1,5 @@
 import { Check, ChevronRight, FileText, Minus } from 'lucide-react';
+import { useRef } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
@@ -51,8 +52,25 @@ export function HeaderCell({ children }: { children: ReactNode }) {
     return <span style={HEADER_CELL}>{children}</span>;
 }
 
+/** Hover this long before a row counts as aimed at; moving the mouse across the list should not trigger anything. */
+const HOVER_INTENT_MS = 120;
+
 /** Clickable row; highlighted while it is open in the drawer or ticked for a bulk action. */
-export function DataTableRow({ columns, highlighted, onClick, children }: { columns: string; highlighted: boolean; onClick: () => void; children: ReactNode }) {
+export function DataTableRow({
+    columns,
+    highlighted,
+    onClick,
+    onHoverIntent,
+    children,
+}: {
+    columns: string;
+    highlighted: boolean;
+    onClick: () => void;
+    /** The mouse rests on the row, so a click is likely: time to load what opening it needs. */
+    onHoverIntent?: () => void;
+    children: ReactNode;
+}) {
+    const hoverTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
     return (
         <button
             onClick={onClick}
@@ -61,9 +79,11 @@ export function DataTableRow({ columns, highlighted, onClick, children }: { colu
             style={{ ...gridStyle(columns), padding: '14px 20px', background: highlighted ? 'var(--accent-surface)' : undefined }}
             onMouseEnter={(e) => {
                 if (!highlighted) (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-sunken)';
+                if (onHoverIntent) hoverTimer.current = setTimeout(onHoverIntent, HOVER_INTENT_MS);
             }}
             onMouseLeave={(e) => {
                 if (!highlighted) (e.currentTarget as HTMLButtonElement).style.background = '';
+                clearTimeout(hoverTimer.current);
             }}
         >
             {children}

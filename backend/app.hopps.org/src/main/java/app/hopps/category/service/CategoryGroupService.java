@@ -3,7 +3,10 @@ package app.hopps.category.service;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.domain.TreeSearchBommel;
 import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.category.api.dto.CategoryGroupReportRow;
+import app.hopps.category.api.dto.CategoryValueEntry;
 import app.hopps.category.domain.CategoryGroup;
+import app.hopps.category.domain.CategoryGroupValue;
 import app.hopps.category.repository.CategoryGroupRepository;
 import app.hopps.category.repository.CategoryGroupValueRepository;
 import app.hopps.document.domain.DocumentStatus;
@@ -15,12 +18,15 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.ws.rs.BadRequestException;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -63,9 +69,10 @@ public class CategoryGroupService {
 
     /**
      * Validates the provided (groupId → value) entries against the transaction's applicable groups and stores them.
-     * Entries for non-applicable groups are discarded; an entry whose value is not one of its group's allowed values
-     * makes the whole request fail with 400. Passing null leaves the existing values untouched; an empty map clears
-     * them.
+     * Entries for non-applicable groups are discarded; an entry whose value cannot be booked (unknown, hidden or a
+     * parent that only collects its children) makes the whole request fail with 400. A value the transaction already
+     * carries is always accepted, so a booking stays saveable after its category was hidden or removed. Passing null
+     * leaves the existing values untouched; an empty map clears them.
      */
     public void validateAndApply(Transaction transaction, Map<Long, String> categoryValues) {
         if (categoryValues == null) {
@@ -74,6 +81,11 @@ public class CategoryGroupService {
 
         Map<Long, CategoryGroup> applicable = applicableGroups(transaction.getBommel()).stream()
                 .collect(Collectors.toMap(CategoryGroup::getId, g -> g));
+
+        Map<Long, String> current = new java.util.HashMap<>();
+        for (TransactionCategoryValue existing : transaction.getCategoryValues()) {
+            current.put(existing.getCategoryGroupId(), existing.getValue());
+        }
 
         Map<Long, String> accepted = new java.util.HashMap<>();
         List<String> invalid = new ArrayList<>();
@@ -88,7 +100,7 @@ public class CategoryGroupService {
             if (value == null || value.isBlank()) {
                 continue;
             }
-            if (!categoryGroupValueRepository.existsValue(groupId, value)) {
+            if (!value.equals(current.get(groupId)) && !categoryGroupValueRepository.isSelectable(groupId, value)) {
                 invalid.add(group.getName());
                 continue;
             }
@@ -101,6 +113,42 @@ public class CategoryGroupService {
         }
 
         transaction.replaceCategoryValues(accepted);
+    }
+
+    /**
+     * Appends the given entries to a group, in tree order. Values the group already has are left as they are, including
+     * their settings. A parent that sits on the second level itself (only possible when a file meets an organization's
+     * own structure) leaves the new value on the top level.
+     *
+     * @return the number of values added
+     */
+    public int addEntries(CategoryGroup group, List<CategoryValueEntry> entries) {
+        List<CategoryValueEntry> ordered = CategoryValueTree.normalize(entries);
+        if (ordered.isEmpty()) {
+            return 0;
+        }
+        Map<String, CategoryGroupValue> byValue = new java.util.HashMap<>();
+        for (CategoryGroupValue existing : group.getValues()) {
+            byValue.put(existing.getValue(), existing);
+        }
+        int nextIndex = categoryGroupValueRepository.maxSortIndex(group.getId()) + 1;
+        int added = 0;
+        for (CategoryValueEntry entry : ordered) {
+            if (byValue.containsKey(entry.value())) {
+                continue;
+            }
+            CategoryGroupValue value = new CategoryGroupValue(group, entry.value(), nextIndex++);
+            value.setBookable(entry.bookable());
+            value.setHidden(entry.hidden());
+            CategoryGroupValue parent = entry.parent() == null ? null : byValue.get(entry.parent());
+            if (parent != null && parent.getParent() == null) {
+                value.setParent(parent);
+            }
+            group.getValues().add(value);
+            byValue.put(entry.value(), value);
+            added++;
+        }
+        return added;
     }
 
     /**
@@ -249,5 +297,60 @@ public class CategoryGroupService {
             query.setParameter("bommelIds", bommelIds);
         }
         return query.getResultList();
+    }
+
+    /**
+     * Builds the report's rows from the per-value sums of {@link #valueSumsForReport}: a value with a parent becomes a
+     * child row of it, and a parent row sums up its children plus what was booked on it directly (kept as a child row
+     * marked {@code direct}). A value that no longer exists in the group has no known parent and stays on the top
+     * level. Rows are ordered by value.
+     *
+     * @param sums
+     *            the rows of {@link #valueSumsForReport}
+     * @param parents
+     *            the parent per child value, see {@code CategoryGroupValueRepository#parentsByValue}
+     */
+    public static List<CategoryGroupReportRow> reportRows(List<Object[]> sums, Map<String, String> parents) {
+        Map<String, CategoryGroupReportRow> direct = new TreeMap<>();
+        Map<String, List<CategoryGroupReportRow>> children = new TreeMap<>();
+        for (Object[] sum : sums) {
+            String value = (String) sum[0];
+            CategoryGroupReportRow row = new CategoryGroupReportRow(value, ((Number) sum[3]).longValue(),
+                    (BigDecimal) sum[1], (BigDecimal) sum[2], false, List.of());
+            String parent = parents.get(value);
+            if (parent == null) {
+                direct.put(value, row);
+            } else {
+                children.computeIfAbsent(parent, k -> new ArrayList<>()).add(row);
+            }
+        }
+
+        Set<String> topLevel = new TreeSet<>(direct.keySet());
+        topLevel.addAll(children.keySet());
+
+        List<CategoryGroupReportRow> rows = new ArrayList<>();
+        for (String value : topLevel) {
+            CategoryGroupReportRow own = direct.get(value);
+            List<CategoryGroupReportRow> kids = children.get(value);
+            if (kids == null) {
+                rows.add(own);
+                continue;
+            }
+            List<CategoryGroupReportRow> parts = new ArrayList<>();
+            if (own != null) {
+                parts.add(new CategoryGroupReportRow(value, own.count(), own.income(), own.expense(), true, List.of()));
+            }
+            parts.addAll(kids);
+            long count = 0;
+            BigDecimal income = BigDecimal.ZERO;
+            BigDecimal expense = BigDecimal.ZERO;
+            for (CategoryGroupReportRow part : parts) {
+                count += part.count();
+                income = income.add(part.income());
+                expense = expense.add(part.expense());
+            }
+            rows.add(new CategoryGroupReportRow(value, count, income, expense, false, parts));
+        }
+        return rows;
     }
 }

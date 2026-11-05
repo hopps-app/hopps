@@ -1,5 +1,6 @@
-import { AlertTriangle, Download, Sheet, Tag } from 'lucide-react';
-import { ReactNode, useMemo, useState } from 'react';
+import { CategoryGroupReportRow } from '@hopps/api-client';
+import { AlertTriangle, ChevronRight, Download, Sheet, Tag } from 'lucide-react';
+import { Fragment, ReactNode, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import BommelMultiSelector from '@/components/CategoryGroups/BommelMultiSelector';
@@ -72,19 +73,40 @@ export function ReportsView() {
         const expense = num(report?.totalExpense);
         return { income, expense, net: income - expense, count: report?.totalCount ?? 0 };
     }, [report]);
+    const [expanded, setExpanded] = useState<Set<string>>(new Set());
+    const toggleExpanded = (value: string) =>
+        setExpanded((prev) => {
+            const next = new Set(prev);
+            if (!next.delete(value)) {
+                next.add(value);
+            }
+            return next;
+        });
     const maxRowValue = Math.max(1, ...rows.map((r) => Math.max(num(r.income), num(r.expense))));
 
     function exportCsv() {
         if (!report || rows.length === 0) {
             return;
         }
+        // One line per booked category; with a hierarchy a leading column says what it belongs to.
+        const hasHierarchy = rows.some((r) => (r.children?.length ?? 0) > 0);
         const header = [t('reports.table.value'), t('reports.table.count'), t('reports.table.income'), t('reports.table.expense'), t('reports.table.net')];
+        if (hasHierarchy) {
+            header.unshift(t('reports.table.parent'));
+        }
         const cell = (v: string | number) => {
             const s = String(v);
             return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
         };
-        const body = rows.map((r) => [r.value ?? '', r.count ?? 0, num(r.income), num(r.expense), num(r.income) - num(r.expense)]);
-        body.push([t('reports.total'), totals.count, totals.income, totals.expense, totals.net]);
+        const line = (r: CategoryGroupReportRow) => [r.value ?? '', r.count ?? 0, num(r.income), num(r.expense), num(r.income) - num(r.expense)];
+        const body = rows.flatMap((r) => {
+            if (!hasHierarchy) {
+                return [line(r)];
+            }
+            const children = r.children ?? [];
+            return children.length > 0 ? children.map((c) => [r.value ?? '', ...line(c)]) : [['', ...line(r)]];
+        });
+        body.push([...(hasHierarchy ? [''] : []), t('reports.total'), totals.count, totals.income, totals.expense, totals.net]);
         const csv = [header, ...body].map((row) => row.map(cell).join(';')).join('\r\n');
         // BOM so Excel reads UTF-8 (umlauts) correctly
         const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -214,23 +236,49 @@ export function ReportsView() {
                                 </thead>
                                 <tbody>
                                     {rows.map((r, i) => {
-                                        const income = num(r.income);
-                                        const expense = num(r.expense);
-                                        const net = income - expense;
+                                        const children = r.children ?? [];
+                                        const isExpanded = expanded.has(r.value ?? '');
                                         return (
-                                            <tr key={r.value ?? i} className="border-t border-[var(--border-soft)]">
-                                                <td className="truncate px-4 py-[13px] font-bold text-foreground">{r.value}</td>
-                                                <td className="px-2.5 py-[13px]">
-                                                    <div className="flex flex-col gap-1">
-                                                        <Bar value={income} max={maxRowValue} className="bg-[var(--positive)]" />
-                                                        <Bar value={expense} max={maxRowValue} className="bg-[var(--primary)]" />
-                                                    </div>
-                                                </td>
-                                                <td className="px-2.5 py-[13px] text-right tabular-nums text-muted-foreground">{r.count}</td>
-                                                <td className="px-2.5 py-[13px] text-right tabular-nums text-foreground">{income ? format(income) : '—'}</td>
-                                                <td className="px-2.5 py-[13px] text-right tabular-nums text-foreground">{expense ? format(expense) : '—'}</td>
-                                                <td className={`px-4 py-[13px] text-right font-extrabold tabular-nums ${netColor(net)}`}>{format(net)}</td>
-                                            </tr>
+                                            <Fragment key={r.value ?? i}>
+                                                <ReportRow
+                                                    row={r}
+                                                    max={maxRowValue}
+                                                    format={format}
+                                                    label={
+                                                        children.length > 0 ? (
+                                                            <button
+                                                                type="button"
+                                                                className="flex max-w-full items-center gap-1 font-bold text-foreground"
+                                                                aria-expanded={isExpanded}
+                                                                onClick={() => toggleExpanded(r.value ?? '')}
+                                                            >
+                                                                <ChevronRight
+                                                                    size={15}
+                                                                    className={`shrink-0 text-[var(--ink-faint)] transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                                                                    aria-hidden="true"
+                                                                />
+                                                                <span className="truncate">{r.value}</span>
+                                                            </button>
+                                                        ) : (
+                                                            <span className="font-bold text-foreground">{r.value}</span>
+                                                        )
+                                                    }
+                                                />
+                                                {isExpanded &&
+                                                    children.map((c) => (
+                                                        <ReportRow
+                                                            key={`${c.value}-${c.direct}`}
+                                                            row={c}
+                                                            max={maxRowValue}
+                                                            format={format}
+                                                            label={
+                                                                <span className="pl-5 font-medium text-foreground">
+                                                                    {c.direct ? t('reports.table.direct') : c.value}
+                                                                </span>
+                                                            }
+                                                        />
+                                                    ))}
+                                            </Fragment>
                                         );
                                     })}
                                 </tbody>
@@ -240,6 +288,28 @@ export function ReportsView() {
                 )}
             </div>
         </div>
+    );
+}
+
+/** One line of the report table, for a category of either level. */
+function ReportRow({ row, max, format, label }: { row: CategoryGroupReportRow; max: number; format: (value: number) => string; label: ReactNode }) {
+    const income = num(row.income);
+    const expense = num(row.expense);
+    const net = income - expense;
+    return (
+        <tr className="border-t border-[var(--border-soft)]">
+            <td className="truncate px-4 py-[13px]">{label}</td>
+            <td className="px-2.5 py-[13px]">
+                <div className="flex flex-col gap-1">
+                    <Bar value={income} max={max} className="bg-[var(--positive)]" />
+                    <Bar value={expense} max={max} className="bg-[var(--primary)]" />
+                </div>
+            </td>
+            <td className="px-2.5 py-[13px] text-right tabular-nums text-muted-foreground">{row.count}</td>
+            <td className="px-2.5 py-[13px] text-right tabular-nums text-foreground">{income ? format(income) : '—'}</td>
+            <td className="px-2.5 py-[13px] text-right tabular-nums text-foreground">{expense ? format(expense) : '—'}</td>
+            <td className={`px-4 py-[13px] text-right font-extrabold tabular-nums ${netColor(net)}`}>{format(net)}</td>
+        </tr>
     );
 }
 

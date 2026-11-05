@@ -13,6 +13,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -36,6 +37,7 @@ public class DocumentDataLoader implements EntityDataLoader<TestdataConfig.Docum
     private static final int ORDER = 45;
     private static final long SENDER_ID_BASE = 3000;
     private static final String PDF = "application/pdf";
+    private static final String FILE_KEY_PREFIX = "documents/testdata-";
 
     @ConfigProperty(name = "app.hopps.testdata.receipt-files")
     Optional<String> receiptFiles;
@@ -146,21 +148,12 @@ public class DocumentDataLoader implements EntityDataLoader<TestdataConfig.Docum
 
     /** Stores the receipt PDF of the document from the receipt-files folder, if there is one for its file name. */
     private void attachReceiptFile(TestdataConfig.DocumentData document, EntityManager entityManager) {
-        if (receiptFiles.isEmpty() || document.getFileName() == null) {
+        byte[] bytes = readReceiptFile(document.getFileName());
+        if (bytes == null) {
             return;
         }
-        String resource = receiptFiles.get() + "/" + document.getFileName();
-        byte[] bytes;
-        try (InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(resource)) {
-            if (in == null) {
-                return;
-            }
-            bytes = in.readAllBytes();
-        } catch (IOException e) {
-            throw new UncheckedIOException("Cannot read receipt file " + resource, e);
-        }
 
-        String fileKey = "documents/testdata-" + document.getId() + "/"
+        String fileKey = FILE_KEY_PREFIX + document.getId() + "/"
                 + StorageKeys.sanitizeFileName(document.getFileName(), "beleg.pdf");
         fileStorage.get().put(fileKey, bytes, PDF);
         entityManager.createNativeQuery("""
@@ -174,5 +167,43 @@ public class DocumentDataLoader implements EntityDataLoader<TestdataConfig.Docum
                 .setParameter("fileHash", DedupeHashService.sha256(bytes))
                 .setParameter("id", document.getId())
                 .executeUpdate();
+    }
+
+    /**
+     * Puts the receipt PDFs back that are missing from storage. Dev Services keep the database across restarts while
+     * LocalStack starts empty, so the documents would still point at files that are gone.
+     */
+    public void restoreReceiptFiles(EntityManager entityManager) {
+        List<Object[]> documents = entityManager
+                .createQuery("SELECT d.fileKey, d.fileName FROM Document d WHERE d.fileKey LIKE :prefix",
+                        Object[].class)
+                .setParameter("prefix", FILE_KEY_PREFIX + "%")
+                .getResultList();
+
+        int restored = 0;
+        for (Object[] document : documents) {
+            String fileKey = (String) document[0];
+            byte[] bytes = fileStorage.get().exists(fileKey) ? null : readReceiptFile((String) document[1]);
+            if (bytes != null) {
+                fileStorage.get().put(fileKey, bytes, PDF);
+                restored++;
+            }
+        }
+        if (restored > 0) {
+            Log.infof("Restored %d receipt files in storage", restored);
+        }
+    }
+
+    /** The receipt PDF with this file name from the receipt-files folder, or null if there is none. */
+    private byte[] readReceiptFile(String fileName) {
+        if (receiptFiles.isEmpty() || fileName == null) {
+            return null;
+        }
+        String resource = receiptFiles.get() + "/" + fileName;
+        try (InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(resource)) {
+            return in == null ? null : in.readAllBytes();
+        } catch (IOException e) {
+            throw new UncheckedIOException("Cannot read receipt file " + resource, e);
+        }
     }
 }

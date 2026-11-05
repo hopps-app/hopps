@@ -75,10 +75,11 @@ function App() {
         initApp();
     }, [setIsInitialized]);
 
-    // Logged in, but no organization: on a single-tenant installation there is nothing to create, the person has to
-    // be invited by an administrator. On the hosted SaaS they create their own organization.
+    // Logged in, but no organization: on the hosted SaaS they create their own organization. A single-tenant
+    // installation lets them do so only as the initial setup; once its organization exists, the person has to be
+    // invited by an administrator.
     if (isInitialized && isAuthenticated && organizationError) {
-        return instance?.tenancy === 'single' ? <NoAccessView /> : <OrganizationErrorView />;
+        return instance?.tenancy === 'single' && !instance.setupRequired ? <NoAccessView /> : <OrganizationErrorView />;
     }
 
     return isInitialized ? (

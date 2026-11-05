@@ -1,5 +1,5 @@
 import { CategoryGroupTemplateDetail, CategoryGroupTemplateOption } from '@hopps/api-client';
-import { Check, Plus, Tag } from 'lucide-react';
+import { Check, FileUp, Plus, Tag } from 'lucide-react';
 import { FC, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -13,20 +13,24 @@ import { cn } from '@/lib/utils';
 type CategoryGroupSetupProps = {
     templates: CategoryGroupTemplateOption[];
     onCreated: () => void;
+    onImport: () => void;
 };
 
-/** Selection value of the "no template" tile; template ids are always positive. */
+/** Selection values of the "no template" and "import" tiles; template ids are always positive. */
 const NONE = 0;
+const IMPORT = -1;
 
 /**
  * First-use screen of the categories page: pick one of the templates maintained in the admin app (or none) and open
- * the group dialog with it. Without any active template only a next-step card with "Gruppe anlegen" is shown.
+ * the group dialog with it, or import an export file. Without any active template only a next-step card with
+ * "Gruppe anlegen" and "Importieren" is shown.
  */
-const CategoryGroupSetup: FC<CategoryGroupSetupProps> = ({ templates, onCreated }) => {
+const CategoryGroupSetup: FC<CategoryGroupSetupProps> = ({ templates, onCreated, onImport }) => {
     const { t } = useTranslation();
     const [selected, setSelected] = useState<number>(templates[0]?.id ?? NONE);
     const [modalOpen, setModalOpen] = useState(false);
 
+    const isImport = selected === IMPORT;
     const option = templates.find((tpl) => tpl.id === selected);
     // The dialog needs every value of the template, the tile list only has a preview.
     const { data: detail, isFetching } = useCategoryGroupTemplate(option?.id);
@@ -41,10 +45,16 @@ const CategoryGroupSetup: FC<CategoryGroupSetupProps> = ({ templates, onCreated 
                     icon={Tag}
                     title={t('categoryGroups.setup.noTemplatesTitle')}
                     action={
-                        <Button size="sm" className="h-10" onClick={() => setModalOpen(true)}>
-                            <Plus />
-                            {t('categoryGroups.setup.createGroup')}
-                        </Button>
+                        <div className="flex gap-2.5">
+                            <Button variant="outline" size="sm" className="h-10" onClick={onImport}>
+                                <FileUp />
+                                {t('categoryGroups.import.button')}
+                            </Button>
+                            <Button size="sm" className="h-10" onClick={() => setModalOpen(true)}>
+                                <Plus />
+                                {t('categoryGroups.setup.createGroup')}
+                            </Button>
+                        </div>
                     }
                 />
                 {modal}
@@ -54,6 +64,7 @@ const CategoryGroupSetup: FC<CategoryGroupSetupProps> = ({ templates, onCreated 
 
     const tiles = [
         ...templates.map((tpl) => ({ id: tpl.id as number, title: tpl.name ?? '', sub: tpl.description ?? '' })),
+        { id: IMPORT, title: t('categoryGroups.setup.importFile'), sub: '' },
         { id: NONE, title: t('categoryGroups.setup.noTemplate'), sub: '' },
     ];
 
@@ -96,14 +107,19 @@ const CategoryGroupSetup: FC<CategoryGroupSetupProps> = ({ templates, onCreated 
                 </div>
 
                 <div className="mt-1 flex gap-2.5">
-                    <Button size="sm" className="h-10" disabled={!!option && (isFetching || !detail)} onClick={() => setModalOpen(true)}>
-                        {option ? <Check /> : <Plus />}
-                        {option ? t('categoryGroups.setup.applyTemplate') : t('categoryGroups.setup.createGroup')}
+                    <Button
+                        size="sm"
+                        className="h-10"
+                        disabled={!!option && (isFetching || !detail)}
+                        onClick={() => (isImport ? onImport() : setModalOpen(true))}
+                    >
+                        {isImport ? <FileUp /> : option ? <Check /> : <Plus />}
+                        {t(isImport ? 'categoryGroups.import.button' : option ? 'categoryGroups.setup.applyTemplate' : 'categoryGroups.setup.createGroup')}
                     </Button>
                 </div>
             </div>
 
-            {/* The preview column stays for "Keine Vorlage" too, so the tiles keep their width when switching. */}
+            {/* The preview column stays without a template too, so the tiles keep their width when switching. */}
             {/* Same gap as the tile column, so the first tile and the preview card start on one line. */}
             <div className="flex flex-col gap-2.5">
                 <div className="text-[12px] font-bold uppercase tracking-[0.07em] text-purple-700">{t('categoryGroups.setup.previewEyebrow')}</div>
@@ -136,8 +152,12 @@ const CategoryGroupSetup: FC<CategoryGroupSetupProps> = ({ templates, onCreated 
                     </div>
                 ) : (
                     <div className="flex flex-col gap-1.5 rounded-[var(--r-card)] border border-[var(--border-soft)] bg-[var(--background-secondary)] px-[18px] py-4">
-                        <div className="text-[15px] font-extrabold text-[var(--font-color)]">{t('categoryGroups.setup.ownGroupTitle')}</div>
-                        <div className="text-[13.5px] text-[var(--muted)]">{t('categoryGroups.setup.ownGroupText')}</div>
+                        <div className="text-[15px] font-extrabold text-[var(--font-color)]">
+                            {t(isImport ? 'categoryGroups.setup.importFile' : 'categoryGroups.setup.ownGroupTitle')}
+                        </div>
+                        <div className="text-[13.5px] text-[var(--muted)]">
+                            {t(isImport ? 'categoryGroups.import.subtitle' : 'categoryGroups.setup.ownGroupText')}
+                        </div>
                     </div>
                 )}
             </div>

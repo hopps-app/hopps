@@ -61,7 +61,8 @@
             "created": "Category group created",
             "updated": "Category group saved",
             "deleted": "Category group deleted",
-            "error": "Action failed"
+            "error": "Action failed",
+            "lastSelectable": "A mandatory group needs at least one category that can be chosen."
         },
         "reopen": {
             "title": "Confirmed transactions affected",
@@ -86,7 +87,35 @@
             "moreValues": "+{{count}} more",
             "noTemplatesTitle": "Create your first category group",
             "ownGroupTitle": "Your own category group",
-            "ownGroupText": "No categories yet, you create them yourself."
+            "ownGroupText": "No categories yet, you create them yourself.",
+            "importFile": "Import from file"
+        },
+        "export": "Export as file",
+        "values": {
+            "collection": "Collection",
+            "collectionHint": "Only serves as a heading for subcategories. Bookings go on the subcategories, not on the collection itself.",
+            "hidden": "Hidden",
+            "hiddenHint": "Can't be picked for new bookings. Existing bookings and reports stay as they are.",
+            "addChild": "Add subcategory to {{name}}",
+            "addingUnder": "New category under {{name}}",
+            "makeCollection": "Keep {{name}} as a collection only (not bookable)",
+            "makeBookable": "Make {{name}} directly bookable",
+            "hide": "Hide {{name}}",
+            "show": "Show {{name}}",
+            "move": "Assign {{name}} to a parent category",
+            "topLevel": "No parent category"
+        },
+        "import": {
+            "button": "Import",
+            "title": "Import category group",
+            "subtitle": "Bring in an exported file. You can adjust the group freely afterwards.",
+            "chooseFile": "Choose file",
+            "invalidFile": "This file cannot be imported.",
+            "extendsExisting": "This preset already exists as “{{group}}”. New categories are added, existing ones stay as they are.",
+            "submit": "Import",
+            "created": "Category group imported",
+            "extended_one": "{{count}} category added",
+            "extended_other": "{{count}} categories added"
         }
     },
     "banner": {
@@ -169,7 +198,7 @@
         "register": "Register organization",
         "login": "Login",
         "setup": "Start initial setup",
-        "setupSubtitle": "This installation has not been set up yet. Create your association and the first administrator account.",
+        "setupSubtitle": "This installation has not been set up yet. Create your association and the first administrator account, or sign in with an existing account and create the association from there.",
         "singleTenantSubtitle": "Accounting for {{organization}}. Sign in with your account."
     },
     "invoiceUpload": {
@@ -469,6 +498,7 @@
         "setup": {
             "header": "Initial setup",
             "subtitle": "Create your association and the first administrator account. Invite further members from the settings afterwards.",
+            "existingAccountSubtitle": "You are signed in and this installation has no association yet. Create it now; your account becomes its first administrator. Invite further members from the settings afterwards.",
             "submit": "Complete setup",
             "successHeading": "Your association is set up. Sign in with the account you just created.",
             "alreadyDone": "This installation is already set up. Please sign in."
@@ -526,7 +556,9 @@
             "income": "Income",
             "expense": "Expenses",
             "net": "Net",
-            "distribution": "Distribution"
+            "distribution": "Distribution",
+            "parent": "Parent category",
+            "direct": "Booked directly"
         },
         "emptyNoGroup": {
             "title": "Choose a category group",
@@ -582,7 +614,7 @@
         "transactions": "Transactions",
         "reports": "Reports",
         "admin": "Admin",
-        "ngo-details": "Ngo Details",
+        "ngo-details": "NGO Details",
         "categories": "Categories",
         "collapse": "Collapse",
         "expand": "Expand",
@@ -1671,6 +1703,8 @@
         "takePhoto": "Take photo",
         "chooseFiles": "Choose files",
         "allowedTypes": "PNG, JPEG or PDF, several receipts at once",
+        "dropHint": "or drag files here",
+        "dropActive": "Drop to add the receipts",
         "removeFile": "Remove file",
         "name": "Your name",
         "nameRequired": "Please enter your name",
@@ -1699,7 +1733,12 @@
             "tooLarge": "The file is too large.",
             "rateLimit": "Too many uploads. Please try again later.",
             "linkInvalid": "The link is no longer valid.",
-            "generic": "Upload failed. Please try again."
+            "generic": "The receipt could not be uploaded. Please try again, or contact whoever shared this link.",
+            "invalid": "The receipt was not accepted. Please check the file and the name.",
+            "network": "No connection to the server. Please check the internet connection and try again.",
+            "server": "Something went wrong on our side. Please try again in a few minutes.",
+            "summary_one": "{{count}} receipt could not be uploaded. Use the button below to try again.",
+            "summary_other": "{{count}} receipts could not be uploaded. Use the button below to try again."
         }
     }
 }

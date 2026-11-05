@@ -3,6 +3,8 @@ import { X } from 'lucide-react';
 import { FC, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import CategoryLabel from './CategoryLabel';
+
 import { pickerFocusCls } from '@/components/Transactions/drawerParts';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/Command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadecn/Popover';
@@ -18,13 +20,15 @@ type CategoryValueComboboxProps = {
     disabled?: boolean;
     /** Overrides the default empty-state text. */
     placeholder?: string;
+    /** Searching existing bookings: every category can be picked, also hidden ones and pure collections. */
+    forFilter?: boolean;
 };
 
 /**
  * Searchable value picker backed by the server-side, paginated value endpoint — so a group can hold thousands of values
  * (e.g. a whole chart of accounts) without ever loading them all at once.
  */
-const CategoryValueCombobox: FC<CategoryValueComboboxProps> = ({ groupId, value, onChange, warn, disabled, placeholder }) => {
+const CategoryValueCombobox: FC<CategoryValueComboboxProps> = ({ groupId, value, onChange, warn, disabled, placeholder, forFilter }) => {
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const [rawQuery, setRawQuery] = useState('');
@@ -36,7 +40,7 @@ const CategoryValueCombobox: FC<CategoryValueComboboxProps> = ({ groupId, value,
         return () => clearTimeout(handle);
     }, [rawQuery]);
 
-    const { data, isLoading } = useCategoryGroupValues(groupId, query, open);
+    const { data, isLoading } = useCategoryGroupValues(groupId, query, open, { selection: !forFilter });
     const items = data?.items ?? [];
 
     return (
@@ -77,6 +81,8 @@ const CategoryValueCombobox: FC<CategoryValueComboboxProps> = ({ groupId, value,
                                     <CommandItem
                                         key={item.id}
                                         value={String(item.id)}
+                                        // A pure collection structures the list, but nothing can be booked on it.
+                                        disabled={!forFilter && !item.selectable}
                                         className={cn(
                                             'rounded-[10px] px-2.5 py-2 text-sm',
                                             value === item.value
@@ -88,7 +94,7 @@ const CategoryValueCombobox: FC<CategoryValueComboboxProps> = ({ groupId, value,
                                             setOpen(false);
                                         }}
                                     >
-                                        <span className="truncate">{item.value}</span>
+                                        <CategoryLabel item={item} className="truncate" />
                                         <CheckIcon className={cn('ml-auto h-4 w-4', value === item.value ? 'opacity-100' : 'opacity-0')} aria-hidden="true" />
                                     </CommandItem>
                                 ))}

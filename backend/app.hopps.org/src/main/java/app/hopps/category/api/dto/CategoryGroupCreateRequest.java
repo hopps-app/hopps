@@ -10,7 +10,7 @@ public record CategoryGroupCreateRequest(
         @NotBlank @Schema(description = "Name of the group", example = "Kostenstelle") String name,
         @Schema(description = "Whether a value is mandatory before an applicable transaction can be confirmed") boolean required,
         @Schema(description = "Bommels this group is assigned to. Empty = no bommel; assign the root bommel to apply to all.") List<Long> bommelIds,
-        @Schema(description = "Initial allowed values (order preserved)") List<String> values,
+        @Schema(description = "Initial categories with their hierarchy (order preserved)") List<CategoryValueEntry> values,
         @Schema(description = "When true, already-confirmed transactions that would violate the now-mandatory group are reset to DRAFT") boolean reopenAffectedTransactions,
         @Schema(description = "The template the dialog was pre-filled from, if any. Only recorded as the group's origin.") Long templateId) {
 }

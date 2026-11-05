@@ -4,9 +4,11 @@ import { useTranslation } from 'react-i18next';
 
 import { OrganizationFields } from '@/components/Forms/OrganizationFields/OrganizationFields';
 import Button from '@/components/ui/Button';
+import { useInstance } from '@/hooks/use-instance';
 import { DEFAULT_ORGANIZATION_FIELDS, organizationFieldErrors, type OrganizationFieldValues } from '@/lib/organizationTypes';
 import apiService from '@/services/ApiService';
 import authService from '@/services/auth/auth.service';
+import { fetchInstanceInfo } from '@/services/instance/instanceService';
 import { useStore } from '@/store/store';
 import { getErrorStatus } from '@/utils/errorUtils';
 
@@ -20,8 +22,13 @@ function createSlug(input: string): string {
         .replace(/^-+|-+$/g, '');
 }
 
+/**
+ * Shown to a logged-in account without an organization, so it can create one. On a single-tenant installation this
+ * only happens during the initial setup (see App.tsx) and reads as such.
+ */
 function OrganizationErrorView() {
     const { t } = useTranslation();
+    const isSetup = useInstance().tenancy === 'single';
     const [organization, setOrganization] = useState<OrganizationFieldValues>(DEFAULT_ORGANIZATION_FIELDS);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -56,13 +63,24 @@ function OrganizationErrorView() {
                     email: organization.email.trim() || undefined,
                 })
             );
-            // The organization is now linked to the user — leave the error screen and enter the app.
+            // On a single-tenant installation this completed the initial setup; refresh so the app no longer offers it.
+            if (isSetup) {
+                useStore.getState().setInstance(await fetchInstanceInfo());
+            }
+            // The organization is now linked to the user. Leave the error screen and enter the app.
             useStore.getState().setOrganization(organisation);
             useStore.getState().setOrganizationError(false);
         } catch (err) {
             console.error('Failed to create organization:', err);
+            const status = getErrorStatus(err);
+            if (status === 403 && isSetup) {
+                // Someone else completed the initial setup in the meantime (code SETUP_COMPLETE). From now on this
+                // account needs an invitation, which the no-access screen explains.
+                useStore.getState().setInstance(await fetchInstanceInfo());
+                return;
+            }
             // 409 = the generated slug (i.e. the name) is already taken.
-            setError(getErrorStatus(err) === 409 ? t('organization.create.slugConflict') : t('organization.create.error'));
+            setError(status === 409 ? t('organization.create.slugConflict') : t('organization.create.error'));
             setSubmitting(false);
         }
     };
@@ -76,8 +94,8 @@ function OrganizationErrorView() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                         </svg>
                     </div>
-                    <h1 className="text-xl font-semibold text-gray-900 mb-2">{t('organization.create.title')}</h1>
-                    <p className="text-gray-600 text-sm">{t('organization.create.description')}</p>
+                    <h1 className="text-xl font-semibold text-gray-900 mb-2">{isSetup ? t('organization.setup.header') : t('organization.create.title')}</h1>
+                    <p className="text-gray-600 text-sm">{isSetup ? t('organization.setup.existingAccountSubtitle') : t('organization.create.description')}</p>
                 </div>
 
                 <form onSubmit={handleCreate} className="space-y-4">
@@ -94,7 +112,7 @@ function OrganizationErrorView() {
                     </div>
 
                     <Button type="submit" variant="default" disabled={!organization.name.trim() || submitting} className="w-full">
-                        {submitting ? '…' : t('organization.create.submit')}
+                        {submitting ? '…' : isSetup ? t('organization.setup.submit') : t('organization.create.submit')}
                     </Button>
                 </form>
 

@@ -216,7 +216,21 @@
             "save": "Save",
             "saving": "Saving…",
             "delete": "Delete",
-            "deleteConfirm": "Delete permanently"
+            "deleteConfirm": "Delete permanently",
+            "collection": "Collection",
+            "hidden": "Hidden",
+            "addChild": "Add subcategory to {{value}}",
+            "addingUnder": "New value under {{value}}",
+            "makeCollection": "Keep {{value}} as a collection only (not bookable)",
+            "makeBookable": "Make {{value}} directly bookable",
+            "hide": "Hide {{value}}",
+            "show": "Show {{value}}",
+            "move": "Assign {{value}} to a parent category",
+            "topLevel": "No parent category",
+            "loadFile": "Load from file",
+            "export": "Export",
+            "exportError": "Export failed. Please try again.",
+            "invalidFile": "This file cannot be imported."
         }
     },
     "home": {
