@@ -175,7 +175,7 @@ export function PublicUploadView() {
     return (
         <div className="flex min-h-screen flex-col bg-[var(--background-primary)]">
             <div className="mx-auto w-full max-w-lg flex-1 px-4 py-6 sm:py-10">
-                <img src="/logo3.svg" alt="hopps" className="mb-6 h-8 w-auto" />
+                <img src="/logo2.svg" alt="hopps" className="mb-6 h-8 w-auto" />
 
                 {info.isLoading && <LoadingState className="py-12" />}
 
@@ -312,7 +312,7 @@ export function PublicUploadView() {
                                     rows={3}
                                     placeholder={t('publicUpload.commentPlaceholder')}
                                     onChange={(e) => setComment(e.target.value)}
-                                    className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    className="w-full rounded-xl border border-[#E0E0E6] bg-white px-3 py-2 text-sm text-gray-800 transition-colors placeholder:text-muted focus:border-[var(--purple-300)] focus:outline-none focus:ring-2 focus:ring-[var(--purple-50)] focus-visible:border-[var(--purple-300)] dark:border-gray-700 dark:bg-[var(--purple-50)] dark:text-gray-100"
                                 />
                             </div>
                             <Switch label={t('publicUpload.privatelyPaid')} checked={privatelyPaid} onCheckedChange={setPrivatelyPaid} />
