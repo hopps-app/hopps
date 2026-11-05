@@ -35,7 +35,9 @@ Hetzner/DigitalOcean-Infrastruktur nicht Richtung Azure.
 - Vollständiger Stack per **Docker Compose** auf einem Server (`infrastructure/hopps-app/docker-compose.yaml`)
   oder per **Helm-Chart** (`charts/hopps`) – z. B. in der Schweiz oder auf eigener Infrastruktur.
 - **Single-Tenant-Modus** (`HOPPS_TENANCY_MODE=single`): eine Organisation, Ersteinrichtung,
-  danach nur Zugang per Einladung – 🔜 Branch `feat/single-tenant-mode` (Stand 2026-09-17).
+  danach nur Zugang per Einladung – ✅. Die Ersteinrichtung geht auch mit einem bestehenden Konto
+  (z. B. aus einem vorhandenen Authentik): anmelden, dann den Verein anlegen – ✅ ab dem nächsten
+  Release (Stand 2026-11-05).
 - Für KI-Auslesung sind **eigene** Azure-Zugänge nötig (Document Intelligence + Azure OpenAI); ohne KI nutzbar
   (Analyse deaktivieren). ❓ `az-document-ai` startet derzeit nicht ohne Azure-Credentials.
 - Externer Identity-Provider (OIDC) per `.env`: `infrastructure/hopps-app/EXTERNAL-IDP.md`.

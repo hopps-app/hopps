@@ -103,7 +103,8 @@ one in Authentik.
 Registering an organization works like with Keycloak: it creates the founder's
 account in Authentik, with the password from the registration form. If
 Authentik already has an account for that email, the registration is refused;
-that person logs in and creates their organization from there.
+that person logs in and creates their organization from there. In
+[single-tenant mode](#single-tenant-mode) this works only for the initial setup.
 
 In Authentik:
 
@@ -190,10 +191,14 @@ A self-hosted installation serves exactly one association, so the stack runs
 with `HOPPS_TENANCY_MODE=single` by default. Compared to the hosted SaaS
 (`multi`) this means:
 
-- **One organization, created once.** The registration form is the initial
-  setup. As soon as the organization exists it is closed for good: the start
-  page only shows the login, `/register` redirects home, and the API answers
-  `403` (`SETUP_COMPLETE`) to further sign-ups.
+- **One organization, created once.** There are two ways to do the initial
+  setup. **Start initial setup** creates the association and a new
+  administrator account. Someone who already has an account, e.g. in an
+  existing Authentik, clicks **Login** instead and creates the association
+  after logging in; that account becomes its first administrator. As soon as
+  the organization exists the setup is closed for good: the start page only
+  shows the login, `/register` redirects home, and the API answers `403`
+  (`SETUP_COMPLETE`) to further sign-ups.
 - **Access by invitation only.** Someone who can log in - through a password
   account or an [external identity provider](#identity-provider) -
   but is not a member of the organization sees *No access* with a logout
