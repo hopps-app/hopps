@@ -11,7 +11,7 @@ import org.eclipse.microprofile.openapi.models.parameters.RequestBody;
  * so generated clients treat every part as mandatory. Where a multipart body names a component, keep only the
  * reference.
  */
-@OpenApiFilter(OpenApiFilter.RunStage.BUILD)
+@OpenApiFilter(stages = OpenApiFilter.RunStage.BUILD)
 public class MultipartSchemaRefFilter implements OASFilter {
     private static final String MULTIPART = jakarta.ws.rs.core.MediaType.MULTIPART_FORM_DATA;
 
