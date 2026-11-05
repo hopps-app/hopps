@@ -22,9 +22,6 @@ public class TenancyService {
     /** Error code sent when sign-up is attempted after the single organization has already been set up. */
     public static final String SETUP_COMPLETE = "SETUP_COMPLETE";
 
-    /** Error code sent when a feature is unavailable because the installation is single-tenant. */
-    public static final String SINGLE_TENANT = "SINGLE_TENANT";
-
     @Inject
     TenancyConfig config;
 
@@ -59,7 +56,8 @@ public class TenancyService {
     }
 
     /**
-     * Guards the anonymous sign-up: in single-tenant mode it is only open until the organization exists.
+     * Guards creating an organization, both the anonymous sign-up and the one for an account that already exists: in
+     * single-tenant mode either is only open until the organization exists.
      *
      * @throws ForbiddenException
      *             with code {@link #SETUP_COMPLETE} when the single organization has already been created
@@ -67,18 +65,6 @@ public class TenancyService {
     public void assertSignUpAllowed() {
         if (isSingle() && !isSetupRequired()) {
             throw forbidden(SETUP_COMPLETE, "This installation already has its organization; sign-up is closed");
-        }
-    }
-
-    /**
-     * Guards features that only make sense when several organizations can exist.
-     *
-     * @throws ForbiddenException
-     *             with code {@link #SINGLE_TENANT} in single-tenant mode
-     */
-    public void assertMultiTenant() {
-        if (isSingle()) {
-            throw forbidden(SINGLE_TENANT, "This installation serves a single organization");
         }
     }
 

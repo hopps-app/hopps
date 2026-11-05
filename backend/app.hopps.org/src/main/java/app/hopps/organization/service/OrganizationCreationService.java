@@ -122,13 +122,14 @@ public class OrganizationCreationService {
      * @throws ClientErrorException
      *             (409 Conflict) if the user is already assigned to an organization
      * @throws jakarta.ws.rs.ForbiddenException
-     *             (403, {@code SINGLE_TENANT}) on a single-tenant installation, where nobody creates organizations of
-     *             their own — access is granted by invitation only
+     *             (403, {@code SETUP_COMPLETE}) on a single-tenant installation that already has its organization.
+     *             Until then this is the initial setup for an account the identity provider already knows; afterwards
+     *             access is granted by invitation only
      */
     @Transactional
     public Organization createOrganizationForCurrentUser(Organization organization, String keycloakId, String email,
             String firstName, String lastName) {
-        tenancyService.assertMultiTenant();
+        tenancyService.assertSignUpAllowed();
 
         if (keycloakId == null || keycloakId.isBlank()) {
             throw new ClientErrorException("Missing user identity", Response.Status.UNAUTHORIZED);
