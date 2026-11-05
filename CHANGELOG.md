@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.4.0](https://github.com/hopps-app/hopps/compare/v2.3.1...v2.4.0) (2026-11-05)
+
+
+### Features
+
+* **categories:** two-level categories, hiding and export/import ([#913](https://github.com/hopps-app/hopps/issues/913)) ([184141d](https://github.com/hopps-app/hopps/commit/184141d0261547c26ebac1ab6fc672667238eb19))
+* **self-hosting:** read passwords and keys from files ([#922](https://github.com/hopps-app/hopps/issues/922)) ([38be9f8](https://github.com/hopps-app/hopps/commit/38be9f8ceb07ed3b82aebe4af2acc3e98e81baaf))
+
+
+### Bug Fixes
+
+* **i18n:** spell NGO in uppercase ([#920](https://github.com/hopps-app/hopps/issues/920)) ([c5cea05](https://github.com/hopps-app/hopps/commit/c5cea0566bba3b70499d9437b2353b3024989258))
+* **self-hosting:** initial setup with an existing account in single-tenant mode ([#923](https://github.com/hopps-app/hopps/issues/923)) ([d33f5fd](https://github.com/hopps-app/hopps/commit/d33f5fd14b2e7beb1c1084006c578b7a6c3f9dc1))
+* **upload-links:** optional comment, clearer upload errors, drag and drop ([#919](https://github.com/hopps-app/hopps/issues/919)) ([47f102f](https://github.com/hopps-app/hopps/commit/47f102f39b5885f48d9f5e7f390cadcda0da429c))
+
 ## [2.3.1](https://github.com/hopps-app/hopps/compare/v2.3.0...v2.3.1) (2026-11-01)
 
 
