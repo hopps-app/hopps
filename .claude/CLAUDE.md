@@ -103,7 +103,7 @@ ZUGFeRD-Rechnungsverarbeitung (XML aus PDFs extrahieren)
 **Features:**
 - Drag-and-drop File Upload (react-dropzone)
 - PDF Viewing (pdfjs-dist)
-- Tree Visualisierung (react-d3-tree, @minoru/react-dnd-treeview)
+- Bommel-Baum (eigenes Flexbox-Layout ohne Bibliothek: horizontal ab 768px, darunter vertikal eingerückt)
 - Emoji Support (emoji-mart)
 
 **Struktur:**
@@ -114,12 +114,12 @@ src/
 ├── components/
 │   ├── ui/                    - Wiederverwendbare UI-Komponenten (shadcn/ui-inspiriert)
 │   ├── views/                 - Seiten-Level Komponenten
-│   ├── BommelTreeView/        - Organisations-Baumvisualisierung
+│   ├── BommelTreeView/        - Bommel-Baumvisualisierung
 │   ├── Categories/            - Kategorie-Management
 │   ├── Forms/                 - Formular-Komponenten
 │   ├── BankAccounts/, Receipts/, Transactions/, ...
 │   └── common/, sidebar-navigation/
-├── services/                  - ApiService, OrganisationTreeService, Theme/Language/Connectivity/Emoji, auth/
+├── services/                  - ApiService, BommelTreeService, Theme/Language/Connectivity/Emoji, auth/
 ├── store/                     - Zustand Stores
 ├── hooks/                     - Custom React Hooks
 ├── context/, providers/       - React Context & Provider
@@ -133,7 +133,7 @@ src/
 - `/` - Landing Page
 - `/register` - Organisationsregistrierung
 - `/dashboard/*` - Haupt-Dashboard (protected)
-- `/structure` - Organisationsstruktur-Management (protected)
+- `/structure` - Bommel-Struktur (`views/Bommel/BommelView`, protected)
 - `/receipts` - Belege inkl. Upload und Prüfung (protected)
 - `/transactions` - Transaktionsübersicht (protected)
 - `/bank-accounts`, `/bank-schemas` - Konten, Bank-Import und CSV-Schemata (protected)

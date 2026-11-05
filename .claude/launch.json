@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": ["-f", "backend/app.hopps.org/pom.xml", "quarkus:dev"],
+      "env": { "JAVA_HOME": "C:\\Program Files\\Java\\jdk-21.0.10" },
+      "port": 8101
+    },
+    {
+      "name": "spa",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "frontend/spa", "dev"],
+      "port": 5173
+    }
+  ]
+}

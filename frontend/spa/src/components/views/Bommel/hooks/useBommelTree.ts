@@ -2,10 +2,10 @@ import { Bommel, BommelStatisticsMap } from '@hopps/api-client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel';
+import { BommelTreeNodeModel } from '@/components/BommelTreeView/BommelTreeNodeModel';
 import { useToast } from '@/hooks/use-toast';
 import apiService from '@/services/ApiService';
-import organizationTreeService from '@/services/OrganisationTreeService';
+import bommelTreeService from '@/services/BommelTreeService';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
 
@@ -80,24 +80,24 @@ function generateRandomBommelEmoji(): string {
     return randomElement(RANDOM_EMOJIS);
 }
 
-interface UseOrganizationTreeOptions {
+interface UseBommelTreeOptions {
     bommelStats?: BommelStatisticsMap | null;
 }
 
-export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
+export function useBommelTree(options?: UseBommelTreeOptions) {
     const { showError, showSuccess } = useToast();
     const { t } = useTranslation();
     const store = useStore();
     const [isOrganizationError, setIsOrganizationError] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [rootBommel, setRootBommel] = useState<Bommel | null>(null);
-    const [tree, setTree] = useState<OrganizationTreeNodeModel[]>([]);
+    const [tree, setTree] = useState<BommelTreeNodeModel[]>([]);
 
     const loadTree = useCallback(async () => {
         const organizationId = store.organization?.id;
         if (!organizationId) return;
 
-        const bommels = await organizationTreeService.getOrganizationBommels(organizationId);
+        const bommels = await bommelTreeService.getOrganizationBommels(organizationId);
 
         // First bommel in the list is the root bommel
         const loadedRootBommel = bommels.length > 0 ? bommels[0] : null;
@@ -105,7 +105,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
             setRootBommel(loadedRootBommel);
         }
 
-        const nodes = organizationTreeService.bommelsToTreeNodes(bommels, loadedRootBommel?.id);
+        const nodes = bommelTreeService.bommelsToTreeNodes(bommels, loadedRootBommel?.id);
 
         // Add statistics data from API (or fallback to zero values)
         // Note: JSON object keys are always strings, so we need to access by string key
@@ -142,32 +142,6 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
 
     const actionRef = useRef(false);
 
-    const createTreeNode = useCallback(async () => {
-        if (!rootBommel?.id) return;
-        if (actionRef.current) return;
-        actionRef.current = true;
-
-        try {
-            const node = await apiService.orgService.bommelPOST(
-                new Bommel({
-                    name: generateRandomBommelName(),
-                    emoji: generateRandomBommelEmoji(),
-                    children: [],
-                    parent: new Bommel({ id: rootBommel.id }),
-                })
-            );
-
-            syncBommelStore();
-            showSuccess(t('organization.structure.toast.createSuccess'));
-            return organizationTreeService.bommelsToTreeNodes([node], rootBommel.id)[0];
-        } catch (e) {
-            console.error(e);
-            showError(t('organization.structure.toast.createError'));
-        } finally {
-            actionRef.current = false;
-        }
-    }, [rootBommel, showError, showSuccess, syncBommelStore, t]);
-
     const createChildBommel = useCallback(
         async (parentId: number) => {
             if (actionRef.current) return false;
@@ -184,11 +158,11 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
                 );
                 await loadTree();
                 syncBommelStore();
-                showSuccess(t('organization.structure.toast.createChildSuccess'));
+                showSuccess(t('bommel.toast.createChildSuccess'));
                 return created.id ?? true;
             } catch (e) {
                 console.error(e);
-                showError(t('organization.structure.toast.createChildError'));
+                showError(t('bommel.toast.createChildError'));
             } finally {
                 setIsLoading(false);
                 actionRef.current = false;
@@ -199,7 +173,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
     );
 
     const updateTreeNode = useCallback(
-        async (node: OrganizationTreeNodeModel) => {
+        async (node: BommelTreeNodeModel) => {
             let isSuccess = false;
             setIsLoading(true);
 
@@ -216,10 +190,10 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
                 // Update local tree state directly to preserve ordering
                 setTree((prev) => prev.map((n) => (n.id === node.id ? node : n)));
                 syncBommelStore();
-                showSuccess(t('organization.structure.toast.updateSuccess'));
+                showSuccess(t('bommel.toast.updateSuccess'));
             } catch (e) {
                 console.error(e);
-                showError(t('organization.structure.toast.updateError'));
+                showError(t('bommel.toast.updateError'));
             } finally {
                 setIsLoading(false);
             }
@@ -230,7 +204,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
     );
 
     const moveTreeNode = useCallback(
-        async (node: OrganizationTreeNodeModel) => {
+        async (node: BommelTreeNodeModel) => {
             let isSuccess = false;
             setIsLoading(true);
             try {
@@ -239,10 +213,10 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
                 await loadTree();
                 syncBommelStore();
                 isSuccess = true;
-                showSuccess(t('organization.structure.toast.moveSuccess'));
+                showSuccess(t('bommel.toast.moveSuccess'));
             } catch (e) {
                 console.error(e);
-                showError(t('organization.structure.toast.moveError'));
+                showError(t('bommel.toast.moveError'));
             } finally {
                 setIsLoading(false);
             }
@@ -263,11 +237,11 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
                 await apiService.orgService.bommelDELETE(id as number, hasChildren);
                 await loadTree();
                 syncBommelStore();
-                showSuccess(t('organization.structure.toast.deleteSuccess'));
+                showSuccess(t('bommel.toast.deleteSuccess'));
                 return true;
             } catch (e) {
                 console.error(e);
-                showError(t('organization.structure.toast.deleteError'));
+                showError(t('bommel.toast.deleteError'));
             } finally {
                 setIsLoading(false);
                 actionRef.current = false;
@@ -289,7 +263,7 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
 
         const initializeTree = async () => {
             // Ensure root bommel exists (creates it if needed)
-            await organizationTreeService.ensureRootBommelCreated(organizationId);
+            await bommelTreeService.ensureRootBommelCreated(organizationId);
 
             // Load all bommels including root
             await loadTree();
@@ -307,7 +281,6 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
         isLoading,
         rootBommel,
         tree,
-        createTreeNode,
         createChildBommel,
         updateTreeNode,
         moveTreeNode,
@@ -315,4 +288,4 @@ export function useOrganizationTree(options?: UseOrganizationTreeOptions) {
     };
 }
 
-export default useOrganizationTree;
+export default useBommelTree;

@@ -1,8 +1,8 @@
 import { useMemo, useCallback } from 'react';
 
-import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel';
+import { BommelTreeNodeModel } from '@/components/BommelTreeView/BommelTreeNodeModel';
 
-export function useTreeCalculations(tree: OrganizationTreeNodeModel[]) {
+export function useTreeCalculations(tree: BommelTreeNodeModel[]) {
     const countTotalBommels = useMemo(() => tree.length, [tree]);
 
     const calculateTotal = useMemo(() => tree.reduce((sum, node) => sum + (node.data?.total || 0), 0), [tree]);
@@ -10,7 +10,7 @@ export function useTreeCalculations(tree: OrganizationTreeNodeModel[]) {
     const calculateTotalTransactions = useMemo(() => tree.reduce((sum, node) => sum + (node.data?.transactionsCount || 0), 0), [tree]);
 
     const countSubBommels = useCallback(
-        (node: OrganizationTreeNodeModel): number => {
+        (node: BommelTreeNodeModel): number => {
             const children = tree.filter((n) => n.parent === node.id);
             if (children.length === 0) return 0;
 
@@ -25,7 +25,7 @@ export function useTreeCalculations(tree: OrganizationTreeNodeModel[]) {
     );
 
     const getNodeDepth = useCallback(
-        (node: OrganizationTreeNodeModel): number => {
+        (node: BommelTreeNodeModel): number => {
             let depth = 0;
             let currentNode = node;
             while (currentNode.parent && currentNode.parent !== 0) {

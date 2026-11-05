@@ -37,7 +37,7 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 | „Privat bezahlt" (Auslage) markieren | ✅ | Boolean `privatelyPaid`, filterbar | BE `document/domain/Document`, `GET /transactions?privatelyPaid=true` |
 | Auslagen-Erstattung (Empfänger, IBAN, Auszahlungsstatus) | ❌ / 💡 | Nur das Flag oben; keine Person/IBAN/Status/Summe pro Person | – |
 | Beleg auf mehrere Kategorien/Beträge aufteilen | ✅ | Beleg wird in mehrere Transaktionen geteilt (je Teil Betrag, Bommel, Kategoriewerte); Entwurf oder direkt erstellen, Teilsumme darf unter dem Belegbetrag liegen (Privatanteil); Bankabgleich je Teil; zahlt ein Umsatz den ganzen Beleg, werden alle Teile mit ihm verknüpft, auch wenn der Beleg erst danach geteilt wird (Stand 2026-10-31) | BE `PUT /documents/{id}/transactions`, SPA `Receipts/Split/SplitDrawer` |
-| Upload ohne Konto (Gast, z. B. per Link) | ✅ | Pro Bommel ein Upload-Link (zufälliges Token, kopieren, QR-Code, optional Ablaufdatum, neu erzeugen/widerrufen). Die Upload-Seite braucht kein Konto: Foto oder Datei (PNG/JPEG/PDF, mehrere; am Desktop auch per Drag & Drop), Pflichtfeld Name, optional Kommentar und „privat bezahlt“. Beleg landet beim Bommel, läuft durch die normale KI-Analyse, `uploadedBy` = Name, in der Belegliste als Link-Upload markiert. Dateityp serverseitig geprüft, Rate-Limit pro Link und Client (Stand 2026-11-04) | BE `uploadlink/`, `POST /upload-links/{bommelId}`, `POST /public/upload-links/{token}`, SPA `/upload/:token`, `OrganizationSettings/components/UploadLinkSection` |
+| Upload ohne Konto (Gast, z. B. per Link) | ✅ | Pro Bommel ein Upload-Link (zufälliges Token, kopieren, QR-Code, optional Ablaufdatum, neu erzeugen/widerrufen). Die Upload-Seite braucht kein Konto: Foto oder Datei (PNG/JPEG/PDF, mehrere; am Desktop auch per Drag & Drop), Pflichtfeld Name, optional Kommentar und „privat bezahlt“. Beleg landet beim Bommel, läuft durch die normale KI-Analyse, `uploadedBy` = Name, in der Belegliste als Link-Upload markiert. Dateityp serverseitig geprüft, Rate-Limit pro Link und Client (Stand 2026-11-04) | BE `uploadlink/`, `POST /upload-links/{bommelId}`, `POST /public/upload-links/{token}`, SPA `/upload/:token`, `views/Bommel/components/UploadLinkSection` |
 | „Meine Belege"-Ansicht für Einreichende | ❌ | Belege werden organisationsweit gelistet | BE `document/repository/DocumentRepository` |
 
 ## 3. Kategorien
@@ -81,7 +81,7 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 
 | Funktion | Status | Details | Beleg |
 |---|---|---|---|
-| Einnahmen/Ausgaben/Saldo pro Organisation & Bommel (rekursiv) | ✅ | – | BE `statistics/`, `GET /statistics/bommels/{id}` |
+| Einnahmen/Ausgaben/Saldo pro Organisation & Bommel (rekursiv) | ✅ | Auf der Bommel-Seite nach Zeitraum filterbar: ein Jahr (Standard: laufendes Jahr), alle Jahre oder ein freier Zeitraum, z. B. ein Geschäftsjahr; gezählt wird nach Transaktionsdatum. Offene Transaktionen und Belege im Detailbereich bleiben ungefiltert (Stand 2026-11-01) | BE `statistics/` (`startDate`/`endDate`), `GET /statistics/bommels/{id}`, SPA `views/Bommel/components/PeriodField` |
 | Summen pro Kategorie, filterbar nach Bommel & Zeitraum | ✅ | – | `GET /category-groups/{id}/report`, SPA `/reports` |
 | CSV-Export der Kategorie-Auswertung | 🟡 | Clientseitig im Browser, nur Summen | SPA `components/views/ReportsView.tsx` (`exportCsv`) |
 | Export Belegliste / Transaktionen (CSV/Excel) | ❌ / 💡 | Keine Export-Endpoints | – |
