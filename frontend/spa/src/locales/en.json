@@ -1703,6 +1703,8 @@
         "takePhoto": "Take photo",
         "chooseFiles": "Choose files",
         "allowedTypes": "PNG, JPEG or PDF, several receipts at once",
+        "dropHint": "or drag files here",
+        "dropActive": "Drop to add the receipts",
         "removeFile": "Remove file",
         "name": "Name",
         "nameRequired": "Please enter your name",
@@ -1731,7 +1733,12 @@
             "tooLarge": "The file is too large.",
             "rateLimit": "Too many uploads. Please try again later.",
             "linkInvalid": "The link is no longer valid.",
-            "generic": "Upload failed. Please try again."
+            "generic": "The receipt could not be uploaded. Please try again, or contact whoever shared this link.",
+            "invalid": "The receipt was not accepted. Please check the file and the name.",
+            "network": "No connection to the server. Please check the internet connection and try again.",
+            "server": "Something went wrong on our side. Please try again in a few minutes.",
+            "summary_one": "{{count}} receipt could not be uploaded. Use the button below to try again.",
+            "summary_other": "{{count}} receipts could not be uploaded. Use the button below to try again."
         }
     }
 }

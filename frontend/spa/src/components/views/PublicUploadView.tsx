@@ -2,6 +2,7 @@ import { ApiException } from '@hopps/api-client';
 import { useQuery } from '@tanstack/react-query';
 import { Camera, CheckCircle2, FileText, Image as ImageIcon, Loader2, Upload, X, XCircle } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
@@ -15,6 +16,7 @@ import TextField from '@/components/ui/TextField';
 import apiService from '@/services/ApiService';
 
 const ACCEPTED_TYPES = ['image/png', 'image/jpeg', 'application/pdf'];
+const DROPZONE_ACCEPT = { 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'], 'application/pdf': ['.pdf'] };
 // Remembered on the device, so someone submitting regularly does not type their name every time.
 const NAME_STORAGE_KEY = 'hopps.publicUpload.name';
 
@@ -49,7 +51,13 @@ function apiStatus(error: unknown): number {
 }
 
 function errorKeyFor(error: unknown): string {
-    switch (apiStatus(error)) {
+    // fetch rejects with a TypeError when the request never got an answer (offline, blocked, proxy dropped it).
+    if (error instanceof TypeError) return 'publicUpload.errors.network';
+    const status = apiStatus(error);
+    if (status >= 500) return 'publicUpload.errors.server';
+    switch (status) {
+        case 400:
+            return 'publicUpload.errors.invalid';
         case 409:
             return 'publicUpload.errors.duplicate';
         case 413:
@@ -74,7 +82,6 @@ export function PublicUploadView() {
     const { t } = useTranslation();
     const { token = '' } = useParams<{ token: string }>();
     const cameraInput = useRef<HTMLInputElement>(null);
-    const fileInput = useRef<HTMLInputElement>(null);
 
     const [name, setName] = useState(storedName);
     const [comment, setComment] = useState('');
@@ -94,7 +101,7 @@ export function PublicUploadView() {
         document.title = bommelName ? t('publicUpload.pageTitle', { name: bommelName }) : t('publicUpload.title');
     }, [bommelName, t]);
 
-    const addFiles = (list: FileList | null) => {
+    const addFiles = (list: FileList | File[] | null) => {
         if (!list) return;
         const added = Array.from(list).map((file) => ({
             id: `${file.name}-${file.size}-${file.lastModified}-${Math.random()}`,
@@ -104,6 +111,16 @@ export function PublicUploadView() {
         }));
         setFiles((prev) => [...prev, ...added]);
     };
+
+    // Desktop: files can be dropped onto the upload area. Rejected files are queued too, so they show the type error.
+    const dropzone = useDropzone({
+        accept: DROPZONE_ACCEPT,
+        multiple: true,
+        noClick: true,
+        noKeyboard: true,
+        disabled: submitting,
+        onDrop: (accepted, rejected) => addFiles([...accepted, ...rejected.map((r) => r.file)]),
+    });
 
     const setStatus = (id: string, status: FileStatus, errorKey?: string) =>
         setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, status, errorKey } : f)));
@@ -135,6 +152,7 @@ export function PublicUploadView() {
                 setStatus(queued.id, 'done');
             } catch (error) {
                 allDone = false;
+                if (errorKeyFor(error) === 'publicUpload.errors.generic') console.error('Receipt upload failed', error);
                 setStatus(queued.id, 'error', errorKeyFor(error));
             }
         }
@@ -151,6 +169,7 @@ export function PublicUploadView() {
 
     const sendable = files.some((f) => f.status === 'pending' || (f.status === 'error' && ACCEPTED_TYPES.includes(f.file.type)));
     const doneCount = files.filter((f) => f.status === 'done').length;
+    const failedCount = files.filter((f) => f.status === 'error').length;
     const linkStatus = apiStatus(info.error);
 
     return (
@@ -192,23 +211,40 @@ export function PublicUploadView() {
                             <p className="mt-2 text-sm text-muted-foreground">{t('publicUpload.intro')}</p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
-                            <button
-                                type="button"
-                                onClick={() => cameraInput.current?.click()}
-                                className="flex flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-[var(--purple-300,#c4b5fd)] bg-[var(--background-secondary)] px-3 py-5 text-sm font-semibold text-foreground active:scale-[0.98]"
-                            >
-                                <Camera size={28} className="text-purple-700 dark:text-purple-300" />
-                                {t('publicUpload.takePhoto')}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => fileInput.current?.click()}
-                                className="flex flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-[var(--purple-300,#c4b5fd)] bg-[var(--background-secondary)] px-3 py-5 text-sm font-semibold text-foreground active:scale-[0.98]"
-                            >
-                                <Upload size={28} className="text-purple-700 dark:text-purple-300" />
-                                {t('publicUpload.chooseFiles')}
-                            </button>
+                        <div
+                            {...dropzone.getRootProps({
+                                className: `relative -m-2 rounded-3xl p-2 transition-colors ${dropzone.isDragActive ? 'bg-purple-100 ring-2 ring-purple-400 dark:bg-purple-950' : ''}`,
+                            })}
+                            data-testid="public-upload-dropzone"
+                        >
+                            <input {...dropzone.getInputProps()} data-testid="public-upload-file-input" />
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => cameraInput.current?.click()}
+                                    className="flex flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-[var(--purple-300,#c4b5fd)] bg-[var(--background-secondary)] px-3 py-5 text-sm font-semibold text-foreground active:scale-[0.98]"
+                                >
+                                    <Camera size={28} className="text-purple-700 dark:text-purple-300" />
+                                    {t('publicUpload.takePhoto')}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={dropzone.open}
+                                    className="flex flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-[var(--purple-300,#c4b5fd)] bg-[var(--background-secondary)] px-3 py-5 text-sm font-semibold text-foreground active:scale-[0.98]"
+                                >
+                                    <Upload size={28} className="text-purple-700 dark:text-purple-300" />
+                                    {t('publicUpload.chooseFiles')}
+                                </button>
+                            </div>
+                            <p className="mt-3 text-center text-xs text-muted-foreground">
+                                {t('publicUpload.allowedTypes')}
+                                <span className="hidden sm:inline"> · {t('publicUpload.dropHint')}</span>
+                            </p>
+                            {dropzone.isDragActive && (
+                                <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-3xl bg-[var(--background-secondary)]/90 text-sm font-semibold text-purple-700 dark:text-purple-300">
+                                    {t('publicUpload.dropActive')}
+                                </div>
+                            )}
                         </div>
                         <input
                             ref={cameraInput}
@@ -221,18 +257,6 @@ export function PublicUploadView() {
                                 e.target.value = '';
                             }}
                         />
-                        <input
-                            ref={fileInput}
-                            type="file"
-                            accept={ACCEPTED_TYPES.join(',')}
-                            multiple
-                            className="hidden"
-                            onChange={(e) => {
-                                addFiles(e.target.files);
-                                e.target.value = '';
-                            }}
-                        />
-                        <p className="-mt-2 text-center text-xs text-muted-foreground">{t('publicUpload.allowedTypes')}</p>
 
                         {files.length > 0 && (
                             <ul className="space-y-2">
@@ -293,6 +317,12 @@ export function PublicUploadView() {
                             </div>
                             <Switch label={t('publicUpload.privatelyPaid')} checked={privatelyPaid} onCheckedChange={setPrivatelyPaid} />
                         </div>
+
+                        {failedCount > 0 && !submitting && (
+                            <p role="alert" className="rounded-xl bg-[var(--negative)]/10 px-4 py-3 text-sm text-[var(--negative)]">
+                                {t('publicUpload.errors.summary', { count: failedCount })}
+                            </p>
+                        )}
 
                         <Button className="w-full" onClick={submit} disabled={!sendable || submitting}>
                             {submitting && <Loader2 size={16} className="animate-spin" />}

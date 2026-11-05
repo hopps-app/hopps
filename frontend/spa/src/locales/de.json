@@ -1703,6 +1703,8 @@
         "takePhoto": "Foto aufnehmen",
         "chooseFiles": "Dateien wählen",
         "allowedTypes": "PNG, JPEG oder PDF, mehrere Belege möglich",
+        "dropHint": "oder Dateien hierher ziehen",
+        "dropActive": "Loslassen, um die Belege hinzuzufügen",
         "removeFile": "Datei entfernen",
         "name": "Name",
         "nameRequired": "Bitte einen Namen angeben",
@@ -1731,7 +1733,12 @@
             "tooLarge": "Die Datei ist zu groß.",
             "rateLimit": "Zu viele Uploads. Bitte später erneut versuchen.",
             "linkInvalid": "Der Link ist nicht mehr gültig.",
-            "generic": "Hochladen fehlgeschlagen. Bitte erneut versuchen."
+            "generic": "Der Beleg konnte nicht hochgeladen werden. Bitte erneut versuchen oder an die Person wenden, die den Link geteilt hat.",
+            "invalid": "Der Beleg wurde nicht angenommen. Bitte Datei und Namen prüfen.",
+            "network": "Keine Verbindung zum Server. Bitte die Internetverbindung prüfen und erneut versuchen.",
+            "server": "Auf dem Server ist ein Fehler aufgetreten. Bitte in ein paar Minuten erneut versuchen.",
+            "summary_one": "{{count}} Beleg konnte nicht hochgeladen werden. Über die Schaltfläche unten erneut versuchen.",
+            "summary_other": "{{count}} Belege konnten nicht hochgeladen werden. Über die Schaltfläche unten erneut versuchen."
         }
     }
 }
