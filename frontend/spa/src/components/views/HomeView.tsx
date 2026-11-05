@@ -16,11 +16,11 @@ function HomeView() {
     const { tenancy, setupRequired, organizationName } = useInstance();
     const navigate = useNavigate();
 
-    // A single-tenant installation has no public sign-up: it shows the one-time setup until the organization exists,
-    // and only the login afterwards. The hosted SaaS always offers both.
+    // A single-tenant installation has no public sign-up: it offers the one-time setup until the organization exists,
+    // and only the login afterwards. The login stays during the setup, so an account the identity provider already
+    // knows can do the setup after logging in. The hosted SaaS always offers both.
     const isSingle = tenancy === 'single';
     const showRegister = !isSingle || setupRequired;
-    const showLogin = !isSingle || !setupRequired;
     const registerLabel = isSingle ? t('home.setup') : t('home.register');
     const subtitle = isSingle
         ? setupRequired
@@ -76,7 +76,7 @@ function HomeView() {
                                         </Button>
                                     ))}
 
-                                {!showLogin ? null : loginDisabled ? (
+                                {loginDisabled ? (
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <span tabIndex={0} className="w-full sm:w-auto">
