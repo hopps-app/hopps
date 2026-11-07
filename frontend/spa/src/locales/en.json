@@ -1707,6 +1707,7 @@
         "dropActive": "Drop to add the receipts",
         "removeFile": "Remove file",
         "name": "Your name",
+        "namePlaceholder": "Jane Doe",
         "nameRequired": "Please enter your name",
         "comment": "Comment (optional)",
         "commentPlaceholder": "e.g. what the receipt is for",

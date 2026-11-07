@@ -1707,6 +1707,7 @@
         "dropActive": "Loslassen, um die Belege hinzuzufügen",
         "removeFile": "Datei entfernen",
         "name": "Eingereicht von",
+        "namePlaceholder": "Max Mustermann",
         "nameRequired": "Bitte einen Namen angeben",
         "comment": "Kommentar (optional)",
         "commentPlaceholder": "z. B. wofür der Beleg ist",
