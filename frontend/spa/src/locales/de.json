@@ -1706,7 +1706,7 @@
         "dropHint": "oder Dateien hierher ziehen",
         "dropActive": "Loslassen, um die Belege hinzuzufügen",
         "removeFile": "Datei entfernen",
-        "name": "Name",
+        "name": "Eingereicht von",
         "nameRequired": "Bitte einen Namen angeben",
         "comment": "Kommentar (optional)",
         "commentPlaceholder": "z. B. wofür der Beleg ist",
