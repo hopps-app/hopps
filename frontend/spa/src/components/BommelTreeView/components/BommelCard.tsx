@@ -43,6 +43,7 @@ export function BommelCard({
     isDraggedOver,
     isValidDropTarget,
     onDragStart,
+    deleteImpact,
 }: BommelCardProps) {
     const { t } = useTranslation();
     const nodeId = node.attributes?.id as number;
@@ -146,7 +147,8 @@ export function BommelCard({
     // Open the dialog once its counts are loaded (the hover usually started that already), so it opens with its full
     // text instead of filling in afterwards. A slow request does not hold it back for more than half a second.
     const openDeleteDialog = async () => {
-        await Promise.race([prefetchDeleteImpact(node), new Promise((resolve) => setTimeout(resolve, 500))]);
+        // The example works out its counts itself, there is nothing to load
+        if (!deleteImpact) await Promise.race([prefetchDeleteImpact(node), new Promise((resolve) => setTimeout(resolve, 500))]);
         setShowDeleteDialog(true);
     };
 
@@ -182,6 +184,7 @@ export function BommelCard({
     return (
         <div
             data-bommel-id={nodeId}
+            data-guide="card"
             role="button"
             tabIndex={0}
             onClick={handleClick}
@@ -203,6 +206,7 @@ export function BommelCard({
                 {dragDropEnabled && !isRoot && (
                     <span
                         data-drag-handle
+                        data-guide="drag-handle"
                         className="-ml-1.5 flex-shrink-0 grid place-items-center w-6 h-[30px] rounded-md text-muted-foreground touch-none"
                         aria-hidden="true"
                     >
@@ -271,6 +275,7 @@ export function BommelCard({
                         <button
                             type="button"
                             onClick={handleAddChild}
+                            data-guide={isRoot ? 'add-child add-child-root' : 'add-child'}
                             className={cn(
                                 'absolute -bottom-[13px] z-10 w-[26px] h-[26px] rounded-full grid place-items-center bg-background-secondary border-[1.5px] border-[var(--positive)] text-[var(--positive)] shadow-[var(--shadow-sm)]',
                                 // Vertical layout: sit on the rail where the new child will hang (20px in, see BommelBranch)
@@ -286,8 +291,9 @@ export function BommelCard({
                         <button
                             type="button"
                             onClick={openDeleteDialog}
-                            onPointerEnter={() => prefetchDeleteImpact(node)}
-                            onFocus={() => prefetchDeleteImpact(node)}
+                            onPointerEnter={() => !deleteImpact && prefetchDeleteImpact(node)}
+                            onFocus={() => !deleteImpact && prefetchDeleteImpact(node)}
+                            data-guide="delete"
                             className="absolute -top-[11px] -right-[11px] z-10 w-[26px] h-[26px] rounded-full grid place-items-center bg-background-secondary border-[1.5px] border-[var(--negative)] text-[var(--negative)] shadow-[var(--shadow-sm)]"
                             title={t('bommel.deleteBommel')}
                             aria-label={t('bommel.deleteBommel')}
@@ -308,6 +314,7 @@ export function BommelCard({
                     deleting={deleting}
                     onConfirm={handleDeleteConfirm}
                     onCancel={() => setShowDeleteDialog(false)}
+                    impact={showDeleteDialog && deleteImpact ? deleteImpact(nodeId) : undefined}
                 />
             </div>
         </div>

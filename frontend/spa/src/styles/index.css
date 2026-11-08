@@ -239,3 +239,130 @@ body {
     color: var(--font-color);
     font-family: var(--font-family);
 }
+
+/*
+ * Guide highlights on the Bommel page. A page element sets `data-guide-highlight` to the targets of the current guide
+ * step, and the elements meant carry `data-guide` (several names separated by spaces). The ring pulses for as long as
+ * the step is shown. An outline, not a box-shadow, so it does not fight with the shadows the cards and buttons have.
+ */
+@keyframes guide-pulse {
+    0%, 100% {
+        outline-color: color-mix(in oklch, var(--warning) 95%, transparent);
+        outline-offset: 2px;
+    }
+    50% {
+        outline-color: color-mix(in oklch, var(--warning) 30%, transparent);
+        outline-offset: 6px;
+    }
+}
+
+[data-guide-highlight~='card'] [data-guide~='card'],
+[data-guide-highlight~='edit-button'] [data-guide~='edit-button'],
+[data-guide-highlight~='add-child'] [data-guide~='add-child'],
+[data-guide-highlight~='delete'] [data-guide~='delete'],
+[data-guide-highlight~='drag-toggle'] [data-guide~='drag-toggle'],
+[data-guide-highlight~='drag-handle'] [data-guide~='drag-handle'],
+[data-guide-highlight~='aggregate-toggle'] [data-guide~='aggregate-toggle'],
+[data-guide-highlight~='card-stats'] [data-guide~='card-stats'],
+[data-guide-highlight~='add-first'] [data-guide~='add-first'],
+[data-guide-highlight~='add-child-root'] [data-guide~='add-child-root'] {
+    outline: 2.5px solid var(--warning);
+    outline-offset: 2px;
+    animation: guide-pulse 1.6s ease-in-out infinite;
+}
+
+/* These have no rounding of their own; the outline follows the border radius */
+[data-guide-highlight~='drag-toggle'] [data-guide~='drag-toggle'],
+[data-guide-highlight~='aggregate-toggle'] [data-guide~='aggregate-toggle'],
+[data-guide-highlight~='card-stats'] [data-guide~='card-stats'] {
+    border-radius: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-guide-highlight] [data-guide] {
+        animation: none;
+    }
+}
+
+/*
+ * Drag-and-drop hint in the guide's "move" step (DragHint.tsx): a hand grabs a Bommel, carries it onto another one and
+ * lets go. One round takes 4.2s; all parts share the duration so they stay in step.
+ */
+@keyframes drag-hint-path {
+    0%, 20% { transform: translate(0, 0); }
+    60%, 100% { transform: translate(var(--drag-hint-dx), var(--drag-hint-dy)); }
+}
+@keyframes drag-hint-visible {
+    0%, 2% { opacity: 0; }
+    8%, 80% { opacity: 1; }
+    88%, 100% { opacity: 0; }
+}
+@keyframes drag-hint-hand-open {
+    0%, 15% { opacity: 1; }
+    17%, 66% { opacity: 0; }
+    68%, 100% { opacity: 1; }
+}
+@keyframes drag-hint-hand-closed {
+    0%, 15% { opacity: 0; }
+    17%, 66% { opacity: 1; }
+    68%, 100% { opacity: 0; }
+}
+@keyframes drag-hint-ghost {
+    0%, 16% { opacity: 0; transform: scale(0.85); }
+    22%, 64% { opacity: 1; transform: scale(1); }
+    72%, 100% { opacity: 0; transform: scale(0.85); }
+}
+@keyframes drag-hint-target {
+    0%, 50% { opacity: 0; }
+    56%, 68% { opacity: 1; }
+    76%, 100% { opacity: 0; }
+}
+
+.drag-hint-pointer {
+    animation: drag-hint-path 4.2s ease-in-out infinite, drag-hint-visible 4.2s linear infinite;
+}
+.drag-hint-hand-open { animation: drag-hint-hand-open 4.2s linear infinite; }
+.drag-hint-hand-closed { animation: drag-hint-hand-closed 4.2s linear infinite; }
+.drag-hint-ghost {
+    transform-origin: top left;
+    animation: drag-hint-ghost 4.2s ease-out infinite;
+}
+.drag-hint-target {
+    box-shadow: 0 0 0 3px var(--positive);
+    animation: drag-hint-target 4.2s linear infinite;
+}
+
+/* Without motion the guide's text explains it; a frozen hand halfway would only be confusing */
+@media (prefers-reduced-motion: reduce) {
+    .drag-hint { display: none; }
+}
+
+/*
+ * Sum flow (SumFlowHint.tsx), shown while amounts include the Bommel below: dots running up the tree's connectors, from
+ * every Bommel into the one above it, to show that amounts are added up from the bottom to the top. Quiet purple on the
+ * page, the guide's attention colour while the guide explains it.
+ */
+@keyframes sum-flow {
+    to { stroke-dashoffset: -12; }
+}
+
+.sum-flow {
+    color: color-mix(in oklch, var(--purple-500) 80%, transparent);
+}
+.sum-flow--guide {
+    color: var(--warning);
+}
+
+.sum-flow-line {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 0 12;
+    animation: sum-flow 0.7s linear infinite;
+}
+
+/* Without motion the dots stand still; the arrowheads still show the direction */
+@media (prefers-reduced-motion: reduce) {
+    .sum-flow-line { animation: none; }
+}

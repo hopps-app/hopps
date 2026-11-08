@@ -47,6 +47,7 @@ function BommelTreeComponent({
     onRequestEdit,
     fitExtraWidth = 0,
     className,
+    deleteImpact,
 }: BommelTreeComponentProps) {
     const { t } = useTranslation();
     const vertical = useMediaQuery(VERTICAL_LAYOUT_QUERY);
@@ -207,10 +208,25 @@ function BommelTreeComponent({
                     isDraggedOver={isHoverTarget}
                     isValidDropTarget={isHoverTarget ? !dragState.invalidTargetIds.has(nodeId) : undefined}
                     onDragStart={dragDropEnabled ? startDrag : undefined}
+                    deleteImpact={deleteImpact}
                 />
             );
         },
-        [dragState, selectedId, onNodeClick, onEdit, onDelete, handleAddChild, editable, autoEditNodeId, dragDropEnabled, startDrag, toggleNode, vertical]
+        [
+            dragState,
+            selectedId,
+            onNodeClick,
+            onEdit,
+            onDelete,
+            handleAddChild,
+            editable,
+            autoEditNodeId,
+            dragDropEnabled,
+            startDrag,
+            toggleNode,
+            vertical,
+            deleteImpact,
+        ]
     );
 
     if (!treeData) {
@@ -230,6 +246,7 @@ function BommelTreeComponent({
                     <Connector className={cn(vertical && 'ml-5')} />
                     <button
                         type="button"
+                        data-guide="add-first"
                         // One click from anywhere: switch to edit mode if needed and create the first Bommel right away
                         onClick={() => {
                             if (!editable) onRequestEdit?.();

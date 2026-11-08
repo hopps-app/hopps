@@ -37,6 +37,7 @@ export function BommelCardStats({ total, income, expenses, isRoot }: BommelCardS
 
     return (
         <div
+            data-guide="card-stats"
             className={cn(
                 'grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,auto)] items-end gap-2 mt-[11px] pt-2.5 border-t',
                 isRoot ? 'border-white/20' : 'border-border-soft'

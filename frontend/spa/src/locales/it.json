@@ -1229,7 +1229,8 @@
             "createChildError": "Creazione del Bommel figlio non riuscita"
         },
         "demoMode": "Mostra esempio",
-        "demoBanner": "Struttura di esempio per orientarti. Questi dati non sono modificabili.",
+        "demoModeClose": "Chiudi esempio",
+        "demoBanner": "Struttura di esempio da provare. Modificare e spostare funzionano come nella tua struttura, ma non viene salvato nulla.",
         "loadError": "Caricamento della struttura dell'organizzazione non riuscito",
         "saveError": "Salvataggio dell'impostazione non riuscito",
         "centerTree": "Centra",
@@ -1240,7 +1241,7 @@
         "titleInfo": "Un Bommel è un'area della tua associazione. Qui li vedi tutti con le loro entrate e uscite.",
         "includeDraftsInfo": "Conta anche le transazioni non ancora confermate. Così vedi come saranno i numeri quando tutte le bozze saranno confermate.",
         "aggregateInfo": "Ogni Bommel mostra i propri importi più quelli di tutti i Bommel sottostanti. Disattivato, vedi solo ciò che è registrato direttamente su quel Bommel.",
-        "demoModeInfo": "Mostra la struttura di un'associazione di esempio, così vedi come organizzare i tuoi Bommel. I tuoi dati restano invariati, l'esempio non è modificabile.",
+        "demoModeInfo": "Mostra la struttura di un'associazione di esempio, così vedi come organizzare i tuoi Bommel. Nell'esempio puoi provare tutto: non viene salvato nulla e i tuoi dati restano invariati.",
         "emptyHint": "La vostra organizzazione è già il Bommel principale. Sotto potete creare delle aree: reparto, progetto o evento.",
         "dragDropInfo": "Trascina un Bommel su un altro per spostarlo lì. Sui touchscreen trascinalo dalla maniglia a sinistra della scheda.",
         "panel": {
@@ -1285,9 +1286,17 @@
                 "title": "L'esempio",
                 "text": "Questa è una struttura di esempio. Ogni riquadro è un Bommel, un ambito dell'associazione come una sezione, un progetto o un evento. Un clic su un Bommel ne apre i dettagli."
             },
+            "add": {
+                "title": "Aggiungere un Bommel",
+                "text": "Fare clic su Modifica in alto a destra. Poi il più sotto un Bommel aggiunge un sotto-Bommel e un clic sul nome lo rinomina. Nella tua struttura ogni modifica viene salvata subito in automatico, senza un pulsante Salva. Solo qui nell'esempio non viene salvato nulla."
+            },
+            "delete": {
+                "title": "Eliminare un Bommel",
+                "text": "Il cestino di un Bommel lo elimina insieme ai suoi sotto-Bommel. Prima una finestra mostra cosa succede a transazioni e ricevute: restano conservate. Nell'esempio non viene salvato nulla."
+            },
             "move": {
                 "title": "Spostare un Bommel",
-                "text": "Lo spostamento è attivo. Trascinare un Bommel su un altro per metterlo sotto. Nell'esempio non viene salvato nulla."
+                "text": "Con l'interruttore Spostabile i Bommel si riordinano con un semplice trascina e rilascia: trascinare un Bommel su un altro e rilasciarlo, e finisce sotto. Nell'esempio non viene salvato nulla."
             },
             "sums": {
                 "title": "Come si sommano gli importi",

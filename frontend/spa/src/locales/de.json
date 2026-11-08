@@ -1163,7 +1163,8 @@
             "createChildError": "Fehler beim Erstellen des Unterbommels"
         },
         "demoMode": "Beispiel anzeigen",
-        "demoBanner": "Beispielstruktur zur Orientierung. Diese Daten sind nicht bearbeitbar.",
+        "demoModeClose": "Beispiel schließen",
+        "demoBanner": "Beispielstruktur zum Ausprobieren. Bearbeiten und Verschieben funktionieren wie bei der eigenen Struktur, gespeichert wird nichts.",
         "loadError": "Fehler beim Laden der Organisationsstruktur",
         "saveError": "Fehler beim Speichern der Einstellungen",
         "centerTree": "Zentrieren",
@@ -1174,7 +1175,7 @@
         "titleInfo": "Ein Bommel ist ein Bereich im Verein. Hier stehen alle mit ihren Einnahmen und Ausgaben.",
         "includeDraftsInfo": "Zählt auch Transaktionen mit, die noch nicht bestätigt sind. So zeigen die Zahlen, wie es aussieht, wenn alle Entwürfe bestätigt werden.",
         "aggregateInfo": "Jeder Bommel zeigt seine eigenen Beträge plus die aller Bommel darunter. Ausgeschaltet zählt nur, was direkt auf diesem Bommel gebucht ist.",
-        "demoModeInfo": "Zeigt die Struktur eines Beispielvereins als Vorlage für den Aufbau der eigenen Bommel. Die eigenen Daten bleiben unverändert, das Beispiel ist nicht bearbeitbar.",
+        "demoModeInfo": "Zeigt die Struktur eines Beispielvereins als Vorlage für den Aufbau der eigenen Bommel. Am Beispiel lässt sich alles ausprobieren, gespeichert wird nichts. Die eigenen Daten bleiben unverändert.",
         "emptyHint": "Eure Organisation ist bereits der oberste Bommel. Darunter könnt ihr Bereiche anlegen: Abteilung, Projekt oder Veranstaltung.",
         "dragDropInfo": "Einen Bommel auf einen anderen ziehen, um ihn darunter einzuordnen. Auf Touchscreens am Griff links im Bommel ziehen.",
         "panel": {
@@ -1245,9 +1246,17 @@
                 "title": "Das Beispiel",
                 "text": "Das ist eine Beispielstruktur. Jeder Kasten ist ein Bommel, also ein Bereich des Vereins wie eine Abteilung, ein Projekt oder eine Veranstaltung. Ein Klick auf einen Bommel öffnet seine Details."
             },
+            "add": {
+                "title": "Bommel hinzufügen",
+                "text": "Oben rechts auf Bearbeiten klicken. Danach legt das Plus unter einem Bommel einen Unterbommel an, und ein Klick auf den Namen benennt ihn um. In der eigenen Struktur wird jede Änderung sofort automatisch gespeichert, ein extra Speichern-Button ist nicht nötig. Nur hier im Beispiel wird nichts gespeichert."
+            },
+            "delete": {
+                "title": "Bommel löschen",
+                "text": "Der Papierkorb an einem Bommel löscht ihn samt seiner Unterbommel. Vorher zeigt ein Dialog, was mit den Transaktionen und Belegen passiert. Diese bleiben erhalten. Am Beispiel wird nichts gespeichert."
+            },
             "move": {
                 "title": "Bommel verschieben",
-                "text": "Verschieben ist jetzt eingeschaltet. Einen Bommel auf einen anderen ziehen, um ihn darunter einzuordnen. Am Beispiel wird nichts gespeichert."
+                "text": "Mit dem Schalter Verschiebbar lassen sich Bommel einfach per Drag-and-drop umsortieren: einen Bommel auf einen anderen ziehen und loslassen, schon ist er darunter eingeordnet. Am Beispiel wird nichts gespeichert."
             },
             "sums": {
                 "title": "So summieren sich die Beträge",

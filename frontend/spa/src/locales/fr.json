@@ -1229,7 +1229,8 @@
             "createChildError": "Échec de la création du bommel enfant"
         },
         "demoMode": "Afficher l'exemple",
-        "demoBanner": "Structure d'exemple pour t'orienter. Ces données ne sont pas modifiables.",
+        "demoModeClose": "Fermer l'exemple",
+        "demoBanner": "Structure d'exemple pour essayer. Modifier et déplacer fonctionnent comme sur ta propre structure, mais rien n'est enregistré.",
         "loadError": "Échec du chargement de la structure de l'organisation",
         "saveError": "Échec de l'enregistrement du paramètre",
         "centerTree": "Centrer",
@@ -1240,7 +1241,7 @@
         "titleInfo": "Un Bommel est un domaine de ton association. Ici tu les vois tous avec leurs recettes et leurs dépenses.",
         "includeDraftsInfo": "Compte aussi les transactions qui ne sont pas encore confirmées. Tu vois ainsi les chiffres une fois tous les brouillons confirmés.",
         "aggregateInfo": "Chaque Bommel affiche ses propres montants plus ceux de tous les Bommel en dessous. Désactivé, tu ne vois que ce qui est comptabilisé directement sur ce Bommel.",
-        "demoModeInfo": "Affiche la structure d'une association exemple pour te montrer comment organiser tes Bommel. Tes propres données restent inchangées, l'exemple n'est pas modifiable.",
+        "demoModeInfo": "Affiche la structure d'une association exemple pour te montrer comment organiser tes Bommel. Tu peux tout essayer sur l'exemple : rien n'est enregistré et tes propres données restent inchangées.",
         "emptyHint": "Votre organisation est déjà le Bommel principal. En dessous, vous pouvez créer des domaines : section, projet ou événement.",
         "dragDropInfo": "Fais glisser un Bommel sur un autre pour l'y déplacer. Sur écran tactile, utilise la poignée à gauche de la carte.",
         "panel": {
@@ -1285,9 +1286,17 @@
                 "title": "L'exemple",
                 "text": "Voici une structure d'exemple. Chaque case est un Bommel, un domaine du club comme une section, un projet ou un événement. Un clic sur un Bommel ouvre ses détails."
             },
+            "add": {
+                "title": "Ajouter un Bommel",
+                "text": "Cliquer sur Modifier en haut à droite. Ensuite, le plus sous un Bommel ajoute un sous-Bommel, et un clic sur le nom le renomme. Dans ta propre structure, chaque modification est enregistrée automatiquement tout de suite, pas besoin de bouton Enregistrer. Seul cet exemple n'enregistre rien."
+            },
+            "delete": {
+                "title": "Supprimer un Bommel",
+                "text": "La corbeille d'un Bommel le supprime avec ses sous-Bommel. Une boîte de dialogue montre d'abord ce qu'il advient des transactions et des justificatifs : ils sont conservés. Rien n'est enregistré sur l'exemple."
+            },
             "move": {
                 "title": "Déplacer un Bommel",
-                "text": "Le déplacement est activé. Glisser un Bommel sur un autre pour le placer en dessous. Rien n'est enregistré sur l'exemple."
+                "text": "Avec l'interrupteur Déplaçable, les Bommel se réorganisent par simple glisser-déposer : glisser un Bommel sur un autre et relâcher, il est placé en dessous. Rien n'est enregistré sur l'exemple."
             },
             "sums": {
                 "title": "Comment les montants s’additionnent",

@@ -2,7 +2,7 @@ import { RotateCcw, ShieldCheck } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { descendantsOf, useDeleteImpact } from '../hooks/useDeleteImpact';
+import { descendantsOf, useDeleteImpact, type DeleteImpact } from '../hooks/useDeleteImpact';
 import { TreeNodeData } from '../types';
 
 import { Skeleton } from '@/components/Dashboard/SectionState';
@@ -19,6 +19,8 @@ export interface DeleteBommelDialogProps {
     deleting?: boolean;
     onConfirm: () => void;
     onCancel: () => void;
+    /** Counts worked out by the caller instead of loaded from the server (the example structure, which has no real data) */
+    impact?: DeleteImpact;
 }
 
 /**
@@ -26,7 +28,7 @@ export interface DeleteBommelDialogProps {
  * and receipts booked on any of them are kept and only lose their Bommel (the backend detaches them). Confirming requires
  * a Bommel, so whatever was confirmed goes back to draft / unchecked.
  */
-export function DeleteBommelDialog({ open, node, deleting, onConfirm, onCancel }: DeleteBommelDialogProps) {
+export function DeleteBommelDialog({ open, node, deleting, onConfirm, onCancel, impact }: DeleteBommelDialogProps) {
     const { t } = useTranslation();
     const descendants = descendantsOf(node);
 
@@ -43,15 +45,19 @@ export function DeleteBommelDialog({ open, node, deleting, onConfirm, onCancel }
         >
             {/* Mounted only while open: every card has a dialog, the counts should load for the one being deleted.
                 The delete button prefetches them, so they are usually there when the dialog opens. */}
-            {open && <Consequences node={node} descendants={descendants} />}
+            {open && (impact ? <Consequences impact={impact} descendants={descendants} /> : <LoadedConsequences node={node} descendants={descendants} />)}
         </ConfirmDialog>
     );
 }
 
-function Consequences({ node, descendants }: { node: TreeNodeData; descendants: TreeNodeData[] }) {
-    const { t } = useTranslation();
+function LoadedConsequences({ node, descendants }: { node: TreeNodeData; descendants: TreeNodeData[] }) {
     // Every transaction and receipt on these Bommel, drafts included
-    const { loading, transactionCount, confirmedTransactionCount, receiptCount, confirmedReceiptCount } = useDeleteImpact(node);
+    return <Consequences impact={useDeleteImpact(node)} descendants={descendants} />;
+}
+
+function Consequences({ impact, descendants }: { impact: DeleteImpact; descendants: TreeNodeData[] }) {
+    const { t } = useTranslation();
+    const { loading, transactionCount, confirmedTransactionCount, receiptCount, confirmedReceiptCount } = impact;
 
     const reopened = [
         confirmedTransactionCount > 0 ? t('bommel.deleteDialog.reopenedTransactions', { count: confirmedTransactionCount }) : '',

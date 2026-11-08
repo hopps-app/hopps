@@ -55,4 +55,50 @@ describe('useDemoTree', () => {
         act(() => result.current.reset());
         expect(result.current.tree.find((node) => node.id === -6)?.parent).toBe(FUSSBALL);
     });
+
+    it('adds, renames and deletes bommels in memory, and reset brings the example back', async () => {
+        const { result } = renderHook(() => useDemoTree(false));
+        const countBefore = result.current.tree.length;
+
+        let createdId: number | boolean = false;
+        await act(async () => {
+            createdId = await result.current.createChildBommel(HANDBALL);
+        });
+        expect(typeof createdId).toBe('number');
+        const created = result.current.tree.find((node) => node.id === createdId)!;
+        expect(created.parent).toBe(HANDBALL);
+        expect(result.current.tree).toHaveLength(countBefore + 1);
+
+        await act(async () => {
+            await result.current.updateTreeNode({ ...created, text: 'Beachhandball', data: { ...created.data, emoji: 'beach_with_umbrella' } });
+        });
+        expect(result.current.tree.find((node) => node.id === createdId)?.text).toBe('Beachhandball');
+
+        // Deleting Fußball takes its sub-bommels along: 1. Liga, 2. Liga and Fanartikel
+        await act(async () => {
+            await result.current.deleteTreeNode(FUSSBALL);
+        });
+        expect(result.current.tree.some((node) => [FUSSBALL, -5, -6, -7].includes(Number(node.id)))).toBe(false);
+
+        // The root cannot be deleted
+        await act(async () => {
+            expect(await result.current.deleteTreeNode(ROOT)).toBe(false);
+        });
+
+        act(() => result.current.reset());
+        expect(result.current.tree).toHaveLength(countBefore);
+        expect(result.current.tree.some((node) => node.id === createdId)).toBe(false);
+    });
+
+    it('reports what deleting a bommel would touch, without asking the server', () => {
+        const { result } = renderHook(() => useDemoTree(false));
+        // Fußball 6 + 1. Liga 5 + 2. Liga 8 + Fanartikel 5 transactions
+        expect(result.current.deleteImpact(FUSSBALL)).toEqual({
+            loading: false,
+            transactionCount: 24,
+            confirmedTransactionCount: 0,
+            receiptCount: 0,
+            confirmedReceiptCount: 0,
+        });
+    });
 });

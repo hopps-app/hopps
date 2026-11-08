@@ -9,13 +9,15 @@ interface ToggleFieldProps {
     info: string;
     checked: boolean;
     onCheckedChange: (checked: boolean) => void;
+    /** Name the guide uses to point at this switch */
+    guideTarget?: string;
 }
 
 /** Switch with a bold label and an info tooltip. The icon sits outside the label, so hovering or clicking it does not flip the switch. */
-export function ToggleField({ label, info, checked, onCheckedChange }: ToggleFieldProps) {
+export function ToggleField({ label, info, checked, onCheckedChange, guideTarget }: ToggleFieldProps) {
     const id = useId();
     return (
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5" data-guide={guideTarget}>
             <label htmlFor={id} className="flex cursor-pointer items-center gap-2.5">
                 <BaseSwitch id={id} checked={checked} onCheckedChange={onCheckedChange} />
                 <span className="text-[13.5px] font-bold text-foreground">{label}</span>

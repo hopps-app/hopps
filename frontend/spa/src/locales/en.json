@@ -1299,7 +1299,8 @@
             "createChildError": "Failed to create child Bommel"
         },
         "demoMode": "Show example",
-        "demoBanner": "Example structure for orientation. This data cannot be edited.",
+        "demoModeClose": "Close example",
+        "demoBanner": "Example structure to try things out. Editing and moving work just like on your own structure, but nothing is saved.",
         "loadError": "Failed to load organization structure",
         "saveError": "Failed to save setting",
         "centerTree": "Center",
@@ -1310,7 +1311,7 @@
         "titleInfo": "A Bommel is an area of your club. Here you see all of them with their income and expenses.",
         "includeDraftsInfo": "Also counts transactions that are not confirmed yet. This shows what the numbers look like once all drafts are confirmed.",
         "aggregateInfo": "Each Bommel shows its own amounts plus those of all Bommel below it. Turned off, you only see what is booked directly on that Bommel.",
-        "demoModeInfo": "Shows the structure of an example club so you can see how to set up your Bommel. Your own data stays unchanged, and the example cannot be edited.",
+        "demoModeInfo": "Shows the structure of an example club so you can see how to set up your Bommel. You can try everything on the example; nothing is saved and your own data stays unchanged.",
         "emptyHint": "Your organization is already the top Bommel. Below it you can add areas: a department, project or event.",
         "dragDropInfo": "Drag a Bommel onto another one to move it there. On touch screens, drag it by the handle on the left of the card.",
         "panel": {
@@ -1381,9 +1382,17 @@
                 "title": "The example",
                 "text": "This is an example structure. Every box is a Bommel, an area of the club such as a department, a project or an event. Clicking a Bommel opens its details."
             },
+            "add": {
+                "title": "Adding a Bommel",
+                "text": "Click Edit at the top right. Then the plus below a Bommel adds a sub-Bommel, and clicking a name renames it. In your own structure every change is saved automatically right away, there is no extra save button. Only here in the example nothing is saved."
+            },
+            "delete": {
+                "title": "Deleting a Bommel",
+                "text": "The trash can on a Bommel deletes it together with its sub-Bommel. A dialog first shows what happens to the transactions and receipts: they are kept. Nothing is saved on the example."
+            },
             "move": {
                 "title": "Moving a Bommel",
-                "text": "Moving is switched on now. Drag a Bommel onto another one to place it below. Nothing is saved on the example."
+                "text": "With the Movable switch on, you rearrange Bommel by simple drag and drop: drag a Bommel onto another one and let go, and it is placed below it. Nothing is saved on the example."
             },
             "sums": {
                 "title": "How the amounts add up",

@@ -72,11 +72,12 @@ function randomElement<T>(arr: T[]): T {
     return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function generateRandomBommelName(): string {
+/** A playful name for a newly created Bommel, renamed by the user right after. Also used by the example structure. */
+export function generateRandomBommelName(): string {
     return `${randomElement(RANDOM_ADJECTIVES)} ${randomElement(RANDOM_NOUNS)}`;
 }
 
-function generateRandomBommelEmoji(): string {
+export function generateRandomBommelEmoji(): string {
     return randomElement(RANDOM_EMOJIS);
 }
 

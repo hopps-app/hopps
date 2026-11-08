@@ -1,7 +1,10 @@
 import { Bommel, BommelStatistics, BommelStatisticsMap } from '@hopps/api-client';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+
+import { generateRandomBommelEmoji, generateRandomBommelName } from './useBommelTree';
 
 import { BommelTreeNodeModel } from '@/components/BommelTreeView/BommelTreeNodeModel';
+import type { DeleteImpact } from '@/components/BommelTreeView/hooks/useDeleteImpact';
 
 export interface BommelTreeData {
     isOrganizationError: boolean;
@@ -43,6 +46,7 @@ interface DemoBommel {
 /**
  * The example structure. Every bommel carries its own amounts, so the totals can be shown either way: only what is
  * booked on it, or including everything below it. Moving a bommel therefore changes the sums, like in the real page.
+ * `parent: 0` here means the top level, as in the tree model.
  */
 const DEMO_BOMMELS: DemoBommel[] = [
     { id: DEMO_IDS.ROOT, parent: 0, text: 'Sportverein', emoji: 'herb', income: 1200, expenses: 300, transactionsCount: 3 },
@@ -58,17 +62,14 @@ const DEMO_BOMMELS: DemoBommel[] = [
     { id: DEMO_IDS.WEIHNACHTSFEIER, parent: DEMO_IDS.EVENTS, text: 'Weihnachtsfeier', emoji: 'santa', income: 2000, expenses: 350, transactionsCount: 7 },
 ];
 
-/** The ids of a bommel and everything below it, for the given parent assignment. */
-function withDescendants(id: number, parents: Record<number, number>): number[] {
-    const ids = [id];
-    for (const [child, parent] of Object.entries(parents)) {
-        if (parent === id) ids.push(...withDescendants(Number(child), parents));
-    }
-    return ids;
+/** The ids of a bommel and everything below it. */
+function withDescendants(id: number, bommels: DemoBommel[]): number[] {
+    return [id, ...bommels.filter((b) => b.parent === id).flatMap((child) => withDescendants(child.id, bommels))];
 }
 
-function initialParents(): Record<number, number> {
-    return Object.fromEntries(DEMO_BOMMELS.filter((b) => b.id !== DEMO_IDS.ROOT).map((b) => [b.id, b.parent === 0 ? DEMO_IDS.ROOT : b.parent]));
+/** The example as it starts. Here the top level hangs under the root; the tree model puts it under 0 again. */
+function initialBommels(): DemoBommel[] {
+    return DEMO_BOMMELS.map((b) => (b.id === DEMO_IDS.ROOT || b.parent !== 0 ? { ...b } : { ...b, parent: DEMO_IDS.ROOT }));
 }
 
 interface DemoAmounts {
@@ -77,26 +78,28 @@ interface DemoAmounts {
     transactionsCount: number;
 }
 
-function amountsOf(id: number, parents: Record<number, number>, aggregate: boolean): DemoAmounts {
-    const ids = aggregate ? withDescendants(id, parents) : [id];
-    return DEMO_BOMMELS.filter((b) => ids.includes(b.id)).reduce<DemoAmounts>(
-        (sum, b) => ({
-            income: sum.income + b.income,
-            expenses: sum.expenses + b.expenses,
-            transactionsCount: sum.transactionsCount + b.transactionsCount,
-        }),
-        { income: 0, expenses: 0, transactionsCount: 0 }
-    );
+function amountsOf(id: number, bommels: DemoBommel[], aggregate: boolean): DemoAmounts {
+    const ids = aggregate ? withDescendants(id, bommels) : [id];
+    return bommels
+        .filter((b) => ids.includes(b.id))
+        .reduce<DemoAmounts>(
+            (sum, b) => ({
+                income: sum.income + b.income,
+                expenses: sum.expenses + b.expenses,
+                transactionsCount: sum.transactionsCount + b.transactionsCount,
+            }),
+            { income: 0, expenses: 0, transactionsCount: 0 }
+        );
 }
 
-function buildDemoTree(parents: Record<number, number>, aggregate: boolean): BommelTreeNodeModel[] {
-    return DEMO_BOMMELS.map((bommel) => {
+function buildDemoTree(bommels: DemoBommel[], aggregate: boolean): BommelTreeNodeModel[] {
+    return bommels.map((bommel) => {
         const isRoot = bommel.id === DEMO_IDS.ROOT;
-        const { income, expenses, transactionsCount } = amountsOf(bommel.id, parents, aggregate);
+        const { income, expenses, transactionsCount } = amountsOf(bommel.id, bommels, aggregate);
         return {
             id: bommel.id,
             // The tree models the root as parent 0 and its children as top level, like the real data
-            parent: isRoot || parents[bommel.id] === DEMO_IDS.ROOT ? 0 : parents[bommel.id],
+            parent: isRoot || bommel.parent === DEMO_IDS.ROOT ? 0 : bommel.parent,
             text: bommel.text,
             droppable: !isRoot,
             data: {
@@ -107,7 +110,7 @@ function buildDemoTree(parents: Record<number, number>, aggregate: boolean): Bom
                 income,
                 expenses,
                 transactionsCount,
-                subBommelsCount: Object.values(parents).filter((parent) => parent === bommel.id).length,
+                subBommelsCount: bommels.filter((b) => b.parent === bommel.id).length,
             },
         };
     });
@@ -143,26 +146,81 @@ function buildDemoStatistics(tree: BommelTreeNodeModel[], aggregate: boolean): B
     return statsMap;
 }
 
-/**
- * The example structure for the demo mode and the guide. Moving a bommel works in memory only (nothing is saved), and
- * `reset` puts everything back; `aggregate` decides whether the amounts include the bommels below.
- */
-export function useDemoTree(aggregate: boolean = false): BommelTreeData & { bommelStats: BommelStatisticsMap; reset: () => void } {
-    const [parents, setParents] = useState<Record<number, number>>(initialParents);
+/** The move the guide demonstrates by drag and drop: Sommerfest onto Handball, neighbours in the default view. */
+export const DEMO_DRAG_HINT = { fromId: DEMO_IDS.SOMMERFEST, toId: DEMO_IDS.HANDBALL } as const;
 
-    const tree = useMemo(() => buildDemoTree(parents, aggregate), [parents, aggregate]);
+/** New example bommels count down from here, clear of the fixed ones above. */
+const FIRST_NEW_ID = -100;
+
+/**
+ * The example structure for the demo mode and the guide. Everything the real page offers works on it (adding, renaming,
+ * deleting, moving), but in memory only: nothing is sent to the server, and `reset` puts the example back as it was.
+ * `aggregate` decides whether the amounts include the bommels below.
+ */
+export function useDemoTree(
+    aggregate: boolean = false
+): BommelTreeData & { bommelStats: BommelStatisticsMap; reset: () => void; deleteImpact: (id: number) => DeleteImpact } {
+    const [bommels, setBommels] = useState<DemoBommel[]>(initialBommels);
+    const nextId = useRef(FIRST_NEW_ID);
+
+    const tree = useMemo(() => buildDemoTree(bommels, aggregate), [bommels, aggregate]);
     const rootBommel = useMemo(() => buildDemoRootBommel(), []);
     const bommelStats = useMemo(() => buildDemoStatistics(tree, aggregate), [tree, aggregate]);
+
+    const createChildBommel = useCallback(async (parentId: number): Promise<number> => {
+        const id = nextId.current--;
+        const created: DemoBommel = {
+            id,
+            parent: parentId === 0 ? DEMO_IDS.ROOT : parentId,
+            text: generateRandomBommelName(),
+            emoji: generateRandomBommelEmoji(),
+            income: 0,
+            expenses: 0,
+            transactionsCount: 0,
+        };
+        setBommels((current) => [...current, created]);
+        return id;
+    }, []);
+
+    const updateTreeNode = useCallback(async (node: BommelTreeNodeModel): Promise<boolean> => {
+        const id = Number(node.id);
+        setBommels((current) => current.map((b) => (b.id === id ? { ...b, text: node.text, emoji: node.data?.emoji || b.emoji } : b)));
+        return true;
+    }, []);
 
     const moveTreeNode = useCallback(async (node: BommelTreeNodeModel): Promise<boolean> => {
         const id = Number(node.id);
         const target = node.parent === 0 ? DEMO_IDS.ROOT : Number(node.parent);
         // A bommel cannot go below itself or below one of its own sub-bommels
-        setParents((current) => (withDescendants(id, current).includes(target) ? current : { ...current, [id]: target }));
+        setBommels((current) => (withDescendants(id, current).includes(target) ? current : current.map((b) => (b.id === id ? { ...b, parent: target } : b))));
         return true;
     }, []);
 
-    const reset = useCallback(() => setParents(initialParents()), []);
+    const deleteTreeNode = useCallback(async (nodeId: string | number): Promise<boolean> => {
+        const id = Number(nodeId);
+        if (id === DEMO_IDS.ROOT) return false;
+        // Like the real delete: the sub-bommels go with it
+        setBommels((current) => {
+            const removed = new Set(withDescendants(id, current));
+            return current.filter((b) => !removed.has(b.id));
+        });
+        return true;
+    }, []);
+
+    // What the delete dialog reports for the example. It has transactions, but no receipts and nothing confirmed.
+    const deleteImpact = useCallback(
+        (id: number): DeleteImpact => {
+            const ids = new Set(withDescendants(id, bommels));
+            const transactionCount = bommels.filter((b) => ids.has(b.id)).reduce((sum, b) => sum + b.transactionsCount, 0);
+            return { loading: false, transactionCount, confirmedTransactionCount: 0, receiptCount: 0, confirmedReceiptCount: 0 };
+        },
+        [bommels]
+    );
+
+    const reset = useCallback(() => {
+        setBommels(initialBommels());
+        nextId.current = FIRST_NEW_ID;
+    }, []);
 
     return {
         isOrganizationError: false,
@@ -171,10 +229,11 @@ export function useDemoTree(aggregate: boolean = false): BommelTreeData & { bomm
         tree,
         bommelStats,
         reset,
-        createChildBommel: async (_parentId: number): Promise<number | boolean> => false,
-        updateTreeNode: async (_node: BommelTreeNodeModel): Promise<boolean> => false,
+        deleteImpact,
+        createChildBommel,
+        updateTreeNode,
         moveTreeNode,
-        deleteTreeNode: async (_id: string | number): Promise<boolean> => false,
+        deleteTreeNode,
     };
 }
 

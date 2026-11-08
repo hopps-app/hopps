@@ -26,8 +26,17 @@ function impactQueries(bommelIds: number[]) {
     };
 }
 
-/** What deleting `node` touches: how many transactions and receipts are kept, and how many of them get reopened */
-export function useDeleteImpact(node: TreeNodeData) {
+/** What deleting a Bommel touches: how many transactions and receipts are kept, and how many of them get reopened */
+export interface DeleteImpact {
+    loading: boolean;
+    transactionCount: number;
+    confirmedTransactionCount: number;
+    receiptCount: number;
+    confirmedReceiptCount: number;
+}
+
+/** What deleting `node` touches, loaded from the server */
+export function useDeleteImpact(node: TreeNodeData): DeleteImpact {
     const bommelIds = affectedIds(node);
     const queries = impactQueries(bommelIds);
     const transactions = useQuery(queries.transactions);

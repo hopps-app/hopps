@@ -1,5 +1,7 @@
 import { Bommel } from '@hopps/api-client';
 
+import type { DeleteImpact } from './hooks/useDeleteImpact';
+
 export interface TreeNodeData {
     name: string;
     attributes?: {
@@ -36,6 +38,8 @@ export interface BommelTreeComponentProps {
     fitExtraWidth?: number;
     /** Extra classes for the canvas, e.g. `flex-1` to fill the page height */
     className?: string;
+    /** What the delete dialog reports, worked out by the caller instead of loaded (the example structure) */
+    deleteImpact?: (nodeId: number) => DeleteImpact;
 }
 
 export interface BommelCardProps {
@@ -57,6 +61,7 @@ export interface BommelCardProps {
     isDraggedOver?: boolean;
     isValidDropTarget?: boolean;
     onDragStart?: (nodeId: number, name: string, emoji: string, parentId: number, clientX: number, clientY: number) => void;
+    deleteImpact?: (nodeId: number) => DeleteImpact;
 }
 
 export interface BommelCardStatsProps {

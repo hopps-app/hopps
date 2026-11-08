@@ -1,13 +1,13 @@
-import { Check, Move, Network, Plus, Sigma, type LucideIcon } from 'lucide-react';
+import { Check, CirclePlus, Move, Network, Plus, Sigma, Trash2, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import Button from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
-export const GUIDE_STEPS = ['example', 'move', 'sums', 'own'] as const;
+export const GUIDE_STEPS = ['example', 'add', 'delete', 'move', 'sums', 'own'] as const;
 export type GuideStep = (typeof GUIDE_STEPS)[number];
 
-const ICONS: Record<GuideStep, LucideIcon> = { example: Network, move: Move, sums: Sigma, own: Plus };
+const ICONS: Record<GuideStep, LucideIcon> = { example: Network, add: CirclePlus, delete: Trash2, move: Move, sums: Sigma, own: Plus };
 
 interface GuideCardProps {
     step: GuideStep;
@@ -22,7 +22,7 @@ interface GuideCardProps {
 }
 
 /**
- * Short walk through the Bommel page, one "Weiter" at a time: the example, moving, how the amounts add up, then the own
+ * Short walk through the Bommel page, one "Weiter" at a time: the example, adding, deleting, moving, how the amounts add up, then the own
  * structure. The first steps run on the example data; the last one on the real structure. The card stays until the
  * user finishes or skips it, also after the first bommel was created.
  */

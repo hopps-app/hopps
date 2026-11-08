@@ -1,12 +1,12 @@
 import type { DocumentResponse } from '@hopps/api-client';
-import { RefreshCw, AlertCircle, Info, Lightbulb, Play } from 'lucide-react';
+import { RefreshCw, AlertCircle, Info, Lightbulb, Play, X } from 'lucide-react';
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { BommelDetailsPanel, EditModeBanner, GuideCard, HintBanner, PeriodField, ToggleField, type GuideStep } from './components';
+import { BommelDetailsPanel, DragHint, EditModeBanner, SumFlowHint, GuideCard, HintBanner, PeriodField, ToggleField, type GuideStep } from './components';
 import { BommelSkeleton } from './components/BommelSkeleton';
-import { useBommelTree, useStatistics, useDemoTree } from './hooks';
+import { DEMO_DRAG_HINT, useBommelTree, useStatistics, useDemoTree } from './hooks';
 import { currentYearPeriod, parsePeriod, periodLabel, type Period } from './period';
 
 import { BommelTreeComponent } from '@/components/BommelTreeView';
@@ -51,6 +51,11 @@ function BommelView() {
     const [guideStep, setGuideStep] = useState<GuideStep | null>(null);
     const [guideDone, setGuideDone] = usePersistedState<boolean>('hopps.bommel.guideDone', false);
     const guideAutoStarted = useRef(false);
+    // Each time "Verschiebbar" is switched on, a drag-and-drop animation shows how moving works, until the user has
+    // moved a Bommel themselves
+    const [movedSinceDragOn, setMovedSinceDragOn] = useState(false);
+    const treeAreaRef = useRef<HTMLDivElement>(null);
+    const verticalTree = useMediaQuery('(max-width: 767px)');
     const [selectedBommel, setSelectedBommel] = useState<BommelTreeNodeModel | null>(null);
     const [bommelNotFound, setBommelNotFound] = useState(false);
     // Receipt drawer opened from the detail panel (transactions navigate to their page instead)
@@ -96,39 +101,58 @@ function BommelView() {
         setGuideStep('example');
     }, [guideDone, realStructureLoaded, hasFirstBommel]);
 
-    // The guide decides what the page shows: the example in the first steps, the own structure in the last one.
+    // The guide decides what the page shows: the example in the first steps, the own structure in the last one. Editing
+    // and moving are shown on the example, with the same controls as on the own structure. The adding step leaves edit
+    // mode off, so the user finds the button themselves; deleting and moving need it, so those steps turn it on.
     const resetDemo = demoTreeData.reset;
     useEffect(() => {
         if (!guideStep) return;
         const onExample = guideStep !== 'own';
         setIsDemoMode(onExample);
         setSelectedBommel(null);
+        setIsEditMode(guideStep === 'delete' || guideStep === 'move');
         setIsDragDropMode(guideStep === 'move');
-        if (onExample) setIsEditMode(false);
         if (guideStep === 'example') resetDemo();
         if (guideStep === 'sums') setAggregate(true);
         if (guideStep === 'own') setAggregate(false);
     }, [guideStep, resetDemo, setAggregate]);
 
     const closeGuide = useCallback(() => {
+        // Leaving from the example: its edit mode must not carry over to the own structure
+        if (guideStep !== 'own') setIsEditMode(false);
         setGuideStep(null);
         setGuideDone(true);
         setIsDemoMode(false);
         setIsDragDropMode(false);
         setSelectedBommel(null);
-    }, [setGuideDone]);
+    }, [guideStep, setGuideDone]);
 
-    // Reset selection when switching between demo and real mode
-    const handleDemoModeChange = useCallback((enabled: boolean) => {
-        setIsDemoMode(enabled);
-        setSelectedBommel(null);
-        setBommelNotFound(false);
-        // Exit edit mode when switching to demo
-        if (enabled) {
+    // Opening the example starts it fresh. Switching either way ends edit mode and clears the selection, so changes
+    // to the example never mix with the own structure.
+    const handleDemoModeChange = useCallback(
+        (enabled: boolean) => {
+            if (enabled) resetDemo();
+            setIsDemoMode(enabled);
+            setSelectedBommel(null);
+            setBommelNotFound(false);
             setIsEditMode(false);
             setIsDragDropMode(false);
-        }
-    }, []);
+        },
+        [resetDemo]
+    );
+
+    useEffect(() => {
+        if (isDragDropMode) setMovedSinceDragOn(false);
+    }, [isDragDropMode]);
+
+    // What the guide points at in the current step; the matching elements carry `data-guide` (see styles/index.css)
+    let guideHighlight: string | undefined;
+    if (guideStep === 'example') guideHighlight = 'card';
+    else if (guideStep === 'add') guideHighlight = isEditMode ? 'add-child' : 'edit-button';
+    else if (guideStep === 'delete') guideHighlight = 'delete';
+    else if (guideStep === 'move') guideHighlight = 'drag-toggle drag-handle';
+    else if (guideStep === 'sums') guideHighlight = 'aggregate-toggle card-stats';
+    else if (guideStep === 'own' && !hasFirstBommel) guideHighlight = isEditMode ? 'add-first add-child-root' : 'edit-button';
 
     // Deep link: select the linked Bommel once the tree has loaded, or report that it does not exist
     useEffect(() => {
@@ -273,6 +297,7 @@ function BommelView() {
                     ...node,
                     parent: newParentId,
                 };
+                setMovedSinceDragOn(true);
                 return await moveTreeNode(movedNode);
             }
             return false;
@@ -314,18 +339,34 @@ function BommelView() {
 
     return (
         <>
-            <div className="h-full flex flex-col font-hanken">
+            <div className="h-full flex flex-col font-hanken" data-guide-highlight={guideHighlight}>
                 {/* Title with the edit action, like the actions in the Transaktionen header */}
                 <div className="mb-4 flex items-center justify-between gap-4">
                     <h1 className="flex items-center gap-2 text-[27px] font-extrabold leading-tight tracking-[-0.02em] text-foreground">
                         {t('bommel.title')}
                         <InfoTooltip content={t('bommel.titleInfo')} label={t('bommel.titleInfoLabel')} size={17} />
                     </h1>
-                    {!isDemoMode && (
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                        {/* A help, not a mode of the own data: set apart by its dashed outline. Hidden while the guide runs (it
+                            decides what is shown) and while the own structure is being edited (switching would end that). */}
+                        {!guideStep && (isDemoMode || !isEditMode) && (
+                            <Button
+                                size="sm"
+                                variant="tonal"
+                                className="border border-dashed border-purple-400"
+                                title={isDemoMode ? undefined : t('bommel.demoModeInfo')}
+                                aria-pressed={isDemoMode}
+                                onClick={() => handleDemoModeChange(!isDemoMode)}
+                            >
+                                {isDemoMode ? <X aria-hidden="true" /> : <Lightbulb aria-hidden="true" />}
+                                {isDemoMode ? t('bommel.demoModeClose') : t('bommel.demoMode')}
+                            </Button>
+                        )}
                         <Button
                             size="sm"
                             variant={isEditMode ? 'default' : 'outline'}
                             icon={isEditMode ? 'Check' : 'Pencil2'}
+                            data-guide="edit-button"
                             onClick={() => {
                                 const newEditMode = !isEditMode;
                                 setIsEditMode(newEditMode);
@@ -334,7 +375,7 @@ function BommelView() {
                         >
                             {isEditMode ? t('bommel.done') : t('bommel.edit')}
                         </Button>
-                    )}
+                    </div>
                 </div>
 
                 <div className="mb-4 flex flex-col gap-4 flex-shrink-0">
@@ -371,6 +412,7 @@ function BommelView() {
                             info={t('bommel.aggregateInfo')}
                             checked={statisticsOptions.aggregate}
                             onCheckedChange={setAggregate}
+                            guideTarget="aggregate-toggle"
                         />
                         {!isDemoMode && (
                             <ToggleField
@@ -381,26 +423,18 @@ function BommelView() {
                             />
                         )}
 
-                        {/* Modes on the right, apart from the filters; on small screens a row under them, aligned left */}
-                        <div className="flex items-center gap-[30px] sm:ml-auto">
-                            {/* Not while editing: switching to the example data would drop the user out of the edit. */}
-                            {!isEditMode && !guideStep && (
-                                <ToggleField
-                                    label={t('bommel.demoMode')}
-                                    info={t('bommel.demoModeInfo')}
-                                    checked={isDemoMode}
-                                    onCheckedChange={handleDemoModeChange}
-                                />
-                            )}
-                            {isEditMode && !isDemoMode && (
+                        {/* The switch of the edit mode on the right, apart from the filters; on small screens a row under them */}
+                        {isEditMode && (
+                            <div className="flex items-center gap-[30px] sm:ml-auto">
                                 <ToggleField
                                     label={t('bommel.dragDrop')}
                                     info={t('bommel.dragDropInfo')}
                                     checked={isDragDropMode}
                                     onCheckedChange={setIsDragDropMode}
+                                    guideTarget="drag-toggle"
                                 />
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* One notice at a time: the example banner and the empty-structure hint (which already says what to do) win over it */}
@@ -415,13 +449,13 @@ function BommelView() {
                 </div>
 
                 <div className={`grid flex-1 min-h-0 grid-cols-1 gap-4 ${selectedBommel ? 'lg:grid-cols-[minmax(0,1fr)_340px]' : ''}`}>
-                    <div className="flex flex-col min-h-0">
+                    <div ref={treeAreaRef} className="relative flex flex-col min-h-0">
                         <BommelTreeComponent
                             className="flex-1"
                             key={`tree-${isDemoMode}`}
                             tree={tree}
                             rootBommel={rootBommel}
-                            editable={isDemoMode ? false : isEditMode}
+                            editable={isEditMode}
                             dragDropEnabled={isDragDropMode}
                             selectedId={selectedBommel ? Number(selectedBommel.id) : null}
                             // Fit as if the panel were not there, so opening it crops the tree instead of rescaling it
@@ -431,8 +465,18 @@ function BommelView() {
                             onDelete={handleDelete}
                             onAddChild={handleAddChild}
                             onMove={handleMove}
-                            onRequestEdit={isDemoMode ? undefined : () => setIsEditMode(true)}
+                            onRequestEdit={() => setIsEditMode(true)}
+                            // The example works out the delete dialog's counts itself instead of asking the server
+                            deleteImpact={isDemoMode ? demoTreeData.deleteImpact : undefined}
                         />
+                        {isDragDropMode && !movedSinceDragOn && (
+                            <DragHint containerRef={treeAreaRef} tree={tree} preferred={isDemoMode ? DEMO_DRAG_HINT : undefined} />
+                        )}
+                        {/* While amounts include the Bommel below: arrows flowing up the connectors, from every Bommel into the one
+                            above. Not while editing, where the add buttons sit on those connectors. */}
+                        {statisticsOptions.aggregate && !isEditMode && (
+                            <SumFlowHint containerRef={treeAreaRef} tree={tree} vertical={verticalTree} tone={guideStep === 'sums' ? 'guide' : 'default'} />
+                        )}
                     </div>
 
                     {selectedBommel && (
