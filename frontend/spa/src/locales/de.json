@@ -1115,7 +1115,8 @@
             "showDetails": "Details einblenden",
             "bommelNotFound": "Bommel nicht gefunden",
             "bommelNotFoundDescription": "Der gesuchte Bommel existiert nicht oder wurde gelöscht.",
-            "backToStructure": "Zurück zur Struktur"
+            "backToStructure": "Zurück zur Struktur",
+            "carryOver": "Vortrag"
         },
         "deleteDialog": {
             "title": "„{{name}}“ löschen?",
@@ -1193,7 +1194,8 @@
             "noValues": "Keine Werte",
             "openInReceipts": "In Belege öffnen",
             "hasReceipt": "Hat einen Beleg",
-            "showAll": "Alle anzeigen"
+            "showAll": "Alle anzeigen",
+            "totalWithCarryOver": "(inkl. Vortrag)"
         },
         "uploadLink": {
             "title": "Upload-Link",
@@ -1271,6 +1273,23 @@
                 "start": "Ersten Bommel anlegen"
             },
             "start": "Rundgang starten"
+        },
+        "showBalance": "Ist-Stand",
+        "showBalanceInfo": "Zeigt zusätzlich den Vortrag: den Stand zu Beginn des Zeitraums, bei einem Jahr also den Stand am Ende des Vorjahres. Gesamt ist dann der Ist-Stand am Ende des Zeitraums. Ausgangspunkt ist der Anfangsbestand eines Bommels, falls einer hinterlegt ist.",
+        "openingBalance": {
+            "title": "Anfangsbestand",
+            "none": "Kein Anfangsbestand hinterlegt.",
+            "onDate": "am {{date}}",
+            "set": "Festlegen",
+            "change": "Ändern",
+            "hint": "Wie beim Bankkonto: der Stand zum Stichtag. Alle Buchungen nach diesem Tag werden dazugerechnet oder abgezogen.",
+            "amount": "Betrag",
+            "date": "Stichtag",
+            "invalid": "Bitte Betrag und Stichtag angeben.",
+            "remove": "Entfernen",
+            "saved": "Anfangsbestand gespeichert",
+            "removed": "Anfangsbestand entfernt",
+            "error": "Der Anfangsbestand konnte nicht gespeichert werden"
         }
     },
     "dashboard": {

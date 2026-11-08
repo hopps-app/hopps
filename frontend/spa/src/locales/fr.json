@@ -1181,7 +1181,8 @@
             "showDetails": "Afficher les détails",
             "bommelNotFound": "Bommel introuvable",
             "bommelNotFoundDescription": "Le bommel que vous recherchez n'existe pas ou a été supprimé.",
-            "backToStructure": "Retour à la structure"
+            "backToStructure": "Retour à la structure",
+            "carryOver": "Report"
         },
         "deleteDialog": {
             "title": "Supprimer « {{name}} » ?",
@@ -1259,7 +1260,8 @@
             "noValues": "Aucune valeur",
             "openInReceipts": "Ouvrir dans Justificatifs",
             "hasReceipt": "A un justificatif",
-            "showAll": "Tout afficher"
+            "showAll": "Tout afficher",
+            "totalWithCarryOver": "(report inclus)"
         },
         "period": {
             "label": "Période",
@@ -1311,6 +1313,23 @@
                 "start": "Créer le premier Bommel"
             },
             "start": "Démarrer la visite guidée"
+        },
+        "showBalance": "Solde",
+        "showBalanceInfo": "Affiche aussi le report : le solde au début de la période, pour une année le solde à la fin de l'année précédente. Le total est alors le solde à la fin de la période. Il part du solde d'ouverture d'un Bommel, s'il y en a un.",
+        "openingBalance": {
+            "title": "Solde d'ouverture",
+            "none": "Aucun solde d'ouverture.",
+            "onDate": "au {{date}}",
+            "set": "Définir",
+            "change": "Modifier",
+            "hint": "Comme pour un compte bancaire : le solde à une date de référence. Chaque transaction après ce jour est ajoutée ou déduite.",
+            "amount": "Montant",
+            "date": "Date de référence",
+            "invalid": "Indique un montant et une date de référence.",
+            "remove": "Supprimer",
+            "saved": "Solde d'ouverture enregistré",
+            "removed": "Solde d'ouverture supprimé",
+            "error": "Le solde d'ouverture n'a pas pu être enregistré"
         }
     },
     "bankAccounts": {

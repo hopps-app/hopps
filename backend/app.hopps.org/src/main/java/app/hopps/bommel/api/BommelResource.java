@@ -1,5 +1,6 @@
 package app.hopps.bommel.api;
 
+import app.hopps.bommel.api.dto.BommelOpeningBalanceInput;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.domain.TreeSearchBommel;
 import app.hopps.bommel.repository.BommelRepository;
@@ -15,11 +16,15 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -146,6 +151,31 @@ public class BommelResource {
         existingBommel.merge(bommel);
 
         return existingBommel;
+    }
+
+    @PUT
+    @Path("/{id}/opening-balance")
+    @Transactional
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Set the opening balance of a bommel", description = "Sets the balance of the bommel on a reference date, like the opening balance of a bank account. Its balance is this value plus every transaction booked after that date. Send both fields null to remove it.")
+    @APIResponse(responseCode = "200", description = "Opening balance saved", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel.class)))
+    @APIResponse(responseCode = "400", description = "Only one of the two fields is set", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "404", description = BOMMEL_NOT_FOUND, content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    public Bommel setOpeningBalance(BommelOpeningBalanceInput input,
+            @PathParam("id") @Parameter(description = "The bommel ID") long id) {
+        checkUserHasPermission(id, RELATION_WRITE);
+        Bommel bommel = throwOrGetBommel(bommelRepo.findByIdOptional(id));
+
+        BigDecimal balance = input == null ? null : input.openingBalance();
+        LocalDate date = input == null ? null : input.openingBalanceDate();
+        if ((balance == null) != (date == null)) {
+            throw new BadRequestException("openingBalance and openingBalanceDate must be set together");
+        }
+        bommel.setOpeningBalance(balance == null ? null : balance.setScale(2, RoundingMode.HALF_UP));
+        bommel.setOpeningBalanceDate(date);
+        return bommel;
     }
 
     /**

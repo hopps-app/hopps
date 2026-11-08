@@ -80,7 +80,7 @@ ZUGFeRD-Rechnungsverarbeitung (XML aus PDFs extrahieren)
 - **Flyway Migrations:** `/src/main/resources/db/migration`
 - **Testdaten:** `/src/main/resources/db/testdata` (dev mode)
 - **Multi-Database:** Separate DBs für org, keycloak
-- **Schema Version:** aktuell V1.0.41 (Nummerierung mit Lücke: V1.0.0–V1.0.2, dann ab V1.0.13 fortlaufend)
+- **Schema Version:** aktuell V1.0.42 (Nummerierung mit Lücke: V1.0.0–V1.0.2, dann ab V1.0.13 fortlaufend)
 
 ## Frontend
 

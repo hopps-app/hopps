@@ -64,10 +64,11 @@ public class StatisticsResource {
             @QueryParam("includeDrafts") @DefaultValue("false") @Parameter(description = "Whether to include draft transactions in the statistics") boolean includeDrafts,
             @QueryParam("aggregate") @DefaultValue("false") @Parameter(description = "Whether to aggregate statistics from all child bommels") boolean aggregate,
             @QueryParam("startDate") @Parameter(description = "Only transactions on or after this date (yyyy-MM-dd)") String startDate,
-            @QueryParam("endDate") @Parameter(description = "Only transactions up to and including this date (yyyy-MM-dd)") String endDate) {
+            @QueryParam("endDate") @Parameter(description = "Only transactions up to and including this date (yyyy-MM-dd)") String endDate,
+            @QueryParam("withBalance") @DefaultValue("false") @Parameter(description = "Also return the balance at the start of the period (carryOver) and at its end (balance), starting from the bommel's opening balance") boolean withBalance) {
         BommelStatistics stats = statisticsService.getBommelStatistics(bommelId, includeDrafts, aggregate,
                 startOf(startDate),
-                endExclusive(endDate));
+                endExclusive(endDate), withBalance);
         if (stats == null) {
             throw new WebApplicationException(
                     Response.status(Response.Status.NOT_FOUND)
@@ -90,9 +91,10 @@ public class StatisticsResource {
             @QueryParam("includeDrafts") @DefaultValue("false") @Parameter(description = "Whether to include draft transactions in the statistics") boolean includeDrafts,
             @QueryParam("aggregate") @DefaultValue("false") @Parameter(description = "Whether to aggregate statistics from all child bommels") boolean aggregate,
             @QueryParam("startDate") @Parameter(description = "Only transactions on or after this date (yyyy-MM-dd)") String startDate,
-            @QueryParam("endDate") @Parameter(description = "Only transactions up to and including this date (yyyy-MM-dd)") String endDate) {
+            @QueryParam("endDate") @Parameter(description = "Only transactions up to and including this date (yyyy-MM-dd)") String endDate,
+            @QueryParam("withBalance") @DefaultValue("false") @Parameter(description = "Also return the balance at the start of the period (carryOver) and at its end (balance), starting from the bommel's opening balance") boolean withBalance) {
         return statisticsService.getAllBommelStatistics(orgId, includeDrafts, aggregate, startOf(startDate),
-                endExclusive(endDate));
+                endExclusive(endDate), withBalance);
     }
 
     private static Instant startOf(String date) {
