@@ -194,7 +194,6 @@ export function TransactionenView() {
     const [sortBy, setSortBy] = usePersistedState<TransactionSortBy>('hopps.transactions.sortBy', 'createdAt');
     const [sortDir, setSortDir] = usePersistedState<SortDirection>('hopps.transactions.sortDir', 'desc');
     const [page, setPage] = useState(0);
-    const [selectedTxId, setSelectedTxId] = useState<number | null>(null);
     const [createOpen, setCreateOpen] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
@@ -202,12 +201,19 @@ export function TransactionenView() {
     const deleteDocumentBulk = useDeleteDocument({ silent: true });
     const PAGE_SIZE = 30;
 
-    // Open a specific transaction when navigated to with ?id= (e.g. from a linked receipt)
+    // The open transaction lives in ?id=, so a reload or a shared link (e.g. from a linked receipt) opens it again.
+    // Opening and closing replace the history entry, so the back button still leaves the page.
     const [searchParams, setSearchParams] = useSearchParams();
-    useEffect(() => {
-        const idParam = searchParams.get('id');
-        if (idParam) setSelectedTxId(Number(idParam));
-    }, [searchParams]);
+    const idParam = searchParams.get('id');
+    const selectedTxId = idParam ? Number(idParam) : null;
+    const openTransaction = (id: number) =>
+        setSearchParams(
+            (prev) => {
+                prev.set('id', String(id));
+                return prev;
+            },
+            { replace: true }
+        );
 
     // Pre-filter when navigated to with ?bommelId= and/or ?status= (e.g. from the Bommel detail panel).
     // - bommelId: one id or a comma-separated list, the chosen Bommel first, then its sub-Bommel (same shape the
@@ -237,13 +243,14 @@ export function TransactionenView() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
-    const closeDrawer = () => {
-        setSelectedTxId(null);
-        if (searchParams.has('id')) {
-            searchParams.delete('id');
-            setSearchParams(searchParams, { replace: true });
-        }
-    };
+    const closeDrawer = () =>
+        setSearchParams(
+            (prev) => {
+                prev.delete('id');
+                return prev;
+            },
+            { replace: true }
+        );
 
     // Toggle sorting from a table column header: same column flips direction, new column starts descending.
     const handleSort = (field: TransactionSortBy) => {
@@ -423,7 +430,7 @@ export function TransactionenView() {
         if (failed === 0) showSuccess(t('transactions.toast.bulkDeleted', { count: done }));
         else if (done === 0) showError(t('transactions.toast.bulkDeleteFailed'));
         else showWarning(t('transactions.toast.bulkDeletePartial', { done, failed }));
-        if (selectedTxId != null && selectedIds.has(selectedTxId)) setSelectedTxId(null);
+        if (selectedTxId != null && selectedIds.has(selectedTxId)) closeDrawer();
         clearSelection();
         setBulkDeleteOpen(false);
     };
@@ -789,7 +796,7 @@ export function TransactionenView() {
                             <TransactionRow
                                 key={tx.id}
                                 tx={tx}
-                                onClick={() => setSelectedTxId(tx.id ?? null)}
+                                onClick={() => tx.id != null && openTransaction(tx.id)}
                                 selected={selectedTxId === tx.id}
                                 bulkSelected={tx.id != null && selectedIds.has(tx.id)}
                                 onToggleBulk={() => tx.id != null && toggleSelect(tx.id)}

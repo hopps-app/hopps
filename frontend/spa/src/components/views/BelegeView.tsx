@@ -2265,10 +2265,27 @@ export function BelegeView() {
     const [searchParams, setSearchParams] = useSearchParams();
     const idParam = searchParams.get('id');
     const { data: deepLinkedDoc } = useDocument(idParam ? Number(idParam) : undefined);
-    const openDocument = useCallback((doc: DocumentResponse) => setSelectedDoc(doc), []);
     // Open the deep-linked receipt once per id. The list refetches after every save, and re-opening on each refetch
     // would override what the user did meanwhile.
     const openedParamRef = useRef<string | null>(null);
+    // The open receipt is mirrored to ?id=, so a reload opens it again. Replacing the history entry keeps the back
+    // button leaving the page instead of stepping through every opened receipt.
+    const openDocument = useCallback(
+        (doc: DocumentResponse) => {
+            setSelectedDoc(doc);
+            if (doc.id == null) return;
+            const id = String(doc.id);
+            openedParamRef.current = id;
+            setSearchParams(
+                (prev) => {
+                    prev.set('id', id);
+                    return prev;
+                },
+                { replace: true }
+            );
+        },
+        [setSearchParams]
+    );
     useEffect(() => {
         if (!idParam) {
             openedParamRef.current = null;
@@ -2319,10 +2336,13 @@ export function BelegeView() {
 
     const closeDrawer = () => {
         setSelectedDoc(null);
-        if (searchParams.has('id')) {
-            searchParams.delete('id');
-            setSearchParams(searchParams, { replace: true });
-        }
+        setSearchParams(
+            (prev) => {
+                prev.delete('id');
+                return prev;
+            },
+            { replace: true }
+        );
     };
 
     // Free-text search across the fields shown in the list (name, file name, sender) plus the amount. A purely numeric
@@ -2409,7 +2429,7 @@ export function BelegeView() {
         if (failed === 0) showSuccess(t('receipts.toast.bulkDeleted', { count: done }));
         else if (done === 0) showError(t('receipts.toast.bulkDeleteFailed'));
         else showWarning(t('receipts.toast.bulkDeletePartial', { done, failed }));
-        if (selectedDoc?.id != null && selectedIds.has(selectedDoc.id)) setSelectedDoc(null);
+        if (selectedDoc?.id != null && selectedIds.has(selectedDoc.id)) closeDrawer();
         clearSelection();
         setBulkDeleteOpen(false);
     };
