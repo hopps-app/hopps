@@ -1316,8 +1316,9 @@
         "dragDropInfo": "Drag a Bommel onto another one to move it there. On touch screens, drag it by the handle on the left of the card.",
         "panel": {
             "totalWithSub": "(incl. sub-Bommel)",
-            "categories": "Categories",
-            "noCategories": "No categories assigned",
+            "categories": "Category groups",
+            "noCategories": "No category groups assigned",
+            "assignCategories": "Assign in Categories",
             "transactions": "Transactions",
             "receipts": "Receipts",
             "allConfirmed": "All transactions confirmed",

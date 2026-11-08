@@ -1180,8 +1180,9 @@
         "dragDropInfo": "Einen Bommel auf einen anderen ziehen, um ihn darunter einzuordnen. Auf Touchscreens am Griff links im Bommel ziehen.",
         "panel": {
             "totalWithSub": "(inkl. Unterbommel)",
-            "categories": "Kategorien",
-            "noCategories": "Keine Kategorien zugeordnet",
+            "categories": "Kategoriegruppen",
+            "noCategories": "Keine Kategoriegruppen zugeordnet",
+            "assignCategories": "Im Bereich Kategorien zuordnen",
             "transactions": "Transaktionen",
             "receipts": "Belege",
             "allConfirmed": "Alle Transaktionen bestätigt",

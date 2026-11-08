@@ -2,6 +2,7 @@ import type { CategoryGroupResponse, DocumentResponse, TransactionResponse } fro
 import { Check, ChevronRight, FileText, Folder, Info, X } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
 import { UploadLinkSection } from './UploadLinkSection';
 
@@ -97,14 +98,15 @@ export function BommelDetailsPanel({
                 )}
                 <div className="flex min-w-0 flex-1 items-center gap-2">
                     <h2 className="min-w-0 truncate text-[17px] font-extrabold tracking-[-0.02em] text-foreground">{node.text}</h2>
-                    {/* Info badge; the period the amounts cover is its tooltip and accessible name */}
+                    {/* Info badge: what the panel shows, the same text as the dismissible note below, plus the period the
+                        amounts cover. It stays available after that note was dismissed. */}
                     {!demo && (
                         <TooltipProvider delayDuration={100}>
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <span
                                         tabIndex={0}
-                                        aria-label={t('bommel.period.panelHint', { period: periodLabel })}
+                                        aria-label={`${t('bommel.panelHint.text')} ${t('bommel.period.panelHint', { period: periodLabel })}`}
                                         className="grid h-6 w-6 flex-shrink-0 cursor-help place-items-center rounded-full bg-[var(--info-surface)] text-[var(--info)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                     >
                                         <Info className="h-3.5 w-3.5" aria-hidden="true" />
@@ -112,9 +114,10 @@ export function BommelDetailsPanel({
                                 </TooltipTrigger>
                                 <TooltipContent
                                     side="bottom"
-                                    className="z-[120] max-w-[240px] rounded-[10px] bg-[#1B1B1F] px-3 py-1.5 text-[12px] font-semibold leading-snug text-white"
+                                    className="z-[120] max-w-[280px] rounded-[10px] bg-[#1B1B1F] px-3 py-2 text-[12px] font-semibold leading-snug text-white"
                                 >
-                                    {t('bommel.period.panelHint', { period: periodLabel })}
+                                    <p>{t('bommel.panelHint.text')}</p>
+                                    <p className="mt-1 opacity-70">{t('bommel.period.panelHint', { period: periodLabel })}</p>
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
@@ -249,9 +252,55 @@ function OpenItems({ bommelId, scopeIds, bommelNames, onOpenTransaction, onOpenR
                 ) : (
                     <div className="rounded-[14px] bg-[var(--surface-sunken)] px-[13px] py-2.5 text-[12.5px] font-semibold text-muted-foreground">
                         {groups ? t('bommel.panel.noCategories') : '…'}
+                        {/* Groups are assigned to Bommel on the Kategorien page */}
+                        {groups && (
+                            <Link to="/admin/categories" className="mt-1 flex items-center gap-1 font-bold text-purple-700 hover:underline">
+                                {t('bommel.panel.assignCategories')}
+                                <ChevronRight size={13} aria-hidden="true" />
+                            </Link>
+                        )}
                     </div>
                 )}
             </section>
+
+            {/* Open receipts first, then the open transactions */}
+            <Section
+                icon={<ReceiptIcon size={14} />}
+                title={t('bommel.panel.receipts')}
+                loading={documents.isLoading}
+                error={documents.isError}
+                count={openReceipts.length}
+                emptyText={t('bommel.panel.noUnreviewed')}
+                footer={
+                    // Same bar as the Transaktionen footer, with the link on the right
+                    <div className="flex items-center justify-end border-t border-border-soft bg-[var(--surface-sunken)] py-1.5 pl-2 pr-1.5">
+                        <button
+                            type="button"
+                            onClick={onShowAllReceipts}
+                            className="inline-flex flex-shrink-0 items-center gap-1 rounded-md px-1.5 py-1 text-[12.5px] font-bold text-purple-600 transition-colors hover:bg-[var(--background-secondary)] hover:text-purple-700"
+                        >
+                            {t('bommel.panel.openInReceipts')}
+                            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                        </button>
+                    </div>
+                }
+            >
+                {openReceipts.slice(0, MAX_ROWS).map((doc) => (
+                    <Row
+                        key={doc.id}
+                        onClick={() => onOpenReceipt(doc)}
+                        tile={
+                            <span className="grid h-[30px] w-[30px] place-items-center rounded-[10px] bg-[var(--accent-surface)] text-purple-700">
+                                <ReceiptIcon size={16} />
+                            </span>
+                        }
+                        status={<StatusMark kind="UNREVIEWED" label={t('receipts.filter.unreviewed')} />}
+                        title={doc.senderName || doc.name || doc.fileName || ''}
+                        meta={meta(doc.transactionTime ?? doc.createdAt, subName(doc.bommelId))}
+                        amount={<span className="text-[13px] font-extrabold text-foreground">{format(Math.abs(Number(doc.total ?? 0)))}</span>}
+                    />
+                ))}
+            </Section>
 
             <Section
                 icon={<ListIcon size={14} />}
@@ -316,44 +365,6 @@ function OpenItems({ bommelId, scopeIds, bommelNames, onOpenTransaction, onOpenR
                         />
                     );
                 })}
-            </Section>
-
-            <Section
-                icon={<ReceiptIcon size={14} />}
-                title={t('bommel.panel.receipts')}
-                loading={documents.isLoading}
-                error={documents.isError}
-                count={openReceipts.length}
-                emptyText={t('bommel.panel.noUnreviewed')}
-                footer={
-                    // Same bar as the Transaktionen footer, with the link on the right
-                    <div className="flex items-center justify-end border-t border-border-soft bg-[var(--surface-sunken)] py-1.5 pl-2 pr-1.5">
-                        <button
-                            type="button"
-                            onClick={onShowAllReceipts}
-                            className="inline-flex flex-shrink-0 items-center gap-1 rounded-md px-1.5 py-1 text-[12.5px] font-bold text-purple-600 transition-colors hover:bg-[var(--background-secondary)] hover:text-purple-700"
-                        >
-                            {t('bommel.panel.openInReceipts')}
-                            <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                        </button>
-                    </div>
-                }
-            >
-                {openReceipts.slice(0, MAX_ROWS).map((doc) => (
-                    <Row
-                        key={doc.id}
-                        onClick={() => onOpenReceipt(doc)}
-                        tile={
-                            <span className="grid h-[30px] w-[30px] place-items-center rounded-[10px] bg-[var(--accent-surface)] text-purple-700">
-                                <ReceiptIcon size={16} />
-                            </span>
-                        }
-                        status={<StatusMark kind="UNREVIEWED" label={t('receipts.filter.unreviewed')} />}
-                        title={doc.senderName || doc.name || doc.fileName || ''}
-                        meta={meta(doc.transactionTime ?? doc.createdAt, subName(doc.bommelId))}
-                        amount={<span className="text-[13px] font-extrabold text-foreground">{format(Math.abs(Number(doc.total ?? 0)))}</span>}
-                    />
-                ))}
             </Section>
         </>
     );
@@ -485,13 +496,13 @@ function CategoryGroupBadge({ group }: { group: CategoryGroupResponse }) {
                 }}
             >
                 <TooltipTrigger asChild>
-                    {/* Same chip as the values on the Kategorien page */}
-                    <button
-                        type="button"
+                    {/* Same chip as the values on the Kategorien page; it leads to this group there */}
+                    <Link
+                        to={`/admin/categories?groupId=${group.id}`}
                         className="inline-flex items-center rounded-[var(--r-sm)] border border-[var(--border-soft)] px-[11px] py-[5px] text-[13px] font-semibold text-[var(--font-color)] transition-colors hover:bg-[var(--surface-sunken)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:border-white"
                     >
                         {group.name}
-                    </button>
+                    </Link>
                 </TooltipTrigger>
                 <TooltipContent
                     side="top"

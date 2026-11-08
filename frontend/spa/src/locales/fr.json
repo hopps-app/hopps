@@ -1246,8 +1246,9 @@
         "dragDropInfo": "Fais glisser un Bommel sur un autre pour l'y déplacer. Sur écran tactile, utilise la poignée à gauche de la carte.",
         "panel": {
             "totalWithSub": "(sous-bommels inclus)",
-            "categories": "Catégories",
-            "noCategories": "Aucune catégorie attribuée",
+            "categories": "Groupes de catégories",
+            "noCategories": "Aucun groupe de catégories attribué",
+            "assignCategories": "Attribuer dans Catégories",
             "transactions": "Transactions",
             "receipts": "Justificatifs",
             "allConfirmed": "Toutes les transactions sont confirmées",

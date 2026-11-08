@@ -1246,8 +1246,9 @@
         "dragDropInfo": "Trascina un Bommel su un altro per spostarlo lì. Sui touchscreen trascinalo dalla maniglia a sinistra della scheda.",
         "panel": {
             "totalWithSub": "(incl. sotto-Bommel)",
-            "categories": "Categorie",
-            "noCategories": "Nessuna categoria assegnata",
+            "categories": "Gruppi di categorie",
+            "noCategories": "Nessun gruppo di categorie assegnato",
+            "assignCategories": "Assegna in Categorie",
             "transactions": "Transazioni",
             "receipts": "Ricevute",
             "allConfirmed": "Tutte le transazioni confermate",
