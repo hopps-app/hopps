@@ -1712,5 +1712,51 @@
             "unignored": "Opération bancaire rétablie",
             "unignoreError": "L'opération bancaire n'a pas pu être rétablie"
         }
+    },
+    "publicUpload": {
+        "title": "Envoyer des justificatifs",
+        "pageTitle": "Envoyer des justificatifs pour {{name}}",
+        "intro": "Envoie des justificatifs pour ce domaine. Aucun compte nécessaire.",
+        "takePhoto": "Prendre une photo",
+        "chooseFiles": "Choisir des fichiers",
+        "allowedTypes": "PNG, JPEG ou PDF, plusieurs justificatifs à la fois",
+        "dropHint": "ou glisser des fichiers ici",
+        "dropActive": "Relâcher pour ajouter les justificatifs",
+        "removeFile": "Retirer le fichier",
+        "name": "Envoyé par",
+        "namePlaceholder": "Marie Dupont",
+        "nameRequired": "Merci d'indiquer un nom",
+        "comment": "Commentaire (facultatif)",
+        "commentPlaceholder": "p. ex. à quoi sert le justificatif",
+        "privatelyPaid": "Payé à titre personnel",
+        "submit_one": "Envoyer le justificatif",
+        "submit_other": "Envoyer {{count}} justificatifs",
+        "success": {
+            "title": "Merci !",
+            "text_one": "Le justificatif a été envoyé pour {{bommel}}.",
+            "text_other": "{{count}} justificatifs ont été envoyés pour {{bommel}}.",
+            "more": "Envoyer d'autres justificatifs"
+        },
+        "invalid": {
+            "title": "Lien invalide",
+            "text": "Ce lien d'envoi n'existe pas ou a été révoqué."
+        },
+        "expired": {
+            "title": "Lien expiré",
+            "text": "Ce lien d'envoi n'est plus valable. Demande un nouveau lien."
+        },
+        "errors": {
+            "duplicate": "Ce justificatif a déjà été envoyé.",
+            "fileType": "Seuls les fichiers PNG, JPEG ou PDF sont acceptés.",
+            "tooLarge": "Le fichier est trop volumineux.",
+            "rateLimit": "Trop d'envois. Réessaie plus tard.",
+            "linkInvalid": "Le lien n'est plus valable.",
+            "generic": "Le justificatif n'a pas pu être envoyé. Réessaie ou contacte la personne qui a partagé ce lien.",
+            "invalid": "Le justificatif n'a pas été accepté. Vérifie le fichier et le nom.",
+            "network": "Pas de connexion au serveur. Vérifie la connexion internet et réessaie.",
+            "server": "Un problème est survenu de notre côté. Réessaie dans quelques minutes.",
+            "summary_one": "{{count}} justificatif n'a pas pu être envoyé. Utilise le bouton ci-dessous pour réessayer.",
+            "summary_other": "{{count}} justificatifs n'ont pas pu être envoyés. Utilise le bouton ci-dessous pour réessayer."
+        }
     }
 }

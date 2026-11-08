@@ -11,6 +11,7 @@ import { LoadingState } from '@/components/common/LoadingState';
 import Button from '@/components/ui/Button';
 import Emoji from '@/components/ui/Emoji';
 import { Label } from '@/components/ui/Label';
+import { BaseTextarea } from '@/components/ui/shadecn/BaseTextarea';
 import Switch from '@/components/ui/Switch';
 import TextField from '@/components/ui/TextField';
 import apiService from '@/services/ApiService';
@@ -175,7 +176,7 @@ export function PublicUploadView() {
     return (
         <div className="flex min-h-screen flex-col bg-[var(--background-primary)]">
             <div className="mx-auto w-full max-w-lg flex-1 px-4 py-6 sm:py-10">
-                <img src="/logo3.svg" alt="hopps" className="mb-6 h-8 w-auto" />
+                <img src="/logo2.svg" alt="hopps" className="mb-6 h-8 w-auto" />
 
                 {info.isLoading && <LoadingState className="py-12" />}
 
@@ -213,7 +214,7 @@ export function PublicUploadView() {
 
                         <div
                             {...dropzone.getRootProps({
-                                className: `relative -m-2 rounded-3xl p-2 transition-colors ${dropzone.isDragActive ? 'bg-purple-100 ring-2 ring-purple-400 dark:bg-purple-950' : ''}`,
+                                className: `relative -mx-2 -mt-2 mb-3 rounded-3xl p-2 transition-colors ${dropzone.isDragActive ? 'bg-purple-100 ring-2 ring-purple-400 dark:bg-purple-950' : ''}`,
                             })}
                             data-testid="public-upload-dropzone"
                         >
@@ -293,6 +294,7 @@ export function PublicUploadView() {
                         <div className="space-y-4 rounded-2xl bg-[var(--background-secondary)] p-5 shadow-card">
                             <TextField
                                 label={t('publicUpload.name')}
+                                placeholder={t('publicUpload.namePlaceholder')}
                                 required
                                 value={name}
                                 maxLength={255}
@@ -305,14 +307,13 @@ export function PublicUploadView() {
                             />
                             <div className="grid gap-1.5">
                                 <Label htmlFor="public-upload-comment">{t('publicUpload.comment')}</Label>
-                                <textarea
+                                <BaseTextarea
                                     id="public-upload-comment"
                                     value={comment}
                                     maxLength={2000}
                                     rows={3}
                                     placeholder={t('publicUpload.commentPlaceholder')}
                                     onChange={(e) => setComment(e.target.value)}
-                                    className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                                 />
                             </div>
                             <Switch label={t('publicUpload.privatelyPaid')} checked={privatelyPaid} onCheckedChange={setPrivatelyPaid} />
