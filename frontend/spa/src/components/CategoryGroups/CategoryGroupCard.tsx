@@ -4,7 +4,6 @@ import { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { RequiredBadge } from './CategoryGroupSetup';
-import CategoryLabel from './CategoryLabel';
 
 import Emoji from '@/components/ui/Emoji';
 import { useCategoryGroupValues } from '@/hooks/queries/useCategoryGroups';
@@ -19,8 +18,11 @@ type CategoryGroupCardProps = {
     onDelete: () => void;
 };
 
-/** How many categories a card shows before summing up the rest; large groups (a chart of accounts) stay compact. */
-const MAX_CHIPS = 12;
+/**
+ * How many categories a card previews before summing up the rest. Only the top level is shown (with the number of
+ * subcategories), so a large group (a chart of accounts) keeps the card small; the full list is in the edit dialog.
+ */
+const MAX_CHIPS = 6;
 
 const sectionLabel = 'mb-2 text-[11.5px] font-bold uppercase tracking-[0.08em] text-[var(--ink-faint)]';
 
@@ -28,10 +30,12 @@ const sectionLabel = 'mb-2 text-[11.5px] font-bold uppercase tracking-[0.08em] t
 const CategoryGroupCard: FC<CategoryGroupCardProps> = ({ group, rootId, onEdit, onExport, onDelete }) => {
     const { t } = useTranslation();
     const allBommels = useBommelsStore((s) => s.allBommels);
-    const { data: values } = useCategoryGroupValues(group.id, '');
+    const { data: values } = useCategoryGroupValues(group.id, '', true, { topLevel: true });
 
     const valueCount = group.valueCount ?? 0;
     const shown = (values?.items ?? []).slice(0, MAX_CHIPS);
+    // Everything the chips do not cover: further top-level categories and all subcategories below them
+    const notShown = valueCount - shown.reduce((sum, item) => sum + 1 + (item.childCount ?? 0), 0);
     const bommelIds = group.bommelIds ?? [];
 
     return (
@@ -45,7 +49,9 @@ const CategoryGroupCard: FC<CategoryGroupCardProps> = ({ group, rootId, onEdit, 
                         <div className="truncate text-[15.5px] font-extrabold text-[var(--font-color)]">{group.name}</div>
                         <div className="mt-1 flex items-center gap-[9px]">
                             <RequiredBadge required={!!group.required} />
-                            <span className="text-[12.5px] text-[var(--muted)]">{t('categoryGroups.card.valueCount', { count: valueCount })}</span>
+                            <span className="whitespace-nowrap text-[12.5px] text-[var(--muted)]">
+                                {t('categoryGroups.card.valueCount', { count: valueCount })}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -111,17 +117,31 @@ const CategoryGroupCard: FC<CategoryGroupCardProps> = ({ group, rootId, onEdit, 
                         <span
                             key={item.id}
                             className={cn(
-                                'inline-flex items-center rounded-[var(--r-sm)] border border-[var(--border-soft)] dark:border-white px-[11px] py-[5px] text-[13px] font-semibold text-[var(--font-color)]',
-                                (item.hidden || item.parentHidden) && 'opacity-50'
+                                'inline-flex max-w-full items-center gap-1.5 rounded-[var(--r-sm)] border border-[var(--border-soft)] dark:border-white px-[11px] py-[5px] text-[13px] font-semibold text-[var(--font-color)]',
+                                item.hidden && 'opacity-50'
                             )}
                         >
-                            <CategoryLabel item={item} />
+                            <span className="truncate">{item.value}</span>
+                            {(item.childCount ?? 0) > 0 && (
+                                <span
+                                    className="shrink-0 text-[12px] font-bold tabular-nums text-[var(--ink-faint)]"
+                                    title={t('categoryGroups.card.subCount', { count: item.childCount })}
+                                    aria-label={t('categoryGroups.card.subCount', { count: item.childCount })}
+                                >
+                                    {item.childCount}
+                                </span>
+                            )}
                         </span>
                     ))}
-                    {valueCount > shown.length && shown.length > 0 && (
-                        <span className="inline-flex items-center px-1 py-[5px] text-[13px] font-semibold text-[var(--muted)]">
-                            {t('categoryGroups.setup.moreValues', { count: valueCount - shown.length })}
-                        </span>
+                    {/* The rest is in the edit dialog, which this opens */}
+                    {notShown > 0 && shown.length > 0 && (
+                        <button
+                            type="button"
+                            onClick={onEdit}
+                            className="inline-flex items-center rounded-[var(--r-sm)] px-1.5 py-[5px] text-[13px] font-bold text-purple-700 hover:bg-[var(--accent-surface)] hover:underline"
+                        >
+                            {t('categoryGroups.setup.moreValues', { count: notShown })}
+                        </button>
                     )}
                     <button
                         type="button"

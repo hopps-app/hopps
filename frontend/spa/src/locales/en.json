@@ -23,7 +23,9 @@
             "values": "Categories",
             "addValue": "Category",
             "valueCount_one": "{{count}} category",
-            "valueCount_other": "{{count}} categories"
+            "valueCount_other": "{{count}} categories",
+            "subCount_one": "{{count}} subcategory",
+            "subCount_other": "{{count}} subcategories"
         },
         "delete": {
             "title": "Delete category group",
