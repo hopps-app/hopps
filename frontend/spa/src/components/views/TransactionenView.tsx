@@ -201,17 +201,31 @@ export function TransactionenView() {
         if (idParam) setSelectedTxId(Number(idParam));
     }, [searchParams]);
 
-    // Pre-filter by a bommel when navigated to with ?bommelId= (e.g. from the org structure "Zu Transaktionen" button).
-    // The param is consumed once and cleared from the URL so it doesn't override the user's later filter changes.
+    // Pre-filter when navigated to with ?bommelId= and/or ?status= (e.g. from the Bommel detail panel).
+    // - bommelId: one id or a comma-separated list, the chosen Bommel first, then its sub-Bommel (same shape the
+    //   Bommel filter stores)
+    // - status: comma-separated display statuses, e.g. DRAFT,PARTIAL,LINKED
+    // The params are consumed once and cleared from the URL so they don't override the user's later filter changes.
     useEffect(() => {
         const bommelParam = searchParams.get('bommelId');
-        if (bommelParam) {
-            setBommelIds([Number(bommelParam)]);
-            setPage(0);
+        const statusParam = searchParams.get('status');
+        if (!bommelParam && !statusParam) return;
+
+        const ids = (bommelParam ?? '')
+            .split(',')
+            .map(Number)
+            .filter((id) => Number.isInteger(id) && id > 0);
+        if (ids.length > 0) {
+            setBommelIds(ids);
             setAdvancedOpen(true);
-            searchParams.delete('bommelId');
-            setSearchParams(searchParams, { replace: true });
         }
+        const statuses = (statusParam ?? '').split(',').filter((s): s is TransactionDisplayStatus => STATUS_SEGMENTS.some((seg) => seg.id === s));
+        if (statuses.length > 0) setStatusFilter(statuses);
+
+        setPage(0);
+        searchParams.delete('bommelId');
+        searchParams.delete('status');
+        setSearchParams(searchParams, { replace: true });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 

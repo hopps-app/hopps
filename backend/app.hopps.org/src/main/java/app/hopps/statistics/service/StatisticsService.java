@@ -11,6 +11,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,19 +69,24 @@ public class StatisticsService {
      *            whether to include draft transactions
      * @param aggregate
      *            whether to aggregate statistics from child bommels
+     * @param from
+     *            only transactions on or after this instant, or null
+     * @param until
+     *            only transactions before this instant, or null
      *
      * @return bommel statistics
      */
-    public BommelStatistics getBommelStatistics(long bommelId, boolean includeDrafts, boolean aggregate) {
+    public BommelStatistics getBommelStatistics(long bommelId, boolean includeDrafts, boolean aggregate, Instant from,
+            Instant until) {
         Bommel bommel = bommelRepository.findById(bommelId);
         if (bommel == null) {
             return null;
         }
 
         if (aggregate) {
-            return calculateAggregatedStatistics(bommel, includeDrafts);
+            return calculateAggregatedStatistics(bommel, includeDrafts, from, until);
         } else {
-            return calculateDirectStatistics(bommel, includeDrafts);
+            return calculateDirectStatistics(bommel, includeDrafts, from, until);
         }
     }
 
@@ -93,10 +99,15 @@ public class StatisticsService {
      *            whether to include draft transactions
      * @param aggregate
      *            whether to aggregate statistics from child bommels
+     * @param from
+     *            only transactions on or after this instant, or null
+     * @param until
+     *            only transactions before this instant, or null
      *
      * @return map of bommel statistics
      */
-    public BommelStatisticsMap getAllBommelStatistics(long organizationId, boolean includeDrafts, boolean aggregate) {
+    public BommelStatisticsMap getAllBommelStatistics(long organizationId, boolean includeDrafts, boolean aggregate,
+            Instant from, Instant until) {
         Optional<Bommel> rootBommelOpt = bommelRepository.getRootBommel(organizationId);
         if (rootBommelOpt.isEmpty()) {
             return new BommelStatisticsMap(Map.of(), includeDrafts, aggregate);
@@ -109,27 +120,28 @@ public class StatisticsService {
 
         // Add root bommel statistics
         BommelStatistics rootStats = aggregate
-                ? calculateAggregatedStatistics(rootBommel, includeDrafts)
-                : calculateDirectStatistics(rootBommel, includeDrafts);
+                ? calculateAggregatedStatistics(rootBommel, includeDrafts, from, until)
+                : calculateDirectStatistics(rootBommel, includeDrafts, from, until);
         statisticsMap.put(rootBommel.id, rootStats);
 
         // Calculate statistics for all child bommels
         for (TreeSearchBommel tsb : allBommels) {
             Bommel bommel = tsb.bommel();
             BommelStatistics stats = aggregate
-                    ? calculateAggregatedStatistics(bommel, includeDrafts)
-                    : calculateDirectStatistics(bommel, includeDrafts);
+                    ? calculateAggregatedStatistics(bommel, includeDrafts, from, until)
+                    : calculateDirectStatistics(bommel, includeDrafts, from, until);
             statisticsMap.put(bommel.id, stats);
         }
 
         return new BommelStatisticsMap(statisticsMap, includeDrafts, aggregate);
     }
 
-    private BommelStatistics calculateDirectStatistics(Bommel bommel, boolean includeDrafts) {
-        BigDecimal total = statisticsRepository.sumTotalByBommel(bommel.id, includeDrafts);
-        BigDecimal income = statisticsRepository.sumIncomeByBommel(bommel.id, includeDrafts);
-        BigDecimal expenses = statisticsRepository.sumExpensesByBommel(bommel.id, includeDrafts);
-        int transactionsCount = statisticsRepository.countTransactionsByBommel(bommel.id, includeDrafts);
+    private BommelStatistics calculateDirectStatistics(Bommel bommel, boolean includeDrafts, Instant from,
+            Instant until) {
+        BigDecimal total = statisticsRepository.sumTotalByBommel(bommel.id, includeDrafts, from, until);
+        BigDecimal income = statisticsRepository.sumIncomeByBommel(bommel.id, includeDrafts, from, until);
+        BigDecimal expenses = statisticsRepository.sumExpensesByBommel(bommel.id, includeDrafts, from, until);
+        int transactionsCount = statisticsRepository.countTransactionsByBommel(bommel.id, includeDrafts, from, until);
 
         return new BommelStatistics(
                 bommel.id,
@@ -141,7 +153,8 @@ public class StatisticsService {
                 false);
     }
 
-    private BommelStatistics calculateAggregatedStatistics(Bommel bommel, boolean includeDrafts) {
+    private BommelStatistics calculateAggregatedStatistics(Bommel bommel, boolean includeDrafts, Instant from,
+            Instant until) {
         // Get all child bommel IDs recursively
         List<TreeSearchBommel> children = bommelRepository.getChildrenRecursive(bommel);
         Set<Long> allBommelIds = children.stream()
@@ -155,10 +168,10 @@ public class StatisticsService {
         int totalTransactions = 0;
 
         for (Long id : allBommelIds) {
-            totalAmount = totalAmount.add(statisticsRepository.sumTotalByBommel(id, includeDrafts));
-            totalIncome = totalIncome.add(statisticsRepository.sumIncomeByBommel(id, includeDrafts));
-            totalExpenses = totalExpenses.add(statisticsRepository.sumExpensesByBommel(id, includeDrafts));
-            totalTransactions += statisticsRepository.countTransactionsByBommel(id, includeDrafts);
+            totalAmount = totalAmount.add(statisticsRepository.sumTotalByBommel(id, includeDrafts, from, until));
+            totalIncome = totalIncome.add(statisticsRepository.sumIncomeByBommel(id, includeDrafts, from, until));
+            totalExpenses = totalExpenses.add(statisticsRepository.sumExpensesByBommel(id, includeDrafts, from, until));
+            totalTransactions += statisticsRepository.countTransactionsByBommel(id, includeDrafts, from, until);
         }
 
         return new BommelStatistics(

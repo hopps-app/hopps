@@ -44,6 +44,7 @@ import { useSplitEditor } from '@/components/Receipts/Split/useSplitEditor';
 import { BankMatchSection } from '@/components/Transactions/BankMatchSection';
 import { DirectionCards, Field, errorInputCls, footerBtn, hideWhileEditingCls, inputCls, pickerFocusCls } from '@/components/Transactions/drawerParts';
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
+import { FilterBadge } from '@/components/Transactions/FilterBadge';
 import { HIDE_BOMMEL_QUERY } from '@/components/Transactions/layout';
 import { Badge, type BadgeTone, StatusBadge as TxStatusBadge } from '@/components/Transactions/StatusBadge';
 import { TxIcon } from '@/components/Transactions/TxIcon';
@@ -2177,7 +2178,10 @@ export function BelegeView() {
 
     const { data: allDocs, isLoading, refetch } = useDocuments();
 
-    const docs = (allDocs ?? []) as DocumentResponse[];
+    // Bommel filter, set from the URL (?bommelId=) e.g. by the Bommel detail panel: the chosen Bommel first, then its
+    // sub-Bommel when the panel included them. Empty means every Bommel.
+    const [bommelFilter, setBommelFilter] = useState<number[]>([]);
+    const docs = ((allDocs ?? []) as DocumentResponse[]).filter((d) => bommelFilter.length === 0 || (d.bommelId != null && bommelFilter.includes(d.bommelId)));
 
     const queryClient = useQueryClient();
     const { showWarning, showInfo, showSuccess, showError } = useToast();
@@ -2277,6 +2281,25 @@ export function BelegeView() {
             openDocument(found);
         }
     }, [idParam, allDocs, deepLinkedDoc, openDocument]);
+
+    // ?bommelId= (one id or a comma-separated list) and ?status= (unreviewed / confirmed, comma-separated) pre-filter the
+    // list. Consumed once and cleared from the URL so they don't override later filter changes.
+    useEffect(() => {
+        const bommelParam = searchParams.get('bommelId');
+        const statusParam = searchParams.get('status');
+        if (!bommelParam && !statusParam) return;
+        const ids = (bommelParam ?? '')
+            .split(',')
+            .map(Number)
+            .filter((id) => Number.isInteger(id) && id > 0);
+        if (ids.length > 0) setBommelFilter(ids);
+        const statuses = (statusParam ?? '').split(',').filter((s): s is ReceiptStatus => RECEIPT_STATUS_SEGMENTS.some((seg) => seg.id === s));
+        if (statuses.length > 0) setStatusFilter(statuses);
+        searchParams.delete('bommelId');
+        searchParams.delete('status');
+        setSearchParams(searchParams, { replace: true });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams]);
 
     // ?upload=1 (setup step "Belege hochladen") scrolls to the upload area and outlines it once.
     const uploadZoneRef = useRef<HTMLDivElement>(null);
@@ -2454,6 +2477,15 @@ export function BelegeView() {
                     selected={statusFilter}
                     onToggle={toggleStatus}
                 />
+
+                {bommelFilter.length > 0 && (
+                    <FilterBadge
+                        label={t(bommelFilter.length > 1 ? 'receipts.filter.bommelWithSub' : 'receipts.filter.bommel', {
+                            name: bommelNames.get(bommelFilter[0]) ?? String(bommelFilter[0]),
+                        })}
+                        onRemove={() => setBommelFilter([])}
+                    />
+                )}
 
                 {/* Right side: re-analyze action + search, pushed to the far right, aligned with the tabs. */}
                 <div className="ml-auto flex items-center gap-2">

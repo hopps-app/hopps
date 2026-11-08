@@ -34,10 +34,17 @@ export const documentKeys = {
     detail: (id: number) => [...documentKeys.details(), id] as const,
 };
 
-export function useDocuments(bommelId?: number, enabled = true) {
-    return useQuery({
+/** Query definition behind useDocuments, for prefetching the same cache entry */
+export function documentsQuery(bommelId?: number) {
+    return {
         queryKey: documentKeys.list(bommelId),
         queryFn: () => apiService.orgService.documentsAll(bommelId),
+    };
+}
+
+export function useDocuments(bommelId?: number, enabled = true) {
+    return useQuery({
+        ...documentsQuery(bommelId),
         enabled,
         // While any document is still being analysed, poll so freshly uploaded receipts progress from
         // analyzing → ready live, even if the document-change WebSocket is unavailable. Stops once nothing analyses.
