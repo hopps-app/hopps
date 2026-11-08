@@ -1624,5 +1624,51 @@
             "unignored": "Movimento bancario ripristinato",
             "unignoreError": "Impossibile ripristinare il movimento bancario"
         }
+    },
+    "publicUpload": {
+        "title": "Carica ricevute",
+        "pageTitle": "Carica ricevute per {{name}}",
+        "intro": "Invia le ricevute per questo ambito. Non serve un account.",
+        "takePhoto": "Scatta una foto",
+        "chooseFiles": "Scegli file",
+        "allowedTypes": "PNG, JPEG o PDF, più ricevute alla volta",
+        "dropHint": "oppure trascina qui i file",
+        "dropActive": "Rilascia per aggiungere le ricevute",
+        "removeFile": "Rimuovi file",
+        "name": "Inviato da",
+        "namePlaceholder": "Mario Rossi",
+        "nameRequired": "Indica un nome",
+        "comment": "Commento (facoltativo)",
+        "commentPlaceholder": "ad es. a cosa si riferisce la ricevuta",
+        "privatelyPaid": "Pagato privatamente",
+        "submit_one": "Invia ricevuta",
+        "submit_other": "Invia {{count}} ricevute",
+        "success": {
+            "title": "Grazie!",
+            "text_one": "La ricevuta è stata inviata per {{bommel}}.",
+            "text_other": "{{count}} ricevute sono state inviate per {{bommel}}.",
+            "more": "Carica altre ricevute"
+        },
+        "invalid": {
+            "title": "Link non valido",
+            "text": "Questo link di caricamento non esiste o è stato revocato."
+        },
+        "expired": {
+            "title": "Link scaduto",
+            "text": "Questo link di caricamento non è più valido. Chiedi un nuovo link."
+        },
+        "errors": {
+            "duplicate": "Questa ricevuta è già stata caricata.",
+            "fileType": "Sono ammessi solo PNG, JPEG o PDF.",
+            "tooLarge": "Il file è troppo grande.",
+            "rateLimit": "Troppi caricamenti. Riprova più tardi.",
+            "linkInvalid": "Il link non è più valido.",
+            "generic": "Non è stato possibile caricare la ricevuta. Riprova o contatta chi ha condiviso questo link.",
+            "invalid": "La ricevuta non è stata accettata. Controlla il file e il nome.",
+            "network": "Nessuna connessione al server. Controlla la connessione internet e riprova.",
+            "server": "Qualcosa è andato storto da parte nostra. Riprova tra qualche minuto.",
+            "summary_one": "{{count}} ricevuta non è stata caricata. Usa il pulsante qui sotto per riprovare.",
+            "summary_other": "{{count}} ricevute non sono state caricate. Usa il pulsante qui sotto per riprovare."
+        }
     }
 }

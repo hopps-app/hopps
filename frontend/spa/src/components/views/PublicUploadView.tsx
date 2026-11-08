@@ -11,6 +11,7 @@ import { LoadingState } from '@/components/common/LoadingState';
 import Button from '@/components/ui/Button';
 import Emoji from '@/components/ui/Emoji';
 import { Label } from '@/components/ui/Label';
+import { BaseTextarea } from '@/components/ui/shadecn/BaseTextarea';
 import Switch from '@/components/ui/Switch';
 import TextField from '@/components/ui/TextField';
 import apiService from '@/services/ApiService';
@@ -294,7 +295,6 @@ export function PublicUploadView() {
                             <TextField
                                 label={t('publicUpload.name')}
                                 placeholder={t('publicUpload.namePlaceholder')}
-                                className="placeholder:text-gray-400 dark:placeholder:text-gray-500"
                                 required
                                 value={name}
                                 maxLength={255}
@@ -307,14 +307,13 @@ export function PublicUploadView() {
                             />
                             <div className="grid gap-1.5">
                                 <Label htmlFor="public-upload-comment">{t('publicUpload.comment')}</Label>
-                                <textarea
+                                <BaseTextarea
                                     id="public-upload-comment"
                                     value={comment}
                                     maxLength={2000}
                                     rows={3}
                                     placeholder={t('publicUpload.commentPlaceholder')}
                                     onChange={(e) => setComment(e.target.value)}
-                                    className="w-full rounded-xl border border-[#E0E0E6] bg-white px-3 py-2 text-sm text-gray-800 transition-colors placeholder:text-gray-400 focus:border-[var(--purple-300)] focus:outline-none focus:ring-2 focus:ring-[var(--purple-50)] focus-visible:border-[var(--purple-300)] dark:border-gray-700 dark:bg-[var(--purple-50)] dark:text-gray-100 dark:placeholder:text-gray-500"
                                 />
                             </div>
                             <Switch label={t('publicUpload.privatelyPaid')} checked={privatelyPaid} onCheckedChange={setPrivatelyPaid} />
