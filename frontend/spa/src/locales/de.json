@@ -34,6 +34,7 @@
         },
         "modal": {
             "createTitle": "Neue Kategoriegruppe",
+            "searchValues": "Kategorien durchsuchen",
             "editTitle": "Kategoriegruppe bearbeiten",
             "subtitle": "Name, Pflicht, zugeordnete Bommel und Kategorien festlegen.",
             "name": "Name der Gruppe",
@@ -93,6 +94,9 @@
         "export": "Als Datei exportieren",
         "values": {
             "collection": "Sammlung",
+            "expand": "{{name}} aufklappen",
+            "collapse": "{{name}} zuklappen",
+            "loadingMore": "Weitere Kategorien werden geladen …",
             "collectionHint": "Dient nur als Oberbegriff für Unterkategorien. Gebucht wird auf die Unterkategorien, nicht auf die Sammlung selbst.",
             "hidden": "Ausgeblendet",
             "hiddenHint": "Für neue Buchungen nicht wählbar. Vorhandene Buchungen und Auswertungen bleiben unverändert.",

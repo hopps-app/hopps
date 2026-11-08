@@ -34,6 +34,7 @@
         },
         "modal": {
             "createTitle": "New category group",
+            "searchValues": "Search categories",
             "editTitle": "Edit category group",
             "subtitle": "Set the name, required flag, assigned bommels and categories.",
             "name": "Group name",
@@ -93,6 +94,9 @@
         "export": "Export as file",
         "values": {
             "collection": "Collection",
+            "expand": "Expand {{name}}",
+            "collapse": "Collapse {{name}}",
+            "loadingMore": "Loading more categories …",
             "collectionHint": "Only serves as a heading for subcategories. Bookings go on the subcategories, not on the collection itself.",
             "hidden": "Hidden",
             "hiddenHint": "Can't be picked for new bookings. Existing bookings and reports stay as they are.",

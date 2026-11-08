@@ -6,7 +6,7 @@ import {
     CategoryGroupValueCreateRequest,
     CategoryGroupValueUpdateRequest,
 } from '@hopps/api-client';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { SETUP_PROGRESS_KEY } from '@/components/Dashboard/setupProgressKey';
 import apiService from '@/services/ApiService';
@@ -68,6 +68,28 @@ export function useCategoryGroupValues(groupId: number | undefined, query: strin
         queryKey: categoryGroupKeys.values(groupId ?? 0, query, scope),
         // api-client orders params alphabetically: valuesGET(id, page, query, selection, size, topLevel)
         queryFn: () => apiService.orgService.valuesGET(groupId as number, 0, query || undefined, scope.selection, 50, scope.topLevel),
+        enabled: enabled && !!groupId,
+    });
+}
+
+/** Page size of the group editor's category list */
+const VALUE_PAGE_SIZE = 50;
+
+/**
+ * All categories of a group for the editor, page by page: the next page is loaded on demand (as the list scrolls), so
+ * groups with many categories are complete without loading everything at once. Lives under the same key prefix as the
+ * other queries, so every change to a group refreshes it.
+ */
+export function useCategoryGroupValuesInfinite(groupId: number | undefined, query: string, enabled = true) {
+    return useInfiniteQuery({
+        queryKey: [...categoryGroupKeys.all, 'values-infinite', groupId ?? 0, query] as const,
+        initialPageParam: 0,
+        // api-client orders params alphabetically: valuesGET(id, page, query, selection, size, topLevel)
+        queryFn: ({ pageParam }) => apiService.orgService.valuesGET(groupId as number, pageParam, query || undefined, undefined, VALUE_PAGE_SIZE, undefined),
+        getNextPageParam: (lastPage, pages) => {
+            const loaded = pages.reduce((sum, page) => sum + (page.items?.length ?? 0), 0);
+            return (lastPage.items?.length ?? 0) > 0 && loaded < (lastPage.total ?? 0) ? pages.length : undefined;
+        },
         enabled: enabled && !!groupId,
     });
 }

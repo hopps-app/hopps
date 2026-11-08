@@ -1,6 +1,6 @@
 import { CheckIcon } from '@radix-ui/react-icons';
-import { CornerDownRight, Eye, EyeOff, FolderInput, Layers, Plus, X } from 'lucide-react';
-import { FC, ReactNode, useState } from 'react';
+import { ChevronRight, CornerDownRight, Eye, EyeOff, FolderInput, Layers, Loader2, Plus, X } from 'lucide-react';
+import { FC, ReactNode, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/Command';
@@ -30,6 +30,13 @@ type CategoryValueListProps = {
     parentOptions?: ParentOption[];
     /** The saved group the rows belong to. */
     groupId?: number;
+    /** Open every category with subcategories, e.g. while searching, where the matches are what counts. */
+    expandAll?: boolean;
+    /** More rows exist than are shown; called when the end of the list scrolls into view. */
+    hasMore?: boolean;
+    loadingMore?: boolean;
+    onLoadMore?: () => void;
+    className?: string;
     onMove: (row: CategoryRow, parent: ParentOption | null) => void;
     onToggleBookable: (row: CategoryRow) => void;
     onToggleHidden: (row: CategoryRow) => void;
@@ -37,34 +44,114 @@ type CategoryValueListProps = {
     onRemove: (row: CategoryRow) => void;
 };
 
+/** With more rows than this, categories with subcategories start collapsed, so the list opens as an overview. */
+const COLLAPSE_ABOVE = 30;
+
 const rowButton =
     'grid h-7 w-7 place-items-center rounded-lg text-[var(--ink-faint)] transition-colors hover:bg-[var(--surface-track)] hover:text-[var(--font-color)]';
 
-/** The categories of a group as a two-level list: each one can be moved, hidden, turned into a collection or removed. */
-const CategoryValueList: FC<CategoryValueListProps> = ({ rows, parentOptions, groupId, onMove, onToggleBookable, onToggleHidden, onAddChild, onRemove }) => {
+/**
+ * The categories of a group as a two-level list: each one can be moved, hidden, turned into a collection or removed.
+ * Categories with subcategories fold open and closed. The row actions show on hover or keyboard focus (always on touch
+ * screens), so a long list stays readable. Fills the height it is given and scrolls on its own.
+ */
+const CategoryValueList: FC<CategoryValueListProps> = ({
+    rows,
+    parentOptions,
+    groupId,
+    expandAll,
+    hasMore,
+    loadingMore,
+    onLoadMore,
+    className,
+    onMove,
+    onToggleBookable,
+    onToggleHidden,
+    onAddChild,
+    onRemove,
+}) => {
     const { t } = useTranslation();
+    // Only what the user toggled is stored; everything else follows the default for the list's size
+    const [toggled, setToggled] = useState<Map<string, boolean>>(() => new Map());
+    const startCollapsed = rows.length > COLLAPSE_ABOVE;
+    const isOpen = (value: string) => expandAll || (toggled.get(value) ?? !startCollapsed);
+    const setOpen = (value: string, open: boolean) => setToggled((prev) => new Map(prev).set(value, open));
+
+    // Load the next page once the end of the list comes into view
+    const listRef = useRef<HTMLUListElement>(null);
+    const endRef = useRef<HTMLLIElement>(null);
+    useEffect(() => {
+        const end = endRef.current;
+        if (!hasMore || !onLoadMore || !end) return;
+        const observer = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && onLoadMore(), {
+            root: listRef.current,
+            rootMargin: '120px',
+        });
+        observer.observe(end);
+        return () => observer.disconnect();
+    }, [hasMore, onLoadMore, rows.length]);
+
+    const visible = rows.filter((row) => row.parent == null || isOpen(row.parent));
 
     return (
-        <ul className="flex max-h-64 flex-col gap-0.5 overflow-y-auto rounded-xl border border-[var(--border-soft)] p-1">
-            {rows.map((row) => {
+        <ul
+            ref={listRef}
+            className={cn('flex min-h-0 flex-col gap-0.5 overflow-y-auto overflow-x-hidden rounded-xl border border-[var(--border-soft)] p-1', className)}
+        >
+            {visible.map((row) => {
                 const isChild = row.parent != null;
                 const hidden = row.hidden || row.parentHidden;
+                const foldable = !isChild && row.childCount > 0;
+                const open = foldable && isOpen(row.value);
                 return (
-                    <li key={row.value} className="flex items-center gap-1.5 rounded-lg py-1 pl-2 pr-1 hover:bg-[var(--surface-sunken)]">
-                        {isChild && <CornerDownRight size={14} className="ml-2 shrink-0 text-[var(--ink-faint)]" aria-hidden="true" />}
-                        <span className={cn('min-w-0 flex-1 truncate text-[13.5px] font-semibold text-[var(--font-color)]', hidden && 'opacity-50')}>
+                    <li
+                        key={row.value}
+                        className={cn(
+                            'group flex items-center gap-1.5 rounded-lg py-[3px] pr-1 hover:bg-[var(--surface-sunken)] focus-within:bg-[var(--surface-sunken)]',
+                            isChild ? 'pl-7' : 'pl-1'
+                        )}
+                    >
+                        {isChild ? (
+                            <CornerDownRight size={14} className="shrink-0 text-[var(--ink-faint)]" aria-hidden="true" />
+                        ) : foldable ? (
+                            <button
+                                type="button"
+                                className={cn(rowButton, 'h-6 w-6')}
+                                aria-expanded={open}
+                                aria-label={t(open ? 'categoryGroups.values.collapse' : 'categoryGroups.values.expand', { name: row.value })}
+                                onClick={() => setOpen(row.value, !open)}
+                            >
+                                <ChevronRight size={15} className={cn('transition-transform duration-150', open && 'rotate-90')} />
+                            </button>
+                        ) : (
+                            <span className="w-6 shrink-0" aria-hidden="true" />
+                        )}
+                        <span
+                            className={cn(
+                                'min-w-0 flex-1 truncate text-[13.5px] text-[var(--font-color)]',
+                                isChild ? 'font-semibold' : 'font-bold',
+                                hidden && 'opacity-50'
+                            )}
+                            title={row.value}
+                        >
                             {row.value}
+                            {foldable && <span className="ml-1.5 text-[12px] font-semibold text-[var(--ink-faint)]">{row.childCount}</span>}
                         </span>
                         {!row.bookable && <Badge hint={t('categoryGroups.values.collectionHint')}>{t('categoryGroups.values.collection')}</Badge>}
                         {hidden && <Badge hint={t('categoryGroups.values.hiddenHint')}>{t('categoryGroups.values.hidden')}</Badge>}
 
-                        <div className="flex shrink-0 items-center">
+                        {/* Out of the way until the row is hovered or focused; touch screens have no hover, so there they stay */}
+                        <div className="flex shrink-0 items-center opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100">
                             {!isChild && (
                                 <button
                                     type="button"
                                     className={rowButton}
                                     aria-label={t('categoryGroups.values.addChild', { name: row.value })}
-                                    onClick={() => onAddChild(row)}
+                                    title={t('categoryGroups.values.addChild', { name: row.value })}
+                                    onClick={() => {
+                                        if (foldable) setOpen(row.value, true);
+                                        onAddChild(row);
+                                    }}
                                 >
                                     <Plus size={15} />
                                 </button>
@@ -108,6 +195,12 @@ const CategoryValueList: FC<CategoryValueListProps> = ({ rows, parentOptions, gr
                     </li>
                 );
             })}
+            {hasMore && (
+                <li ref={endRef} className="flex items-center justify-center gap-2 py-2 text-[12.5px] font-semibold text-[var(--ink-faint)]">
+                    {loadingMore && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
+                    {t('categoryGroups.values.loadingMore')}
+                </li>
+            )}
         </ul>
     );
 };

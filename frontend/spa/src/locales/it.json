@@ -34,6 +34,7 @@
         },
         "modal": {
             "createTitle": "Nuovo gruppo di categorie",
+            "searchValues": "Cerca categorie",
             "editTitle": "Modifica gruppo di categorie",
             "subtitle": "Imposta nome, obbligatorietà, bommel assegnati e categorie.",
             "name": "Nome del gruppo",
