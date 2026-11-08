@@ -35,7 +35,8 @@ export default function AuthLayout() {
                 >
                     <main className="flex-1 min-h-0 overflow-auto">
                         <div className="flex h-full flex-col">
-                            <div className="flex-1 p-4 sm:p-7 sm:pb-5">
+                            {/* Below sm the fixed menu button (top-4, h-10) sits over the page, so the content starts under it */}
+                            <div className="flex-1 p-4 pt-[72px] sm:p-7 sm:pb-5">
                                 <ErrorBoundary key={location.pathname}>
                                     <Outlet />
                                 </ErrorBoundary>

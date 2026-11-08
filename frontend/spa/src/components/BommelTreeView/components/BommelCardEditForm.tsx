@@ -21,11 +21,11 @@ export function BommelCardEditForm({ name, emoji, onNameChange, onEmojiChange, o
     const validate = (): boolean => {
         const error = validateBommelName(name);
         if (error === 'required') {
-            setValidationError(t('organization.structure.validation.nameRequired'));
+            setValidationError(t('bommel.validation.nameRequired'));
             return false;
         }
         if (error === 'maxLength') {
-            setValidationError(t('organization.structure.validation.nameMaxLength'));
+            setValidationError(t('bommel.validation.nameMaxLength'));
             return false;
         }
         setValidationError(null);
@@ -91,7 +91,7 @@ export function BommelCardEditForm({ name, emoji, onNameChange, onEmojiChange, o
                     className={`flex-1 min-w-0 h-8 bg-white dark:bg-[var(--purple-50)] text-gray-700 dark:text-gray-100 text-sm font-semibold px-2 py-1 rounded border-2 outline-none ${
                         validationError ? 'border-red-500' : 'border-purple-500'
                     }`}
-                    aria-label={t('organization.structure.editName')}
+                    aria-label={t('bommel.editName')}
                     aria-invalid={!!validationError}
                     aria-describedby={validationError ? 'bommel-name-error' : undefined}
                     aria-required="true"

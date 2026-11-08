@@ -10,6 +10,7 @@ import { ProfileSkeleton } from '@/components/Profile/ProfileSkeleton';
 import { ReceiptsSkeleton } from '@/components/Receipts/ReceiptsSkeleton';
 import { ReportsSkeleton } from '@/components/Reports/ReportsSkeleton';
 import { TransactionsSkeleton } from '@/components/Transactions/TransactionsSkeleton';
+import { BommelSkeleton } from '@/components/views/Bommel/components/BommelSkeleton';
 import HomeView from '@/components/views/HomeView';
 import NotFoundView from '@/components/views/NotFoundView';
 import AuthGuard from '@/guards/AuthGuard';
@@ -25,7 +26,7 @@ const RegisterOrganizationView = lazy(() =>
     import('@/components/views/RegisterOrganizationView').then((module) => ({ default: module.RegisterOrganizationView }))
 );
 const DashboardView = lazy(() => import('@/components/views/DashboardView'));
-const OrganizationSettingsView = lazy(() => import('./components/views/OrganizationSettings').then((module) => ({ default: module.OrganizationSettingsView })));
+const BommelView = lazy(() => import('./components/views/Bommel').then((module) => ({ default: module.BommelView })));
 const ProfileSettingsView = lazy(() => import('./components/views/ProfileSettingsView'));
 const CategoryGroupsView = lazy(() => import('./components/views/CategoryGroupsView'));
 const OrganizationDetailsSettingsView = lazy(() => import('./components/views/OrganizationDetailsSettingsView'));
@@ -116,8 +117,8 @@ export default function AppRoutes() {
                 <Route
                     path="/structure"
                     element={
-                        <LazyRoute>
-                            <OrganizationSettingsView />
+                        <LazyRoute fallback={<BommelSkeleton />}>
+                            <BommelView />
                         </LazyRoute>
                     }
                 />
