@@ -45,7 +45,14 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
     const { t } = useTranslation();
     const { format, symbol } = useCurrency();
     const navigate = useNavigate();
-    const { data: tx, isLoading } = useTransaction(txId ?? 0);
+    const { data: tx, isLoading, isError } = useTransaction(txId ?? 0);
+    // The id may come from the URL (reload, shared link) and point to a transaction that is gone: close instead of
+    // showing the skeleton forever.
+    useEffect(() => {
+        if (isError) onClose();
+        // onClose is a new function on every render of the parent.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isError]);
     // The receipt linked to this transaction (if any) — shown as a large preview to the left of the drawer,
     // mirroring the receipt detail view. Fetching is gated on documentId (the hook no-ops when it's undefined).
     const { data: linkedDoc, refetch: refetchLinkedDoc } = useDocument(tx?.documentId ?? undefined);

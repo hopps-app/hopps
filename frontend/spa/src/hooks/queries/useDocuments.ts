@@ -8,6 +8,7 @@ import {
 } from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import i18n from 'i18next';
+import { useCallback } from 'react';
 
 import { SETUP_PROGRESS_KEY } from '@/components/Dashboard/setupProgressKey';
 import { toast } from '@/hooks/use-toast';
@@ -93,6 +94,40 @@ export function useUploadDocument({ toastErrors = true }: { toastErrors?: boolea
 }
 
 /**
+ * The stored file of a document. Kept apart from documentKeys.all, so the many document invalidations don't download
+ * the file again; it only changes when it is re-uploaded (useReuploadDocumentFile).
+ */
+export const documentFileKey = (id: number) => ['documentFile', id] as const;
+
+const documentFileQuery = (id: number) => ({
+    queryKey: documentFileKey(id),
+    queryFn: async () => (await apiService.orgService.fileGET(id)).data,
+    staleTime: Infinity,
+});
+
+/** A document's file as a blob, cached so reopening a receipt or transaction doesn't download it again. */
+export function useDocumentFile(id: number | undefined) {
+    return useQuery({
+        ...documentFileQuery(id ?? 0),
+        enabled: !!id,
+        // The preview shows its own error and "file missing" states.
+        meta: { skipGlobalErrorHandler: true },
+    });
+}
+
+/** Loads a document and its file ahead of time (e.g. when hovering a list row), so its preview opens without waiting. */
+export function usePrefetchDocument() {
+    const queryClient = useQueryClient();
+    return useCallback(
+        (id: number) => {
+            queryClient.prefetchQuery({ queryKey: documentKeys.detail(id), queryFn: () => apiService.orgService.documentsGET(id) });
+            queryClient.prefetchQuery(documentFileQuery(id));
+        },
+        [queryClient]
+    );
+}
+
+/**
  * Replaces the file of an existing document (keeping its ID and links) and re-triggers analysis — used to restore a
  * receipt whose file is no longer available in storage.
  */
@@ -104,6 +139,7 @@ export function useReuploadDocumentFile() {
         onSuccess: (_data, vars) => {
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
             queryClient.invalidateQueries({ queryKey: documentKeys.detail(vars.id) });
+            queryClient.invalidateQueries({ queryKey: documentFileKey(vars.id) });
         },
     });
 }

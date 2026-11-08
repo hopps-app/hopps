@@ -4,9 +4,8 @@ import { useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 
-import { useReuploadDocumentFile } from '@/hooks/queries/useDocuments';
+import { useDocumentFile, useReuploadDocumentFile } from '@/hooks/queries/useDocuments';
 import { cn } from '@/lib/utils';
-import apiService from '@/services/ApiService';
 
 /**
  * Large preview of a document's file (PDF or image) for the receipt detail view. The file is fetched as a blob through
@@ -16,9 +15,9 @@ import apiService from '@/services/ApiService';
 export function DocumentFilePreview({ doc, onClose }: { doc: DocumentResponse; onClose?: () => void }) {
     const { t } = useTranslation();
     const [url, setUrl] = useState<string | null>(null);
-    const [state, setState] = useState<'loading' | 'ready' | 'error' | 'missing'>('loading');
     const [zoomed, setZoomed] = useState(false);
-    const [reloadKey, setReloadKey] = useState(0);
+    // Cached per document, so reopening the same receipt (or its transaction) shows it without downloading it again.
+    const { data: blob, error, isError } = useDocumentFile(doc.id);
 
     const isImage = doc.fileContentType?.startsWith('image/') ?? false;
     const isPdf = doc.fileContentType === 'application/pdf';
@@ -29,8 +28,8 @@ export function DocumentFilePreview({ doc, onClose }: { doc: DocumentResponse; o
         onDrop: async (acceptedFiles) => {
             const file = acceptedFiles[0];
             if (!file || !doc.id) return;
+            // Invalidates the cached file, which loads the freshly uploaded one.
             await reupload.mutateAsync({ id: doc.id, file });
-            setReloadKey((k) => k + 1); // re-fetch the freshly uploaded file
         },
         multiple: false,
         accept: { 'application/pdf': ['.pdf'], 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'] },
@@ -38,37 +37,30 @@ export function DocumentFilePreview({ doc, onClose }: { doc: DocumentResponse; o
     });
 
     useEffect(() => {
-        let objectUrl: string | null = null;
-        let cancelled = false;
-        setState('loading');
         setZoomed(false);
+    }, [doc.id]);
 
-        if (!doc.id) {
-            setState('error');
-            return;
-        }
-
-        apiService.orgService
-            .fileGET(doc.id)
-            .then((res) => {
-                if (cancelled) return;
-                objectUrl = URL.createObjectURL(res.data);
-                setUrl(objectUrl);
-                setState('ready');
-            })
-            .catch((err: unknown) => {
-                if (cancelled) return;
-                const status = (err as { status?: number } | undefined)?.status;
-                // 404 = the DB record exists but the stored file is gone (e.g. local storage was reset).
-                setState(status === 404 ? 'missing' : 'error');
-            });
-
+    // One object URL per blob, released when the blob changes or the preview closes.
+    useEffect(() => {
+        if (!blob) return;
+        const objectUrl = URL.createObjectURL(blob);
+        setUrl(objectUrl);
         return () => {
-            cancelled = true;
-            if (objectUrl) URL.revokeObjectURL(objectUrl);
+            URL.revokeObjectURL(objectUrl);
             setUrl(null);
         };
-    }, [doc.id, reloadKey]);
+    }, [blob]);
+
+    // 404 = the DB record exists but the stored file is gone (e.g. local storage was reset).
+    const state: 'loading' | 'ready' | 'error' | 'missing' = !doc.id
+        ? 'error'
+        : isError
+          ? (error as { status?: number } | null)?.status === 404
+              ? 'missing'
+              : 'error'
+          : blob && url
+            ? 'ready'
+            : 'loading';
 
     const iconBtn =
         'w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-[var(--surface-track)] transition-colors';
