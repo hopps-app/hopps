@@ -3,10 +3,10 @@ import { useMemo } from 'react';
 
 import { TreeNodeData } from '../types';
 
-import { OrganizationTreeNodeModel } from '@/components/OrganizationStructureTree/OrganizationTreeNodeModel';
+import { BommelTreeNodeModel } from '@/components/BommelTreeView/BommelTreeNodeModel';
 
 interface UseTreeDataOptions {
-    tree: OrganizationTreeNodeModel[];
+    tree: BommelTreeNodeModel[];
     rootBommel?: Bommel | null;
 }
 
@@ -25,10 +25,10 @@ export function useTreeData({ tree, rootBommel }: UseTreeDataOptions): TreeNodeD
         // Resolve the actual root bommel ID (parent=0 in tree model maps to root bommel in DB)
         const actualRootId = (rootBommel?.id || rootNode?.id || 0) as number;
 
-        const buildTreeNode = (nodes: OrganizationTreeNodeModel[], parentId: string | number = 0): TreeNodeData[] => {
+        const buildTreeNode = (nodes: BommelTreeNodeModel[], parentId: string | number = 0): TreeNodeData[] => {
             const filteredNodes = nodes.filter((node) => node.parent === parentId);
 
-            return filteredNodes.map((node, index) => {
+            return filteredNodes.map((node) => {
                 const children = buildTreeNode(nodes, node.id);
                 return {
                     name: node.text || 'Unnamed',
@@ -40,7 +40,6 @@ export function useTreeData({ tree, rootBommel }: UseTreeDataOptions): TreeNodeD
                         income: node.data?.income || 0,
                         expenses: node.data?.expenses || 0,
                         transactionsCount: node.data?.transactionsCount || 0,
-                        isLastSibling: index === filteredNodes.length - 1,
                         parentId: parentId === 0 ? actualRootId : (parentId as number),
                     },
                     children: children.length > 0 ? children : undefined,

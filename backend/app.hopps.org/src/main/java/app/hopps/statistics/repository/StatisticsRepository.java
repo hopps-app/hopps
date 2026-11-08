@@ -6,6 +6,7 @@ import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,10 +50,14 @@ public class StatisticsRepository implements PanacheRepository<Transaction> {
      *            the bommel ID
      * @param includeDrafts
      *            whether to include draft transactions
+     * @param from
+     *            only transactions on or after this instant, or null for no lower bound
+     * @param until
+     *            only transactions before this instant, or null for no upper bound
      *
      * @return sum of totals, or ZERO if none found
      */
-    public BigDecimal sumTotalByBommel(long bommelId, boolean includeDrafts) {
+    public BigDecimal sumTotalByBommel(long bommelId, boolean includeDrafts, Instant from, Instant until) {
         StringBuilder query = new StringBuilder("SELECT COALESCE(SUM(t.total), 0) FROM Transaction t " +
                 "WHERE t.bommel.id = :bommelId AND t.total IS NOT NULL");
 
@@ -63,6 +68,8 @@ public class StatisticsRepository implements PanacheRepository<Transaction> {
             query.append(" AND t.status = :status");
             params.put("status", TransactionStatus.CONFIRMED);
         }
+
+        appendRange(query, params, from, until);
 
         var typedQuery = getEntityManager().createQuery(query.toString(), BigDecimal.class);
         for (Map.Entry<String, Object> entry : params.entrySet()) {
@@ -109,10 +116,14 @@ public class StatisticsRepository implements PanacheRepository<Transaction> {
      *            the bommel ID
      * @param includeDrafts
      *            whether to include draft transactions
+     * @param from
+     *            only transactions on or after this instant, or null for no lower bound
+     * @param until
+     *            only transactions before this instant, or null for no upper bound
      *
      * @return count of transactions
      */
-    public int countTransactionsByBommel(long bommelId, boolean includeDrafts) {
+    public int countTransactionsByBommel(long bommelId, boolean includeDrafts, Instant from, Instant until) {
         StringBuilder query = new StringBuilder("SELECT COUNT(t) FROM Transaction t " +
                 "WHERE t.bommel.id = :bommelId");
 
@@ -123,6 +134,8 @@ public class StatisticsRepository implements PanacheRepository<Transaction> {
             query.append(" AND t.status = :status");
             params.put("status", TransactionStatus.CONFIRMED);
         }
+
+        appendRange(query, params, from, until);
 
         var typedQuery = getEntityManager().createQuery(query.toString(), Long.class);
         for (Map.Entry<String, Object> entry : params.entrySet()) {
@@ -199,10 +212,14 @@ public class StatisticsRepository implements PanacheRepository<Transaction> {
      *            the bommel ID
      * @param includeDrafts
      *            whether to include draft transactions
+     * @param from
+     *            only transactions on or after this instant, or null for no lower bound
+     * @param until
+     *            only transactions before this instant, or null for no upper bound
      *
      * @return sum of positive totals, or ZERO if none found
      */
-    public BigDecimal sumIncomeByBommel(long bommelId, boolean includeDrafts) {
+    public BigDecimal sumIncomeByBommel(long bommelId, boolean includeDrafts, Instant from, Instant until) {
         StringBuilder query = new StringBuilder("SELECT COALESCE(SUM(t.total), 0) FROM Transaction t " +
                 "WHERE t.bommel.id = :bommelId AND t.total IS NOT NULL AND t.total > 0");
 
@@ -213,6 +230,8 @@ public class StatisticsRepository implements PanacheRepository<Transaction> {
             query.append(" AND t.status = :status");
             params.put("status", TransactionStatus.CONFIRMED);
         }
+
+        appendRange(query, params, from, until);
 
         var typedQuery = getEntityManager().createQuery(query.toString(), BigDecimal.class);
         for (Map.Entry<String, Object> entry : params.entrySet()) {
@@ -229,10 +248,14 @@ public class StatisticsRepository implements PanacheRepository<Transaction> {
      *            the bommel ID
      * @param includeDrafts
      *            whether to include draft transactions
+     * @param from
+     *            only transactions on or after this instant, or null for no lower bound
+     * @param until
+     *            only transactions before this instant, or null for no upper bound
      *
      * @return sum of negative totals (as positive value), or ZERO if none found
      */
-    public BigDecimal sumExpensesByBommel(long bommelId, boolean includeDrafts) {
+    public BigDecimal sumExpensesByBommel(long bommelId, boolean includeDrafts, Instant from, Instant until) {
         StringBuilder query = new StringBuilder("SELECT COALESCE(SUM(ABS(t.total)), 0) FROM Transaction t " +
                 "WHERE t.bommel.id = :bommelId AND t.total IS NOT NULL AND t.total < 0");
 
@@ -244,11 +267,25 @@ public class StatisticsRepository implements PanacheRepository<Transaction> {
             params.put("status", TransactionStatus.CONFIRMED);
         }
 
+        appendRange(query, params, from, until);
+
         var typedQuery = getEntityManager().createQuery(query.toString(), BigDecimal.class);
         for (Map.Entry<String, Object> entry : params.entrySet()) {
             typedQuery.setParameter(entry.getKey(), entry.getValue());
         }
 
         return typedQuery.getSingleResult();
+    }
+
+    /** Restricts a query on {@code t} to a period by the transaction date; a missing bound is open. */
+    private static void appendRange(StringBuilder query, Map<String, Object> params, Instant from, Instant until) {
+        if (from != null) {
+            query.append(" AND t.transactionTime >= :from");
+            params.put("from", from);
+        }
+        if (until != null) {
+            query.append(" AND t.transactionTime < :until");
+            params.put("until", until);
+        }
     }
 }

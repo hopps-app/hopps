@@ -213,89 +213,8 @@
             "confirmPassword": "Conferma password"
         },
         "settings": {
-            "error": "Caricamento della struttura dell'organizzazione non riuscito",
-            "saveError": "Salvataggio dell'impostazione non riuscito",
             "saved": "Impostazioni salvate con successo",
             "structure": "Struttura"
-        },
-        "structure": {
-            "quickSearch": "Ricerca rapida",
-            "edit": "Modifica",
-            "done": "Fatto",
-            "treeView": "Vista ad albero",
-            "tableView": "Vista tabella",
-            "noData": "Nessun dato disponibile",
-            "addItems": "Aggiungi elementi alla struttura della tua organizzazione",
-            "transactionsLabel": "Transazioni",
-            "subBommelsLabel": "Sotto-Bommel",
-            "editName": "Modifica nome",
-            "deleteBommel": "Elimina Bommel",
-            "addChild": "Aggiungi elemento figlio",
-            "saveName": "Salva",
-            "cancelEdit": "Annulla",
-            "validation": {
-                "nameRequired": "Il nome del bommel è obbligatorio",
-                "nameMaxLength": "Il nome non può superare i 255 caratteri"
-            },
-            "editModeHint": "Trascina e rilascia i bommel nella vista tabella, oppure usa il pulsante di spostamento nella vista ad albero",
-            "includeDrafts": "Includi bozze",
-            "aggregate": "Incl. sotto-bommel",
-            "details": {
-                "title": "Dettagli",
-                "selectBommel": "Seleziona un Bommel per vedere i dettagli",
-                "total": "Totale",
-                "income": "Entrate",
-                "expenses": "Uscite",
-                "transactions": "Transazioni",
-                "subBommels": "Sotto-Bommel",
-                "toReceipts": "Alle ricevute",
-                "toTransactions": "Alle transazioni",
-                "hideDetails": "Nascondi dettagli",
-                "showDetails": "Mostra dettagli",
-                "bommelNotFound": "Bommel non trovato",
-                "bommelNotFoundDescription": "Il Bommel che stai cercando non esiste o è stato eliminato.",
-                "backToStructure": "Torna alla struttura"
-            },
-            "deleteDialog": {
-                "title": "Elimina Bommel",
-                "description": "Sei sicuro di voler eliminare '{{name}}'?",
-                "hasTransactionsWarning": "Questo Bommel ha transazioni collegate. Devi scegliere come gestirle.",
-                "hasChildrenWarning": "Questo Bommel ha {{count}} Bommel figlio/i. Verranno eliminati anch'essi; anche le loro transazioni verranno scollegate.",
-                "transactionHandlingLabel": "Come devono essere gestite le transazioni collegate?",
-                "unlinkOption": "Scollega le transazioni",
-                "unlinkDescription": "Transazioni e ricevute vengono mantenute, ma senza Bommel. Le transazioni confermate tornano in bozza.",
-                "reassignOption": "Riassegna a un altro Bommel",
-                "reassignDescription": "Scegli un altro Bommel a cui assegnare queste transazioni",
-                "comingSoon": "(Prossimamente)",
-                "confirm": "Sì, elimina",
-                "cancel": "Annulla"
-            },
-            "moveDialog": {
-                "title": "Sposta Bommel",
-                "description": "Seleziona un nuovo genitore per '{{name}}':",
-                "noTargets": "Nessun Bommel di destinazione valido disponibile",
-                "confirm": "Sposta"
-            },
-            "dragDrop": "Spostabile",
-            "dragDropHint": "I bommel possono ora essere spostati tramite trascinamento",
-            "centerTree": "Centra",
-            "addSibling": "Aggiungi Bommel",
-            "editRoot": "Modifica bommel radice",
-            "rootCannotDelete": "Il bommel radice non può essere eliminato",
-            "toast": {
-                "createSuccess": "Bommel creato con successo",
-                "createError": "Creazione del Bommel non riuscita",
-                "updateSuccess": "Bommel aggiornato con successo",
-                "updateError": "Aggiornamento del Bommel non riuscito",
-                "deleteSuccess": "Bommel eliminato con successo",
-                "deleteError": "Eliminazione del Bommel non riuscita",
-                "moveSuccess": "Bommel spostato con successo",
-                "moveError": "Spostamento del Bommel non riuscito",
-                "createChildSuccess": "Bommel figlio creato con successo",
-                "createChildError": "Creazione del Bommel figlio non riuscita"
-            },
-            "demoMode": "Mostra dati dimostrativi",
-            "demoBanner": "Stai visualizzando dati di esempio a scopo orientativo. Questi dati sono in sola lettura."
         },
         "details": {
             "typeVerein": "Associazione",
@@ -1157,7 +1076,9 @@
         "filter": {
             "all": "Tutte",
             "unreviewed": "Non revisionate",
-            "confirmed": "Confermate"
+            "confirmed": "Confermate",
+            "bommel": "Bommel: {{name}}",
+            "bommelWithSub": "Bommel: {{name}} incl. sotto-Bommel"
         },
         "noResultsOtherStatus_one": "{{count}} giustificativo ha un altro stato.",
         "noResultsOtherStatus_other": "{{count}} giustificativi hanno un altro stato.",
@@ -1223,7 +1144,174 @@
     },
     "bommel": {
         "empty": "Nessun Bommel trovato",
-        "select": "Seleziona Bommel"
+        "select": "Seleziona Bommel",
+        "quickSearch": "Ricerca rapida",
+        "edit": "Modifica",
+        "done": "Fatto",
+        "treeView": "Vista ad albero",
+        "tableView": "Vista tabella",
+        "noData": "Nessun dato disponibile",
+        "addItems": "Aggiungi elementi alla struttura della tua organizzazione",
+        "transactionsLabel": "Transazioni",
+        "subBommelsLabel": "Sotto-Bommel",
+        "editName": "Modifica nome",
+        "deleteBommel": "Elimina Bommel",
+        "addChild": "Aggiungi elemento figlio",
+        "saveName": "Salva",
+        "cancelEdit": "Annulla",
+        "validation": {
+            "nameRequired": "Il nome del bommel è obbligatorio",
+            "nameMaxLength": "Il nome non può superare i 255 caratteri"
+        },
+        "editModeHint": "Modalità modifica: puoi creare, rinominare o eliminare Bommel.",
+        "moveBommel": "Sposta Bommel",
+        "includeDrafts": "Includi bozze",
+        "aggregate": "Incl. sotto-bommel",
+        "details": {
+            "title": "Dettagli",
+            "selectBommel": "Seleziona un Bommel per vedere i dettagli",
+            "total": "Totale",
+            "income": "Entrate",
+            "expenses": "Uscite",
+            "transactions": "Transazioni",
+            "subBommels": "Sotto-Bommel",
+            "toReceipts": "Alle ricevute",
+            "toTransactions": "Alle transazioni",
+            "hideDetails": "Nascondi dettagli",
+            "showDetails": "Mostra dettagli",
+            "bommelNotFound": "Bommel non trovato",
+            "bommelNotFoundDescription": "Il Bommel che stai cercando non esiste o è stato eliminato.",
+            "backToStructure": "Torna alla struttura"
+        },
+        "deleteDialog": {
+            "title": "Eliminare «{{name}}»?",
+            "description": "Questa azione non può essere annullata.",
+            "subBommels_one": "Viene eliminato anche il sotto-Bommel {{names}}.",
+            "subBommels_other": "Vengono eliminati anche {{count}} sotto-Bommel: {{names}}",
+            "andMore_one": "e 1 altro",
+            "andMore_other": "e altri {{count}}",
+            "kept": "{{transactions}} e {{receipts}} restano, ma non sono più assegnati ad alcun Bommel.",
+            "transactions_one": "1 transazione",
+            "transactions_other": "{{count}} transazioni",
+            "receipts_one": "1 ricevuta",
+            "receipts_other": "{{count}} ricevute",
+            "nothingAttached": "Nessuna transazione o ricevuta è assegnata.",
+            "confirm": "Elimina",
+            "reopenedTransactions_one": "1 transazione confermata torna bozza, così puoi assegnarle un nuovo Bommel.",
+            "reopenedTransactions_other": "{{count}} transazioni confermate tornano bozze, così puoi assegnare loro un nuovo Bommel.",
+            "reopenedReceipts_one": "1 ricevuta confermata torna da verificare.",
+            "reopenedReceipts_other": "{{count}} ricevute confermate tornano da verificare."
+        },
+        "moveDialog": {
+            "title": "Sposta Bommel",
+            "description": "Seleziona un nuovo genitore per '{{name}}':",
+            "noTargets": "Nessun Bommel di destinazione valido disponibile",
+            "confirm": "Sposta"
+        },
+        "dragDrop": "Spostabile",
+        "collapse": "Comprimi",
+        "expand": "Espandi",
+        "subBommelCount_one": "{{count}} sotto-Bommel",
+        "subBommelCount_other": "{{count}} sotto-Bommel",
+        "addSibling": "Aggiungi Bommel",
+        "editRoot": "Modifica bommel radice",
+        "rootCannotDelete": "Il bommel radice non può essere eliminato",
+        "toast": {
+            "createSuccess": "Bommel creato con successo",
+            "createError": "Creazione del Bommel non riuscita",
+            "updateSuccess": "Bommel aggiornato con successo",
+            "updateError": "Aggiornamento del Bommel non riuscito",
+            "deleteSuccess": "Bommel eliminato con successo",
+            "deleteError": "Eliminazione del Bommel non riuscita",
+            "moveSuccess": "Bommel spostato con successo",
+            "moveError": "Spostamento del Bommel non riuscito",
+            "createChildSuccess": "Bommel figlio creato con successo",
+            "createChildError": "Creazione del Bommel figlio non riuscita"
+        },
+        "demoMode": "Mostra esempio",
+        "demoModeClose": "Chiudi esempio",
+        "demoBanner": "Struttura di esempio da provare. Modificare e spostare funzionano come nella tua struttura, ma non viene salvato nulla.",
+        "loadError": "Caricamento della struttura dell'organizzazione non riuscito",
+        "saveError": "Salvataggio dell'impostazione non riuscito",
+        "centerTree": "Centra",
+        "zoomIn": "Ingrandisci",
+        "zoomOut": "Riduci",
+        "title": "Bommel",
+        "titleInfoLabel": "Che cos'è un Bommel?",
+        "titleInfo": "Un Bommel è un'area della tua associazione. Qui li vedi tutti con le loro entrate e uscite.",
+        "includeDraftsInfo": "Conta anche le transazioni non ancora confermate. Così vedi come saranno i numeri quando tutte le bozze saranno confermate.",
+        "aggregateInfo": "Ogni Bommel mostra i propri importi più quelli di tutti i Bommel sottostanti. Disattivato, vedi solo ciò che è registrato direttamente su quel Bommel.",
+        "demoModeInfo": "Mostra la struttura di un'associazione di esempio, così vedi come organizzare i tuoi Bommel. Nell'esempio puoi provare tutto: non viene salvato nulla e i tuoi dati restano invariati.",
+        "emptyHint": "La vostra organizzazione è già il Bommel principale. Sotto potete creare delle aree: reparto, progetto o evento.",
+        "dragDropInfo": "Trascina un Bommel su un altro per spostarlo lì. Sui touchscreen trascinalo dalla maniglia a sinistra della scheda.",
+        "panel": {
+            "totalWithSub": "(incl. sotto-Bommel)",
+            "categories": "Gruppi di categorie",
+            "noCategories": "Nessun gruppo di categorie assegnato",
+            "assignCategories": "Assegna in Categorie",
+            "transactions": "Transazioni",
+            "receipts": "Ricevute",
+            "allConfirmed": "Tutte le transazioni confermate",
+            "noUnreviewed": "Nessuna ricevuta da verificare",
+            "showAllCount": "Mostra tutte le {{count}}",
+            "loadError": "Impossibile caricare",
+            "moreValues": "+{{count}} altri",
+            "noValues": "Nessun valore",
+            "openInReceipts": "Apri in Ricevute",
+            "hasReceipt": "Ha una ricevuta",
+            "showAll": "Mostra tutto"
+        },
+        "period": {
+            "label": "Periodo",
+            "info": "Gli importi contano solo le transazioni di questo periodo. Le transazioni e le ricevute aperte nei dettagli mostrano tutto, a prescindere dalla data.",
+            "all": "Tutti gli anni",
+            "custom": "Scegli periodo",
+            "from": "Dal",
+            "to": "Al",
+            "range": "{{from}} al {{to}}",
+            "panelHint": "Importi per {{period}}",
+            "clearRange": "Rimuovi periodo personalizzato"
+        },
+        "panelHint": {
+            "text": "Qui ci sono gli importi di questo Bommel, le transazioni e le ricevute aperte e il link di caricamento per inviare ricevute.",
+            "dismiss": "Ho capito"
+        },
+        "guide": {
+            "label": "Tour guidato",
+            "progress": "Passo {{current}} di {{total}}",
+            "skip": "Salta",
+            "back": "Indietro",
+            "next": "Avanti",
+            "finish": "Fatto",
+            "example": {
+                "title": "L'esempio",
+                "text": "Questa è una struttura di esempio. Ogni riquadro è un Bommel, un ambito dell'associazione come una sezione, un progetto o un evento. Un clic su un Bommel ne apre i dettagli."
+            },
+            "add": {
+                "title": "Aggiungere un Bommel",
+                "text": "Fare clic su Modifica in alto a destra. Poi il più sotto un Bommel aggiunge un sotto-Bommel e un clic sul nome lo rinomina. Nella tua struttura ogni modifica viene salvata subito in automatico, senza un pulsante Salva. Solo qui nell'esempio non viene salvato nulla."
+            },
+            "delete": {
+                "title": "Eliminare un Bommel",
+                "text": "Il cestino di un Bommel lo elimina insieme ai suoi sotto-Bommel. Prima una finestra mostra cosa succede a transazioni e ricevute: restano conservate. Nell'esempio non viene salvato nulla."
+            },
+            "move": {
+                "title": "Spostare un Bommel",
+                "text": "Con l'interruttore Spostabile i Bommel si riordinano con un semplice trascina e rilascia: trascinare un Bommel su un altro e rilasciarlo, e finisce sotto. Nell'esempio non viene salvato nulla."
+            },
+            "sums": {
+                "title": "Come si sommano gli importi",
+                "text": "Con l'interruttore Includi i sotto-Bommel, ogni Bommel mostra i propri importi più quelli di tutti i Bommel sotto di esso. Disattivato, conta solo ciò che è registrato direttamente. Cambiare l'interruttore e confrontare i numeri."
+            },
+            "own": {
+                "title": "Creare la propria struttura",
+                "text": "Ora si passa alla propria struttura:",
+                "step1": "Scegliere Modifica.",
+                "step2": "Aggiungere un ambito al Bommel principale e dargli un nome.",
+                "start": "Crea il primo Bommel"
+            },
+            "start": "Avvia il tour guidato"
+        }
     },
     "bankAccounts": {
         "form": {
@@ -1623,6 +1711,52 @@
             "ignored": "Movimento bancario ignorato",
             "unignored": "Movimento bancario ripristinato",
             "unignoreError": "Impossibile ripristinare il movimento bancario"
+        }
+    },
+    "publicUpload": {
+        "title": "Carica ricevute",
+        "pageTitle": "Carica ricevute per {{name}}",
+        "intro": "Invia le ricevute per questo ambito. Non serve un account.",
+        "takePhoto": "Scatta una foto",
+        "chooseFiles": "Scegli file",
+        "allowedTypes": "PNG, JPEG o PDF, più ricevute alla volta",
+        "dropHint": "oppure trascina qui i file",
+        "dropActive": "Rilascia per aggiungere le ricevute",
+        "removeFile": "Rimuovi file",
+        "name": "Inviato da",
+        "namePlaceholder": "Mario Rossi",
+        "nameRequired": "Indica un nome",
+        "comment": "Commento (facoltativo)",
+        "commentPlaceholder": "ad es. a cosa si riferisce la ricevuta",
+        "privatelyPaid": "Pagato privatamente",
+        "submit_one": "Invia ricevuta",
+        "submit_other": "Invia {{count}} ricevute",
+        "success": {
+            "title": "Grazie!",
+            "text_one": "La ricevuta è stata inviata per {{bommel}}.",
+            "text_other": "{{count}} ricevute sono state inviate per {{bommel}}.",
+            "more": "Carica altre ricevute"
+        },
+        "invalid": {
+            "title": "Link non valido",
+            "text": "Questo link di caricamento non esiste o è stato revocato."
+        },
+        "expired": {
+            "title": "Link scaduto",
+            "text": "Questo link di caricamento non è più valido. Chiedi un nuovo link."
+        },
+        "errors": {
+            "duplicate": "Questa ricevuta è già stata caricata.",
+            "fileType": "Sono ammessi solo PNG, JPEG o PDF.",
+            "tooLarge": "Il file è troppo grande.",
+            "rateLimit": "Troppi caricamenti. Riprova più tardi.",
+            "linkInvalid": "Il link non è più valido.",
+            "generic": "Non è stato possibile caricare la ricevuta. Riprova o contatta chi ha condiviso questo link.",
+            "invalid": "La ricevuta non è stata accettata. Controlla il file e il nome.",
+            "network": "Nessuna connessione al server. Controlla la connessione internet e riprova.",
+            "server": "Qualcosa è andato storto da parte nostra. Riprova tra qualche minuto.",
+            "summary_one": "{{count}} ricevuta non è stata caricata. Usa il pulsante qui sotto per riprovare.",
+            "summary_other": "{{count}} ricevute non sono state caricate. Usa il pulsante qui sotto per riprovare."
         }
     }
 }

@@ -39,7 +39,8 @@ function EmojiField(props: EmojiFieldProps) {
                     <div
                         className={cn(
                             'flex w-full text-xl items-center justify-between whitespace-nowrap ' +
-                                'border border-[#A7A7A7] px-4 py-2 rounded-md outline-none bg-primary-foreground transition-colors' +
+                                // Same surface as the text inputs (BaseInput), so it is not a white box in dark mode
+                                'border border-[#A7A7A7] dark:border-gray-700 px-4 py-2 rounded-md outline-none bg-white dark:bg-[var(--purple-50)] transition-colors ' +
                                 'shadow-sm placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50',
                             props.className
                         )}

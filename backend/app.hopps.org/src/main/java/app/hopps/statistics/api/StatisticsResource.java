@@ -6,6 +6,7 @@ import app.hopps.statistics.api.dto.OrganizationStatistics;
 import app.hopps.statistics.service.StatisticsService;
 import io.quarkus.security.Authenticated;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -20,6 +21,11 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeParseException;
 
 @Path("/statistics")
 @Authenticated
@@ -50,13 +56,18 @@ public class StatisticsResource {
             "and receipt count. Optionally aggregates data from all child bommels.")
     @APIResponse(responseCode = "200", description = "Bommel statistics", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BommelStatistics.class)))
     @APIResponse(responseCode = "401", description = "User not logged in", content = @Content(mediaType = MediaType.TEXT_PLAIN))
+    @APIResponse(responseCode = "400", description = "A date is not in the format yyyy-MM-dd", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "403", description = "User not authorized", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     @APIResponse(responseCode = "404", description = "Bommel not found", content = @Content(mediaType = MediaType.TEXT_PLAIN))
     public BommelStatistics getBommelStatistics(
             @PathParam("bommelId") @Parameter(description = "The bommel ID") long bommelId,
             @QueryParam("includeDrafts") @DefaultValue("false") @Parameter(description = "Whether to include draft transactions in the statistics") boolean includeDrafts,
-            @QueryParam("aggregate") @DefaultValue("false") @Parameter(description = "Whether to aggregate statistics from all child bommels") boolean aggregate) {
-        BommelStatistics stats = statisticsService.getBommelStatistics(bommelId, includeDrafts, aggregate);
+            @QueryParam("aggregate") @DefaultValue("false") @Parameter(description = "Whether to aggregate statistics from all child bommels") boolean aggregate,
+            @QueryParam("startDate") @Parameter(description = "Only transactions on or after this date (yyyy-MM-dd)") String startDate,
+            @QueryParam("endDate") @Parameter(description = "Only transactions up to and including this date (yyyy-MM-dd)") String endDate) {
+        BommelStatistics stats = statisticsService.getBommelStatistics(bommelId, includeDrafts, aggregate,
+                startOf(startDate),
+                endExclusive(endDate));
         if (stats == null) {
             throw new WebApplicationException(
                     Response.status(Response.Status.NOT_FOUND)
@@ -77,7 +88,27 @@ public class StatisticsResource {
     public BommelStatisticsMap getAllBommelStatistics(
             @PathParam("orgId") @Parameter(description = "The organization ID") long orgId,
             @QueryParam("includeDrafts") @DefaultValue("false") @Parameter(description = "Whether to include draft transactions in the statistics") boolean includeDrafts,
-            @QueryParam("aggregate") @DefaultValue("false") @Parameter(description = "Whether to aggregate statistics from all child bommels") boolean aggregate) {
-        return statisticsService.getAllBommelStatistics(orgId, includeDrafts, aggregate);
+            @QueryParam("aggregate") @DefaultValue("false") @Parameter(description = "Whether to aggregate statistics from all child bommels") boolean aggregate,
+            @QueryParam("startDate") @Parameter(description = "Only transactions on or after this date (yyyy-MM-dd)") String startDate,
+            @QueryParam("endDate") @Parameter(description = "Only transactions up to and including this date (yyyy-MM-dd)") String endDate) {
+        return statisticsService.getAllBommelStatistics(orgId, includeDrafts, aggregate, startOf(startDate),
+                endExclusive(endDate));
+    }
+
+    private static Instant startOf(String date) {
+        return date == null || date.isBlank() ? null : parse(date).atStartOfDay(ZoneOffset.UTC).toInstant();
+    }
+
+    /** The end date is inclusive, so the period ends where the next day starts. */
+    private static Instant endExclusive(String date) {
+        return date == null || date.isBlank() ? null : parse(date).plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+    }
+
+    private static LocalDate parse(String date) {
+        try {
+            return LocalDate.parse(date);
+        } catch (DateTimeParseException e) {
+            throw new BadRequestException("Dates must be given as yyyy-MM-dd");
+        }
     }
 }

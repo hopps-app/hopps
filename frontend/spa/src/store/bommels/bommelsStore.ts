@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import organizationTreeService from '@/services/OrganisationTreeService.ts';
+import bommelTreeService from '@/services/BommelTreeService.ts';
 import { BommelActions, BommelsState } from '@/store/bommels/types';
 
 export const useBommelsStore = create<BommelsState & BommelActions>()(
@@ -17,7 +17,7 @@ export const useBommelsStore = create<BommelsState & BommelActions>()(
                 set({ isLoading: true, isError: false, organizationId });
 
                 try {
-                    const fetchedBommels = await organizationTreeService.getOrganizationBommels(organizationId);
+                    const fetchedBommels = await bommelTreeService.getOrganizationBommels(organizationId);
 
                     // First bommel in the list is the root bommel
                     const root = fetchedBommels.length > 0 ? fetchedBommels[0] : null;

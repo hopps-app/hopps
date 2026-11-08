@@ -2,6 +2,7 @@ import { CategoryGroupResponse } from '@hopps/api-client';
 import { FileUp, Lightbulb, Plus } from 'lucide-react';
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 
 import CategoryGroupCard from '@/components/CategoryGroups/CategoryGroupCard';
 import CategoryGroupImportDialog from '@/components/CategoryGroups/CategoryGroupImportDialog';
@@ -16,6 +17,7 @@ import { useCategoryGroups, useCategoryGroupTemplates, useCategoryGroupUsage, us
 import { useEnsureBommels } from '@/hooks/use-ensure-bommels';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
@@ -47,6 +49,22 @@ function CategoryGroupsView() {
     const linkedCount = deleteUsage?.transactionCount ?? 0;
 
     const rootId = useMemo(() => rootBommel(allBommels)?.id, [allBommels]);
+
+    // ?groupId= (a link from the Bommel details): scroll to that group and let it light up. The parameter is dropped
+    // once applied, so a reload does not repeat it.
+    const [searchParams, setSearchParams] = useSearchParams();
+    const linkedGroupId = Number(searchParams.get('groupId')) || null;
+    const [highlightedId, setHighlightedId] = useState<number | null>(null);
+    useEffect(() => {
+        if (!linkedGroupId || isLoading) return;
+        searchParams.delete('groupId');
+        setSearchParams(searchParams, { replace: true });
+        if (!groups.some((g) => g.id === linkedGroupId)) return;
+        setHighlightedId(linkedGroupId);
+        requestAnimationFrame(() =>
+            document.querySelector(`[data-category-group-id="${linkedGroupId}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        );
+    }, [linkedGroupId, isLoading, groups, searchParams, setSearchParams]);
 
     const openCreate = () => {
         setEditing(undefined);
@@ -114,14 +132,21 @@ function CategoryGroupsView() {
 
                     <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(320px,1fr))]">
                         {groups.map((group) => (
-                            <CategoryGroupCard
+                            // A grid of one, so the card still fills the row height
+                            <div
                                 key={group.id}
-                                group={group}
-                                rootId={rootId}
-                                onEdit={() => openEdit(group)}
-                                onExport={() => handleExport(group)}
-                                onDelete={() => setToDelete(group)}
-                            />
+                                data-category-group-id={group.id}
+                                className={cn('grid rounded-[var(--r-card)]', highlightedId === group.id && 'animate-filter-hint')}
+                                onAnimationEnd={() => setHighlightedId(null)}
+                            >
+                                <CategoryGroupCard
+                                    group={group}
+                                    rootId={rootId}
+                                    onEdit={() => openEdit(group)}
+                                    onExport={() => handleExport(group)}
+                                    onDelete={() => setToDelete(group)}
+                                />
+                            </div>
                         ))}
                         <button
                             type="button"
