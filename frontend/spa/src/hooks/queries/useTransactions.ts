@@ -115,10 +115,20 @@ export function transactionAggregateQuery(filters: TransactionFilters = {}) {
 }
 
 export function useTransaction(id: number) {
+    const queryClient = useQueryClient();
     return useQuery({
         queryKey: transactionKeys.detail(id),
         queryFn: () => apiService.orgService.transactionsGET(id),
         enabled: !!id,
+        // The transactions list already holds the same response, so a row opens instantly with it while the detail
+        // request runs in the background.
+        placeholderData: () => {
+            for (const [, page] of queryClient.getQueriesData<TransactionResponse[]>({ queryKey: transactionKeys.lists() })) {
+                const row = page?.find((tx) => tx.id === id);
+                if (row) return row;
+            }
+            return undefined;
+        },
     });
 }
 

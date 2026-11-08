@@ -23,7 +23,7 @@ import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { SortHeader } from '@/components/ui/SortHeader';
 import { StatusSegments } from '@/components/ui/StatusSegments';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
-import { useDeleteDocument } from '@/hooks/queries/useDocuments';
+import { useDeleteDocument, usePrefetchDocument } from '@/hooks/queries/useDocuments';
 import {
     useTransactions,
     useTransactionAggregate,
@@ -83,6 +83,9 @@ function TransactionRow({
     const { t } = useTranslation();
     const { format } = useCurrency();
     const hideBommel = useMediaQuery(HIDE_BOMMEL_QUERY);
+    // The drawer opens with this row's data; the linked receipt and its file are the slow part, so load them on hover.
+    const prefetchDocument = usePrefetchDocument();
+    const documentId = tx.documentId;
     const categoryText = (tx.categoryValues ?? [])
         .map((c) => c.value)
         .filter(Boolean)
@@ -91,7 +94,12 @@ function TransactionRow({
     const incoming = amount >= 0;
 
     return (
-        <DataTableRow columns={hideBommel ? TX_GRID_NARROW : TX_GRID} highlighted={selected || bulkSelected} onClick={onClick}>
+        <DataTableRow
+            columns={hideBommel ? TX_GRID_NARROW : TX_GRID}
+            highlighted={selected || bulkSelected}
+            onClick={onClick}
+            onHoverIntent={documentId != null ? () => prefetchDocument(documentId) : undefined}
+        >
             <RowCheckbox checked={bulkSelected} onToggle={onToggleBulk} ariaLabel={t('transactions.bulk.selectRow')} />
 
             {/* Transaktion */}
