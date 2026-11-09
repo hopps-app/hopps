@@ -1,6 +1,7 @@
 import { CategoryGroupExport, CategoryGroupImportRequest, CategoryGroupResponse, ReopenImpactRequest } from '@hopps/api-client';
-import { FileUp } from 'lucide-react';
-import { ChangeEvent, FC, useEffect, useRef, useState } from 'react';
+import { FileJson, FileUp } from 'lucide-react';
+import { FC, useEffect, useState } from 'react';
+import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 
 import BommelMultiSelector from './BommelMultiSelector';
@@ -9,9 +10,14 @@ import ReopenAffectedTransactionsDialog from './ReopenAffectedTransactionsDialog
 
 import Button from '@/components/ui/Button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
+import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { useImportCategoryGroup } from '@/hooks/queries/useCategoryGroups';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService';
+
+/** Same light purple tile as the icons of the receipt upload */
+const ICON_TILE = 'bg-[var(--accent-surface)] dark:bg-[var(--accent-surface-strong)]';
 
 type CategoryGroupImportDialogProps = {
     open: boolean;
@@ -27,7 +33,6 @@ type CategoryGroupImportDialogProps = {
 const CategoryGroupImportDialog: FC<CategoryGroupImportDialogProps> = ({ open, groups, onClose, onImported }) => {
     const { t } = useTranslation();
     const { showSuccess, showError } = useToast();
-    const inputRef = useRef<HTMLInputElement>(null);
     const importMutation = useImportCategoryGroup();
 
     const [file, setFile] = useState<CategoryGroupExport | null>(null);
@@ -48,9 +53,7 @@ const CategoryGroupImportDialog: FC<CategoryGroupImportDialogProps> = ({ open, g
     const existing = file?.sourceKey ? groups.find((g) => g.sourceKey === file.sourceKey) : undefined;
     const canImport = file != null && (existing != null || bommelIds.length > 0) && !importMutation.isPending;
 
-    const handleFile = async (e: ChangeEvent<HTMLInputElement>) => {
-        const selected = e.target.files?.[0];
-        e.target.value = '';
+    const readFile = async (selected: File | undefined) => {
         if (!selected) {
             return;
         }
@@ -58,6 +61,17 @@ const CategoryGroupImportDialog: FC<CategoryGroupImportDialogProps> = ({ open, g
         setFile(parsed);
         setInvalid(parsed == null);
     };
+
+    // Dropped or chosen, like the receipt upload. Anything that is not a single .json file is rejected right away.
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        accept: { 'application/json': ['.json'] },
+        multiple: false,
+        onDropAccepted: (files) => readFile(files[0]),
+        onDropRejected: () => {
+            setFile(null);
+            setInvalid(true);
+        },
+    });
 
     const doImport = async (reopenAffectedTransactions: boolean) => {
         if (!file) {
@@ -104,29 +118,68 @@ const CategoryGroupImportDialog: FC<CategoryGroupImportDialogProps> = ({ open, g
                     </DialogHeader>
 
                     <div className="mt-5 flex flex-col gap-4">
-                        <input
-                            ref={inputRef}
-                            type="file"
-                            accept=".json,application/json"
-                            className="hidden"
-                            aria-label={t('categoryGroups.import.chooseFile')}
-                            onChange={handleFile}
-                        />
-                        <Button variant="outline" size="sm" className="h-10 self-start" onClick={() => inputRef.current?.click()}>
-                            <FileUp />
-                            {t('categoryGroups.import.chooseFile')}
-                        </Button>
-
-                        {invalid && <p className="text-[13px] font-semibold text-[var(--negative)]">{t('categoryGroups.import.invalidFile')}</p>}
-
-                        {file && (
-                            <div className="rounded-xl border border-[var(--border-soft)] px-4 py-3">
-                                <div className="text-[14.5px] font-extrabold text-[var(--font-color)]">{file.name}</div>
-                                <div className="mt-0.5 text-[13px] text-[var(--muted)]">
-                                    {t('categoryGroups.card.valueCount', { count: file.values?.length ?? 0 })}
+                        {file ? (
+                            // The chosen file; dropping or choosing another one here replaces it
+                            <div
+                                {...getRootProps()}
+                                className={cn(
+                                    'flex cursor-pointer items-center gap-3 rounded-[14px] border-2 border-dashed py-2.5 pl-3.5 pr-3 transition-all',
+                                    isDragActive
+                                        ? 'border-primary bg-[var(--accent-surface)]'
+                                        : 'border-border-soft hover:border-[var(--purple-300)] hover:bg-[var(--surface-sunken)]'
+                                )}
+                            >
+                                <input {...getInputProps()} aria-label={t('categoryGroups.import.chooseFile')} />
+                                <span className={cn('flex h-[34px] w-[34px] flex-shrink-0 items-center justify-center rounded-[10px]', ICON_TILE)}>
+                                    <FileJson size={17} className="text-purple-700" />
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                    {isDragActive ? (
+                                        <span className="block truncate text-[14px] font-bold text-foreground">
+                                            {t('categoryGroups.import.dropzoneActive')}
+                                        </span>
+                                    ) : (
+                                        <>
+                                            <span className="block truncate text-[14.5px] font-extrabold text-[var(--font-color)]">{file.name}</span>
+                                            <span className="block text-[13px] text-[var(--muted)]">
+                                                {t('categoryGroups.card.valueCount', { count: file.values?.length ?? 0 })}
+                                            </span>
+                                        </>
+                                    )}
+                                </span>
+                                <BaseButton type="button" variant="tonal" size="sm" className="font-bold">
+                                    {t('categoryGroups.import.replaceFile')}
+                                </BaseButton>
+                            </div>
+                        ) : (
+                            <div
+                                {...getRootProps()}
+                                className={cn(
+                                    'flex cursor-pointer flex-col items-center justify-center gap-3 rounded-[14px] border-2 border-dashed px-6 py-8 transition-all',
+                                    isDragActive
+                                        ? 'border-primary bg-[var(--accent-surface)]'
+                                        : 'border-border-soft hover:border-[var(--purple-300)] hover:bg-[var(--surface-sunken)]'
+                                )}
+                            >
+                                <input {...getInputProps()} aria-label={t('categoryGroups.import.chooseFile')} />
+                                <div
+                                    className={cn(
+                                        'flex h-14 w-14 items-center justify-center rounded-full',
+                                        isDragActive ? 'bg-[var(--accent-surface-strong)]' : ICON_TILE
+                                    )}
+                                >
+                                    <FileUp size={26} className="text-purple-700" />
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-[15px] font-bold text-foreground">
+                                        {isDragActive ? t('categoryGroups.import.dropzoneActive') : t('categoryGroups.import.dropzone')}
+                                    </p>
+                                    <p className="mt-1 text-[13px] text-[var(--ink-faint)]">{t('categoryGroups.import.dropzoneHint')}</p>
                                 </div>
                             </div>
                         )}
+
+                        {invalid && <p className="text-[13px] font-semibold text-[var(--negative)]">{t('categoryGroups.import.invalidFile')}</p>}
 
                         {file && existing && (
                             <p className="text-[13.5px] text-[var(--muted)]">{t('categoryGroups.import.extendsExisting', { group: existing.name ?? '' })}</p>

@@ -23,7 +23,9 @@
             "values": "Kategorien",
             "addValue": "Kategorie",
             "valueCount_one": "{{count}} Kategorie",
-            "valueCount_other": "{{count}} Kategorien"
+            "valueCount_other": "{{count}} Kategorien",
+            "subCount_one": "{{count}} Unterkategorie",
+            "subCount_other": "{{count}} Unterkategorien"
         },
         "delete": {
             "title": "Kategoriegruppe löschen",
@@ -34,6 +36,7 @@
         },
         "modal": {
             "createTitle": "Neue Kategoriegruppe",
+            "searchValues": "Kategorien durchsuchen",
             "editTitle": "Kategoriegruppe bearbeiten",
             "subtitle": "Name, Pflicht, zugeordnete Bommel und Kategorien festlegen.",
             "name": "Name der Gruppe",
@@ -93,6 +96,9 @@
         "export": "Als Datei exportieren",
         "values": {
             "collection": "Sammlung",
+            "expand": "{{name}} aufklappen",
+            "collapse": "{{name}} zuklappen",
+            "loadingMore": "Weitere Kategorien werden geladen …",
             "collectionHint": "Dient nur als Oberbegriff für Unterkategorien. Gebucht wird auf die Unterkategorien, nicht auf die Sammlung selbst.",
             "hidden": "Ausgeblendet",
             "hiddenHint": "Für neue Buchungen nicht wählbar. Vorhandene Buchungen und Auswertungen bleiben unverändert.",
@@ -110,6 +116,10 @@
             "title": "Kategoriegruppe importieren",
             "subtitle": "Eine exportierte Datei übernehmen. Danach lässt sich die Gruppe frei anpassen.",
             "chooseFile": "Datei auswählen",
+            "dropzone": "Datei hier ablegen oder klicken zum Auswählen",
+            "dropzoneActive": "Loslassen zum Übernehmen",
+            "dropzoneHint": "Exportdatei einer Kategoriegruppe (.json)",
+            "replaceFile": "Andere Datei",
             "invalidFile": "Diese Datei lässt sich nicht importieren.",
             "extendsExisting": "Diese Vorgabe gibt es bereits als „{{group}}“. Neue Kategorien werden ergänzt, vorhandene bleiben unverändert.",
             "submit": "Importieren",

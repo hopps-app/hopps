@@ -9,7 +9,7 @@ import {
     ReopenImpactRequest,
     ApiException,
 } from '@hopps/api-client';
-import { Check, CornerDownRight, Plus, X } from 'lucide-react';
+import { Check, CornerDownRight, Plus, Search, X } from 'lucide-react';
 import { FC, ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -27,7 +27,7 @@ import { BaseSwitch } from '@/components/ui/shadecn/BaseSwitch';
 import {
     useAddCategoryGroupValues,
     useCategoryGroupTemplates,
-    useCategoryGroupValues,
+    useCategoryGroupValuesInfinite,
     useCreateCategoryGroup,
     useDeleteCategoryGroupValue,
     useUpdateCategoryGroup,
@@ -49,7 +49,7 @@ type CategoryGroupModalProps = {
 /** "No template" entry of the template select; template ids are always positive. */
 const NO_TEMPLATE = '0';
 
-/** Above this many values (edit mode) a search field helps find a value among the chips. */
+/** Above this many categories a search field helps to find one. */
 const VALUE_SEARCH_THRESHOLD = 8;
 
 const CategoryGroupModal: FC<CategoryGroupModalProps> = ({ open, group, template, onClose, onSaved }) => {
@@ -81,8 +81,9 @@ const CategoryGroupModal: FC<CategoryGroupModalProps> = ({ open, group, template
     const { data: templates = [] } = useCategoryGroupTemplates();
     const showTemplateSelect = isCreate && !fromSetupTemplate && templates.length > 0;
 
-    // Existing values (edit mode) are loaded/searched from the server so the editor scales to large value sets.
-    const { data: serverValues } = useCategoryGroupValues(group?.id, valueQuery, !isCreate && open);
+    // Existing values (edit mode) are loaded and searched on the server, page by page as the list scrolls, so the editor
+    // stays complete and quick for groups with many categories.
+    const { data: serverValues, fetchNextPage, hasNextPage, isFetchingNextPage } = useCategoryGroupValuesInfinite(group?.id, valueQuery, !isCreate && open);
 
     const applyTemplate = (tpl: CategoryGroupTemplateDetail | undefined) => {
         setTemplateId(tpl?.id);
@@ -222,8 +223,14 @@ const CategoryGroupModal: FC<CategoryGroupModalProps> = ({ open, group, template
           : t('categoryGroups.modal.editTitle');
     const subtitle = fromSetupTemplate ? t('categoryGroups.modal.templateSubtitle') : t('categoryGroups.modal.subtitle');
 
-    const serverItems = serverValues?.items ?? [];
-    const orderedPending = inTreeOrder(pendingValues);
+    const serverItems = serverValues?.pages.flatMap((page) => page.items ?? []) ?? [];
+    const serverTotal = serverValues?.pages[0]?.total ?? 0;
+    // A new group is searched here: a match keeps its parent, so it still shows where it belongs
+    const pendingQuery = valueQuery.trim().toLowerCase();
+    const pendingMatches = (v: PendingCategory) => v.value.toLowerCase().includes(pendingQuery);
+    const orderedPending = inTreeOrder(pendingValues).filter(
+        (v) => !pendingQuery || pendingMatches(v) || pendingValues.some((c) => c.parent === v.value && pendingMatches(c))
+    );
     const valueRows: CategoryRow[] = isCreate
         ? orderedPending.map((v) => ({ ...v, parentHidden: false, childCount: pendingValues.filter((c) => c.parent === v.value).length }))
         : serverItems.map((item) => ({
@@ -234,52 +241,95 @@ const CategoryGroupModal: FC<CategoryGroupModalProps> = ({ open, group, template
               parentHidden: item.parentHidden ?? false,
               childCount: item.childCount ?? 0,
           }));
+    // All categories of the group, whatever the search shows
+    const categoryCount = isCreate ? pendingValues.length : valueQuery.trim() ? (group?.valueCount ?? serverTotal) : serverTotal;
+    const showSearch = categoryCount > VALUE_SEARCH_THRESHOLD || valueQuery.length > 0;
     const serverItem = (row: CategoryRow) => serverItems.find((item) => item.value === row.value) as CategoryGroupValueResponse;
 
     return (
         <>
             <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-                <DialogContent className="max-h-[86vh] max-w-[620px] gap-0 overflow-y-auto rounded-[20px] border-none px-7 py-[26px] shadow-[var(--shadow-lg)]">
-                    <DialogHeader className="pr-10">
+                {/* Header and footer across the full width; between them the settings on the left and the categories on the
+                    right, over the whole height. Only the category list scrolls, so long lists get the room and the buttons
+                    stay in view. Below md everything is one column that scrolls as a whole. */}
+                <DialogContent className="flex max-h-[90vh] max-w-[1040px] flex-col gap-0 overflow-hidden rounded-[20px] border-none p-0 shadow-[var(--shadow-lg)] md:h-[min(860px,90vh)]">
+                    <DialogHeader className="shrink-0 px-7 pr-16 pt-[26px]">
                         <DialogTitle className="text-[21px] font-extrabold leading-tight">{title}</DialogTitle>
                         <DialogDescription className="text-sm text-[var(--muted)]">{subtitle}</DialogDescription>
                     </DialogHeader>
 
-                    <div className="mt-5 flex flex-col gap-5">
-                        {showTemplateSelect && (
-                            <Select
-                                label={t('categoryGroups.modal.fromTemplate')}
-                                value={templateId != null ? String(templateId) : NO_TEMPLATE}
-                                onValueChanged={handleTemplateSelect}
-                                items={[
-                                    { label: t('categoryGroups.modal.noTemplate'), value: NO_TEMPLATE },
-                                    ...templates.map((tpl) => ({ label: tpl.name ?? '', value: String(tpl.id) })),
-                                ]}
-                            />
-                        )}
+                    <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto md:grid-cols-[320px_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)] md:overflow-hidden">
+                        <div className="flex flex-col gap-4 px-7 pb-5 pt-5 md:overflow-y-auto md:border-r md:border-[var(--border-soft)]">
+                            {showTemplateSelect && (
+                                <Select
+                                    label={t('categoryGroups.modal.fromTemplate')}
+                                    value={templateId != null ? String(templateId) : NO_TEMPLATE}
+                                    onValueChanged={handleTemplateSelect}
+                                    items={[
+                                        { label: t('categoryGroups.modal.noTemplate'), value: NO_TEMPLATE },
+                                        ...templates.map((tpl) => ({ label: tpl.name ?? '', value: String(tpl.id) })),
+                                    ]}
+                                />
+                            )}
 
-                        <Field label={t('categoryGroups.modal.name')}>
-                            <BaseInput
-                                autoFocus={isCreate && !fromSetupTemplate}
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder={t('categoryGroups.modal.namePlaceholder')}
-                            />
-                        </Field>
+                            <div className="flex flex-col gap-3">
+                                <Field label={t('categoryGroups.modal.name')}>
+                                    <BaseInput
+                                        autoFocus={isCreate && !fromSetupTemplate}
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        placeholder={t('categoryGroups.modal.namePlaceholder')}
+                                    />
+                                </Field>
+                                <div className="flex items-center gap-3">
+                                    <BaseSwitch id="category-group-required" checked={required} onCheckedChange={setRequired} />
+                                    <label
+                                        htmlFor="category-group-required"
+                                        className="flex items-center gap-1.5 text-[14.5px] font-bold text-[var(--font-color)]"
+                                    >
+                                        {t('categoryGroups.modal.required')}
+                                    </label>
+                                    <InfoTooltip
+                                        content={t('categoryGroups.modal.requiredHint')}
+                                        label={t('categoryGroups.modal.requiredHint')}
+                                        className="-ml-1.5"
+                                    />
+                                </div>
+                            </div>
 
-                        <div className="flex items-center gap-3">
-                            <BaseSwitch id="category-group-required" checked={required} onCheckedChange={setRequired} />
-                            <label htmlFor="category-group-required" className="flex items-center gap-1.5 text-[14.5px] font-bold text-[var(--font-color)]">
-                                {t('categoryGroups.modal.required')}
-                            </label>
-                            <InfoTooltip content={t('categoryGroups.modal.requiredHint')} label={t('categoryGroups.modal.requiredHint')} className="-ml-1.5" />
+                            <Field label={t('categoryGroups.modal.bommel')} info={t('categoryGroups.modal.bommelHint')}>
+                                <BommelMultiSelector value={bommelIds} onChange={setBommelIds} />
+                            </Field>
                         </div>
 
-                        <Field label={t('categoryGroups.modal.bommel')} info={t('categoryGroups.modal.bommelHint')}>
-                            <BommelMultiSelector value={bommelIds} onChange={setBommelIds} />
-                        </Field>
-
-                        <Field label={t('categoryGroups.modal.values')}>
+                        <section className="flex min-h-[360px] flex-col px-7 pb-4 pt-5 md:min-h-0">
+                            {/* Heading with the number of categories, and the search right next to it */}
+                            <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+                                <div className="flex items-center gap-2 text-[14.5px] font-bold text-[var(--font-color)]">
+                                    {t('categoryGroups.modal.values')}
+                                    {categoryCount > 0 && (
+                                        <span className="rounded-full bg-[var(--surface-track)] px-2 py-0.5 text-[12px] font-bold tabular-nums text-[var(--muted)]">
+                                            {categoryCount}
+                                        </span>
+                                    )}
+                                </div>
+                                {showSearch && (
+                                    <div className="relative w-full sm:ml-auto sm:w-64">
+                                        <Search
+                                            size={15}
+                                            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ink-faint)]"
+                                            aria-hidden="true"
+                                        />
+                                        <BaseInput
+                                            value={valueQuery}
+                                            onChange={(e) => setValueQuery(e.target.value)}
+                                            placeholder={t('categoryGroups.modal.searchValues')}
+                                            aria-label={t('categoryGroups.modal.searchValues')}
+                                            className="h-9 pl-9"
+                                        />
+                                    </div>
+                                )}
+                            </div>
                             {addUnder && (
                                 <div className="mb-2 flex items-center gap-1.5 text-[13px] font-semibold text-purple-700">
                                     <CornerDownRight size={14} aria-hidden="true" />
@@ -313,20 +363,16 @@ const CategoryGroupModal: FC<CategoryGroupModalProps> = ({ open, group, template
                                 </Button>
                             </div>
 
-                            {!isCreate && (group?.valueCount ?? 0) > VALUE_SEARCH_THRESHOLD && (
-                                <BaseInput
-                                    value={valueQuery}
-                                    onChange={(e) => setValueQuery(e.target.value)}
-                                    placeholder={t('common.search')}
-                                    className="mt-2.5 h-9"
-                                />
-                            )}
-
-                            <div className="mt-2.5">
+                            <div className="mt-2.5 flex min-h-0 flex-1 flex-col">
                                 {valueRows.length > 0 ? (
                                     <CategoryValueList
+                                        className="flex-1"
                                         rows={valueRows}
                                         groupId={group?.id}
+                                        expandAll={valueQuery.trim().length > 0}
+                                        hasMore={!isCreate && hasNextPage}
+                                        loadingMore={isFetchingNextPage}
+                                        onLoadMore={() => !isFetchingNextPage && fetchNextPage()}
                                         parentOptions={pendingValues.filter((v) => v.parent == null).map((v) => ({ value: v.value }))}
                                         onMove={(row, parent) =>
                                             isCreate
@@ -351,13 +397,15 @@ const CategoryGroupModal: FC<CategoryGroupModalProps> = ({ open, group, template
                                         }
                                     />
                                 ) : (
-                                    <div className="text-[13px] text-[var(--ink-faint)]">{t('categoryGroups.modal.noValues')}</div>
+                                    <div className="text-[13px] text-[var(--ink-faint)]">
+                                        {valueQuery.trim() ? t('categoryGroups.fields.noValues') : t('categoryGroups.modal.noValues')}
+                                    </div>
                                 )}
                             </div>
-                        </Field>
+                        </section>
                     </div>
 
-                    <div className="mt-6 flex justify-end gap-2.5">
+                    <div className="flex shrink-0 justify-end gap-2.5 border-t border-[var(--border-soft)] px-7 py-4">
                         <Button variant="outline" size="sm" className="h-10" onClick={onClose}>
                             {t('common.cancel')}
                         </Button>
