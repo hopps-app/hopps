@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import Button from '@/components/ui/Button';
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu';
 import { deleteOrganization, fetchOrganization } from '@/features/organizations/api';
 import BelegeChart from '@/features/organizations/BelegeChart';
@@ -139,11 +140,11 @@ export default function OrganizationDetailView() {
                 </div>
                 <div className="flex items-center gap-2.5 flex-shrink-0">
                     <DropdownMenu items={orgActions} className="w-72 p-1.5">
-                        <button type="button" className="btn btn--neutral">
+                        <Button variant="outline" className="px-4">
                             <LayoutGrid size={16} />
                             {t('organizations.detail.actions')}
                             <ChevronDown size={16} />
-                        </button>
+                        </Button>
                     </DropdownMenu>
                 </div>
             </div>
