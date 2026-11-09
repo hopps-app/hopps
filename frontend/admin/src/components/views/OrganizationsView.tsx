@@ -9,15 +9,27 @@ import OrganizationsTable, { type SortDir, type SortKey } from '@/features/organ
 import OrganizationsTableSkeleton from '@/features/organizations/OrganizationsTableSkeleton';
 import type { AdminOrganizationRow } from '@/features/organizations/types';
 
-/** Compares one sort key, nulls always last regardless of direction. */
-function compare(a: AdminOrganizationRow, b: AdminOrganizationRow, key: SortKey): number {
-    const av = a[key];
-    const bv = b[key];
+/** Sortable value of one column. Dates become timestamps so they compare chronologically. */
+function sortValue(row: AdminOrganizationRow, key: SortKey): number | string | null {
+    if (key === 'lastActivityAt' || key === 'createdAt') {
+        const iso = row[key];
+        return iso === null ? null : Date.parse(iso);
+    }
+    return row[key];
+}
+
+/**
+ * Compares one sort key in the given direction. Nulls ("Nie", no date) always sort last, so the
+ * direction is applied here instead of reversing the sorted list, which would move them to the top.
+ */
+function compare(a: AdminOrganizationRow, b: AdminOrganizationRow, key: SortKey, dir: SortDir): number {
+    const av = sortValue(a, key);
+    const bv = sortValue(b, key);
     if (av === null && bv === null) return 0;
     if (av === null) return 1;
     if (bv === null) return -1;
-    if (typeof av === 'number' && typeof bv === 'number') return av - bv;
-    return String(av).localeCompare(String(bv));
+    const order = typeof av === 'number' && typeof bv === 'number' ? av - bv : String(av).localeCompare(String(bv));
+    return dir === 'asc' ? order : -order;
 }
 
 export default function OrganizationsView() {
@@ -26,7 +38,7 @@ export default function OrganizationsView() {
     const [rows, setRows] = useState<AdminOrganizationRow[] | null>(null);
     const [failed, setFailed] = useState(false);
     const [query, setQuery] = useState('');
-    const [sortKey, setSortKey] = useState<SortKey>('createdAt');
+    const [sortKey, setSortKey] = useState<SortKey>('lastActivityAt');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
 
     useEffect(() => {
@@ -58,8 +70,7 @@ export default function OrganizationsView() {
         const filtered = q
             ? rows.filter((r) => r.name.toLowerCase().includes(q) || r.slug.toLowerCase().includes(q) || (r.contactEmail?.toLowerCase().includes(q) ?? false))
             : rows;
-        const sorted = [...filtered].sort((a, b) => compare(a, b, sortKey));
-        return sortDir === 'asc' ? sorted : sorted.reverse();
+        return [...filtered].sort((a, b) => compare(a, b, sortKey, sortDir));
     }, [rows, query, sortKey, sortDir]);
 
     const subtitle =
