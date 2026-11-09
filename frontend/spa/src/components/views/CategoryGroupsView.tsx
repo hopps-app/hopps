@@ -112,7 +112,7 @@ function CategoryGroupsView() {
                     <PageHeader
                         title={t('categoryGroups.title')}
                         action={
-                            <div className="flex gap-2.5">
+                            <div className="flex flex-wrap gap-2.5">
                                 <Button variant="outline" size="sm" className="h-10" onClick={() => setImportOpen(true)}>
                                     <FileUp />
                                     {t('categoryGroups.import.button')}
@@ -201,7 +201,7 @@ function CategoryGroupsView() {
 /** Page title with an optional subtitle and an optional action on the right, shaped like the Transaktionen header. */
 function PageHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
     return (
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
                 <h1 className="text-[27px] font-extrabold leading-tight tracking-[-0.02em] text-foreground">{title}</h1>
                 {subtitle && <p className="mt-1 text-[14.5px] text-muted-foreground">{subtitle}</p>}
