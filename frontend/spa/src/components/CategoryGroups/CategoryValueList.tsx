@@ -149,7 +149,8 @@ const CategoryValueList: FC<CategoryValueListProps> = ({
                                     aria-label={t('categoryGroups.values.addChild', { name: row.value })}
                                     title={t('categoryGroups.values.addChild', { name: row.value })}
                                     onClick={() => {
-                                        if (foldable) setOpen(row.value, true);
+                                        // Also without subcategories yet, so the first one is visible once it is added
+                                        setOpen(row.value, true);
                                         onAddChild(row);
                                     }}
                                 >
