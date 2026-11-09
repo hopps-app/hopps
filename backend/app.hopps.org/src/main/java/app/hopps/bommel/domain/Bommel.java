@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Index;
@@ -15,6 +16,10 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Objects;
 import java.util.Set;
 
@@ -74,6 +79,19 @@ public class Bommel extends PanacheEntity {
     private Set<Bommel> children;
 
     /**
+     * Optional balance on {@link #openingBalanceDate}, like the opening balance of a bank account. The bommel's balance
+     * is this value plus every transaction booked after that date. Set together with the date, or not at all; not
+     * touched by {@link #merge(Bommel)}, it has its own endpoint.
+     */
+    @Column(name = "opening_balance", precision = 38, scale = 2)
+    @Schema(description = "Balance on the opening balance date, or null. Transactions after that date are added to it.")
+    private BigDecimal openingBalance;
+
+    @Column(name = "opening_balance_date")
+    @Schema(description = "Date the opening balance applies to (inclusive), or null")
+    private LocalDate openingBalanceDate;
+
+    /**
      * Merges other into this object. Changes every field to that of other, except for the parent or childrens.
      * Therefore, this cannot move the Bommel in the tree, only update it/its responsible member.
      */
@@ -85,6 +103,22 @@ public class Bommel extends PanacheEntity {
 
     public String getName() {
         return name;
+    }
+
+    public BigDecimal getOpeningBalance() {
+        return openingBalance;
+    }
+
+    public void setOpeningBalance(BigDecimal openingBalance) {
+        this.openingBalance = openingBalance;
+    }
+
+    public LocalDate getOpeningBalanceDate() {
+        return openingBalanceDate;
+    }
+
+    public void setOpeningBalanceDate(LocalDate openingBalanceDate) {
+        this.openingBalanceDate = openingBalanceDate;
     }
 
     public void setName(String name) {

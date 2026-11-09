@@ -103,6 +103,58 @@ class BommelResourceTest {
     @Test
     @TestSecurity(user = "test")
     @TestTransaction
+    void setsAndClearsTheOpeningBalance() {
+        var bommel = resourceCreator.setupSimpleTree().getLast();
+
+        given()
+                .body("{ \"openingBalance\": -1250.5, \"openingBalanceDate\": \"2025-12-31\" }")
+                .contentType("application/json")
+                .when()
+                .put("/{id}/opening-balance", bommel.id)
+                .then()
+                .statusCode(200)
+                .body("openingBalance", is(-1250.5f))
+                .body("openingBalanceDate", is("2025-12-31"));
+
+        // Renaming keeps it: it is not part of the general update
+        given()
+                .body("{ \"name\": \"Renamed\", \"emoji\": \"\" }")
+                .contentType("application/json")
+                .when()
+                .put("/{id}", bommel.id)
+                .then()
+                .statusCode(200)
+                .body("openingBalanceDate", is("2025-12-31"));
+
+        given()
+                .body("{ \"openingBalance\": null, \"openingBalanceDate\": null }")
+                .contentType("application/json")
+                .when()
+                .put("/{id}/opening-balance", bommel.id)
+                .then()
+                .statusCode(200)
+                .body("openingBalance", is(nullValue()))
+                .body("openingBalanceDate", is(nullValue()));
+    }
+
+    @Test
+    @TestSecurity(user = "test")
+    @TestTransaction
+    void rejectsAnOpeningBalanceWithoutDate() {
+        var bommel = resourceCreator.setupSimpleTree().getLast();
+
+        given()
+                .body("{ \"openingBalance\": 100 }")
+                .contentType("application/json")
+                .when()
+                .put("/{id}/opening-balance", bommel.id)
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    @TestSecurity(user = "test")
+    @TestTransaction
     void getBommelSuccessfully() {
         var bommels = resourceCreator.setupSimpleTree();
         var bommel = bommels.getLast();

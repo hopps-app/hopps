@@ -4,6 +4,7 @@ import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
+import { OpeningBalanceSection } from './OpeningBalanceSection';
 import { UploadLinkSection } from './UploadLinkSection';
 
 import { BommelTreeNodeModel } from '@/components/BommelTreeView/BommelTreeNodeModel';
@@ -48,6 +49,8 @@ interface BommelDetailsPanelProps {
     /** Open the Transaktionen page filtered to this Bommel scope and the given statuses */
     onShowTransactions: (statuses: TransactionDisplayStatus[]) => void;
     onShowAllReceipts: () => void;
+    /** The opening balance was saved or removed: reload the amounts */
+    onOpeningBalanceSaved?: () => void;
 }
 
 /**
@@ -68,12 +71,15 @@ export function BommelDetailsPanel({
     onOpenReceipt,
     onShowTransactions,
     onShowAllReceipts,
+    onOpeningBalanceSaved,
 }: BommelDetailsPanelProps) {
     const { t } = useTranslation();
     const { format } = useCurrency();
     const income = Math.abs(node.data?.income ?? 0);
     const expenses = Math.abs(node.data?.expenses ?? 0);
-    const total = node.data?.total ?? 0;
+    // While the balance is shown, the total starts from the carry-over: it is the balance at the end of the period
+    const carryOver = node.data?.carryOver;
+    const total = (node.data?.total ?? 0) + (carryOver ?? 0);
     const emoji = node.data?.emoji;
 
     return (
@@ -150,6 +156,17 @@ export function BommelDetailsPanel({
                         </div>
                     </div>
                 )}
+                {carryOver != null && (
+                    // First, as the sum reads top-down: the balance the period started from. Neither income nor expense, so neutral
+                    <div className="mb-[14px]">
+                        <div className={EYEBROW}>{t('bommel.details.carryOver')}</div>
+                        <div className="text-[17px] font-extrabold tabular-nums text-foreground">
+                            {carryOver >= 0 ? '+' : '−'}
+                            {format(Math.abs(carryOver))}
+                        </div>
+                    </div>
+                )}
+
                 <div className="mb-[14px] flex gap-3">
                     <div className="flex-1">
                         <div className={EYEBROW}>{t('bommel.details.income')}</div>
@@ -163,7 +180,8 @@ export function BommelDetailsPanel({
 
                 <div className="mb-[14px] rounded-[12px] bg-[var(--surface-sunken)] px-[13px] py-[11px]">
                     <div className={EYEBROW}>
-                        {t('bommel.details.total')} {includesSubBommel && t('bommel.panel.totalWithSub')}
+                        {t('bommel.details.total')} {carryOver != null && t('bommel.panel.totalWithCarryOver')}{' '}
+                        {includesSubBommel && t('bommel.panel.totalWithSub')}
                     </div>
                     <div
                         className={cn(
@@ -185,6 +203,16 @@ export function BommelDetailsPanel({
                         onOpenReceipt={onOpenReceipt}
                         onShowTransactions={onShowTransactions}
                         onShowAllReceipts={onShowAllReceipts}
+                    />
+                )}
+
+                {/* The bommel's own opening balance; not in demo mode, where the bommels do not exist. */}
+                {!demo && (
+                    <OpeningBalanceSection
+                        bommelId={Number(node.id)}
+                        openingBalance={node.data?.openingBalance}
+                        openingBalanceDate={node.data?.openingBalanceDate}
+                        onSaved={() => onOpeningBalanceSaved?.()}
                     />
                 )}
 

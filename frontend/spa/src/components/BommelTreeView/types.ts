@@ -12,6 +12,8 @@ export interface TreeNodeData {
         income?: number;
         expenses?: number;
         transactionsCount?: number;
+        /** Balance at the start of the period, while the balance is shown */
+        carryOver?: number;
         isRoot?: boolean;
         parentId?: number;
     };
@@ -69,6 +71,8 @@ export interface BommelCardStatsProps {
     income: number;
     expenses: number;
     isRoot?: boolean;
+    /** Balance at the start of the period; when given it is shown and included in the total */
+    carryOver?: number;
 }
 
 export type ViewMode = 'list' | 'tree';

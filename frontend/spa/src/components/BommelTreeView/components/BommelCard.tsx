@@ -267,7 +267,7 @@ export function BommelCard({
                 )}
             </div>
 
-            <BommelCardStats total={total} income={income} expenses={expenses} isRoot={isRoot} />
+            <BommelCardStats total={total} income={income} expenses={expenses} isRoot={isRoot} carryOver={node.attributes?.carryOver} />
 
             {showEditControls && (
                 <div onClick={(e) => e.stopPropagation()}>

@@ -1261,7 +1261,8 @@
             "showDetails": "Show details",
             "bommelNotFound": "Bommel not found",
             "bommelNotFoundDescription": "The Bommel you are looking for does not exist or has been deleted.",
-            "backToStructure": "Back to Structure"
+            "backToStructure": "Back to Structure",
+            "carryOver": "Carried over"
         },
         "deleteDialog": {
             "title": "Delete “{{name}}”?",
@@ -1339,7 +1340,8 @@
             "noValues": "No values",
             "openInReceipts": "Open in Receipts",
             "hasReceipt": "Has a receipt",
-            "showAll": "Show all"
+            "showAll": "Show all",
+            "totalWithCarryOver": "(incl. carried over)"
         },
         "uploadLink": {
             "title": "Upload link",
@@ -1417,6 +1419,23 @@
                 "start": "Add the first Bommel"
             },
             "start": "Start the tour"
+        },
+        "showBalance": "Balance",
+        "showBalanceInfo": "Also shows the amount carried over: the balance at the start of the period, for a year the balance at the end of the previous one. The total is then the balance at the end of the period. It starts from a Bommel’s opening balance, if one is set.",
+        "openingBalance": {
+            "title": "Opening balance",
+            "none": "No opening balance set.",
+            "onDate": "on {{date}}",
+            "set": "Set",
+            "change": "Change",
+            "hint": "Like a bank account: the balance on a reference date. Every transaction after that day is added or subtracted.",
+            "amount": "Amount",
+            "date": "Reference date",
+            "invalid": "Please enter an amount and a reference date.",
+            "remove": "Remove",
+            "saved": "Opening balance saved",
+            "removed": "Opening balance removed",
+            "error": "The opening balance could not be saved"
         }
     },
     "bankAccounts": {

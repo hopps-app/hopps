@@ -123,6 +123,7 @@ export function useBommelTree(options?: UseBommelTreeOptions) {
                     income: stats?.income ?? 0,
                     expenses: stats?.expenses ?? 0,
                     transactionsCount: stats?.transactionsCount ?? 0,
+                    carryOver: stats?.carryOver ?? undefined,
                     subBommelsCount: nodes.filter((n) => n.parent === node.id).length,
                 },
             };

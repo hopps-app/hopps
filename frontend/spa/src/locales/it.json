@@ -1182,7 +1182,8 @@
             "showDetails": "Mostra dettagli",
             "bommelNotFound": "Bommel non trovato",
             "bommelNotFoundDescription": "Il Bommel che stai cercando non esiste o è stato eliminato.",
-            "backToStructure": "Torna alla struttura"
+            "backToStructure": "Torna alla struttura",
+            "carryOver": "Riporto"
         },
         "deleteDialog": {
             "title": "Eliminare «{{name}}»?",
@@ -1260,7 +1261,8 @@
             "noValues": "Nessun valore",
             "openInReceipts": "Apri in Ricevute",
             "hasReceipt": "Ha una ricevuta",
-            "showAll": "Mostra tutto"
+            "showAll": "Mostra tutto",
+            "totalWithCarryOver": "(riporto incluso)"
         },
         "period": {
             "label": "Periodo",
@@ -1312,6 +1314,23 @@
                 "start": "Crea il primo Bommel"
             },
             "start": "Avvia il tour guidato"
+        },
+        "showBalance": "Saldo",
+        "showBalanceInfo": "Mostra anche il riporto: il saldo all'inizio del periodo, per un anno il saldo alla fine dell'anno precedente. Il totale è allora il saldo alla fine del periodo. Parte dal saldo iniziale di un Bommel, se presente.",
+        "openingBalance": {
+            "title": "Saldo iniziale",
+            "none": "Nessun saldo iniziale.",
+            "onDate": "al {{date}}",
+            "set": "Imposta",
+            "change": "Modifica",
+            "hint": "Come per un conto bancario: il saldo a una data di riferimento. Ogni transazione dopo quel giorno viene sommata o sottratta.",
+            "amount": "Importo",
+            "date": "Data di riferimento",
+            "invalid": "Indica un importo e una data di riferimento.",
+            "remove": "Rimuovi",
+            "saved": "Saldo iniziale salvato",
+            "removed": "Saldo iniziale rimosso",
+            "error": "Non è stato possibile salvare il saldo iniziale"
         }
     },
     "bankAccounts": {

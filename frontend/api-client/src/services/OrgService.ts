@@ -14,7 +14,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8080";
+        this.baseUrl = baseUrl ?? "";
     }
 
     /**
@@ -3203,6 +3203,68 @@ export class Client {
     }
 
     /**
+     * Set the opening balance of a bommel
+     * @param id The bommel ID
+     * @return Opening balance saved
+     */
+    openingBalance(id: number, body: BommelOpeningBalanceInput): Promise<Bommel> {
+        let url_ = this.baseUrl + "/bommel/{id}/opening-balance";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processOpeningBalance(_response);
+        });
+    }
+
+    protected processOpeningBalance(response: Response): Promise<Bommel> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = Bommel.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Only one of the two fields is set", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User not authorized", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Bommel not found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Bommel>(null as any);
+    }
+
+    /**
      * List category groups
      * @param bommelId (optional) Return only groups applicable to this bommel (self or ancestor assignment)
      * @return Category groups
@@ -5935,9 +5997,10 @@ export class Client {
      * @param endDate (optional) Only transactions up to and including this date (yyyy-MM-dd)
      * @param includeDrafts (optional) Whether to include draft transactions in the statistics
      * @param startDate (optional) Only transactions on or after this date (yyyy-MM-dd)
+     * @param withBalance (optional) Also return the balance at the start of the period (carryOver) and at its end (balance), starting from the bommel's opening balance
      * @return Bommel statistics
      */
-    bommels(bommelId: number, aggregate: boolean | undefined, endDate: string | undefined, includeDrafts: boolean | undefined, startDate: string | undefined): Promise<BommelStatistics> {
+    bommels(bommelId: number, aggregate: boolean | undefined, endDate: string | undefined, includeDrafts: boolean | undefined, startDate: string | undefined, withBalance: boolean | undefined): Promise<BommelStatistics> {
         let url_ = this.baseUrl + "/statistics/bommels/{bommelId}?";
         if (bommelId === undefined || bommelId === null)
             throw new globalThis.Error("The parameter 'bommelId' must be defined.");
@@ -5958,6 +6021,10 @@ export class Client {
             throw new globalThis.Error("The parameter 'startDate' cannot be null.");
         else if (startDate !== undefined)
             url_ += "startDate=" + encodeURIComponent("" + startDate) + "&";
+        if (withBalance === null)
+            throw new globalThis.Error("The parameter 'withBalance' cannot be null.");
+        else if (withBalance !== undefined)
+            url_ += "withBalance=" + encodeURIComponent("" + withBalance) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -6068,9 +6135,10 @@ export class Client {
      * @param endDate (optional) Only transactions up to and including this date (yyyy-MM-dd)
      * @param includeDrafts (optional) Whether to include draft transactions in the statistics
      * @param startDate (optional) Only transactions on or after this date (yyyy-MM-dd)
+     * @param withBalance (optional) Also return the balance at the start of the period (carryOver) and at its end (balance), starting from the bommel's opening balance
      * @return Map of bommel statistics
      */
-    bommels2(orgId: number, aggregate: boolean | undefined, endDate: string | undefined, includeDrafts: boolean | undefined, startDate: string | undefined): Promise<BommelStatisticsMap> {
+    bommels2(orgId: number, aggregate: boolean | undefined, endDate: string | undefined, includeDrafts: boolean | undefined, startDate: string | undefined, withBalance: boolean | undefined): Promise<BommelStatisticsMap> {
         let url_ = this.baseUrl + "/statistics/organizations/{orgId}/bommels?";
         if (orgId === undefined || orgId === null)
             throw new globalThis.Error("The parameter 'orgId' must be defined.");
@@ -6091,6 +6159,10 @@ export class Client {
             throw new globalThis.Error("The parameter 'startDate' cannot be null.");
         else if (startDate !== undefined)
             url_ += "startDate=" + encodeURIComponent("" + startDate) + "&";
+        if (withBalance === null)
+            throw new globalThis.Error("The parameter 'withBalance' cannot be null.");
+        else if (withBalance !== undefined)
+            url_ += "withBalance=" + encodeURIComponent("" + withBalance) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -8536,6 +8608,10 @@ export class Bommel implements IBommel {
     responsibleMember?: Member;
     organization?: Organization;
     parent?: Bommel;
+    /** Balance on the opening balance date, or null. Transactions after that date are added to it. */
+    openingBalance?: number;
+    /** Date the opening balance applies to (inclusive), or null */
+    openingBalanceDate?: Date;
 
     [key: string]: any;
 
@@ -8560,6 +8636,8 @@ export class Bommel implements IBommel {
             this.responsibleMember = _data["responsibleMember"] ? Member.fromJS(_data["responsibleMember"]) : undefined as any;
             this.organization = _data["organization"] ? Organization.fromJS(_data["organization"]) : undefined as any;
             this.parent = _data["parent"] ? Bommel.fromJS(_data["parent"]) : undefined as any;
+            this.openingBalance = _data["openingBalance"];
+            this.openingBalanceDate = _data["openingBalanceDate"] ? new Date(_data["openingBalanceDate"].toString()) : undefined as any;
         }
     }
 
@@ -8582,6 +8660,8 @@ export class Bommel implements IBommel {
         data["responsibleMember"] = this.responsibleMember ? this.responsibleMember.toJSON() : undefined as any;
         data["organization"] = this.organization ? this.organization.toJSON() : undefined as any;
         data["parent"] = this.parent ? this.parent.toJSON() : undefined as any;
+        data["openingBalance"] = this.openingBalance;
+        data["openingBalanceDate"] = this.openingBalanceDate ? formatDate(this.openingBalanceDate) : undefined as any;
         return data;
     }
 
@@ -8600,10 +8680,80 @@ export interface IBommel {
     responsibleMember?: Member;
     organization?: Organization;
     parent?: Bommel;
+    /** Balance on the opening balance date, or null. Transactions after that date are added to it. */
+    openingBalance?: number;
+    /** Date the opening balance applies to (inclusive), or null */
+    openingBalanceDate?: Date;
 
     [key: string]: any;
 }
 
+/** Opening balance of a bommel on a reference date. Both null removes it. */
+export class BommelOpeningBalanceInput implements IBommelOpeningBalanceInput {
+    /** Balance on the reference date, may be negative */
+    openingBalance?: number;
+    /** Reference date (yyyy-MM-dd); transactions after it are added to the balance */
+    openingBalanceDate?: Date;
+
+    [key: string]: any;
+
+    constructor(data?: IBommelOpeningBalanceInput) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.openingBalance = _data["openingBalance"];
+            this.openingBalanceDate = _data["openingBalanceDate"] ? new Date(_data["openingBalanceDate"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): BommelOpeningBalanceInput {
+        data = typeof data === 'object' ? data : {};
+        let result = new BommelOpeningBalanceInput();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["openingBalance"] = this.openingBalance;
+        data["openingBalanceDate"] = this.openingBalanceDate ? formatDate(this.openingBalanceDate) : undefined as any;
+        return data;
+    }
+
+    clone(): BommelOpeningBalanceInput {
+        const json = this.toJSON();
+        let result = new BommelOpeningBalanceInput();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Opening balance of a bommel on a reference date. Both null removes it. */
+export interface IBommelOpeningBalanceInput {
+    /** Balance on the reference date, may be negative */
+    openingBalance?: number;
+    /** Reference date (yyyy-MM-dd); transactions after it are added to the balance */
+    openingBalanceDate?: Date;
+
+    [key: string]: any;
+}
+
+/** Amounts of a bommel for a period, optionally with its balance */
 export class BommelStatistics implements IBommelStatistics {
     bommelId?: number;
     bommelName?: string;
@@ -8612,6 +8762,10 @@ export class BommelStatistics implements IBommelStatistics {
     expenses?: number;
     transactionsCount?: number;
     aggregated?: boolean;
+    /** Balance at the start of the period; only set when the balance was requested */
+    carryOver?: number;
+    /** Balance at the end of the period (carryOver + total); only set when the balance was requested */
+    balance?: number;
 
     [key: string]: any;
 
@@ -8637,6 +8791,8 @@ export class BommelStatistics implements IBommelStatistics {
             this.expenses = _data["expenses"];
             this.transactionsCount = _data["transactionsCount"];
             this.aggregated = _data["aggregated"];
+            this.carryOver = _data["carryOver"];
+            this.balance = _data["balance"];
         }
     }
 
@@ -8660,6 +8816,8 @@ export class BommelStatistics implements IBommelStatistics {
         data["expenses"] = this.expenses;
         data["transactionsCount"] = this.transactionsCount;
         data["aggregated"] = this.aggregated;
+        data["carryOver"] = this.carryOver;
+        data["balance"] = this.balance;
         return data;
     }
 
@@ -8671,6 +8829,7 @@ export class BommelStatistics implements IBommelStatistics {
     }
 }
 
+/** Amounts of a bommel for a period, optionally with its balance */
 export interface IBommelStatistics {
     bommelId?: number;
     bommelName?: string;
@@ -8679,6 +8838,10 @@ export interface IBommelStatistics {
     expenses?: number;
     transactionsCount?: number;
     aggregated?: boolean;
+    /** Balance at the start of the period; only set when the balance was requested */
+    carryOver?: number;
+    /** Balance at the end of the period (carryOver + total); only set when the balance was requested */
+    balance?: number;
 
     [key: string]: any;
 }

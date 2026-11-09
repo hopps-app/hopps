@@ -77,7 +77,15 @@ function BommelView() {
     const period = parsePeriod(storedPeriod);
     // The note at the top of the details panel is shown until it was dismissed once.
     const [panelHintSeen, setPanelHintSeen] = usePersistedState<boolean>('hopps.bommel.panelHintSeen', false);
-    const { isLoading: isStatsLoading, bommelStats, options: statisticsOptions, setIncludeDrafts, setAggregate } = useStatistics(period);
+    const {
+        isLoading: isStatsLoading,
+        bommelStats,
+        options: statisticsOptions,
+        setIncludeDrafts,
+        setAggregate,
+        setShowBalance,
+        refreshStatistics,
+    } = useStatistics(period);
     const isStatsLoaded = bommelStats !== null || !isStatsLoading;
 
     const realTreeData = useBommelTree({ bommelStats });
@@ -422,6 +430,15 @@ function BommelView() {
                                 onCheckedChange={setIncludeDrafts}
                             />
                         )}
+                        {/* Off by default, so the cards show only what the period added unless the balance is wanted */}
+                        {!isDemoMode && (
+                            <ToggleField
+                                label={t('bommel.showBalance')}
+                                info={t('bommel.showBalanceInfo')}
+                                checked={statisticsOptions.showBalance}
+                                onCheckedChange={setShowBalance}
+                            />
+                        )}
 
                         {/* The switch of the edit mode on the right, apart from the filters; on small screens a row under them */}
                         {isEditMode && (
@@ -495,6 +512,7 @@ function BommelView() {
                                 onOpenReceipt={setOpenReceipt}
                                 onShowTransactions={showTransactions}
                                 onShowAllReceipts={showAllReceipts}
+                                onOpeningBalanceSaved={refreshStatistics}
                             />
                         </div>
                     )}

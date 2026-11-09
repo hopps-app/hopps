@@ -38,7 +38,14 @@ export class BommelTreeService {
             parent: parentId || 0,
             text: bommel.name ?? '',
             droppable: !isRoot,
-            data: { emoji: bommel.emoji ?? '', id: bommel.id, isRoot },
+            data: {
+                emoji: bommel.emoji ?? '',
+                id: bommel.id,
+                isRoot,
+                openingBalance: bommel.openingBalance ?? undefined,
+                // The API parses the date as midnight UTC, so the UTC date is the one that was stored
+                openingBalanceDate: bommel.openingBalanceDate ? bommel.openingBalanceDate.toISOString().slice(0, 10) : undefined,
+            },
         };
 
         return node;
