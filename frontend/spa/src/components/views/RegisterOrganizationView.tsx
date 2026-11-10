@@ -27,7 +27,9 @@ export function RegisterOrganizationView() {
 
     return (
         <div className="flex flex-col items-center pt-1">
-            <div className="w-full sm:w-[500px] bg-background-secondary rounded-2xl shadow-2xl p-6 mb-8">
+            {/* A small bottom margin: with the footer's own padding it is enough of a gap, and it leaves room to keep the
+                legal links on screen on a laptop at 100% zoom. */}
+            <div className="w-full sm:w-[500px] bg-background-secondary rounded-2xl shadow-2xl p-6 mb-4">
                 {isShowSuccess ? (
                     <OrganizationRegistrationSuccess />
                 ) : (
