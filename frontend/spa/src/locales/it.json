@@ -197,6 +197,7 @@
             "legalForm": "Forma giuridica",
             "currencyInfo": "Valuta contabile: {{currency}}. Deriva dal paese e può essere modificata in seguito nelle impostazioni finché non esistono conti bancari né transazioni.",
             "failed": "Registrazione dell'organizzazione non riuscita",
+            "spamCheckFailed": "Il controllo di sicurezza non è riuscito. Riprova.",
             "emailAlreadyRegistered": "Questo indirizzo email è già registrato",
             "organizationAlreadyExists": "Esiste già un'organizzazione con questo nome",
             "emailAndOrganizationAlreadyExist": "Questo indirizzo email e questo nome dell'organizzazione sono già in uso",

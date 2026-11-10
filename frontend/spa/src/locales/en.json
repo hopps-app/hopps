@@ -237,6 +237,7 @@
             "legalForm": "Legal form",
             "currencyInfo": "Accounting currency: {{currency}}. It follows from the country and can be changed later in the settings while no bank accounts or transactions exist.",
             "failed": "Failed to register organization",
+            "spamCheckFailed": "The security check failed. Please try again.",
             "emailAlreadyRegistered": "This email address is already registered",
             "organizationAlreadyExists": "An organization with this name already exists",
             "emailAndOrganizationAlreadyExist": "This email address and organization name are already taken",
