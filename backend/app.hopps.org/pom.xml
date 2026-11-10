@@ -128,6 +128,11 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-scheduler</artifactId>
         </dependency>
+        <!-- Notification mail about new registrations (RegistrationNotifier) -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-mailer</artifactId>
+        </dependency>
         <!-- WebSockets: live document-change notifications to the frontend -->
         <dependency>
             <groupId>io.quarkus</groupId>

@@ -13,6 +13,7 @@ import app.hopps.organization.service.OrganizationCreationService;
 import app.hopps.organization.service.OrganizationCurrencyService;
 import app.hopps.organization.service.OrganizationLogoService;
 import app.hopps.organization.service.OrganizationMemberService;
+import app.hopps.organization.service.RegistrationNotifier;
 import app.hopps.shared.altcha.AltchaFailedException;
 import app.hopps.shared.altcha.AltchaService;
 import app.hopps.shared.infrastructure.storage.StoredFileNotFoundException;
@@ -89,6 +90,9 @@ public class OrganizationResource {
 
     @Inject
     AltchaService altchaService;
+
+    @Inject
+    RegistrationNotifier registrationNotifier;
 
     @GET
     @Path("{slug}")
@@ -291,6 +295,8 @@ public class OrganizationResource {
         }
 
         LOG.info("Successfully created organization for current user: {}", organization.getSlug());
+        registrationNotifier.organizationRegistered(organization,
+                new RegistrationNotifier.ContactPerson(firstName, lastName, email));
         return Response.status(Response.Status.CREATED).entity(organization).build();
     }
 
@@ -366,6 +372,8 @@ public class OrganizationResource {
         }
 
         LOG.info("Successfully created organization: {}", organization.getSlug());
+        registrationNotifier.organizationRegistered(organization,
+                new RegistrationNotifier.ContactPerson(owner.getFirstName(), owner.getLastName(), owner.getEmail()));
         return Response.status(Response.Status.CREATED)
                 .entity(organization)
                 .build();
