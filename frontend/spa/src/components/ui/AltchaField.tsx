@@ -2,6 +2,8 @@ import type { AltchaWidgetElement } from 'altcha/types/generic';
 import { useCallback, useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Skeleton } from '@/components/Dashboard/SectionState';
+
 declare module 'react' {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace JSX {
@@ -133,8 +135,8 @@ export function AltchaField({ ref }: { ref: Ref<AltchaHandle> }) {
     );
 
     if (!loaded) {
-        // Holds the widget's height while it loads, so the buttons below do not jump.
-        return <div className="h-[86px]" aria-hidden="true" />;
+        // The widget's shape and height while it loads, so the buttons below do not jump.
+        return <Skeleton className="h-[62px] w-full rounded-xl" />;
     }
     return <altcha-widget ref={attach} auto="off" challenge={CHALLENGE_URL} configuration={CONFIGURATION} language={language} type="switch" />;
 }

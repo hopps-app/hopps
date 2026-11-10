@@ -30,14 +30,20 @@ vi.mock('@/hooks/use-toast', () => ({
 
 const SPAM_CHECK_FAILED = 'The security check failed. Please try again.';
 
+/** Pastes instead of typing: typing re-renders the form on every key, which makes the test slow enough to time out. */
+async function fillIn(label: string, value: string) {
+    await userEvent.click(screen.getByLabelText(label));
+    await userEvent.paste(value);
+}
+
 async function fillInAndSubmit() {
-    await userEvent.type(screen.getByLabelText('Organization name'), 'Turnverein Zug');
+    await fillIn('Organization name', 'Turnverein Zug');
     await userEvent.click(screen.getByRole('button', { name: 'Next' }));
-    await userEvent.type(screen.getByLabelText('First name'), 'Maria');
-    await userEvent.type(screen.getByLabelText('Last name'), 'Muster');
-    await userEvent.type(screen.getByLabelText('Email address'), 'kassier@tv-zug.ch');
-    await userEvent.type(screen.getByLabelText('Password'), 'registerPassword1!');
-    await userEvent.type(screen.getByLabelText('Confirm password'), 'registerPassword1!');
+    await fillIn('First name', 'Maria');
+    await fillIn('Last name', 'Muster');
+    await fillIn('Email address', 'kassier@tv-zug.ch');
+    await fillIn('Password', 'registerPassword1!');
+    await fillIn('Confirm password', 'registerPassword1!');
     await userEvent.click(screen.getByRole('button', { name: 'Register' }));
 }
 
