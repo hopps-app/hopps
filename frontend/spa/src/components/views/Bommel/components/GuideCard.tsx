@@ -45,7 +45,8 @@ export function GuideCard({ step, isEditMode, hasFirstBommel, onStep, onStartEdi
             <span className="grid h-[42px] w-[42px] shrink-0 place-items-center rounded-[13px] bg-[var(--accent-surface)] text-purple-700">
                 <Icon size={20} aria-hidden="true" />
             </span>
-            <div className="min-w-[240px] flex-1">
+            {/* Keyed by the step, so each step's text fades in instead of jumping */}
+            <div key={step} className="min-w-[240px] flex-1 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500">
                 <div className="text-[11.5px] font-extrabold uppercase tracking-[0.06em] text-muted-foreground">
                     {t('bommel.guide.progress', { current: index + 1, total: GUIDE_STEPS.length })}
                 </div>
@@ -70,7 +71,8 @@ export function GuideCard({ step, isEditMode, hasFirstBommel, onStep, onStartEdi
                     </ul>
                 )}
             </div>
-            <div className="flex shrink-0 flex-wrap items-center gap-2 self-center">
+            {/* On its own row (small screens) the buttons stay on the right, as beside the text */}
+            <div className="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-2 self-center">
                 {!(isLast && hasFirstBommel) && (
                     <button
                         type="button"

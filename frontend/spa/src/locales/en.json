@@ -1407,7 +1407,7 @@
             },
             "sums": {
                 "title": "How the amounts add up",
-                "text": "With the switch Include sub-Bommel, every Bommel shows its own amounts plus those of all Bommel below it. Switched off, only what is booked directly on it counts. Flip the switch and compare the numbers."
+                "text": "With the Incl. sub-bommels switch, every Bommel shows its own amounts plus those of all Bommel below it. Switched off, only what is booked directly on it counts. Flip the switch and compare the numbers."
             },
             "own": {
                 "title": "Set up your own structure",
