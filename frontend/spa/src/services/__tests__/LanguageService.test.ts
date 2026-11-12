@@ -14,8 +14,9 @@ describe('LanguageService', () => {
     });
 
     it('should initialize with default language if no language is set in localStorage', () => {
+        i18n.language = 'de';
         languageService.init();
-        expect(i18n.changeLanguage).toHaveBeenCalledWith('en');
+        expect(i18n.changeLanguage).toHaveBeenCalledWith('de');
     });
 
     it('should initialize with language from localStorage if it is set', () => {
