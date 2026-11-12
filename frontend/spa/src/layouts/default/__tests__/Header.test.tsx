@@ -42,7 +42,7 @@ describe('Header', () => {
         );
 
         expect(screen.getByText('Login')).toBeInTheDocument();
-        expect(screen.getByText('Initial setup')).toBeInTheDocument();
+        expect(screen.getByText('Start initial setup')).toBeInTheDocument();
         expect(screen.queryByText('Register')).not.toBeInTheDocument();
     });
 
@@ -56,6 +56,6 @@ describe('Header', () => {
 
         expect(screen.getByText('Login')).toBeInTheDocument();
         expect(screen.queryByText('Register')).not.toBeInTheDocument();
-        expect(screen.queryByText('Initial setup')).not.toBeInTheDocument();
+        expect(screen.queryByText('Start initial setup')).not.toBeInTheDocument();
     });
 });
