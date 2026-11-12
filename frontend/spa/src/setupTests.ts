@@ -1,5 +1,5 @@
 import * as matchers from '@testing-library/jest-dom/matchers';
-import { expect, beforeEach, vi } from 'vitest';
+import { beforeEach, expect, vi } from 'vitest';
 
 import i18n from '@/i18n.ts';
 
