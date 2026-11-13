@@ -6,6 +6,7 @@ import { Resolver, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
+import { PaypalLogo } from '@/components/BankAccounts/PaypalLogo';
 import { LoadingState } from '@/components/common/LoadingState';
 import Button from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -23,7 +24,6 @@ import {
 import { useCurrency } from '@/hooks/use-currency';
 import { currencyForIban, type CurrencyCode } from '@/lib/currency';
 import { caretAfterChars, formatIban, normalizeIban } from '@/lib/iban';
-import { PaypalLogo } from '@/components/BankAccounts/PaypalLogo';
 import { cn } from '@/lib/utils';
 import { getErrorBody } from '@/utils/errorUtils';
 
