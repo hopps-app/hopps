@@ -6,7 +6,6 @@ import { Trans, useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
 import { AccountDot } from '@/components/BankAccounts/AccountMultiSelect';
-import { PaypalLogo } from '@/components/BankAccounts/PaypalLogo';
 import { BankAccountDrawer } from '@/components/BankAccounts/BankAccountDrawer';
 import { BANK_STATUS_STYLE, BankStatusBadge, type BankTransactionStatusValue } from '@/components/BankAccounts/BankStatusBadge';
 import { BankTxFilterBar } from '@/components/BankAccounts/BankTxFilterBar';
@@ -15,6 +14,7 @@ import { ACCOUNT_TX_COLUMNS, ALL_TX_COLUMNS, IMPORT_COLUMNS } from '@/components
 import { KontenPageSkeleton, KontenTableSkeleton } from '@/components/BankAccounts/KontenSkeleton';
 import { ALL_TAB, IMPORTS_TAB, hasAllTab, resolveKontenTab, type KontenTabId } from '@/components/BankAccounts/kontenTabs';
 import { MatchDrawer } from '@/components/BankAccounts/MatchDrawer';
+import { PaypalLogo } from '@/components/BankAccounts/PaypalLogo';
 import { NextStepCard, TableEmptyState } from '@/components/common';
 import { Badge, type BadgeTone } from '@/components/Transactions/StatusBadge';
 import Button from '@/components/ui/Button';
