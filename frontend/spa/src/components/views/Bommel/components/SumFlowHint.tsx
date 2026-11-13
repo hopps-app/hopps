@@ -138,7 +138,8 @@ export function SumFlowHint({ containerRef, tree, vertical, tone = 'default' }: 
     return (
         <svg ref={svgRef} className={`sum-flow sum-flow--${tone} pointer-events-none absolute inset-0 z-10 h-full w-full overflow-hidden`} aria-hidden="true">
             <defs>
-                <marker id={markerId} viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                {/* refX at the tip (9 plus half the stroke): the arrow ends right at the parent card's edge instead of poking into it */}
+                <marker id={markerId} viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse" overflow="visible">
                     <path d="M1,1 L9,5 L1,9" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                 </marker>
             </defs>

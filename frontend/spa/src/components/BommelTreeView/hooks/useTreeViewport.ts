@@ -87,11 +87,17 @@ export function useTreeViewport({ canvas, natural, fitExtraWidth = 0 }: { canvas
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [canvas]);
 
-    // Fit into the canvas plus any space a panel currently covers, so the fitted view is the same with and without it
-    const fitWidth = size.width + fitExtraWidth;
-    const fitScale = natural.width > fitWidth - 2 * PAD_X ? Math.max(MIN_FIT_SCALE, (fitWidth - 2 * PAD_X) / natural.width) : 1;
     // The root sits centred above its children, so centring the tree centres the root
-    const fitted: View = { scale: fitScale, x: (fitWidth - natural.width * fitScale) / 2, y: PAD_TOP };
+    const fitInto = (width: number): View => {
+        const scale = natural.width > width - 2 * PAD_X ? Math.max(MIN_FIT_SCALE, (width - 2 * PAD_X) / natural.width) : 1;
+        return { scale, x: (width - natural.width * scale) / 2, y: PAD_TOP };
+    };
+    // The panel width at which the user pressed "center"; while it stays open, the tree is fitted into the visible part
+    const [centeredAt, setCenteredAt] = useState<number | null>(null);
+    // A panel opening or closing ends that again, so it never moves the tree on its own
+    if (centeredAt !== null && centeredAt !== fitExtraWidth) setCenteredAt(null);
+    // Otherwise fit into the canvas plus any space a panel currently covers, so the fitted view is the same with and without it
+    const fitted = fitInto(centeredAt === fitExtraWidth ? size.width : size.width + fitExtraWidth);
     const view = userView ?? fitted;
 
     // Keep at least KEEP_VISIBLE px of the tree inside the canvas so it cannot be panned out of reach
@@ -233,7 +239,11 @@ export function useTreeViewport({ canvas, natural, fitExtraWidth = 0 }: { canvas
         canZoomOut: view.scale > MIN_ZOOM,
         zoomIn: () => setUserView(zoomAt(view, view.scale * ZOOM_STEP, size.width / 2, size.height / 2)),
         zoomOut: () => setUserView(zoomAt(view, view.scale / ZOOM_STEP, size.width / 2, size.height / 2)),
-        center: () => setUserView(null),
+        // Centres in what is visible, also while the detail panel covers part of the canvas
+        center: () => {
+            setUserView(null);
+            setCenteredAt(fitExtraWidth);
+        },
         panBy,
         holdView,
         handlers,

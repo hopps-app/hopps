@@ -18,9 +18,13 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import type { TransactionDisplayStatus } from '@/lib/transactionStatus';
+import { cn } from '@/lib/utils';
 
 /** Width of the detail panel plus the gap to the tree, see the grid below */
 const PANEL_SPACE = 340 + 16;
+
+/** A calm fade for parts that appear or swap, e.g. between the guide steps */
+const SOFT_ENTER = 'motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500';
 
 /** Whether `id` is `ancestorId` or lies below it. Top-level Bommel hang under 0 in the flat model, not under the root. */
 function isSameOrBelow(tree: BommelTreeNodeModel[], id: number | string, ancestorId: number | string): boolean {
@@ -153,6 +157,11 @@ function BommelView() {
     else if (guideStep === 'move') guideHighlight = 'drag-toggle drag-handle';
     else if (guideStep === 'sums') guideHighlight = 'aggregate-toggle card-stats';
     else if (guideStep === 'own' && !hasFirstBommel) guideHighlight = isEditMode ? 'add-first add-child-root' : 'edit-button';
+
+    // The guide explains the aggregate switch in the sums step, so it only appears from there on;
+    // the bar itself goes away while nothing would be in it
+    const showAggregateToggle = !guideStep || guideStep === 'sums' || guideStep === 'own';
+    const showFilterBar = !isDemoMode || showAggregateToggle || isEditMode;
 
     // Deep link: select the linked Bommel once the tree has loaded, or report that it does not exist
     useEffect(() => {
@@ -404,37 +413,59 @@ function BommelView() {
                     )}
                     {!guideStep && !isDemoMode && structureIsEmpty && <HintBanner icon={Lightbulb}>{t('bommel.emptyHint')}</HintBanner>}
 
-                    <div className="flex flex-wrap items-center gap-x-[30px] gap-y-3 rounded-[18px] border border-border-soft bg-background-secondary px-[18px] py-3 shadow-[var(--shadow-sm)]">
-                        {/* Filters from broad to narrow: which period, which Bommel, which transactions */}
-                        {!isDemoMode && <PeriodField period={period} onChange={setPeriod} />}
-                        <ToggleField
-                            label={t('bommel.aggregate')}
-                            info={t('bommel.aggregateInfo')}
-                            checked={statisticsOptions.aggregate}
-                            onCheckedChange={setAggregate}
-                            guideTarget="aggregate-toggle"
-                        />
-                        {!isDemoMode && (
-                            <ToggleField
-                                label={t('bommel.includeDrafts')}
-                                info={t('bommel.includeDraftsInfo')}
-                                checked={statisticsOptions.includeDrafts}
-                                onCheckedChange={setIncludeDrafts}
-                            />
-                        )}
+                    {/* Folds open and shut instead of popping in; the negative margin takes back the gap of the column while it is shut */}
+                    <div
+                        inert={!showFilterBar}
+                        className={`grid transition-[grid-template-rows,opacity,margin] duration-300 ease-out motion-reduce:transition-none ${
+                            showFilterBar ? 'grid-rows-[1fr] opacity-100' : '-mt-4 grid-rows-[0fr] opacity-0'
+                        }`}
+                    >
+                        {/* The padding keeps the shadow of the bar from being cut off by the overflow */}
+                        <div className="-m-1 min-h-0 overflow-hidden p-1">
+                            <div className="flex flex-wrap items-center gap-x-[30px] gap-y-3 rounded-[18px] border border-border-soft bg-background-secondary px-[18px] py-3 shadow-[var(--shadow-sm)]">
+                                {/* Filters from broad to narrow: which period, which Bommel, which transactions */}
+                                {/* Each field fades in when it appears, e.g. when the guide moves from the example to the own structure */}
+                                {!isDemoMode && (
+                                    <div className={cn('w-full sm:w-auto', SOFT_ENTER)}>
+                                        <PeriodField period={period} onChange={setPeriod} />
+                                    </div>
+                                )}
+                                {showAggregateToggle && (
+                                    <div className={SOFT_ENTER}>
+                                        <ToggleField
+                                            label={t('bommel.aggregate')}
+                                            info={t('bommel.aggregateInfo')}
+                                            checked={statisticsOptions.aggregate}
+                                            onCheckedChange={setAggregate}
+                                            guideTarget="aggregate-toggle"
+                                        />
+                                    </div>
+                                )}
+                                {!isDemoMode && (
+                                    <div className={SOFT_ENTER}>
+                                        <ToggleField
+                                            label={t('bommel.includeDrafts')}
+                                            info={t('bommel.includeDraftsInfo')}
+                                            checked={statisticsOptions.includeDrafts}
+                                            onCheckedChange={setIncludeDrafts}
+                                        />
+                                    </div>
+                                )}
 
-                        {/* The switch of the edit mode on the right, apart from the filters; on small screens a row under them */}
-                        {isEditMode && (
-                            <div className="flex items-center gap-[30px] sm:ml-auto">
-                                <ToggleField
-                                    label={t('bommel.dragDrop')}
-                                    info={t('bommel.dragDropInfo')}
-                                    checked={isDragDropMode}
-                                    onCheckedChange={setIsDragDropMode}
-                                    guideTarget="drag-toggle"
-                                />
+                                {/* The switch of the edit mode on the right, apart from the filters; on small screens a row under them */}
+                                {isEditMode && (
+                                    <div className="flex items-center gap-[30px] sm:ml-auto">
+                                        <ToggleField
+                                            label={t('bommel.dragDrop')}
+                                            info={t('bommel.dragDropInfo')}
+                                            checked={isDragDropMode}
+                                            onCheckedChange={setIsDragDropMode}
+                                            guideTarget="drag-toggle"
+                                        />
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </div>
 
                     {/* One notice at a time: the example banner and the empty-structure hint (which already says what to do) win over it */}
@@ -451,7 +482,8 @@ function BommelView() {
                 <div className={`grid flex-1 min-h-0 grid-cols-1 gap-4 ${selectedBommel ? 'lg:grid-cols-[minmax(0,1fr)_340px]' : ''}`}>
                     <div ref={treeAreaRef} className="relative flex flex-col min-h-0">
                         <BommelTreeComponent
-                            className="flex-1"
+                            // Remounted when switching between example and own structure, and fades in each time
+                            className={cn('flex-1', SOFT_ENTER)}
                             key={`tree-${isDemoMode}`}
                             tree={tree}
                             rootBommel={rootBommel}

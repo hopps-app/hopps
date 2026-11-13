@@ -1271,7 +1271,7 @@
             },
             "sums": {
                 "title": "So summieren sich die Beträge",
-                "text": "Mit dem Schalter Unterbommel einbeziehen zeigt jeder Bommel seine eigenen Beträge plus die aller Bommel darunter. Ausgeschaltet zählt nur, was direkt auf ihm gebucht ist. Den Schalter umlegen und die Zahlen vergleichen."
+                "text": "Mit dem Schalter inkl. Unterbommel zeigt jeder Bommel seine eigenen Beträge plus die aller Bommel darunter. Ausgeschaltet zählt nur, was direkt auf ihm gebucht ist. Den Schalter umlegen und die Zahlen vergleichen."
             },
             "own": {
                 "title": "Die eigene Struktur anlegen",
