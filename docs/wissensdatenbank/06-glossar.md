@@ -15,7 +15,8 @@ Neue Begriffe aus Anfragen **anonymisiert** ergänzen.
 | **Transaktion** | Finanzbewegung (Einnahme/Ausgabe), optional mit Beleg verknüpft | `transaction/` |
 | **Kategorie** | Frei definierbare Einordnung von Transaktionen (heute kein Kontenrahmen) | `category/` |
 | **Member** | Benutzerkonto (Keycloak), Mitglied einer oder mehrerer Organisationen | `member/` |
-| **Bank-Import** | CSV/MT940-Kontoauszug, Abgleich mit Transaktionen | `bankimport/` |
+| **Bank-Import** | CSV/MT940-Kontoauszug oder PayPal-Aktivitätenexport, Abgleich mit Transaktionen | `bankimport/` |
+| **Umbuchung** | Umsatz zwischen eigenen Konten, z. B. PayPal-Aufladung vom Bankkonto; braucht keinen Beleg | `BankTransactionStatus.TRANSFER` |
 | **Sphäre** (TransactionArea) | Steuerliche Tätigkeitsbereiche gemeinnütziger Vereine (DE) | `transaction/` |
 
 ## Kundenbegriffe → Hopps

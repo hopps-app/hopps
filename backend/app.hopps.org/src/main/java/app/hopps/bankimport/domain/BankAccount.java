@@ -5,6 +5,8 @@ import app.hopps.organization.domain.Organization;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -35,8 +37,17 @@ public class BankAccount extends PanacheEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, length = 34)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "accounttype", nullable = false, length = 16)
+    private BankAccountType accountType = BankAccountType.BANK;
+
+    /** Set for {@link BankAccountType#BANK} accounts, null for PayPal accounts. */
+    @Column(length = 34)
     private String iban;
+
+    /** The PayPal login email; set for {@link BankAccountType#PAYPAL} accounts only. */
+    @Column(name = "paypalemail", length = 254)
+    private String paypalEmail;
 
     @Column(length = 11)
     private String bic;
@@ -115,6 +126,26 @@ public class BankAccount extends PanacheEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public BankAccountType getAccountType() {
+        return accountType;
+    }
+
+    public void setAccountType(BankAccountType accountType) {
+        this.accountType = accountType;
+    }
+
+    public boolean isPaypal() {
+        return accountType == BankAccountType.PAYPAL;
+    }
+
+    public String getPaypalEmail() {
+        return paypalEmail;
+    }
+
+    public void setPaypalEmail(String paypalEmail) {
+        this.paypalEmail = paypalEmail;
     }
 
     public String getIban() {

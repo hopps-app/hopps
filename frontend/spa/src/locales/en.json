@@ -1450,8 +1450,16 @@
                 "bicTooLong": "BIC must not exceed 11 characters",
                 "openingBalanceDateRequired": "Opening balance date is required when a balance is provided",
                 "openingBalanceRequired": "Opening balance is required when a date is provided",
-                "duplicateIban": "An account with this IBAN already exists in your organization"
-            }
+                "duplicateIban": "An account with this IBAN already exists in your organization",
+                "paypalEmailRequired": "Please enter the PayPal email address",
+                "paypalEmailInvalid": "Not a valid email address"
+            },
+            "type": "Account type",
+            "typeBank": "Bank account",
+            "typePaypal": "PayPal",
+            "paypalEmail": "PayPal email address",
+            "paypalEmailPlaceholder": "treasurer@club.org",
+            "paypalEmailHint": "The address the organization signs in to PayPal with."
         },
         "toast": {
             "createSuccess": "Bank account created",
@@ -1474,7 +1482,10 @@
             "currencyMismatchTitle": "Wrong currency",
             "currencyMismatch": "The file contains amounts in {{fileCurrencies}}, but the account is kept in {{accountCurrency}}. Import the file into an account with that currency.",
             "mixedCurrencies": "The file contains amounts in several currencies ({{fileCurrencies}}). An account can only hold one currency, so the file cannot be imported.",
-            "startError": "The import could not be started."
+            "startError": "The import could not be started.",
+            "wrongAccountTypeTitle": "File does not fit the account",
+            "paypalFileForBankAccount": "This is a PayPal export. Please import it into a PayPal account.",
+            "bankFileForPaypalAccount": "A PayPal account only takes the PayPal activity export (CSV)."
         },
         "title": "Import bank statement",
         "wizard": {
@@ -1508,7 +1519,15 @@
             "previewButton": "Show preview",
             "previewError": "Failed to load preview",
             "confirmTitle": "Confirm import",
-            "startImport": "Start import"
+            "startImport": "Start import",
+            "paypalDetected": "PayPal export detected · {{count}} movements · no schema needed",
+            "paypalHint": "Top-ups and withdrawals to the bank account are marked as transfers, fees become movements of their own, and foreign currency payments are booked through their conversion.",
+            "paypalUnreadable": "The PayPal export could not be read. Please download the activity as CSV with the language set to German.",
+            "paypalKind": {
+                "PAYMENT": "Payment",
+                "FEE": "Fee",
+                "TRANSFER": "Transfer"
+            }
         },
         "preview": {
             "encoding": "Encoding",
@@ -1656,7 +1675,8 @@
             "open": "Open",
             "matched": "Matched",
             "partial": "Partially linked",
-            "ignored": "Ignored"
+            "ignored": "Ignored",
+            "transfer": "Transfer"
         },
         "filter": {
             "open": "Open",
@@ -1761,7 +1781,8 @@
             "suggestionLink": "Link",
             "review": "Review",
             "assignPartial": "Assign partially",
-            "zugferdCreatedHint": "Created from the ZUGFeRD data of the e-invoice. You check category and Bommel in the transaction."
+            "zugferdCreatedHint": "Created from the ZUGFeRD data of the e-invoice. You check category and Bommel in the transaction.",
+            "transferHint": "Transfer between own accounts, e.g. a PayPal top-up from the bank account. No receipt needed."
         },
         "createTx": {
             "title": "Transaction from bank transaction",

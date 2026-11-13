@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ApiException, BankAccountResponse } from '@hopps/api-client';
+import { ApiException, BankAccountResponse, type BankAccountType } from '@hopps/api-client';
 import { Archive, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Resolver, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
+import { PaypalLogo } from '@/components/BankAccounts/PaypalLogo';
 import { LoadingState } from '@/components/common/LoadingState';
 import Button from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -30,32 +31,55 @@ const ACCT_COLORS = ['#9955CC', '#2E9E6B', '#2A6FDB', '#C8385A', '#B47C18', '#5B
 
 const IBAN_FORMAT = /^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/;
 
+const ACCOUNT_TYPES: BankAccountType[] = ['BANK', 'PAYPAL'];
+
+/** Preselected when PayPal is picked: the blue of the swatches, close to PayPal's own. */
+const PAYPAL_COLOR = '#2A6FDB';
+
 /**
  * @param organizationCurrency accounts are kept in it (no conversion yet), so the IBAN has to fit it: CH/LI means CHF,
  *            everything else EUR.
  * @param storedIban the IBAN the account is saved with. The rule only applies to a new or changed IBAN (like in the
  *            backend), so an account created before the rule can still be edited.
+ *
+ * A bank account needs an IBAN, a PayPal account (no IBAN) its PayPal email instead.
  */
-function buildSchema(t: (k: string, o?: Record<string, unknown>) => string, organizationCurrency: CurrencyCode, storedIban?: string) {
+function buildSchema(t: (k: string, o?: Record<string, unknown>) => string, organizationCurrency: CurrencyCode, storedIban?: string | null) {
     return z
         .object({
+            accountType: z.enum(['BANK', 'PAYPAL']),
             name: z.string().min(1, t('bankAccounts.form.validation.nameRequired')),
-            iban: z
-                .string()
-                .min(1, t('bankAccounts.form.validation.ibanRequired'))
-                .transform(normalizeIban)
-                .refine((v) => v.length >= 15, t('bankAccounts.form.validation.ibanTooShort'))
-                .refine((v) => v.length <= 34, t('bankAccounts.form.validation.ibanTooLong'))
-                .refine((v) => IBAN_FORMAT.test(v), t('bankAccounts.form.validation.ibanInvalidFormat')),
+            iban: z.string().transform(normalizeIban),
+            paypalEmail: z.string().trim(),
             bankName: z.string().optional(),
             openingBalance: z.preprocess((v) => (v === '' || v === null || v === undefined ? undefined : Number(v)), z.number().optional()),
             openingBalanceDate: z.string().optional(),
             color: z.string().optional(),
         })
         .superRefine((data, ctx) => {
+            if (data.accountType === 'PAYPAL') {
+                if (!data.paypalEmail) {
+                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: t('bankAccounts.form.validation.paypalEmailRequired'), path: ['paypalEmail'] });
+                } else if (!z.string().email().safeParse(data.paypalEmail).success) {
+                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: t('bankAccounts.form.validation.paypalEmailInvalid'), path: ['paypalEmail'] });
+                }
+            } else {
+                const ibanIssue = !data.iban
+                    ? 'ibanRequired'
+                    : data.iban.length < 15
+                      ? 'ibanTooShort'
+                      : data.iban.length > 34
+                        ? 'ibanTooLong'
+                        : !IBAN_FORMAT.test(data.iban)
+                          ? 'ibanInvalidFormat'
+                          : null;
+                if (ibanIssue) {
+                    ctx.addIssue({ code: z.ZodIssueCode.custom, message: t(`bankAccounts.form.validation.${ibanIssue}`), path: ['iban'] });
+                }
+            }
             const ibanCurrency = currencyForIban(data.iban);
-            const unchanged = storedIban !== undefined && normalizeIban(storedIban) === data.iban;
-            if (ibanCurrency !== organizationCurrency && !unchanged) {
+            const unchanged = storedIban != null && normalizeIban(storedIban) === data.iban;
+            if (data.accountType === 'BANK' && data.iban && IBAN_FORMAT.test(data.iban) && ibanCurrency !== organizationCurrency && !unchanged) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     message: t('bankAccounts.form.validation.ibanOtherCurrency', {
@@ -143,8 +167,10 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRe
         // output type so useForm, handleSubmit and the field helpers all operate on the resolved FormValues.
         resolver: zodResolver(schema) as Resolver<FormValues>,
         defaultValues: {
+            accountType: 'BANK',
             name: '',
             iban: '',
+            paypalEmail: '',
             bankName: '',
             openingBalance: undefined,
             openingBalanceDate: '',
@@ -158,8 +184,10 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRe
             reset(
                 account
                     ? {
+                          accountType: account.accountType ?? 'BANK',
                           name: account.name ?? '',
                           iban: formatIban(account.iban ?? ''),
+                          paypalEmail: account.paypalEmail ?? '',
                           bankName: account.bankName ?? '',
                           openingBalance: account.openingBalance ?? undefined,
                           openingBalanceDate: account.openingBalanceDate
@@ -170,8 +198,10 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRe
                           color: account.color ?? ACCT_COLORS[0],
                       }
                     : {
+                          accountType: 'BANK',
                           name: '',
                           iban: '',
+                          paypalEmail: '',
                           bankName: '',
                           openingBalance: undefined,
                           openingBalanceDate: '',
@@ -184,10 +214,14 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRe
     const onSubmit = async (values: FormValues) => {
         setArchivedMatch(null);
         const openingBalanceDate = values.openingBalanceDate ? new Date(values.openingBalanceDate) : undefined;
-        const payload = { ...values, openingBalanceDate };
+        // Only the identifier of the account's type is sent: the IBAN of a bank account, the email of a PayPal account.
+        const { accountType, iban, paypalEmail, ...rest } = values;
+        const identifier = accountType === 'PAYPAL' ? { paypalEmail } : { iban };
+        const payload = { ...rest, ...identifier, openingBalanceDate };
+        const createPayload = { ...payload, accountType };
         try {
             const saved =
-                isEdit && account?.id ? await updateMutation.mutateAsync({ id: account.id, data: payload }) : await createMutation.mutateAsync(payload);
+                isEdit && account?.id ? await updateMutation.mutateAsync({ id: account.id, data: payload }) : await createMutation.mutateAsync(createPayload);
             onSuccess?.(saved);
         } catch (err) {
             if (ApiException.isApiException(err) && err.status === 409) {
@@ -223,6 +257,8 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRe
     };
 
     const selectedColor = watch('color') ?? ACCT_COLORS[0];
+    const accountType = watch('accountType');
+    const isPaypal = accountType === 'PAYPAL';
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -258,46 +294,100 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRe
                         {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
                     </div>
 
-                    {/* IBAN */}
-                    <div className="grid gap-1.5">
-                        <Label htmlFor="ba-iban">{t('bankAccounts.form.iban')}</Label>
-                        <BaseInput
-                            id="ba-iban"
-                            {...register('iban', {
-                                // Group in fours while typing or pasting ("CH93 0076 2011 …"); the schema strips the
-                                // spaces again before saving. The caret stays behind the character just typed.
-                                onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-                                    const input = e.target;
-                                    const charsBeforeCaret = normalizeIban(input.value.slice(0, input.selectionStart ?? input.value.length)).length;
-                                    const formatted = formatIban(input.value);
-                                    if (formatted !== input.value) {
-                                        setValue('iban', formatted);
-                                        const caret = caretAfterChars(formatted, charsBeforeCaret);
-                                        input.setSelectionRange(caret, caret);
-                                    }
-                                },
-                            })}
-                            placeholder="DE00 0000 0000 0000 0000 00"
-                            className="font-mono"
-                        />
-                        {errors.iban && <p className="text-xs text-destructive">{errors.iban.message}</p>}
-                        {archivedMatch != null && (
-                            <button
-                                type="button"
-                                onClick={restoreArchived}
-                                disabled={restoreMutation.isPending}
-                                className="w-fit text-xs font-bold text-primary hover:underline disabled:opacity-50"
+                    {/* Kind of account. Fixed once created: its imports depend on it. */}
+                    {!isEdit && (
+                        <div className="grid gap-1.5">
+                            <Label>{t('bankAccounts.form.type')}</Label>
+                            <div
+                                role="radiogroup"
+                                className="grid grid-cols-2 gap-1 rounded-[var(--btn-radius)] p-1"
+                                style={{ background: 'var(--surface-track)' }}
                             >
-                                {t('konten.accountActions.restoreAccount')}
-                            </button>
-                        )}
-                    </div>
+                                {ACCOUNT_TYPES.map((type) => (
+                                    <button
+                                        key={type}
+                                        type="button"
+                                        role="radio"
+                                        aria-checked={accountType === type}
+                                        onClick={() => {
+                                            setValue('accountType', type, { shouldValidate: false });
+                                            // PayPal accounts start out blue; switching back to a bank account restores the default.
+                                            setValue('color', type === 'PAYPAL' ? PAYPAL_COLOR : ACCT_COLORS[0]);
+                                        }}
+                                        className={cn(
+                                            'inline-flex items-center justify-center gap-1.5 rounded-[calc(var(--btn-radius)-2px)] px-3 py-1.5 text-sm font-semibold transition-colors',
+                                            accountType === type
+                                                ? 'bg-[var(--background-secondary)] text-foreground shadow-sm'
+                                                : 'text-muted-foreground hover:text-foreground'
+                                        )}
+                                    >
+                                        {type === 'PAYPAL' && <PaypalLogo className="h-3.5 w-3.5 text-[#2A6FDB]" />}
+                                        {t(type === 'PAYPAL' ? 'bankAccounts.form.typePaypal' : 'bankAccounts.form.typeBank')}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* PayPal email (PayPal accounts have no IBAN) */}
+                    {isPaypal && (
+                        <div className="grid gap-1.5">
+                            <Label htmlFor="ba-paypalEmail">{t('bankAccounts.form.paypalEmail')}</Label>
+                            <BaseInput
+                                id="ba-paypalEmail"
+                                type="email"
+                                {...register('paypalEmail')}
+                                placeholder={t('bankAccounts.form.paypalEmailPlaceholder')}
+                            />
+                            <p className="text-xs text-muted-foreground">{t('bankAccounts.form.paypalEmailHint')}</p>
+                            {errors.paypalEmail && <p className="text-xs text-destructive">{errors.paypalEmail.message}</p>}
+                        </div>
+                    )}
+
+                    {/* IBAN */}
+                    {!isPaypal && (
+                        <div className="grid gap-1.5">
+                            <Label htmlFor="ba-iban">{t('bankAccounts.form.iban')}</Label>
+                            <BaseInput
+                                id="ba-iban"
+                                {...register('iban', {
+                                    // Group in fours while typing or pasting ("CH93 0076 2011 …"); the schema strips the
+                                    // spaces again before saving. The caret stays behind the character just typed.
+                                    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                                        const input = e.target;
+                                        const charsBeforeCaret = normalizeIban(input.value.slice(0, input.selectionStart ?? input.value.length)).length;
+                                        const formatted = formatIban(input.value);
+                                        if (formatted !== input.value) {
+                                            setValue('iban', formatted);
+                                            const caret = caretAfterChars(formatted, charsBeforeCaret);
+                                            input.setSelectionRange(caret, caret);
+                                        }
+                                    },
+                                })}
+                                placeholder="DE00 0000 0000 0000 0000 00"
+                                className="font-mono"
+                            />
+                            {errors.iban && <p className="text-xs text-destructive">{errors.iban.message}</p>}
+                            {archivedMatch != null && (
+                                <button
+                                    type="button"
+                                    onClick={restoreArchived}
+                                    disabled={restoreMutation.isPending}
+                                    className="w-fit text-xs font-bold text-primary hover:underline disabled:opacity-50"
+                                >
+                                    {t('konten.accountActions.restoreAccount')}
+                                </button>
+                            )}
+                        </div>
+                    )}
 
                     {/* Bank */}
-                    <div className="grid gap-1.5">
-                        <Label htmlFor="ba-bankName">{t('bankAccounts.form.bankName')}</Label>
-                        <BaseInput id="ba-bankName" {...register('bankName')} placeholder={t('konten.form.bankPlaceholder')} />
-                    </div>
+                    {!isPaypal && (
+                        <div className="grid gap-1.5">
+                            <Label htmlFor="ba-bankName">{t('bankAccounts.form.bankName')}</Label>
+                            <BaseInput id="ba-bankName" {...register('bankName')} placeholder={t('konten.form.bankPlaceholder')} />
+                        </div>
+                    )}
 
                     {/* Opening Balance + Date side by side */}
                     <div className="grid grid-cols-2 gap-3">

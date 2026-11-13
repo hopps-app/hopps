@@ -7,6 +7,7 @@ import app.hopps.bankimport.domain.BankFieldType;
 import app.hopps.bankimport.parser.CsvParser;
 import app.hopps.bankimport.parser.Mt940Parser;
 import app.hopps.bankimport.parser.Mt940Parser.ParsedMt940Transaction;
+import app.hopps.bankimport.parser.PaypalCsvParser;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +35,29 @@ public class ImportFileCheckService {
      * several currencies.
      */
     public void verify(BankAccount account, byte[] content, String fileType, BankCsvSchema schema) {
+        if (PaypalImportService.FILE_TYPE.equals(fileType)) {
+            verifyPaypal(account.getCurrency(), content);
+            return;
+        }
         verify(account.getCurrency(), currencies(content, fileType, schema));
+    }
+
+    /**
+     * A PayPal export may hold several currencies: only the movements in the account currency are booked (payments in
+     * another currency through their conversion). It does not fit when nothing at all is in the account currency.
+     */
+    static void verifyPaypal(String accountCurrency, byte[] content) {
+        Set<String> currencies;
+        try {
+            currencies = PaypalCsvParser.currencies(PaypalImportService.decode(content));
+        } catch (RuntimeException e) {
+            LOG.debug("PayPal export could not be inspected, leaving it to the worker: {}", e.getMessage());
+            return;
+        }
+        String expected = normalizeCurrency(accountCurrency);
+        if (!currencies.isEmpty() && !currencies.contains(expected)) {
+            throw BankImportRejectedException.currencyMismatch(List.copyOf(new TreeSet<>(currencies)), expected);
+        }
     }
 
     static void verify(String accountCurrency, Set<String> fileCurrencies) {

@@ -14,6 +14,7 @@ import { ACCOUNT_TX_COLUMNS, ALL_TX_COLUMNS, IMPORT_COLUMNS } from '@/components
 import { KontenPageSkeleton, KontenTableSkeleton } from '@/components/BankAccounts/KontenSkeleton';
 import { ALL_TAB, IMPORTS_TAB, hasAllTab, resolveKontenTab, type KontenTabId } from '@/components/BankAccounts/kontenTabs';
 import { MatchDrawer } from '@/components/BankAccounts/MatchDrawer';
+import { PaypalLogo } from '@/components/BankAccounts/PaypalLogo';
 import { NextStepCard, TableEmptyState } from '@/components/common';
 import { Badge, type BadgeTone } from '@/components/Transactions/StatusBadge';
 import Button from '@/components/ui/Button';
@@ -98,6 +99,12 @@ function maskIban(iban?: string): string {
     return `${clean.slice(0, 4)} •••• •••• ${clean.slice(-4)}`;
 }
 
+/** What tells the account apart: the IBAN of a bank account, the PayPal email of a PayPal account. */
+function accountIdentifier(account: BankAccountResponse, masked = false): string {
+    if (account.accountType === 'PAYPAL') return account.paypalEmail ?? '';
+    return masked ? maskIban(account.iban) : (account.iban ?? '');
+}
+
 function AccountCard({
     account,
     openCount,
@@ -134,11 +141,17 @@ function AccountCard({
                     className="w-11 h-11 rounded-[14px] flex items-center justify-center flex-shrink-0 text-white ring-1 ring-inset ring-white/25"
                     style={accountTileStyle(account.color)}
                 >
-                    <Landmark className="w-[19px] h-[19px]" strokeWidth={1.75} />
+                    {account.accountType === 'PAYPAL' ? (
+                        <PaypalLogo className="w-[19px] h-[19px]" />
+                    ) : (
+                        <Landmark className="w-[19px] h-[19px]" strokeWidth={1.75} />
+                    )}
                 </div>
                 <div className="min-w-0 flex-1">
                     <div className="font-bold text-[15px] truncate">{account.name}</div>
-                    <div className="text-xs text-muted-foreground font-mono truncate">{account.bankName}</div>
+                    <div className="text-xs text-muted-foreground font-mono truncate">
+                        {account.bankName || (account.accountType === 'PAYPAL' ? t('bankAccounts.form.typePaypal') : '')}
+                    </div>
                 </div>
                 <button
                     type="button"
@@ -150,7 +163,9 @@ function AccountCard({
                 </button>
             </div>
 
-            <div className="mt-3 text-xs font-mono text-muted-foreground tracking-widest">{maskIban(account.iban)}</div>
+            <div className={cn('mt-3 text-xs font-mono text-muted-foreground truncate', account.accountType !== 'PAYPAL' && 'tracking-widest')}>
+                {accountIdentifier(account, true)}
+            </div>
 
             {/* The status pill shares the small label line rather than sitting beside the amount: at the card's width
                 a long balance and the pill collided, and the pill competed with the number for attention. */}
@@ -235,7 +250,11 @@ function AccountPill({ account, openCount, active, onClick }: { account: BankAcc
                     className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0 text-white ring-1 ring-inset ring-white/25"
                     style={accountTileStyle(account.color, 10)}
                 >
-                    <Landmark className="w-[17px] h-[17px]" strokeWidth={1.75} />
+                    {account.accountType === 'PAYPAL' ? (
+                        <PaypalLogo className="w-[17px] h-[17px]" />
+                    ) : (
+                        <Landmark className="w-[17px] h-[17px]" strokeWidth={1.75} />
+                    )}
                 </span>
                 <span className="text-[15px] font-semibold truncate max-w-[12rem]">{account.name}</span>
                 <span className="text-[15px] font-bold tabular-nums text-muted-foreground">
@@ -254,7 +273,16 @@ function AccountPill({ account, openCount, active, onClick }: { account: BankAcc
 // ─── Transactions Tab ─────────────────────────────────────────────────────────
 
 // Statuses of the transaction filter, one toggle each, in this order.
+// Transfers between own accounts (TRANSFER) have no toggle of their own: like ignored movements they need no receipt,
+// so "Ignoriert" counts and shows both. Each row still carries its own badge.
 const BANK_STATUSES: BankTransactionStatusValue[] = ['UNMATCHED', 'PARTIALLY_MATCHED', 'FULLY_MATCHED', 'IGNORED'];
+
+/** The statuses to ask the backend for: the toggles, with "Ignoriert" standing for transfers as well. */
+function statusesForApi(statuses: BankTransactionStatusValue[]): string | undefined {
+    const toggles = statuses.filter((s) => s !== 'TRANSFER');
+    if (toggles.length === 0) return undefined;
+    return toggles.flatMap((s) => (s === 'IGNORED' ? ['IGNORED', 'TRANSFER'] : [s])).join(',');
+}
 
 const PAGE_SIZE = 50;
 
@@ -301,14 +329,16 @@ function TransactionsTab({
     const unmatchedAgg = useBankTransactionAggregate(undefined, 'UNMATCHED', true, filter);
     const partialAgg = useBankTransactionAggregate(undefined, 'PARTIALLY_MATCHED', true, filter);
     const matchedAgg = useBankTransactionAggregate(undefined, 'FULLY_MATCHED', true, filter);
-    const ignoredAgg = useBankTransactionAggregate(undefined, 'IGNORED', true, filter);
+    const ignoredAgg = useBankTransactionAggregate(undefined, 'IGNORED,TRANSFER', true, filter);
     const statusCounts: Record<BankTransactionStatusValue, number> = {
         UNMATCHED: unmatchedAgg.data?.count ?? 0,
         PARTIALLY_MATCHED: partialAgg.data?.count ?? 0,
         FULLY_MATCHED: matchedAgg.data?.count ?? 0,
         IGNORED: ignoredAgg.data?.count ?? 0,
+        // Counted under IGNORED, see BANK_STATUSES.
+        TRANSFER: 0,
     };
-    const apiStatus = statuses.length > 0 ? statuses.join(',') : undefined;
+    const apiStatus = statusesForApi(statuses);
     const { data: transactions = [], isLoading } = useAllBankTransactions(apiStatus, page, PAGE_SIZE, sortBy, sortDir, filter);
 
     const shownCount = (statuses.length > 0 ? statuses : BANK_STATUSES).reduce((sum, s) => sum + statusCounts[s], 0);
@@ -352,7 +382,7 @@ function TransactionsTab({
                 {account && (
                     <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
                         <AccountDot color={account.color} />
-                        <span className="font-mono">{account.iban}</span>
+                        <span className="font-mono">{accountIdentifier(account)}</span>
                     </span>
                 )}
                 <div className="ml-auto">
@@ -822,7 +852,7 @@ function ArchivedAccounts() {
                     <div key={a.id} className="flex items-center gap-2.5 text-sm text-muted-foreground">
                         <AccountDot color={a.color} />
                         <span className="min-w-0 truncate font-semibold text-foreground">{a.name}</span>
-                        <span className="min-w-0 truncate font-mono text-xs">{a.iban}</span>
+                        <span className="min-w-0 truncate font-mono text-xs">{accountIdentifier(a)}</span>
                         <BaseButton variant="ghost" size="sm" className="ml-auto" disabled={restore.isPending} onClick={() => restore.mutate(a.id!)}>
                             {t('konten.accountActions.restore')}
                         </BaseButton>
