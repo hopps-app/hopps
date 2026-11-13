@@ -98,9 +98,14 @@
     --purple-300: #c7a2e3;
     --purple-400: #b583da;
     --purple-500: #9955cc;
+    --purple-700: #7131a2;
     --primary-active: #9333ea;
     --destructive: #aa0000;
     --destructive-foreground: #ffffff;
+    --accent: #f1f1f1;
+    --accent-foreground: #4a4a4a;
+    --accent-surface: #f3eafb;
+    --accent-surface-strong: #e0c8f5;
 }
 
 [data-theme='dark'] {
@@ -109,8 +114,13 @@
     --purple-300: #7131a2;
     --purple-400: #8d41c6;
     --purple-500: #9955cc;
+    --purple-700: #c7a2e3;
     --destructive: #f87171;
     --destructive-foreground: #000000;
+    --accent: #ece0f6;
+    --accent-foreground: #1c0c28;
+    --accent-surface: #33194b;
+    --accent-surface-strong: #4b2a6b;
 }
 
 /* ============================ base ============================ */
@@ -286,67 +296,6 @@
         padding-left: 38px;
     }
 
-    /* button */
-    .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        font-size: 14.5px;
-        font-weight: 700;
-        border-radius: 999px;
-        padding: 11px 20px;
-        cursor: pointer;
-        border: 1px solid transparent;
-        transition: transform 0.12s ease;
-        white-space: nowrap;
-        user-select: none;
-    }
-    .btn:active {
-        transform: translateY(0.5px);
-    }
-    .btn--pri {
-        background: var(--pp);
-        color: #fff;
-        box-shadow: 0 1px 2px rgba(120, 60, 180, 0.25);
-    }
-    .btn--pri:hover {
-        background: var(--pp-deep);
-    }
-    /* Quiet tonal fill — used for passive dismiss actions (Abbrechen, Schließen). */
-    .btn--ton {
-        background: var(--pp-tint2);
-        color: var(--pp-ink);
-    }
-    /* Neutral action — a quiet surface fill with a hairline border. For menu triggers that open a
-       choice rather than performing one, so the button itself carries no urgency and leaves the
-       colour to the actions inside the menu. */
-    .btn--neutral {
-        background: var(--surface-2);
-        color: var(--ink);
-        border-color: var(--line);
-    }
-    .btn--neutral:hover {
-        background: var(--surface-3);
-        border-color: var(--line-2);
-    }
-    /* Brand action, mirrors .btn--danger's structure in purple: tinted + bordered at rest,
-       commits to a solid fill with a soft shadow on hover. */
-    .btn--brand {
-        background: var(--pp-tint);
-        color: var(--pp-ink);
-        border-color: color-mix(in srgb, var(--pp) 24%, transparent);
-    }
-    .btn--brand:hover {
-        background: var(--pp);
-        color: #fff;
-        border-color: var(--pp);
-        box-shadow: 0 2px 8px color-mix(in srgb, var(--pp) 30%, transparent);
-    }
-    .btn--brand:active {
-        transform: translateY(0.5px);
-    }
-
     /* eyebrow */
     .eyebrow {
         font-size: 12px;
@@ -440,36 +389,6 @@
             transform: translate(-50%, -50%) scale(1);
             opacity: 1;
         }
-    }
-    /* Restrained at rest (red text on a tinted surface), commits to a solid fill on hover.
-       Reads as considered rather than a flat red block, and signals "destructive, secondary". */
-    .btn--danger {
-        background: var(--neg-bg);
-        color: var(--neg-ink);
-        border-color: color-mix(in srgb, var(--neg) 28%, transparent);
-    }
-    .btn--danger:hover {
-        background: var(--neg);
-        color: #fff;
-        border-color: var(--neg);
-        box-shadow: 0 2px 8px color-mix(in srgb, var(--neg) 32%, transparent);
-    }
-    .btn--danger:active {
-        transform: translateY(0.5px);
-    }
-    /* Solid variant for the final confirm inside the delete dialog — emphatic on purpose. */
-    .btn--danger-solid {
-        background: var(--neg);
-        color: #fff;
-        border-color: var(--neg);
-        box-shadow: 0 1px 2px color-mix(in srgb, var(--neg) 30%, transparent);
-    }
-    .btn--danger-solid:hover {
-        background: color-mix(in srgb, var(--neg) 88%, #000);
-    }
-    .btn[disabled] {
-        opacity: 0.5;
-        cursor: not-allowed;
     }
 
     .icbtn {
