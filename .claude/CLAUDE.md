@@ -46,7 +46,7 @@ Hopps ist eine cloud-basierte Open-Source Buchhaltungssoftware mit KI für gemei
 - `Category` - Kategorisierungssystem für Transaktionen
 - `Transaction` - Finanztransaktionen mit Dokumentreferenzen
 - `Document` + `TradeParty`, `DocumentTag` - hochgeladene Belege inkl. Analyse-/Extraktionsstatus
-- `BankAccount`, `BankImport`, `BankTransaction`, `BankCsvSchema`, `BankCsvColumnMapping`, `BankTransactionMatch` - Bank-CSV-Import und Abgleich mit Transaktionen (`bankimport`-Slice)
+- `BankAccount`, `BankImport`, `BankTransaction`, `BankCsvSchema`, `BankCsvColumnMapping`, `BankTransactionMatch` - Bank-CSV-, MT940- und PayPal-Import und Abgleich mit Transaktionen (`bankimport`-Slice). Konto-Art `BANK` (IBAN) oder `PAYPAL` (PayPal-E-Mail, keine IBAN); Umsätze zwischen eigenen Konten haben Status `TRANSFER`
 - `Tag` (shared)
 
 **API Endpoints** (class-level `@Path`):
@@ -80,7 +80,7 @@ ZUGFeRD-Rechnungsverarbeitung (XML aus PDFs extrahieren)
 - **Flyway Migrations:** `/src/main/resources/db/migration`
 - **Testdaten:** `/src/main/resources/db/testdata` (dev mode)
 - **Multi-Database:** Separate DBs für org, keycloak
-- **Schema Version:** aktuell V1.0.41 (Nummerierung mit Lücke: V1.0.0–V1.0.2, dann ab V1.0.13 fortlaufend)
+- **Schema Version:** aktuell V1.0.42 (Nummerierung mit Lücke: V1.0.0–V1.0.2, dann ab V1.0.13 fortlaufend)
 
 ## Frontend
 
