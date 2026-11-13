@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.5.0](https://github.com/hopps-app/hopps/compare/v2.4.0...v2.5.0) (2026-11-13)
+
+
+### Features
+
+* **bommel:** rebuild the bommel screen with details panel, period filter and tour ([#917](https://github.com/hopps-app/hopps/issues/917)) ([d2df897](https://github.com/hopps-app/hopps/commit/d2df8977ca2c4a178a8c82eb8e1f6190a12abf89))
+* **categories:** drag and drop import and room for many categories in the group dialog ([#931](https://github.com/hopps-app/hopps/issues/931)) ([805c7ff](https://github.com/hopps-app/hopps/commit/805c7ff43d03c4130907ba34f2e0a907000c611b))
+
+
+### Bug Fixes
+
+* **bommel:** calmer tour, sum arrow and centering polish ([#944](https://github.com/hopps-app/hopps/issues/944)) ([b7539b1](https://github.com/hopps-app/hopps/commit/b7539b1e389264ec34fd809325a2b9e9841d4f40))
+* **upload-link:** polish the public upload page ([#914](https://github.com/hopps-app/hopps/issues/914)) ([d24b1d2](https://github.com/hopps-app/hopps/commit/d24b1d2510eb8db861fe829a83ed575f37e326df))
+
+
+### Performance
+
+* **transactions:** open the transaction drawer instantly and keep it in the url ([#930](https://github.com/hopps-app/hopps/issues/930)) ([828e653](https://github.com/hopps-app/hopps/commit/828e653ef22759c068afbd3033255b7f78557d0d))
+
 ## [2.4.0](https://github.com/hopps-app/hopps/compare/v2.3.1...v2.4.0) (2026-11-08)
 
 
