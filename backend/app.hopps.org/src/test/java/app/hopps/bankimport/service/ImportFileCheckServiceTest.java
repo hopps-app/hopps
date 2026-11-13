@@ -6,6 +6,7 @@ import app.hopps.bankimport.domain.BankFieldType;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,6 +24,35 @@ class ImportFileCheckServiceTest {
     @Test
     void acceptsFileInAccountCurrency() {
         assertDoesNotThrow(() -> ImportFileCheckService.verify("EUR", Set.of("EUR")));
+    }
+
+    @Test
+    void acceptsPaypalExportHoldingTheAccountCurrencyAmongOthers() {
+        assertDoesNotThrow(() -> ImportFileCheckService.verifyPaypal("EUR", paypalExport("EUR", "USD")));
+    }
+
+    @Test
+    void rejectsPaypalExportWithoutTheAccountCurrency() {
+        BankImportRejectedException e = assertThrows(BankImportRejectedException.class,
+                () -> ImportFileCheckService.verifyPaypal("CHF", paypalExport("EUR", "USD")));
+
+        Map<?, ?> body = (Map<?, ?>) e.getResponse().getEntity();
+        assertEquals(List.of("EUR", "USD"), body.get("fileCurrencies"));
+    }
+
+    private static byte[] paypalExport(String... currencies) {
+        StringBuilder text = new StringBuilder(
+                "\"Datum\",\"Beschreibung\",\"Währung\",\"Brutto\",\"Entgelt\",\"Netto\","
+                        + "\"Guthaben\",\"Transaktionscode\",\"Name\",\"Zugehöriger Transaktionscode\"\n");
+        int i = 0;
+        for (String currency : currencies) {
+            text.append("\"01.10.2026\",\"Handyzahlung\",\"")
+                    .append(currency)
+                    .append("\",\"1,00\",\"0,00\",\"1,00\",\"1,00\",\"CODE")
+                    .append(i++)
+                    .append("\",\"Erika\",\"\"\n");
+        }
+        return text.toString().getBytes(StandardCharsets.UTF_8);
     }
 
     @Test

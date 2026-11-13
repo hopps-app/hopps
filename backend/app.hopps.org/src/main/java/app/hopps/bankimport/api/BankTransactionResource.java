@@ -70,7 +70,7 @@ public class BankTransactionResource {
             @QueryParam("accountIds") @Parameter(description = "Comma-separated bank account IDs (omit for all accounts)") String accountIdsCsv,
             @QueryParam("dateFrom") @Parameter(description = "Booking date inclusive (ISO-8601)") String dateFrom,
             @QueryParam("dateTo") @Parameter(description = "Booking date inclusive (ISO-8601)") String dateTo,
-            @QueryParam("status") @Parameter(description = "Comma-separated statuses (UNMATCHED, PARTIALLY_MATCHED, FULLY_MATCHED, IGNORED)") String statusesCsv,
+            @QueryParam("status") @Parameter(description = "Comma-separated statuses (UNMATCHED, PARTIALLY_MATCHED, FULLY_MATCHED, IGNORED, TRANSFER)") String statusesCsv,
             @QueryParam("search") @Parameter(description = "Substring match on purpose / counterparty name") String search,
             @QueryParam("minAmount") @Parameter(description = "Minimum transaction amount by magnitude (absolute value, inclusive)") String minAmount,
             @QueryParam("maxAmount") @Parameter(description = "Maximum transaction amount by magnitude (absolute value, inclusive)") String maxAmount,

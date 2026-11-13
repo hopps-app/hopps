@@ -31,6 +31,9 @@ public class BankImportWorker {
     @Inject
     Mt940ImportService mt940ImportService;
 
+    @Inject
+    PaypalImportService paypalImportService;
+
     @Scheduled(every = "5s", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     public void pollQueue() {
         Long claimedId = claimNextJob();
@@ -41,6 +44,8 @@ public class BankImportWorker {
             String fileType = getFileType(claimedId);
             if ("MT940".equals(fileType)) {
                 mt940ImportService.runImport(claimedId);
+            } else if (PaypalImportService.FILE_TYPE.equals(fileType)) {
+                paypalImportService.runImport(claimedId);
             } else {
                 importService.runImport(claimedId);
             }

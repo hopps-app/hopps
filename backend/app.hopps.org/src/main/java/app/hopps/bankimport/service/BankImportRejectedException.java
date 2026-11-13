@@ -20,6 +20,7 @@ public class BankImportRejectedException extends ClientErrorException {
     public static final String CURRENCY_MISMATCH = "CURRENCY_MISMATCH";
     public static final String IMPORT_IN_USE = "IMPORT_IN_USE";
     public static final String FILE_ALREADY_IMPORTED = "FILE_ALREADY_IMPORTED";
+    public static final String WRONG_ACCOUNT_TYPE = "WRONG_ACCOUNT_TYPE";
 
     private BankImportRejectedException(String message, Map<String, Object> body) {
         super(message, Response.status(Response.Status.CONFLICT)
@@ -49,6 +50,24 @@ public class BankImportRejectedException extends ClientErrorException {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("code", IMPORT_IN_USE);
         body.put("message", message);
+        return new BankImportRejectedException(message, body);
+    }
+
+    /** A PayPal activity export was dropped on a bank account. */
+    public static BankImportRejectedException paypalFileForBankAccount() {
+        return wrongAccountType("This is a PayPal export; import it into a PayPal account", "PAYPAL");
+    }
+
+    /** A bank statement was dropped on a PayPal account. */
+    public static BankImportRejectedException bankFileForPaypalAccount() {
+        return wrongAccountType("A PayPal account only imports the PayPal activity export", "BANK");
+    }
+
+    private static BankImportRejectedException wrongAccountType(String message, String fileAccountType) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("code", WRONG_ACCOUNT_TYPE);
+        body.put("message", message);
+        body.put("fileAccountType", fileAccountType);
         return new BankImportRejectedException(message, body);
     }
 
