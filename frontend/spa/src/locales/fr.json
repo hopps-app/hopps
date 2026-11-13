@@ -1345,8 +1345,16 @@
                 "bicTooLong": "Le BIC ne doit pas dépasser 11 caractères",
                 "openingBalanceDateRequired": "La date du solde initial est obligatoire lorsqu'un solde est indiqué",
                 "openingBalanceRequired": "Le solde initial est obligatoire lorsqu'une date est indiquée",
-                "duplicateIban": "Un compte avec cet IBAN existe déjà dans votre organisation"
-            }
+                "duplicateIban": "Un compte avec cet IBAN existe déjà dans votre organisation",
+                "paypalEmailRequired": "Veuillez saisir l'adresse e-mail PayPal",
+                "paypalEmailInvalid": "Adresse e-mail non valide"
+            },
+            "type": "Type de compte",
+            "typeBank": "Compte bancaire",
+            "typePaypal": "PayPal",
+            "paypalEmail": "Adresse e-mail PayPal",
+            "paypalEmailPlaceholder": "tresorerie@association.fr",
+            "paypalEmailHint": "L'adresse avec laquelle l'organisation se connecte à PayPal."
         },
         "toast": {
             "createSuccess": "Compte bancaire créé",
@@ -1369,7 +1377,10 @@
             "currencyMismatchTitle": "Devise incorrecte",
             "currencyMismatch": "Le fichier contient des montants en {{fileCurrencies}}, mais le compte est tenu en {{accountCurrency}}. Importez le fichier dans un compte de cette devise.",
             "mixedCurrencies": "Le fichier contient des montants en plusieurs devises ({{fileCurrencies}}). Un compte ne peut être tenu que dans une seule devise, le fichier ne peut donc pas être importé.",
-            "startError": "L'import n'a pas pu être lancé."
+            "startError": "L'import n'a pas pu être lancé.",
+            "wrongAccountTypeTitle": "Le fichier ne correspond pas au compte",
+            "paypalFileForBankAccount": "Il s'agit d'un export PayPal. Veuillez l'importer dans un compte PayPal.",
+            "bankFileForPaypalAccount": "Un compte PayPal n'accepte que l'export d'activité PayPal (CSV)."
         },
         "title": "Importer un relevé bancaire",
         "wizard": {
@@ -1403,7 +1414,15 @@
             "previewButton": "Afficher l'aperçu",
             "previewError": "Échec du chargement de l'aperçu",
             "confirmTitle": "Confirmer l'import",
-            "startImport": "Démarrer l'import"
+            "startImport": "Démarrer l'import",
+            "paypalDetected": "Export PayPal détecté · {{count}} mouvements · aucun schéma nécessaire",
+            "paypalHint": "Les rechargements et retraits vers le compte bancaire sont marqués comme virements internes, les frais deviennent des mouvements distincts et les paiements en devises sont comptabilisés via leur conversion.",
+            "paypalUnreadable": "L'export PayPal n'a pas pu être lu. Veuillez télécharger l'activité au format CSV avec la langue allemande.",
+            "paypalKind": {
+                "PAYMENT": "Paiement",
+                "FEE": "Frais",
+                "TRANSFER": "Virement interne"
+            }
         },
         "preview": {
             "encoding": "Encodage",
@@ -1554,7 +1573,8 @@
             "open": "Ouvert",
             "matched": "Rapproché",
             "partial": "Partiel",
-            "ignored": "Ignoré"
+            "ignored": "Ignoré",
+            "transfer": "Virement interne"
         },
         "filter": {
             "open": "Ouverts",
@@ -1680,7 +1700,8 @@
             "partialAmountRange": "Entre {{min}} et {{max}}.",
             "confidence": "{{pct}} %",
             "showReceipt": "Afficher le reçu",
-            "hideReceipt": "Masquer le reçu"
+            "hideReceipt": "Masquer le reçu",
+            "transferHint": "Virement entre les propres comptes, p. ex. un rechargement PayPal depuis le compte bancaire. Aucun justificatif nécessaire."
         },
         "openAmount": "reste : {{amount}}",
         "createTx": {

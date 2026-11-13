@@ -616,7 +616,12 @@ export function useBankTransactionSearch(search: string, enabled: boolean) {
 
 export interface IBankAccountCreateRequest {
     name: string;
-    iban: string;
+    /** BANK when left out. */
+    accountType?: 'BANK' | 'PAYPAL';
+    /** Required for a bank account. */
+    iban?: string;
+    /** Required for a PayPal account, which has no IBAN. */
+    paypalEmail?: string;
     bic?: string;
     bankName?: string;
     accountHolder?: string;
@@ -632,6 +637,7 @@ export interface IBankAccountCreateRequest {
 export interface IBankAccountUpdateRequest {
     name?: string;
     iban?: string;
+    paypalEmail?: string;
     bic?: string;
     bankName?: string;
     accountHolder?: string;
