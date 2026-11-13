@@ -197,6 +197,7 @@
             "legalForm": "Forme juridique",
             "currencyInfo": "Devise comptable : {{currency}}. Elle découle du pays et peut être modifiée plus tard dans les paramètres tant qu'aucun compte bancaire ni aucune transaction n'existe.",
             "failed": "Échec de l'enregistrement de l'organisation",
+            "spamCheckFailed": "La vérification de sécurité a échoué. Veuillez réessayer.",
             "emailAlreadyRegistered": "Cette adresse e-mail est déjà enregistrée",
             "organizationAlreadyExists": "Une organisation portant ce nom existe déjà",
             "emailAndOrganizationAlreadyExist": "Cette adresse e-mail et ce nom d'organisation sont déjà utilisés",

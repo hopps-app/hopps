@@ -69,6 +69,8 @@ services:
 
       # -- tenancy: one association per installation (see .env.example)
       HOPPS_TENANCY_MODE: ${HOPPS_TENANCY_MODE:-single}
+      # -- spam protection for sign-up and initial setup (see .env.example)
+      HOPPS_ALTCHA_HMAC_SECRET: ${HOPPS_ALTCHA_HMAC_SECRET:-}
 
       # -- authentication against the external OIDC provider
       # Discovery may use an address only the container can reach (OIDC_INTERNAL_URL);

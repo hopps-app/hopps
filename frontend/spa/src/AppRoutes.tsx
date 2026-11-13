@@ -5,6 +5,7 @@ import { KontenPageSkeleton } from '@/components/BankAccounts/KontenSkeleton';
 import { CategoryGroupsSkeleton } from '@/components/CategoryGroups/CategoryGroupsSkeleton';
 import { LoadingState } from '@/components/common/LoadingState';
 import { DashboardSkeleton } from '@/components/Dashboard/DashboardSkeleton';
+import { RegistrationSkeleton } from '@/components/Forms/OrganizationRegistrationForm/RegistrationSkeleton';
 import { OrganizationDetailsSkeleton } from '@/components/Organization/OrganizationDetailsSkeleton';
 import { ProfileSkeleton } from '@/components/Profile/ProfileSkeleton';
 import { ReceiptsSkeleton } from '@/components/Receipts/ReceiptsSkeleton';
@@ -53,7 +54,7 @@ export default function AppRoutes() {
                     path="/register"
                     element={
                         <SetupGuard>
-                            <LazyRoute>
+                            <LazyRoute fallback={<RegistrationSkeleton />}>
                                 <RegisterOrganizationView />
                             </LazyRoute>
                         </SetupGuard>

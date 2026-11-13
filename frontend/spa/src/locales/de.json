@@ -236,6 +236,7 @@
             "legalForm": "Rechtsform",
             "currencyInfo": "Buchungswährung: {{currency}}. Sie ergibt sich aus dem Land und lässt sich später in den Einstellungen ändern, solange noch keine Bankkonten und Transaktionen existieren.",
             "failed": "Fehler bei der Registrierung der Organisation",
+            "spamCheckFailed": "Die Sicherheitsprüfung ist fehlgeschlagen. Bitte erneut versuchen.",
             "emailAlreadyRegistered": "Diese E-Mail-Adresse ist bereits registriert",
             "organizationAlreadyExists": "Eine Organisation mit diesem Namen existiert bereits",
             "emailAndOrganizationAlreadyExist": "Diese E-Mail-Adresse und dieser Organisationsname sind bereits vergeben",

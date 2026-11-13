@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { ConnectivityBanner } from '@/components/common/ConnectivityBanner/ConnectivityBanner';
+import LanguageSelector from '@/components/common/LanguageSelector/LanguageSelector';
 import LegalFooter from '@/components/common/LegalFooter/LegalFooter';
 import Button from '@/components/ui/Button.tsx';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/shadecn/Tooltip';
@@ -48,7 +49,9 @@ function HomeView() {
     const registerDisabled = identityProviderReachable === false || backendReachable === false;
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className="relative flex flex-col min-h-screen">
+            {/* Top right like on the registration page; out of the flow, so the centered content stays centered. */}
+            <LanguageSelector className="absolute right-4 top-4 sm:right-10" />
             <div className="flex flex-1 flex-col items-center justify-center px-4">
                 <ConnectivityBanner />
                 <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 w-full max-w-4xl">

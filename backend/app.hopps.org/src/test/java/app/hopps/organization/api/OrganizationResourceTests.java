@@ -106,7 +106,7 @@ class OrganizationResourceTests {
                 URI.create("https://hopps.cloud").toURL(), null, null, null, null, null, null, null, null, null, null);
         OwnerInput ownerInput = new OwnerInput("info@op-paf.de", "Test", "User");
         NewOrganizationInput newOrganizationInput = new NewOrganizationInput(ownerInput, "testPassword",
-                organizationInput);
+                organizationInput, null);
 
         given()
                 .contentType(MediaType.APPLICATION_JSON)
@@ -152,6 +152,6 @@ class OrganizationResourceTests {
                 null,
                 null, null, null, null, country, null, null, null, null, null);
         return new NewOrganizationInput(new OwnerInput("kassier@tv-zug.ch", "Test", "User"), "testPassword",
-                organizationInput);
+                organizationInput, null);
     }
 }
