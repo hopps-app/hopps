@@ -1,5 +1,7 @@
 package app.hopps.bankimport.api.dto;
 
+import app.hopps.bankimport.domain.BankAccountType;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -8,12 +10,16 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
- * Request payload for creating a new bank account. {@code name} and {@code iban} are required (see Q2). All other
- * fields are optional. {@code bommelId}, when null, defaults to the organization's root bommel server-side.
+ * Request payload for creating a new bank account. {@code name} is required, and so is the account's identifier: the
+ * {@code iban} of a bank account, or the {@code paypalEmail} of a PayPal account ({@code accountType} PAYPAL; null
+ * means BANK). All other fields are optional. {@code bommelId}, when null, defaults to the organization's root bommel
+ * server-side.
  */
 public record BankAccountCreateRequest(
         @NotBlank String name,
-        @NotBlank @Size(min = 15, max = 34) String iban,
+        BankAccountType accountType,
+        @Size(min = 15, max = 34) String iban,
+        @Email @Size(max = 254) String paypalEmail,
         @Size(max = 11) String bic,
         String bankName,
         String accountHolder,

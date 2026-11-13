@@ -67,6 +67,9 @@ public class BankTransactionMatchService {
         if (bankTx.getStatus() == BankTransactionStatus.IGNORED) {
             throw new BadRequestException("Cannot match an ignored bank transaction");
         }
+        if (bankTx.getStatus() == BankTransactionStatus.TRANSFER) {
+            throw new BadRequestException("Cannot match a transfer between own accounts");
+        }
 
         // Scoped like the bank transaction, so a movement can only be linked to a transaction of the same organization.
         Transaction tx = transactionRepository.findByIdScoped(transactionId);
@@ -369,6 +372,9 @@ public class BankTransactionMatchService {
             throw new NotFoundException("Bank transaction not found");
         }
         BankTransactionStatus before = bankTx.getStatus();
+        if (before == BankTransactionStatus.TRANSFER) {
+            throw new BadRequestException("A transfer between own accounts cannot be ignored");
+        }
         bankTx.setStatus(BankTransactionStatus.IGNORED);
         bankTx.setMatchedAmount(BigDecimal.ZERO);
         bankTransactionAuditor.ignored(bankTx, before);
@@ -381,6 +387,10 @@ public class BankTransactionMatchService {
             throw new NotFoundException("Bank transaction not found");
         }
         BankTransactionStatus before = bankTx.getStatus();
+        if (before == BankTransactionStatus.TRANSFER) {
+            // Not ignored, so there is nothing to revert; recomputing would turn the transfer into an open movement.
+            return;
+        }
         recomputeStatus(bankTx);
         if (before == BankTransactionStatus.IGNORED) {
             bankTransactionAuditor.unignored(bankTx, before);
