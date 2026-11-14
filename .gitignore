@@ -222,4 +222,5 @@ playwright/.cache/
 .playwright-cli/
 .playwright/
 
-claude-design/.archify/
+claude-design/
+.archify/
