@@ -17,6 +17,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -33,6 +34,7 @@ class WhatsAppWebhookResourceTest {
                   "field": "messages",
                   "value": {
                     "messaging_product": "whatsapp",
+                    "contacts": [{ "wa_id": "4917612345678", "profile": { "name": "Max" } }],
                     "messages": [{
                       "from": "4917612345678",
                       "id": "wamid.1",
@@ -87,7 +89,7 @@ class WhatsAppWebhookResourceTest {
                 .then()
                 .statusCode(401);
 
-        verify(chatHandler, never()).handle(any());
+        verify(chatHandler, never()).handle(any(), any());
     }
 
     @Test
@@ -104,7 +106,7 @@ class WhatsAppWebhookResourceTest {
                 .statusCode(200);
 
         ArgumentCaptor<InboundMessage> captor = ArgumentCaptor.forClass(InboundMessage.class);
-        verify(chatHandler, timeout(2000)).handle(captor.capture());
+        verify(chatHandler, timeout(2000)).handle(captor.capture(), eq("Max"));
         InboundMessage message = captor.getValue();
         assertEquals("4917612345678", message.from());
         assertEquals("media-1", message.media().id());

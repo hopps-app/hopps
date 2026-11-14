@@ -6,6 +6,7 @@ import app.hopps.chatbot.whatsapp.api.dto.InboundMessage;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -14,38 +15,52 @@ import static org.mockito.Mockito.when;
 
 class WhatsAppChatHandlerTest {
 
+    private final ChatService chatService = Mockito.mock(ChatService.class);
+    private final WhatsAppMessenger messenger = Mockito.mock(WhatsAppMessenger.class);
+    private final WhatsAppMediaDownloader downloader = Mockito.mock(WhatsAppMediaDownloader.class);
+    private final WhatsAppChatHandler handler = new WhatsAppChatHandler(chatService, messenger, downloader);
+
     @Test
     void mapsTextMessage() {
         var message = new InboundMessage("wamid.1", "49176", "1", "text", new InboundMessage.Text("Hallo"), null, null);
 
-        IncomingChatMessage chat = WhatsAppChatHandler.toChatMessage(message);
+        IncomingChatMessage chat = handler.toChatMessage(message, "Max");
 
         assertEquals("whatsapp:49176", chat.conversationId());
+        assertEquals("49176", chat.senderPhoneNumber());
+        assertEquals("Max", chat.senderName());
         assertEquals("Hallo", chat.text());
         assertNull(chat.attachment());
     }
 
     @Test
-    void mapsDocumentWithCaption() {
+    void mapsDocumentAndDownloadsLazily() throws Exception {
         var pdf = new InboundMessage.Media("media-1", "application/pdf", "abc", "Getränke", "rechnung.pdf");
         var message = new InboundMessage("wamid.2", "49176", "1", "document", null, null, pdf);
+        when(downloader.download("media-1")).thenReturn(new byte[] { 1, 2 });
 
-        IncomingChatMessage chat = WhatsAppChatHandler.toChatMessage(message);
+        IncomingChatMessage chat = handler.toChatMessage(message, null);
 
         assertEquals("Getränke", chat.text());
-        assertEquals("application/pdf", chat.attachment().mimeType());
         assertEquals("rechnung.pdf", chat.attachment().fileName());
-        assertEquals("media-1", chat.attachment().sourceRef());
+        Mockito.verifyNoInteractions(downloader);
+        assertArrayEquals(new byte[] { 1, 2 }, chat.attachment().content().load());
+    }
+
+    @Test
+    void namesPhotosWithoutFileName() {
+        var photo = new InboundMessage.Media("media-2", "image/jpeg", "abc", null, null);
+        var message = new InboundMessage("wamid.3", "49176", "1", "image", null, photo, null);
+
+        assertEquals("whatsapp-wamid.3.jpg", handler.toChatMessage(message, null).attachment().fileName());
     }
 
     @Test
     void sendsReplyToSender() {
-        ChatService chatService = Mockito.mock(ChatService.class);
-        WhatsAppMessenger messenger = Mockito.mock(WhatsAppMessenger.class);
         when(chatService.handle(any())).thenReturn("Antwort");
-        var message = new InboundMessage("wamid.3", "49176", "1", "text", new InboundMessage.Text("Hallo"), null, null);
+        var message = new InboundMessage("wamid.4", "49176", "1", "text", new InboundMessage.Text("Hallo"), null, null);
 
-        new WhatsAppChatHandler(chatService, messenger).handle(message);
+        handler.handle(message, "Max");
 
         verify(messenger).sendText("49176", "Antwort");
     }

@@ -1,5 +1,7 @@
 package app.hopps.chatbot.whatsapp.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 /**
@@ -16,7 +18,16 @@ public record WebhookPayload(String object, List<Entry> entry) {
     public record Change(String field, ChangeValue value) {
     }
 
-    /** {@code messages} is set for incoming messages; delivery receipts arrive as {@code statuses} and are ignored. */
-    public record ChangeValue(List<InboundMessage> messages) {
+    /**
+     * {@code messages} is set for incoming messages, {@code contacts} carries the senders' profile names; delivery
+     * receipts arrive as {@code statuses} and are ignored.
+     */
+    public record ChangeValue(List<Contact> contacts, List<InboundMessage> messages) {
+    }
+
+    public record Contact(@JsonProperty("wa_id") String waId, Profile profile) {
+    }
+
+    public record Profile(String name) {
     }
 }

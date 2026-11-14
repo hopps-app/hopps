@@ -1084,6 +1084,11 @@
             "by": "Per Link von {{name}}",
             "hint": "Ohne Konto über den Upload-Link des Bommels eingereicht",
             "comment": "Kommentar"
+        },
+        "whatsapp": {
+            "badge": "WhatsApp",
+            "by": "Per WhatsApp von {{name}}",
+            "hint": "Über den Hopps-WhatsApp-Chatbot von einer mit dem Bommel verbundenen Nummer geschickt"
         }
     },
     "bommel": {
@@ -1281,6 +1286,43 @@
                 "start": "Ersten Bommel anlegen"
             },
             "start": "Rundgang starten"
+        },
+        "whatsapp": {
+            "title": "WhatsApp",
+            "description": "Wer diese Einladung öffnet, schickt eine vorbereitete Nachricht an die Hopps-WhatsApp-Nummer. Die Telefonnummer ist dann mit diesem Bommel verbunden, und geschickte Fotos oder PDFs landen hier als Belege.",
+            "stopHint": "Mit STOP lässt sich eine Nummer wieder trennen. Gilt nur für diesen Bommel.",
+            "create": "WhatsApp-Einladung erstellen",
+            "expiresOn": "Gültig bis (optional)",
+            "code": "Code",
+            "copy": "Einladungslink kopieren",
+            "copyCode": "Code kopieren",
+            "copied": "Einladungslink kopiert",
+            "codeCopied": "Code kopiert",
+            "copyFailed": "Kopieren fehlgeschlagen",
+            "notConfigured": "Es ist keine WhatsApp-Nummer eingerichtet, daher gibt es noch keinen Link. Der Code lässt sich als Nachricht an den Chatbot schicken.",
+            "showQr": "QR-Code anzeigen",
+            "qrTitle": "WhatsApp-Einladung für {{name}}",
+            "qrDescription": "QR-Code mit dem Handy scannen, um WhatsApp mit der vorbereiteten Nachricht zu öffnen.",
+            "validUntil": "Gültig bis {{date}}",
+            "noExpiry": "Läuft nicht ab",
+            "expired": "Abgelaufen. Für weitere Nummern neu erzeugen.",
+            "expiredBadge": "Abgelaufen",
+            "regenerate": "Neu erzeugen",
+            "regenerateConfirmTitle": "WhatsApp-Einladung neu erzeugen?",
+            "regenerateConfirmText": "Der bisherige Code funktioniert nicht mehr; bereits geteilte Links und QR-Codes müssen ersetzt werden. Bereits verbundene Nummern bleiben verbunden.",
+            "revoke": "WhatsApp ausschalten",
+            "revokeConfirmTitle": "WhatsApp für diesen Bommel ausschalten?",
+            "revokeConfirmText": "Die Einladung wird gelöscht und alle verbundenen Nummern werden getrennt. Per WhatsApp geschickte Belege werden für diesen Bommel nicht mehr angenommen.",
+            "created": "WhatsApp-Einladung erstellt",
+            "revoked": "WhatsApp für diesen Bommel ausgeschaltet",
+            "error": "WhatsApp-Einladung konnte nicht geändert werden",
+            "connected_one": "{{count}} verbundene Nummer",
+            "connected_other": "{{count}} verbundene Nummern",
+            "joinedAt": "seit {{date}}",
+            "removeContact": "Trennen",
+            "removeContactConfirmTitle": "{{name}} trennen?",
+            "removeContactConfirmText": "Belege von dieser Nummer werden nicht mehr angenommen, bis sie sich erneut über eine Einladung verbindet.",
+            "contactRemoved": "Nummer getrennt"
         }
     },
     "dashboard": {

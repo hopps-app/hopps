@@ -15,6 +15,7 @@ import {
     Coins,
     ExternalLink,
     Link2,
+    MessageCircle,
     Pencil,
     PencilLine,
     Search,
@@ -865,10 +866,12 @@ export function ReviewDrawer({
                   ? [
                         [
                             t('receipts.review.uploadedBy'),
-                            doc.uploadChannel === 'UPLOAD_LINK' ? (
+                            doc.uploadChannel === 'UPLOAD_LINK' || doc.uploadChannel === 'WHATSAPP' ? (
                                 <span key="uploadedBy" className="inline-flex flex-wrap items-center justify-end gap-1.5">
                                     {doc.uploadedBy}
-                                    <Badge tone="purple">{t('receipts.uploadLink.badge')}</Badge>
+                                    <Badge tone="purple">
+                                        {doc.uploadChannel === 'WHATSAPP' ? t('receipts.whatsapp.badge') : t('receipts.uploadLink.badge')}
+                                    </Badge>
                                 </span>
                             ) : (
                                 doc.uploadedBy
@@ -1648,6 +1651,11 @@ function DocumentRow({
                             <span className="inline-flex items-center gap-1" title={t('receipts.uploadLink.hint')}>
                                 <Link2 size={12} className="flex-shrink-0" />
                                 {[t('receipts.uploadLink.by', { name: doc.uploadedBy }), doc.senderName].filter(Boolean).join(' · ')}
+                            </span>
+                        ) : doc.uploadChannel === 'WHATSAPP' ? (
+                            <span className="inline-flex items-center gap-1" title={t('receipts.whatsapp.hint')}>
+                                <MessageCircle size={12} className="flex-shrink-0" />
+                                {[t('receipts.whatsapp.by', { name: doc.uploadedBy }), doc.senderName].filter(Boolean).join(' · ')}
                             </span>
                         ) : (
                             (doc.senderName ?? '')

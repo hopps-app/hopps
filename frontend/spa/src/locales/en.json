@@ -1220,6 +1220,11 @@
             "by": "Via link from {{name}}",
             "hint": "Submitted without an account through the bommel's upload link",
             "comment": "Comment"
+        },
+        "whatsapp": {
+            "badge": "WhatsApp",
+            "by": "Via WhatsApp from {{name}}",
+            "hint": "Sent through the Hopps WhatsApp chatbot by a number connected to the bommel"
         }
     },
     "bommel": {
@@ -1417,6 +1422,43 @@
                 "start": "Add the first Bommel"
             },
             "start": "Start the tour"
+        },
+        "whatsapp": {
+            "title": "WhatsApp",
+            "description": "Whoever opens this invite sends a prepared message to the Hopps WhatsApp number. Their phone number is then connected to this bommel, and photos or PDFs they send land here as receipts.",
+            "stopHint": "Sending STOP disconnects a number. Applies to this Bommel only.",
+            "create": "Create WhatsApp invite",
+            "expiresOn": "Valid until (optional)",
+            "code": "Code",
+            "copy": "Copy invite link",
+            "copyCode": "Copy code",
+            "copied": "Invite link copied",
+            "codeCopied": "Code copied",
+            "copyFailed": "Could not copy",
+            "notConfigured": "No WhatsApp number is configured, so there is no link yet. The code can be sent to the chatbot as a message.",
+            "showQr": "Show QR code",
+            "qrTitle": "WhatsApp invite for {{name}}",
+            "qrDescription": "Scan the QR code with a phone to open WhatsApp with the prepared message.",
+            "validUntil": "Valid until {{date}}",
+            "noExpiry": "Does not expire",
+            "expired": "Expired. Regenerate to invite more numbers.",
+            "expiredBadge": "Expired",
+            "regenerate": "Regenerate",
+            "regenerateConfirmTitle": "Regenerate WhatsApp invite?",
+            "regenerateConfirmText": "The current code stops working; links and QR codes you already shared need to be replaced. Numbers that are already connected stay connected.",
+            "revoke": "Turn off WhatsApp",
+            "revokeConfirmTitle": "Turn off WhatsApp for this bommel?",
+            "revokeConfirmText": "The invite is deleted and all connected numbers are disconnected. Receipts sent via WhatsApp are no longer accepted for this bommel.",
+            "created": "WhatsApp invite created",
+            "revoked": "WhatsApp turned off for this bommel",
+            "error": "Could not change the WhatsApp invite",
+            "connected_one": "{{count}} connected number",
+            "connected_other": "{{count}} connected numbers",
+            "joinedAt": "since {{date}}",
+            "removeContact": "Disconnect",
+            "removeContactConfirmTitle": "Disconnect {{name}}?",
+            "removeContactConfirmText": "Receipts from this number are no longer accepted until it joins again through an invite.",
+            "contactRemoved": "Number disconnected"
         }
     },
     "bankAccounts": {

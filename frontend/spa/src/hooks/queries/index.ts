@@ -4,3 +4,4 @@ export * from './useTransactions';
 export * from './useBankAccounts';
 export * from './usePermissions';
 export * from './useUploadLinks';
+export * from './useWhatsAppInvites';

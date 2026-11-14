@@ -89,8 +89,9 @@ public class WhatsAppWebhookResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        for (InboundMessage message : messagesOf(payload)) {
-            executor.runAsync(() -> chatHandler.handle(message))
+        for (ReceivedMessage received : messagesOf(payload)) {
+            InboundMessage message = received.message();
+            executor.runAsync(() -> chatHandler.handle(message, received.profileName()))
                     .exceptionally(e -> {
                         LOG.error("Handling WhatsApp message {} failed", message.id(), e);
                         return null;
@@ -99,7 +100,7 @@ public class WhatsAppWebhookResource {
         return Response.ok().build();
     }
 
-    static List<InboundMessage> messagesOf(WebhookPayload payload) {
+    static List<ReceivedMessage> messagesOf(WebhookPayload payload) {
         if (payload == null || payload.entry() == null) {
             return List.of();
         }
@@ -109,7 +110,25 @@ public class WhatsAppWebhookResource {
                 .flatMap(entry -> entry.changes().stream())
                 .filter(change -> "messages".equals(change.field()) && change.value() != null
                         && change.value().messages() != null)
-                .flatMap(change -> change.value().messages().stream())
+                .flatMap(change -> change.value()
+                        .messages()
+                        .stream()
+                        .map(message -> new ReceivedMessage(message, profileName(change.value(), message.from()))))
                 .toList();
+    }
+
+    private static String profileName(WebhookPayload.ChangeValue value, String waId) {
+        if (value.contacts() == null) {
+            return null;
+        }
+        return value.contacts()
+                .stream()
+                .filter(contact -> Objects.equals(contact.waId(), waId) && contact.profile() != null)
+                .map(contact -> contact.profile().name())
+                .findFirst()
+                .orElse(null);
+    }
+
+    record ReceivedMessage(InboundMessage message, String profileName) {
     }
 }

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import { UploadLinkSection } from './UploadLinkSection';
+import { WhatsAppInviteSection } from './WhatsAppInviteSection';
 
 import { BommelTreeNodeModel } from '@/components/BommelTreeView/BommelTreeNodeModel';
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
@@ -188,8 +189,9 @@ export function BommelDetailsPanel({
                     />
                 )}
 
-                {/* Upload link management; not in demo mode, where the bommels do not exist. */}
+                {/* Upload link and WhatsApp invite management; not in demo mode, where the bommels do not exist. */}
                 {!demo && <UploadLinkSection key={node.id} bommelId={Number(node.id)} bommelName={node.text} />}
+                {!demo && <WhatsAppInviteSection key={`wa-${node.id}`} bommelId={Number(node.id)} bommelName={node.text} />}
             </div>
         </aside>
     );

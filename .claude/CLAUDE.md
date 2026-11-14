@@ -59,6 +59,8 @@ Hopps ist eine cloud-basierte Open-Source Buchhaltungssoftware mit KI für gemei
 - `/statistics` - Auswertungen/Kennzahlen
 - `/bankaccounts`, `/imports`, `/bank-transactions`, `/bank-schemas` - Bank-Import-Feature
 - `/upload-links/{bommelId}` - Upload-Link eines Bommels verwalten (erzeugen/neu erzeugen, widerrufen)
+- `/whatsapp-invites/{bommelId}` - WhatsApp-Einladung eines Bommels und verbundene Nummern verwalten
+- `/internal/whatsapp/*` - nur für den Chatbot (Shared Secret, siehe app.hopps.chatbot)
 - `/public/upload-links/{token}` - öffentlich (ohne Login): Upload-Seite-Infos und Beleg einreichen; rate-limitiert
 - `/health` - Health-Check
 - `/ws/documents` - WebSocket für Live-Updates zu Dokumentanalysen
@@ -76,11 +78,21 @@ Dokumentenanalyse mit Azure Document Intelligence (OCR, Datenextraktion)
 #### app.hopps.zugferd (Port 8103)
 ZUGFeRD-Rechnungsverarbeitung (XML aus PDFs extrahieren)
 
+#### app.hopps.chatbot (Port 8104)
+WhatsApp-Chatbot (Meta Cloud API), Spec/Stand in Issue #947. Kanalunabhängiger Kern `ChatService`: STOP trennt,
+Einladungscode (`Hopps-Code: XXXXX-XXXXX`) verbindet die Nummer mit einem Bommel, Fotos/PDFs gehen als Beleg an org,
+Freitext an den LangChain4j-Assistenten (Azure OpenAI EU; in dev optional OpenAI-Platform per `HOPPS_LLM_PROVIDER=openai`,
+in prod gesperrt). Webhook `/webhooks/whatsapp` (Signaturprüfung). Debug-Chat `/debug/chat` nur dev/test
+(`@UnlessBuildProfile("prod")`), simuliert eine Telefonnummer und übernimmt `?text=` aus Einladungslinks.
+Ruft org ausschließlich über die interne API `/internal/whatsapp/*` auf (Shared Secret `HOPPS_INTERNAL_API_TOKEN`,
+Header `X-Hopps-Internal-Token`; ohne Token antwortet org dort 404; nie über den öffentlichen Ingress routen).
+Bommel-Einladungen und verbundene Nummern liegen in org (Slice `whatsapp`, Tabellen `whatsapp_invite`, `whatsapp_contact`).
+
 ### Datenbank Setup
 - **Flyway Migrations:** `/src/main/resources/db/migration`
 - **Testdaten:** `/src/main/resources/db/testdata` (dev mode)
 - **Multi-Database:** Separate DBs für org, keycloak
-- **Schema Version:** aktuell V1.0.41 (Nummerierung mit Lücke: V1.0.0–V1.0.2, dann ab V1.0.13 fortlaufend)
+- **Schema Version:** aktuell V1.0.42 (Nummerierung mit Lücke: V1.0.0–V1.0.2, dann ab V1.0.13 fortlaufend)
 
 ## Frontend
 
@@ -316,7 +328,7 @@ Der Login läuft über **Keycloak** (via Quarkus Keycloak Dev Services), und Key
 - **Nur `%dev`:** Der `image-name`-Override und der ganze Authentik-Broker-Flow betreffen ausschließlich den Dev-Mode. In JUnit-Tests spielt das Login-Theme keine Rolle (Tests holen Tokens direkt, rendern nie die Login-Seite).
 
 ### CI/CD (GitHub Actions)
-- **Backend Workflow (`backend.yml`):** Matrix Build für 3 Services (org, az-document-ai, zugferd), Docker Push zu GHCR
+- **Backend Workflow (`backend.yml`):** Matrix Build für 4 Services (org, az-document-ai, zugferd, chatbot), Docker Push zu GHCR; `deploy: false` am Chatbot verhindert den hopps.cloud-Deploy-Trigger, bis er dort deploybar ist
 - **Frontend Workflow (`frontend.yml`):** Lint, Test, Build, Docker Push; separater `api-client.yml` und `keycloak.yml`
 - **Auto-Deployment:** zu dev environment bei main branch
 - **Container Registry:** ghcr.io/hopps-app/hopps

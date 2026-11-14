@@ -34,6 +34,14 @@
   button.secondary { background: transparent; color: var(--text); border: 1px solid var(--line); padding: 6px 10px; }
   button:disabled { opacity: .5; cursor: default; }
   #file { display: none; }
+  .sender { display: flex; gap: 8px; flex-wrap: wrap; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); align-items: center; font-size: 13px; }
+  .sender label { display: flex; gap: 6px; align-items: center; color: var(--muted); }
+  .sender input { width: 150px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--text); font: inherit; }
+  #status { display: flex; gap: 8px; align-items: center; padding: 8px 16px; font-size: 13px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  #status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
+  #status.connected .dot { background: var(--accent); }
+  #status.error .dot { background: var(--error); }
+  #status span { flex: 1; }
   #fileName { font-size: 12px; color: var(--muted); padding: 0 16px 8px; background: var(--panel); }
 </style>
 </head>
@@ -43,6 +51,13 @@
     <h1>Hopps Chatbot <small>debug, no WhatsApp</small></h1>
     <button class="secondary" id="reset" type="button" title="Start a new conversation with empty chat memory">New conversation</button>
   </header>
+  <div class="sender">
+    <label>Phone <input id="phone" inputmode="numeric" placeholder="4917612345678" title="Simulated WhatsApp number, international format without +"></label>
+    <label>Name <input id="name" placeholder="WhatsApp profile name"></label>
+  </div>
+  <div id="status"><i class="dot"></i><span>Checking connection…</span>
+    <button class="secondary" id="disconnect" type="button" hidden title="Sends STOP, like on WhatsApp">Disconnect</button>
+  </div>
   <div id="log" aria-live="polite"></div>
   <div id="fileName" hidden></div>
   <form id="form">
@@ -59,7 +74,46 @@
   const file = document.getElementById('file');
   const fileName = document.getElementById('fileName');
   const send = document.getElementById('send');
+  const phone = document.getElementById('phone');
+  const name = document.getElementById('name');
+  const status = document.getElementById('status');
+  const statusText = status.querySelector('span');
+  const disconnect = document.getElementById('disconnect');
   let conversationId = newConversationId();
+
+  // Per-viewer convenience only; the page works without storage.
+  function load(key, fallback) { try { return localStorage.getItem(key) || fallback; } catch { return fallback; } }
+  function save(key, value) { try { localStorage.setItem(key, value); } catch { /* ignore */ } }
+  phone.value = load('hopps.debugChat.phone', '4917' + String(Math.floor(10000000 + Math.random() * 89999999)));
+  name.value = load('hopps.debugChat.name', 'Debug User');
+  save('hopps.debugChat.phone', phone.value);
+  phone.addEventListener('change', () => { save('hopps.debugChat.phone', phone.value); refreshStatus(); });
+  name.addEventListener('change', () => save('hopps.debugChat.name', name.value));
+
+  async function refreshStatus() {
+    status.className = '';
+    try {
+      const res = await fetch('chat/connection?phoneNumber=' + encodeURIComponent(phone.value));
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const c = await res.json();
+      if (c.connected) {
+        status.className = 'connected';
+        statusText.textContent = 'Connected to ' + c.bommelLabel + ' (' + c.organizationName + '). Receipts go there.';
+      } else if (c.error) {
+        status.className = 'error';
+        statusText.textContent = c.error;
+      } else {
+        statusText.textContent = 'Not connected. Open a WhatsApp invite link from Hopps (Struktur → Bommel → WhatsApp) or paste its code.';
+      }
+      disconnect.hidden = !c.connected;
+    } catch (err) {
+      status.className = 'error';
+      statusText.textContent = 'Could not check the connection: ' + err.message;
+      disconnect.hidden = true;
+    }
+  }
+
+  disconnect.addEventListener('click', () => { text.value = 'STOP'; form.requestSubmit(); });
 
   function newConversationId() {
     return (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
@@ -102,6 +156,8 @@
 
     const data = new FormData();
     data.append('conversationId', conversationId);
+    data.append('phoneNumber', phone.value);
+    data.append('senderName', name.value);
     if (text.value.trim()) data.append('text', text.value);
     if (attached) data.append('file', attached);
 
@@ -127,10 +183,19 @@
     } finally {
       send.disabled = false;
       text.focus();
+      refreshStatus();
     }
   });
 
-  add('bot', 'Debug chat: talks to the same ChatService as the WhatsApp webhook. Attach a JPEG, PNG or PDF to test the receipt flow.', 'conversation ' + conversationId);
+  add('bot', 'Debug chat: talks to the same ChatService as the WhatsApp webhook, as the phone number above. Connect it with a WhatsApp invite from Hopps, then attach a JPEG, PNG or PDF to file a receipt. STOP disconnects.', 'conversation ' + conversationId);
+
+  // Invite links of a dev org point here with ?text=Hopps-Code: …, like wa.me pre-fills the message.
+  const prefill = new URLSearchParams(location.search).get('text');
+  if (prefill) {
+    text.value = prefill;
+    history.replaceState(null, '', location.pathname);
+  }
+  refreshStatus();
   text.focus();
 </script>
 </body>

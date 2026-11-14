@@ -6,9 +6,9 @@ package app.hopps.chatbot.chat.model;
  * @param mimeType
  *            e.g. {@code image/jpeg} or {@code application/pdf}
  * @param fileName
- *            original file name, if the channel provides one
- * @param sourceRef
- *            channel-specific handle to fetch the content later, e.g. the WhatsApp media id
+ *            original file name; channels without one (WhatsApp photos) get a generated name
+ * @param content
+ *            loads the bytes when the file is actually filed
  */
-public record Attachment(String mimeType, String fileName, String sourceRef) {
+public record Attachment(String mimeType, String fileName, AttachmentContent content) {
 }
