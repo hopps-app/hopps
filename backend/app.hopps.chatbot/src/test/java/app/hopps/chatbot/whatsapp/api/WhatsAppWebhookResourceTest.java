@@ -1,6 +1,6 @@
 package app.hopps.chatbot.whatsapp.api;
 
-import app.hopps.chatbot.receipt.service.ReceiptIntakeService;
+import app.hopps.chatbot.whatsapp.service.WhatsAppChatHandler;
 import app.hopps.chatbot.whatsapp.api.dto.InboundMessage;
 import app.hopps.chatbot.whatsapp.service.WhatsAppSignatureVerifier;
 import io.quarkus.test.InjectMock;
@@ -50,7 +50,7 @@ class WhatsAppWebhookResourceTest {
     WhatsAppSignatureVerifier signatureVerifier;
 
     @InjectMock
-    ReceiptIntakeService receiptIntakeService;
+    WhatsAppChatHandler chatHandler;
 
     @Test
     void verificationEchoesChallengeForCorrectToken() {
@@ -87,11 +87,11 @@ class WhatsAppWebhookResourceTest {
                 .then()
                 .statusCode(401);
 
-        verify(receiptIntakeService, never()).handle(any());
+        verify(chatHandler, never()).handle(any());
     }
 
     @Test
-    void handsSignedMessageToReceiptIntake() {
+    void handsSignedMessageToChatHandler() {
         byte[] body = IMAGE_MESSAGE.getBytes(StandardCharsets.UTF_8);
 
         given()
@@ -104,7 +104,7 @@ class WhatsAppWebhookResourceTest {
                 .statusCode(200);
 
         ArgumentCaptor<InboundMessage> captor = ArgumentCaptor.forClass(InboundMessage.class);
-        verify(receiptIntakeService, timeout(2000)).handle(captor.capture());
+        verify(chatHandler, timeout(2000)).handle(captor.capture());
         InboundMessage message = captor.getValue();
         assertEquals("4917612345678", message.from());
         assertEquals("media-1", message.media().id());

@@ -1,9 +1,9 @@
 package app.hopps.chatbot.whatsapp.api;
 
-import app.hopps.chatbot.receipt.service.ReceiptIntakeService;
 import app.hopps.chatbot.whatsapp.api.dto.InboundMessage;
 import app.hopps.chatbot.whatsapp.api.dto.WebhookPayload;
 import app.hopps.chatbot.whatsapp.config.WhatsAppConfig;
+import app.hopps.chatbot.whatsapp.service.WhatsAppChatHandler;
 import app.hopps.chatbot.whatsapp.service.WhatsAppSignatureVerifier;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.Consumes;
@@ -36,15 +36,15 @@ public class WhatsAppWebhookResource {
 
     private final WhatsAppConfig config;
     private final WhatsAppSignatureVerifier signatureVerifier;
-    private final ReceiptIntakeService receiptIntakeService;
+    private final WhatsAppChatHandler chatHandler;
     private final ObjectMapper objectMapper;
     private final ManagedExecutor executor;
 
     public WhatsAppWebhookResource(WhatsAppConfig config, WhatsAppSignatureVerifier signatureVerifier,
-            ReceiptIntakeService receiptIntakeService, ObjectMapper objectMapper, ManagedExecutor executor) {
+            WhatsAppChatHandler chatHandler, ObjectMapper objectMapper, ManagedExecutor executor) {
         this.config = config;
         this.signatureVerifier = signatureVerifier;
-        this.receiptIntakeService = receiptIntakeService;
+        this.chatHandler = chatHandler;
         this.objectMapper = objectMapper;
         this.executor = executor;
     }
@@ -90,7 +90,7 @@ public class WhatsAppWebhookResource {
         }
 
         for (InboundMessage message : messagesOf(payload)) {
-            executor.runAsync(() -> receiptIntakeService.handle(message))
+            executor.runAsync(() -> chatHandler.handle(message))
                     .exceptionally(e -> {
                         LOG.error("Handling WhatsApp message {} failed", message.id(), e);
                         return null;

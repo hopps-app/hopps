@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hopps Chatbot Debug</title>
+<style>
+  :root {
+    --bg: #f4f1ea; --panel: #ffffff; --text: #1d1d1b; --muted: #6b6b66; --line: #ddd8cc;
+    --me: #d9fdd3; --bot: #ffffff; --accent: #1f7a5a; --error: #b3261e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111b21; --panel: #1f2c33; --text: #e9edef; --muted: #8696a0; --line: #2a3942;
+      --me: #005c4b; --bot: #202c33; --accent: #25d366; --error: #f28b82;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
+  main { max-width: 720px; margin: 0 auto; height: 100dvh; display: flex; flex-direction: column; }
+  header { display: flex; gap: 12px; align-items: center; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 16px; margin: 0; flex: 1; }
+  header small { color: var(--muted); font-weight: 400; }
+  #log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .msg { max-width: 80%; padding: 8px 12px; border-radius: 10px; white-space: pre-wrap; word-wrap: break-word; box-shadow: 0 1px 1px rgba(0,0,0,.08); }
+  .me { align-self: flex-end; background: var(--me); }
+  .bot { align-self: flex-start; background: var(--bot); }
+  .meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .error { color: var(--error); }
+  form { display: flex; gap: 8px; padding: 12px 16px; background: var(--panel); border-top: 1px solid var(--line); align-items: flex-end; }
+  textarea { flex: 1; resize: none; min-height: 42px; max-height: 140px; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; }
+  button, label.file { border: 0; border-radius: 8px; padding: 10px 14px; font: inherit; cursor: pointer; background: var(--accent); color: #fff; }
+  label.file { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  button.secondary { background: transparent; color: var(--text); border: 1px solid var(--line); padding: 6px 10px; }
+  button:disabled { opacity: .5; cursor: default; }
+  #file { display: none; }
+  #fileName { font-size: 12px; color: var(--muted); padding: 0 16px 8px; background: var(--panel); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Hopps Chatbot <small>debug, no WhatsApp</small></h1>
+    <button class="secondary" id="reset" type="button" title="Start a new conversation with empty chat memory">New conversation</button>
+  </header>
+  <div id="log" aria-live="polite"></div>
+  <div id="fileName" hidden></div>
+  <form id="form">
+    <label class="file" for="file" title="Attach a receipt (JPEG, PNG or PDF)">📎</label>
+    <input id="file" type="file" accept="image/jpeg,image/png,application/pdf">
+    <textarea id="text" placeholder="Message or caption" rows="1"></textarea>
+    <button id="send" type="submit">Send</button>
+  </form>
+</main>
+<script>
+  const log = document.getElementById('log');
+  const form = document.getElementById('form');
+  const text = document.getElementById('text');
+  const file = document.getElementById('file');
+  const fileName = document.getElementById('fileName');
+  const send = document.getElementById('send');
+  let conversationId = newConversationId();
+
+  function newConversationId() {
+    return (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
+  }
+
+  function add(kind, body, meta) {
+    const el = document.createElement('div');
+    el.className = 'msg ' + kind;
+    el.textContent = body;
+    if (meta) {
+      const m = document.createElement('div');
+      m.className = 'meta';
+      m.textContent = meta;
+      el.appendChild(m);
+    }
+    log.appendChild(el);
+    log.scrollTop = log.scrollHeight;
+    return el;
+  }
+
+  file.addEventListener('change', () => {
+    fileName.hidden = !file.files.length;
+    fileName.textContent = file.files.length ? 'Attached: ' + file.files[0].name : '';
+  });
+
+  text.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
+  });
+
+  document.getElementById('reset').addEventListener('click', () => {
+    conversationId = newConversationId();
+    log.replaceChildren();
+    add('bot', 'New conversation started.', 'conversation ' + conversationId);
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const attached = file.files[0];
+    if (!text.value.trim() && !attached) return;
+
+    const data = new FormData();
+    data.append('conversationId', conversationId);
+    if (text.value.trim()) data.append('text', text.value);
+    if (attached) data.append('file', attached);
+
+    add('me', text.value || '(no text)', attached ? '📎 ' + attached.name + ' · ' + (attached.type || 'unknown type') : '');
+    text.value = '';
+    file.value = '';
+    fileName.hidden = true;
+    send.disabled = true;
+    const pending = add('bot', '…');
+    const started = performance.now();
+    try {
+      const res = await fetch('chat/messages', { method: 'POST', body: data });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const json = await res.json();
+      pending.textContent = json.reply;
+      const m = document.createElement('div');
+      m.className = 'meta';
+      m.textContent = Math.round(performance.now() - started) + ' ms';
+      pending.appendChild(m);
+    } catch (err) {
+      pending.textContent = 'Request failed: ' + err.message;
+      pending.classList.add('error');
+    } finally {
+      send.disabled = false;
+      text.focus();
+    }
+  });
+
+  add('bot', 'Debug chat: talks to the same ChatService as the WhatsApp webhook. Attach a JPEG, PNG or PDF to test the receipt flow.', 'conversation ' + conversationId);
+  text.focus();
+</script>
+</body>
+</html>
