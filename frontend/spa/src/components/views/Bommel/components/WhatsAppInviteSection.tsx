@@ -248,7 +248,7 @@ export function WhatsAppInviteSection({ bommelId, bommelName }: WhatsAppInviteSe
                             {t('common.cancel')}
                         </Button>
                         <Button onClick={create} disabled={regenerate.isPending}>
-                            {t('bommel.whatsapp.create')}
+                            {t('bommel.whatsapp.createConfirm')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

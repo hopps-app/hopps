@@ -1428,6 +1428,7 @@
             "description": "Whoever opens this invite sends a prepared message to the Hopps WhatsApp number. Their phone number is then connected to this bommel, and photos or PDFs they send land here as receipts.",
             "stopHint": "Sending STOP disconnects a number. Applies to this Bommel only.",
             "create": "Create WhatsApp invite",
+            "createConfirm": "Create",
             "expiresOn": "Valid until (optional)",
             "code": "Code",
             "copy": "Copy invite link",
