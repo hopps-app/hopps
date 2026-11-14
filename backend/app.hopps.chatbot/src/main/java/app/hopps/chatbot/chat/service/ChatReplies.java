@@ -31,8 +31,9 @@ public final class ChatReplies {
 
     /** The invitation as the debug channel shows it; mirrors the WhatsApp template's body. */
     public static String invitation(String inviterName, String bommelLabel, String organizationName) {
-        return inviterName + " lädt ein, Belege für " + bommelLabel + " (" + organizationName + ") per WhatsApp an "
-                + "Hopps zu schicken. Einfach ein Foto oder PDF in diesen Chat senden.";
+        return "Einladung von " + inviterName + ": Belege für " + bommelLabel + " (" + organizationName
+                + ") lassen sich ab jetzt per WhatsApp an Hopps schicken. Einfach ein Foto oder PDF in diesen Chat "
+                + "senden.";
     }
 
     public static String accepted(OrgConnection connection) {

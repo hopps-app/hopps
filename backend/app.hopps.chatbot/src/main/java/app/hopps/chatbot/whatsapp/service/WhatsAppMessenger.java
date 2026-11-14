@@ -7,6 +7,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -19,6 +21,7 @@ import java.util.Map;
  */
 @ApplicationScoped
 public class WhatsAppMessenger {
+    private static final Logger LOG = LoggerFactory.getLogger(WhatsAppMessenger.class);
 
     private final WhatsAppGraphClient client;
     private final WhatsAppConfig config;
@@ -62,9 +65,20 @@ public class WhatsAppMessenger {
             client.sendMessage(config.graphApiVersion(), config.phoneNumberId(), "Bearer " + config.accessToken(),
                     message);
         } catch (WebApplicationException e) {
-            // Template unknown, number not on WhatsApp, …: org turns this into "could not be sent".
+            // Template unknown or not approved, recipient not allowed, …: org turns this into "could not be sent".
+            // Meta's error body says which; it holds no secrets.
+            LOG.warn("WhatsApp rejected the invitation template '{}': HTTP {} {}", config.invitationTemplate(),
+                    e.getResponse().getStatus(), errorBody(e));
             throw new WebApplicationException("WhatsApp rejected the invitation: HTTP " + e.getResponse().getStatus(),
                     Response.Status.BAD_GATEWAY);
+        }
+    }
+
+    private static String errorBody(WebApplicationException e) {
+        try {
+            return e.getResponse().readEntity(String.class);
+        } catch (RuntimeException ignored) {
+            return "(no body)";
         }
     }
 }

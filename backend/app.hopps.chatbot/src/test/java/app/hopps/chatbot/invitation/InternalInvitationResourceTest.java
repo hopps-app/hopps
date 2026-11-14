@@ -44,7 +44,7 @@ class InternalInvitationResourceTest {
 
         List<DebugOutbox.Message> messages = outbox.take(PHONE);
         assertEquals(1, messages.size());
-        assertTrue(messages.get(0).text().startsWith("Alice Admin lädt ein, Belege für 🍿 Kiosk (Testverein)"));
+        assertTrue(messages.get(0).text().startsWith("Einladung von Alice Admin: Belege für 🍿 Kiosk (Testverein)"));
         assertEquals("hopps-accept:tok123", messages.get(0).buttons().get(0).payload());
         assertEquals("hopps-decline:tok123", messages.get(0).buttons().get(1).payload());
         assertTrue(outbox.take(PHONE).isEmpty());
