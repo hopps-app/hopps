@@ -4,10 +4,18 @@ import app.hopps.chatbot.whatsapp.api.dto.OutboundTextMessage;
 import app.hopps.chatbot.whatsapp.client.WhatsAppGraphClient;
 import app.hopps.chatbot.whatsapp.config.WhatsAppConfig;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
- * Sends replies to WhatsApp users.
+ * Sends messages to WhatsApp users: replies as plain text, invitations as approved template messages (the only kind
+ * WhatsApp allows to start a conversation).
  */
 @ApplicationScoped
 public class WhatsAppMessenger {
@@ -23,5 +31,40 @@ public class WhatsAppMessenger {
     public void sendText(String recipient, String body) {
         client.sendMessage(config.graphApiVersion(), config.phoneNumberId(), "Bearer " + config.accessToken(),
                 OutboundTextMessage.to(recipient, body));
+    }
+
+    /**
+     * Sends the invitation template.
+     *
+     * @param bodyParameters
+     *            values of {{1}}, {{2}}, … in the template body
+     * @param buttonPayloads
+     *            payloads of the template's quick-reply buttons, in order
+     */
+    public void sendInvitationTemplate(String recipient, List<String> bodyParameters, List<String> buttonPayloads) {
+        List<Object> components = new ArrayList<>();
+        components.add(Map.of("type", "body", "parameters",
+                bodyParameters.stream().map(text -> Map.of("type", "text", "text", text)).toList()));
+        for (int i = 0; i < buttonPayloads.size(); i++) {
+            components.add(Map.of("type", "button", "sub_type", "quick_reply", "index", String.valueOf(i),
+                    "parameters", List.of(Map.of("type", "payload", "payload", buttonPayloads.get(i)))));
+        }
+        Map<String, Object> message = new LinkedHashMap<>();
+        message.put("messaging_product", "whatsapp");
+        message.put("recipient_type", "individual");
+        message.put("to", recipient);
+        message.put("type", "template");
+        message.put("template", Map.of(
+                "name", config.invitationTemplate(),
+                "language", Map.of("code", config.invitationTemplateLanguage()),
+                "components", components));
+        try {
+            client.sendMessage(config.graphApiVersion(), config.phoneNumberId(), "Bearer " + config.accessToken(),
+                    message);
+        } catch (WebApplicationException e) {
+            // Template unknown, number not on WhatsApp, …: org turns this into "could not be sent".
+            throw new WebApplicationException("WhatsApp rejected the invitation: HTTP " + e.getResponse().getStatus(),
+                    Response.Status.BAD_GATEWAY);
+        }
     }
 }

@@ -24,8 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Path("/internal/whatsapp")
 public class FakeOrgInternalApi {
-    static final String VALID_CODE = "ABCDEFGHJK";
-    static final String EXPIRED_CODE = "ZZZZZZZZZZ";
+    static final String VALID_TOKEN = "valid-token";
+    static final String EXPIRED_TOKEN = "expired-token";
     static final Map<String, String> CONNECTED = new ConcurrentHashMap<>();
     static volatile Received lastReceipt;
 
@@ -33,22 +33,29 @@ public class FakeOrgInternalApi {
     }
 
     @POST
-    @Path("/join")
+    @Path("/invitations/{token}/accept")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response join(@HeaderParam("X-Hopps-Internal-Token") String token, Map<String, String> body) {
+    public Response accept(@HeaderParam("X-Hopps-Internal-Token") String token, @PathParam("token") String invitation,
+            Map<String, String> body) {
         if (!"dev-internal-token".equals(token)) {
             return Response.status(401).build();
         }
-        String code = body.get("code").toUpperCase().replaceAll("[\\s-]", "");
-        if (code.equals(EXPIRED_CODE)) {
+        if (invitation.equals(EXPIRED_TOKEN)) {
             return Response.status(410).build();
         }
-        if (!code.equals(VALID_CODE)) {
+        if (!invitation.equals(VALID_TOKEN)) {
             return Response.status(404).build();
         }
-        String previous = CONNECTED.put(body.get("phoneNumber"), "Kiosk");
-        return Response.ok(connection(previous != null && !previous.equals("Kiosk") ? previous : null)).build();
+        CONNECTED.put(body.get("phoneNumber"), "Kiosk");
+        return Response.ok(connection(null)).build();
+    }
+
+    @POST
+    @Path("/invitations/{token}/decline")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response decline(@PathParam("token") String invitation, Map<String, String> body) {
+        return invitation.equals(VALID_TOKEN) ? Response.noContent().build() : Response.status(404).build();
     }
 
     @GET

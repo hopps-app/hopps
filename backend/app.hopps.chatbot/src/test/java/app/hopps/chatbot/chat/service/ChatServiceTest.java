@@ -13,7 +13,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
@@ -31,7 +30,11 @@ class ChatServiceTest {
     private final ChatService service = new ChatService(receipts, assistant, org);
 
     private static IncomingChatMessage text(String text) {
-        return new IncomingChatMessage("whatsapp:" + PHONE, PHONE, "Max", text, null);
+        return new IncomingChatMessage("whatsapp:" + PHONE, PHONE, "Max", text, null, null);
+    }
+
+    private static IncomingChatMessage button(String title, String payload) {
+        return new IncomingChatMessage("whatsapp:" + PHONE, PHONE, "Max", title, null, payload);
     }
 
     @Test
@@ -52,22 +55,30 @@ class ChatServiceTest {
     }
 
     @Test
-    void inviteCodeJoinsWithoutAssistant() {
-        when(org.join("ABCDE-FGHJK", PHONE, "Max"))
-                .thenReturn(new OrgGateway.JoinOutcome(OrgGateway.JoinStatus.CONNECTED, KIOSK));
+    void acceptButtonConnectsWithoutAssistant() {
+        when(org.accept("tok", PHONE)).thenReturn(new OrgGateway.AnswerOutcome(OrgGateway.AnswerStatus.DONE, KIOSK));
 
-        String reply = service.handle(text("Hopps-Code: ABCDE-FGHJK"));
+        String reply = service.handle(button("Annehmen", "hopps-accept:tok"));
 
         assertTrue(reply.startsWith("Verbunden mit 🍺 Kiosk (Testverein)"), reply);
         verify(assistant, never()).chat(anyString(), anyString(), anyString());
     }
 
     @Test
-    void unknownCodeIsExplained() {
-        when(org.join(anyString(), anyString(), any()))
-                .thenReturn(new OrgGateway.JoinOutcome(OrgGateway.JoinStatus.UNKNOWN_CODE, null));
+    void declineButtonDeclines() {
+        when(org.decline("tok", PHONE)).thenReturn(OrgGateway.AnswerStatus.DONE);
 
-        assertEquals(ChatReplies.UNKNOWN_CODE, service.handle(text("ABCDE-FGHJK")));
+        assertEquals(ChatReplies.DECLINED, service.handle(button("Ablehnen", "hopps-decline:tok")));
+    }
+
+    @Test
+    void expiredOrReplacedInvitationIsExplained() {
+        when(org.accept(anyString(), anyString()))
+                .thenReturn(new OrgGateway.AnswerOutcome(OrgGateway.AnswerStatus.EXPIRED, null));
+        assertEquals(ChatReplies.EXPIRED_INVITATION, service.handle(button("Annehmen", "hopps-accept:old")));
+
+        when(org.decline(anyString(), anyString())).thenReturn(OrgGateway.AnswerStatus.UNKNOWN_INVITATION);
+        assertEquals(ChatReplies.UNKNOWN_INVITATION, service.handle(button("Ablehnen", "hopps-decline:old")));
     }
 
     @Test
@@ -89,7 +100,7 @@ class ChatServiceTest {
     @Test
     void routesAttachmentToReceiptIntake() {
         var message = new IncomingChatMessage("whatsapp:" + PHONE, PHONE, null, "Getränke",
-                new Attachment("application/pdf", "r.pdf", () -> new byte[0]));
+                new Attachment("application/pdf", "r.pdf", () -> new byte[0]), null);
         when(receipts.handle(message)).thenReturn("filed");
 
         assertEquals("filed", service.handle(message));

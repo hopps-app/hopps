@@ -28,7 +28,7 @@ class ReceiptIntakeServiceTest {
 
     private static IncomingChatMessage message(String mimeType, AttachmentContent content) {
         return new IncomingChatMessage("whatsapp:" + PHONE, PHONE, "Max", "Getränke",
-                new Attachment(mimeType, "rechnung.pdf", content));
+                new Attachment(mimeType, "rechnung.pdf", content), null);
     }
 
     @Test

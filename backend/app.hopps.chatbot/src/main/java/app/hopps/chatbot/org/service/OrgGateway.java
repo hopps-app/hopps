@@ -1,7 +1,7 @@
 package app.hopps.chatbot.org.service;
 
 import app.hopps.chatbot.org.client.OrgInternalClient;
-import app.hopps.chatbot.org.client.dto.JoinRequest;
+import app.hopps.chatbot.org.client.dto.InvitationAnswer;
 import app.hopps.chatbot.org.client.dto.OrgConnection;
 import io.vertx.core.buffer.Buffer;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -35,17 +35,30 @@ public class OrgGateway {
         }
     }
 
-    public JoinOutcome join(String code, String phoneNumber, String displayName) {
+    public AnswerOutcome accept(String token, String phoneNumber) {
         try {
-            return new JoinOutcome(JoinStatus.CONNECTED, client.join(new JoinRequest(code, phoneNumber, displayName)));
+            return new AnswerOutcome(AnswerStatus.DONE,
+                    client.acceptInvitation(token, new InvitationAnswer(phoneNumber)));
         } catch (WebApplicationException e) {
-            return switch (e.getResponse().getStatus()) {
-                case 404 -> new JoinOutcome(JoinStatus.UNKNOWN_CODE, null);
-                case 410 -> new JoinOutcome(JoinStatus.EXPIRED, null);
-                case 429 -> new JoinOutcome(JoinStatus.TOO_MANY_ATTEMPTS, null);
-                default -> throw e;
-            };
+            return new AnswerOutcome(answerStatus(e), null);
         }
+    }
+
+    public AnswerStatus decline(String token, String phoneNumber) {
+        try {
+            client.declineInvitation(token, new InvitationAnswer(phoneNumber));
+            return AnswerStatus.DONE;
+        } catch (WebApplicationException e) {
+            return answerStatus(e);
+        }
+    }
+
+    private static AnswerStatus answerStatus(WebApplicationException e) {
+        return switch (e.getResponse().getStatus()) {
+            case 404 -> AnswerStatus.UNKNOWN_INVITATION;
+            case 410 -> AnswerStatus.EXPIRED;
+            default -> throw e;
+        };
     }
 
     public void disconnect(String phoneNumber) {
@@ -73,11 +86,11 @@ public class OrgGateway {
         }
     }
 
-    public enum JoinStatus {
-        CONNECTED, UNKNOWN_CODE, EXPIRED, TOO_MANY_ATTEMPTS
+    public enum AnswerStatus {
+        DONE, UNKNOWN_INVITATION, EXPIRED
     }
 
-    public record JoinOutcome(JoinStatus status, OrgConnection connection) {
+    public record AnswerOutcome(AnswerStatus status, OrgConnection connection) {
     }
 
     public enum UploadStatus {

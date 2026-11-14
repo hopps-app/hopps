@@ -1,6 +1,7 @@
 package app.hopps.chatbot.whatsapp.config;
 
 import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
 
 /**
  * Credentials and identifiers of the Meta app that connects Hopps to the WhatsApp Cloud API.
@@ -21,4 +22,11 @@ public interface WhatsAppConfig {
 
     /** Graph API version, e.g. {@code v21.0}. */
     String graphApiVersion();
+
+    /** Name of the approved invitation template (body {{1}} inviter, {{2}} bommel, {{3}} organization). */
+    @WithDefault("hopps_bommel_invitation")
+    String invitationTemplate();
+
+    @WithDefault("de")
+    String invitationTemplateLanguage();
 }

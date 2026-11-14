@@ -11,17 +11,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ChatCommandsTest {
 
     @Test
-    void findsCodeInPrefilledMessage() {
-        assertEquals(Optional.of("ABCDE-FGHJK"), ChatCommands.inviteCode("Hopps-Code: ABCDE-FGHJK"));
-        assertEquals(Optional.of("abcdefghjk"), ChatCommands.inviteCode("hopps code abcdefghjk bitte"));
-    }
-
-    @Test
-    void acceptsBareCodeOnlyWithDigitOrSeparator() {
-        assertEquals(Optional.of("ab1de fghjk"), ChatCommands.inviteCode(" ab1de fghjk "));
-        assertEquals(Optional.of("ABCDE-FGHJK"), ChatCommands.inviteCode("ABCDE-FGHJK"));
-        assertTrue(ChatCommands.inviteCode("Rechnungen").isEmpty());
-        assertTrue(ChatCommands.inviteCode("Wie reiche ich einen Beleg ein?").isEmpty());
+    void readsTokensFromButtonPayloads() {
+        assertEquals(Optional.of("abc"), ChatCommands.acceptToken("hopps-accept:abc"));
+        assertEquals(Optional.of("abc"), ChatCommands.declineToken("hopps-decline:abc"));
+        assertTrue(ChatCommands.acceptToken("hopps-decline:abc").isEmpty());
+        assertTrue(ChatCommands.acceptToken("hopps-accept:").isEmpty());
+        assertTrue(ChatCommands.acceptToken(null).isEmpty());
     }
 
     @Test

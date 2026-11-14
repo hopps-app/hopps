@@ -14,13 +14,16 @@ package app.hopps.chatbot.chat.model;
  *            message text or caption, may be {@code null}
  * @param attachment
  *            attached file, may be {@code null}
+ * @param action
+ *            payload of a pressed button (e.g. {@code hopps-accept:<token>}), may be {@code null}
  */
 public record IncomingChatMessage(
         String conversationId,
         String senderPhoneNumber,
         String senderName,
         String text,
-        Attachment attachment) {
+        Attachment attachment,
+        String action) {
 
     public boolean hasAttachment() {
         return attachment != null;

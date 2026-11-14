@@ -42,6 +42,7 @@
   #status.connected .dot { background: var(--accent); }
   #status.error .dot { background: var(--error); }
   #status span { flex: 1; }
+  .buttons { display: flex; gap: 6px; margin-top: 8px; }
   #fileName { font-size: 12px; color: var(--muted); padding: 0 16px 8px; background: var(--panel); }
 </style>
 </head>
@@ -103,7 +104,7 @@
         status.className = 'error';
         statusText.textContent = c.error;
       } else {
-        statusText.textContent = 'Not connected. Open a WhatsApp invite link from Hopps (Struktur → Bommel → WhatsApp) or paste its code.';
+        statusText.textContent = 'Not connected. Invite ' + phone.value + ' in Hopps (Struktur → Bommel → WhatsApp) and press Annehmen on the invitation here.';
       }
       disconnect.hidden = !c.connected;
     } catch (err) {
@@ -149,22 +150,15 @@
     add('bot', 'New conversation started.', 'conversation ' + conversationId);
   });
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const attached = file.files[0];
-    if (!text.value.trim() && !attached) return;
-
+  // Sends one message through the chat pipeline and shows the reply.
+  async function post(fields, shownText, shownMeta) {
     const data = new FormData();
     data.append('conversationId', conversationId);
     data.append('phoneNumber', phone.value);
     data.append('senderName', name.value);
-    if (text.value.trim()) data.append('text', text.value);
-    if (attached) data.append('file', attached);
+    for (const [k, v] of Object.entries(fields)) data.append(k, v);
 
-    add('me', text.value || '(no text)', attached ? '📎 ' + attached.name + ' · ' + (attached.type || 'unknown type') : '');
-    text.value = '';
-    file.value = '';
-    fileName.hidden = true;
+    add('me', shownText, shownMeta);
     send.disabled = true;
     const pending = add('bot', '…');
     const started = performance.now();
@@ -185,17 +179,52 @@
       text.focus();
       refreshStatus();
     }
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const attached = file.files[0];
+    if (!text.value.trim() && !attached) return;
+    const fields = {};
+    if (text.value.trim()) fields.text = text.value;
+    if (attached) fields.file = attached;
+    const shown = text.value || '(no text)';
+    text.value = '';
+    file.value = '';
+    fileName.hidden = true;
+    post(fields, shown, attached ? '📎 ' + attached.name + ' · ' + (attached.type || 'unknown type') : '');
   });
 
-  add('bot', 'Debug chat: talks to the same ChatService as the WhatsApp webhook, as the phone number above. Connect it with a WhatsApp invite from Hopps, then attach a JPEG, PNG or PDF to file a receipt. STOP disconnects.', 'conversation ' + conversationId);
-
-  // Invite links of a dev org point here with ?text=Hopps-Code: …, like wa.me pre-fills the message.
-  const prefill = new URLSearchParams(location.search).get('text');
-  if (prefill) {
-    text.value = prefill;
-    history.replaceState(null, '', location.pathname);
+  // Messages the bot starts (invitations) arrive via the outbox, like a WhatsApp template message would.
+  function showInvitation(message) {
+    const el = add('bot', message.text, 'invitation · ' + new Date(message.sentAt).toLocaleTimeString());
+    const row = document.createElement('div');
+    row.className = 'buttons';
+    for (const b of message.buttons) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'secondary';
+      btn.textContent = b.title;
+      btn.addEventListener('click', () => {
+        row.querySelectorAll('button').forEach((x) => (x.disabled = true));
+        post({ text: b.title, buttonPayload: b.payload }, b.title, 'button');
+      });
+      row.appendChild(btn);
+    }
+    el.appendChild(row);
   }
+
+  async function pollOutbox() {
+    try {
+      const res = await fetch('chat/outbox?phoneNumber=' + encodeURIComponent(phone.value));
+      if (res.ok) (await res.json()).forEach(showInvitation);
+    } catch { /* org/chatbot restarting; try again */ }
+  }
+
+  add('bot', 'Debug chat: talks to the same ChatService as the WhatsApp webhook, as the phone number above. To connect it, invite this number in Hopps (Struktur → Bommel → WhatsApp); the invitation appears here with its buttons. Then attach a JPEG, PNG or PDF to file a receipt. STOP disconnects.', 'conversation ' + conversationId);
   refreshStatus();
+  pollOutbox();
+  setInterval(pollOutbox, 3000);
   text.focus();
 </script>
 </body>

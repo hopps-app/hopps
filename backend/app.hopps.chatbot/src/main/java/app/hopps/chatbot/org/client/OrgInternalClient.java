@@ -1,6 +1,6 @@
 package app.hopps.chatbot.org.client;
 
-import app.hopps.chatbot.org.client.dto.JoinRequest;
+import app.hopps.chatbot.org.client.dto.InvitationAnswer;
 import app.hopps.chatbot.org.client.dto.OrgConnection;
 import app.hopps.chatbot.org.client.dto.ReceiptResponse;
 import jakarta.ws.rs.Consumes;
@@ -24,10 +24,15 @@ import org.jboss.resteasy.reactive.client.api.ClientMultipartForm;
 public interface OrgInternalClient {
 
     @POST
-    @Path("/join")
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/invitations/{token}/accept")
+    @Consumes(MediaType.APPLICATION_JSON + ";charset=UTF-8")
     @Produces(MediaType.APPLICATION_JSON)
-    OrgConnection join(JoinRequest request);
+    OrgConnection acceptInvitation(@PathParam("token") String token, InvitationAnswer answer);
+
+    @POST
+    @Path("/invitations/{token}/decline")
+    @Consumes(MediaType.APPLICATION_JSON + ";charset=UTF-8")
+    void declineInvitation(@PathParam("token") String token, InvitationAnswer answer);
 
     @GET
     @Path("/contacts/{phoneNumber}")

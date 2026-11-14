@@ -59,7 +59,7 @@ Hopps ist eine cloud-basierte Open-Source Buchhaltungssoftware mit KI für gemei
 - `/statistics` - Auswertungen/Kennzahlen
 - `/bankaccounts`, `/imports`, `/bank-transactions`, `/bank-schemas` - Bank-Import-Feature
 - `/upload-links/{bommelId}` - Upload-Link eines Bommels verwalten (erzeugen/neu erzeugen, widerrufen)
-- `/whatsapp-invites/{bommelId}` - WhatsApp-Einladung eines Bommels und verbundene Nummern verwalten
+- `/whatsapp-contacts/{bommelId}` - per WhatsApp eingeladene Nummern eines Bommels (einladen, erneut senden, entfernen)
 - `/internal/whatsapp/*` - nur für den Chatbot (Shared Secret, siehe app.hopps.chatbot)
 - `/public/upload-links/{token}` - öffentlich (ohne Login): Upload-Seite-Infos und Beleg einreichen; rate-limitiert
 - `/health` - Health-Check
@@ -79,14 +79,18 @@ Dokumentenanalyse mit Azure Document Intelligence (OCR, Datenextraktion)
 ZUGFeRD-Rechnungsverarbeitung (XML aus PDFs extrahieren)
 
 #### app.hopps.chatbot (Port 8104)
-WhatsApp-Chatbot (Meta Cloud API), Spec/Stand in Issue #947. Kanalunabhängiger Kern `ChatService`: STOP trennt,
-Einladungscode (`Hopps-Code: XXXXX-XXXXX`) verbindet die Nummer mit einem Bommel, Fotos/PDFs gehen als Beleg an org,
+WhatsApp-Chatbot (Meta Cloud API), Spec/Stand in Issue #947. Ablauf: Mitglied lädt im SPA eine Person mit Name + Nummer
+zu einem Bommel ein → org ruft `POST {chatbot}/internal/invitations` → Chatbot schickt das WhatsApp-Template mit den
+Buttons „Annehmen“/„Ablehnen“ (Payload `hopps-accept:<token>` / `hopps-decline:<token>`) → org setzt den Kontakt auf
+`ACTIVE`. Kanalunabhängiger Kern `ChatService`: Buttons und STOP vor dem LLM, Fotos/PDFs gehen als Beleg an org,
 Freitext an den LangChain4j-Assistenten (Azure OpenAI EU; in dev optional OpenAI-Platform per `HOPPS_LLM_PROVIDER=openai`,
 in prod gesperrt). Webhook `/webhooks/whatsapp` (Signaturprüfung). Debug-Chat `/debug/chat` nur dev/test
-(`@UnlessBuildProfile("prod")`), simuliert eine Telefonnummer und übernimmt `?text=` aus Einladungslinks.
-Ruft org ausschließlich über die interne API `/internal/whatsapp/*` auf (Shared Secret `HOPPS_INTERNAL_API_TOKEN`,
-Header `X-Hopps-Internal-Token`; ohne Token antwortet org dort 404; nie über den öffentlichen Ingress routen).
-Bommel-Einladungen und verbundene Nummern liegen in org (Slice `whatsapp`, Tabellen `whatsapp_invite`, `whatsapp_contact`).
+(`@UnlessBuildProfile("prod")`): simuliert eine Nummer; Einladungen landen in dev statt bei WhatsApp im Debug-Posteingang
+(`HOPPS_CHATBOT_INVITATION_CHANNEL=debug`, dev-Default) und erscheinen dort mit Buttons.
+org ↔ chatbot nur über `/internal/*` beider Services mit Shared Secret `HOPPS_INTERNAL_API_TOKEN`
+(Header `X-Hopps-Internal-Token`; ohne Token antworten beide dort 404; nie über den öffentlichen Ingress routen).
+Kontakte liegen in org (Slice `whatsapp`, Tabelle `whatsapp_contact`, Status `INVITED|ACTIVE|DECLINED`).
+Hinweis: Quarkus liest in dev **und** in Tests eine `.env` im Service-Verzeichnis; leere Werte dort überschreiben Defaults.
 
 ### Datenbank Setup
 - **Flyway Migrations:** `/src/main/resources/db/migration`

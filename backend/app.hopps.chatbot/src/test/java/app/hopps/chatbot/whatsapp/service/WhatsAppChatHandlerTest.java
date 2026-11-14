@@ -22,7 +22,8 @@ class WhatsAppChatHandlerTest {
 
     @Test
     void mapsTextMessage() {
-        var message = new InboundMessage("wamid.1", "49176", "1", "text", new InboundMessage.Text("Hallo"), null, null);
+        var message = new InboundMessage("wamid.1", "49176", "1", "text", new InboundMessage.Text("Hallo"), null, null,
+                null);
 
         IncomingChatMessage chat = handler.toChatMessage(message, "Max");
 
@@ -36,7 +37,7 @@ class WhatsAppChatHandlerTest {
     @Test
     void mapsDocumentAndDownloadsLazily() throws Exception {
         var pdf = new InboundMessage.Media("media-1", "application/pdf", "abc", "Getränke", "rechnung.pdf");
-        var message = new InboundMessage("wamid.2", "49176", "1", "document", null, null, pdf);
+        var message = new InboundMessage("wamid.2", "49176", "1", "document", null, null, pdf, null);
         when(downloader.download("media-1")).thenReturn(new byte[] { 1, 2 });
 
         IncomingChatMessage chat = handler.toChatMessage(message, null);
@@ -50,15 +51,27 @@ class WhatsAppChatHandlerTest {
     @Test
     void namesPhotosWithoutFileName() {
         var photo = new InboundMessage.Media("media-2", "image/jpeg", "abc", null, null);
-        var message = new InboundMessage("wamid.3", "49176", "1", "image", null, photo, null);
+        var message = new InboundMessage("wamid.3", "49176", "1", "image", null, photo, null, null);
 
         assertEquals("whatsapp-wamid.3.jpg", handler.toChatMessage(message, null).attachment().fileName());
     }
 
     @Test
+    void mapsPressedButtonToAction() {
+        var message = new InboundMessage("wamid.5", "49176", "1", "button", null, null, null,
+                new InboundMessage.Button("Annehmen", "hopps-accept:tok"));
+
+        IncomingChatMessage chat = handler.toChatMessage(message, null);
+
+        assertEquals("hopps-accept:tok", chat.action());
+        assertEquals("Annehmen", chat.text());
+    }
+
+    @Test
     void sendsReplyToSender() {
         when(chatService.handle(any())).thenReturn("Antwort");
-        var message = new InboundMessage("wamid.4", "49176", "1", "text", new InboundMessage.Text("Hallo"), null, null);
+        var message = new InboundMessage("wamid.4", "49176", "1", "text", new InboundMessage.Text("Hallo"), null, null,
+                null);
 
         handler.handle(message, "Max");
 

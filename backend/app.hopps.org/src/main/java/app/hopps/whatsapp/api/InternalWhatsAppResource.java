@@ -8,11 +8,11 @@ import app.hopps.document.service.DocumentUploadService;
 import app.hopps.organization.domain.Organization;
 import app.hopps.uploadlink.service.UploadRateLimiter;
 import app.hopps.whatsapp.api.dto.WhatsAppConnection;
-import app.hopps.whatsapp.api.dto.WhatsAppJoinRequest;
+import app.hopps.whatsapp.api.dto.WhatsAppInvitationAnswer;
 import app.hopps.whatsapp.api.dto.WhatsAppReceiptForm;
 import app.hopps.whatsapp.api.dto.WhatsAppReceiptResponse;
 import app.hopps.whatsapp.domain.WhatsAppContact;
-import app.hopps.whatsapp.service.WhatsAppInviteService;
+import app.hopps.whatsapp.service.WhatsAppContactService;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
@@ -39,9 +39,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Called by the chatbot service only, never by the SPA: redeems invite codes, looks up and removes connections, and
- * files receipts from connected numbers. Protected by the internal API token (see {@code InternalApiFilter}); the path
- * must not be routed from the public ingress.
+ * Called by the chatbot service only, never by the SPA: records answers to invitations, looks up and removes
+ * connections, and files receipts from connected numbers. Protected by the internal API token (see
+ * {@code InternalApiFilter}); the path must not be routed from the public ingress.
  */
 @Path("/internal/whatsapp")
 public class InternalWhatsAppResource {
@@ -49,7 +49,7 @@ public class InternalWhatsAppResource {
     private static final int MAX_CAPTION_LENGTH = 2000;
 
     @Inject
-    WhatsAppInviteService inviteService;
+    WhatsAppContactService contactService;
 
     @Inject
     BommelRepository bommelRepository;
@@ -61,27 +61,39 @@ public class InternalWhatsAppResource {
     UploadRateLimiter rateLimiter;
 
     @POST
-    @Path("/join")
+    @Path("/invitations/{token}/accept")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @Operation(operationId = "internalJoinWhatsAppInvite", summary = "Redeem a WhatsApp invite code (chatbot only)", description = "Connects the phone number to the invite's bommel; a number connected elsewhere moves. Rate-limited per number.")
+    @Operation(operationId = "internalAcceptWhatsAppInvitation", summary = "Accept a WhatsApp invitation (chatbot only)", description = "The number pressed Accept: connects it to the invitation's bommel; a number connected elsewhere moves. Pressing Accept again is harmless.")
     @APIResponse(responseCode = "200", description = "Number connected", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = WhatsAppConnection.class)))
     @APIResponse(responseCode = "400", description = "Invalid phone number")
     @APIResponse(responseCode = "401", description = "Missing or wrong internal API token")
-    @APIResponse(responseCode = "404", description = "Unknown, replaced or revoked code")
-    @APIResponse(responseCode = "410", description = "Invite has expired")
-    @APIResponse(responseCode = "429", description = "Too many attempts from this number")
-    public WhatsAppConnection join(WhatsAppJoinRequest request) {
-        if (request == null) {
-            throw new BadRequestException("Body is required");
-        }
-        rateLimiter.acquire("whatsapp-join:" + request.phoneNumber());
-        WhatsAppInviteService.JoinResult result = inviteService.join(request.code(), request.phoneNumber(),
-                request.displayName());
+    @APIResponse(responseCode = "404", description = "Unknown or replaced invitation, or another number")
+    @APIResponse(responseCode = "410", description = "Invitation has expired")
+    public WhatsAppConnection accept(
+            @PathParam("token") @Parameter(description = "Token from the invitation's button") String token,
+            WhatsAppInvitationAnswer answer) {
+        WhatsAppContactService.AcceptResult result = contactService.accept(token, phoneOf(answer));
         Bommel bommel = result.contact().getBommel();
-        LOG.info("Phone number joined WhatsApp invite: contactId={}, bommelId={}", result.contact().id, bommel.id);
+        LOG.info("WhatsApp invitation accepted: contactId={}, bommelId={}", result.contact().id, bommel.id);
         return WhatsAppConnection.of(bommelRepository.getOrganization(bommel), bommel, result.previousBommel());
+    }
+
+    @POST
+    @Path("/invitations/{token}/decline")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Transactional
+    @Operation(operationId = "internalDeclineWhatsAppInvitation", summary = "Decline a WhatsApp invitation (chatbot only)")
+    @APIResponse(responseCode = "204", description = "Invitation declined")
+    @APIResponse(responseCode = "401", description = "Missing or wrong internal API token")
+    @APIResponse(responseCode = "404", description = "Unknown or replaced invitation, or another number")
+    @APIResponse(responseCode = "410", description = "Invitation has expired")
+    public void decline(
+            @PathParam("token") @Parameter(description = "Token from the invitation's button") String token,
+            WhatsAppInvitationAnswer answer) {
+        WhatsAppContact contact = contactService.decline(token, phoneOf(answer));
+        LOG.info("WhatsApp invitation declined: contactId={}", contact.id);
     }
 
     @GET
@@ -106,7 +118,7 @@ public class InternalWhatsAppResource {
     @APIResponse(responseCode = "401", description = "Missing or wrong internal API token")
     public void disconnect(
             @PathParam("phoneNumber") @Parameter(description = "Digits only, international format") String phoneNumber) {
-        inviteService.disconnect(phoneNumber);
+        contactService.disconnect(phoneNumber);
     }
 
     @POST
@@ -141,7 +153,7 @@ public class InternalWhatsAppResource {
         Bommel bommel = contact.getBommel();
         Organization organization = bommelRepository.getOrganization(bommel);
         try {
-            documentUploadService.upload(organization, file, contact.getLabel(), DocumentDirection.INCOMING, true,
+            documentUploadService.upload(organization, file, contact.getName(), DocumentDirection.INCOMING, true,
                     document -> {
                         document.setBommel(bommel);
                         document.setUploadChannel(UploadChannel.WHATSAPP);
@@ -161,7 +173,14 @@ public class InternalWhatsAppResource {
     }
 
     private WhatsAppContact connectedContact(String phoneNumber) {
-        return inviteService.findContact(phoneNumber)
+        return contactService.findActive(phoneNumber)
                 .orElseThrow(() -> new NotFoundException("Phone number is not connected"));
+    }
+
+    private static String phoneOf(WhatsAppInvitationAnswer answer) {
+        if (answer == null || answer.phoneNumber() == null) {
+            throw new BadRequestException("phoneNumber is required");
+        }
+        return answer.phoneNumber();
     }
 }

@@ -46,13 +46,17 @@ public class WhatsAppChatHandler {
     IncomingChatMessage toChatMessage(InboundMessage message, String profileName) {
         String conversationId = CONVERSATION_PREFIX + message.from();
         InboundMessage.Media media = message.media();
+        if (message.button() != null) {
+            return new IncomingChatMessage(conversationId, message.from(), profileName, message.button().text(), null,
+                    message.button().payload());
+        }
         if (media == null) {
             String text = message.text() == null ? null : message.text().body();
-            return new IncomingChatMessage(conversationId, message.from(), profileName, text, null);
+            return new IncomingChatMessage(conversationId, message.from(), profileName, text, null, null);
         }
         String fileName = media.filename() != null && !media.filename().isBlank() ? media.filename()
                 : "whatsapp-" + message.id() + EXTENSIONS.getOrDefault(media.mimeType(), "");
         return new IncomingChatMessage(conversationId, message.from(), profileName, media.caption(),
-                new Attachment(media.mimeType(), fileName, () -> mediaDownloader.download(media.id())));
+                new Attachment(media.mimeType(), fileName, () -> mediaDownloader.download(media.id())), null);
     }
 }

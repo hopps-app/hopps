@@ -1,5 +1,6 @@
 package app.hopps.chatbot.whatsapp.api;
 
+import app.hopps.chatbot.whatsapp.config.WhatsAppConfig;
 import app.hopps.chatbot.whatsapp.service.WhatsAppChatHandler;
 import app.hopps.chatbot.whatsapp.api.dto.InboundMessage;
 import app.hopps.chatbot.whatsapp.service.WhatsAppSignatureVerifier;
@@ -51,6 +52,10 @@ class WhatsAppWebhookResourceTest {
     @Inject
     WhatsAppSignatureVerifier signatureVerifier;
 
+    // From config rather than hard-coded: a developer's .env may set a real verify token.
+    @Inject
+    WhatsAppConfig config;
+
     @InjectMock
     WhatsAppChatHandler chatHandler;
 
@@ -58,7 +63,7 @@ class WhatsAppWebhookResourceTest {
     void verificationEchoesChallengeForCorrectToken() {
         given()
                 .queryParam("hub.mode", "subscribe")
-                .queryParam("hub.verify_token", "dev-verify-token")
+                .queryParam("hub.verify_token", config.verifyToken())
                 .queryParam("hub.challenge", "42")
                 .when()
                 .get("/webhooks/whatsapp")

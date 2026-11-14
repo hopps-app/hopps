@@ -14,8 +14,8 @@ import java.util.Optional;
 /**
  * Entry point for every chat channel: decides how a message is handled and returns the reply text.
  * <ol>
+ * <li>The Accept/Decline button of an invitation answers it in org.</li>
  * <li>STOP disconnects the number.</li>
- * <li>An invite code connects the number to the invite's bommel.</li>
  * <li>A file is filed as a receipt in the connected bommel.</li>
  * <li>Anything else goes to the assistant.</li>
  * </ol>
@@ -37,13 +37,16 @@ public class ChatService {
 
     public String handle(IncomingChatMessage message) {
         try {
+            Optional<String> accept = ChatCommands.acceptToken(message.action());
+            if (accept.isPresent()) {
+                return accept(accept.get(), message);
+            }
+            Optional<String> decline = ChatCommands.declineToken(message.action());
+            if (decline.isPresent()) {
+                return decline(decline.get(), message);
+            }
             if (!message.hasAttachment() && ChatCommands.isStop(message.text())) {
                 return disconnect(message.senderPhoneNumber());
-            }
-            Optional<String> code = message.hasAttachment() ? Optional.empty()
-                    : ChatCommands.inviteCode(message.text());
-            if (code.isPresent()) {
-                return join(code.get(), message);
             }
             if (message.hasAttachment()) {
                 return receiptIntakeService.handle(message);
@@ -59,14 +62,23 @@ public class ChatService {
         }
     }
 
-    private String join(String code, IncomingChatMessage message) {
-        OrgGateway.JoinOutcome outcome = org.join(code, message.senderPhoneNumber(), message.senderName());
-        LOG.info("Invite code from conversation {}: {}", message.conversationId(), outcome.status());
+    private String accept(String token, IncomingChatMessage message) {
+        OrgGateway.AnswerOutcome outcome = org.accept(token, message.senderPhoneNumber());
+        LOG.info("Invitation accepted in conversation {}: {}", message.conversationId(), outcome.status());
         return switch (outcome.status()) {
-            case CONNECTED -> ChatReplies.joined(outcome.connection());
-            case UNKNOWN_CODE -> ChatReplies.UNKNOWN_CODE;
-            case EXPIRED -> ChatReplies.EXPIRED_CODE;
-            case TOO_MANY_ATTEMPTS -> ChatReplies.TOO_MANY;
+            case DONE -> ChatReplies.accepted(outcome.connection());
+            case UNKNOWN_INVITATION -> ChatReplies.UNKNOWN_INVITATION;
+            case EXPIRED -> ChatReplies.EXPIRED_INVITATION;
+        };
+    }
+
+    private String decline(String token, IncomingChatMessage message) {
+        OrgGateway.AnswerStatus status = org.decline(token, message.senderPhoneNumber());
+        LOG.info("Invitation declined in conversation {}: {}", message.conversationId(), status);
+        return switch (status) {
+            case DONE -> ChatReplies.DECLINED;
+            case UNKNOWN_INVITATION -> ChatReplies.UNKNOWN_INVITATION;
+            case EXPIRED -> ChatReplies.EXPIRED_INVITATION;
         };
     }
 
@@ -83,8 +95,9 @@ public class ChatService {
         try {
             return org.findConnection(phoneNumber)
                     .map(ChatService::describe)
-                    .orElse("Diese Nummer ist mit keinem Bommel verbunden. Belege werden erst nach dem Öffnen eines "
-                            + "WhatsApp-Einladungslinks aus Hopps angenommen.");
+                    .orElse("Diese Nummer ist mit keinem Bommel verbunden. Belege werden erst angenommen, nachdem "
+                            + "jemand aus dem Verein die Nummer in Hopps eingeladen und sie die Einladung angenommen "
+                            + "hat.");
         } catch (RuntimeException e) {
             LOG.warn("Could not look up the connection of a sender: {}", e.getMessage());
             return "Unbekannt.";

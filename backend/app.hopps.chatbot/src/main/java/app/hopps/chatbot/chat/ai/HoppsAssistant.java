@@ -22,9 +22,9 @@ public interface HoppsAssistant {
             Was über den Chat aktuell möglich ist:
             - Belege und Rechnungen einreichen: ein Foto (JPEG/PNG) oder eine PDF-Datei in den Chat schicken.
               Hopps liest Betrag, Datum und Händler automatisch aus, auch aus ZUGFeRD-E-Rechnungen.
-            - Voraussetzung: Die Nummer ist mit einem Bommel verbunden. Dazu öffnet jemand aus dem Verein in Hopps
-              Struktur → Bommel → WhatsApp, erzeugt eine Einladung und teilt den Link oder QR-Code. Wer den Link
-              öffnet, schickt die vorbereitete Nachricht mit dem Hopps-Code ab und ist verbunden.
+            - Voraussetzung: Die Nummer ist mit einem Bommel verbunden. Dazu trägt jemand aus dem Verein in Hopps unter
+              Struktur → Bommel → WhatsApp Name und Nummer ein; Hopps schickt eine Einladung per WhatsApp, und mit
+              „Annehmen“ ist die Nummer verbunden. Selbst verbinden lässt sich eine Nummer nicht.
             - STOP trennt die Nummer wieder.
 
             Verbindung dieser Nummer: {connection}

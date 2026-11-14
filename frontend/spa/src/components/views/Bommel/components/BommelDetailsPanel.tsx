@@ -191,7 +191,7 @@ export function BommelDetailsPanel({
 
                 {/* Upload link and WhatsApp invite management; not in demo mode, where the bommels do not exist. */}
                 {!demo && <UploadLinkSection key={node.id} bommelId={Number(node.id)} bommelName={node.text} />}
-                {!demo && <WhatsAppInviteSection key={`wa-${node.id}`} bommelId={Number(node.id)} bommelName={node.text} />}
+                {!demo && <WhatsAppInviteSection key={`wa-${node.id}`} bommelId={Number(node.id)} />}
             </div>
         </aside>
     );

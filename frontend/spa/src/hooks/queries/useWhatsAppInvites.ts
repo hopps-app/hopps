@@ -1,58 +1,45 @@
-import { WhatsAppInviteRequest } from '@hopps/api-client';
+import { WhatsAppInvitationRequest } from '@hopps/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import apiService from '@/services/ApiService';
 
-export const whatsAppInviteKeys = {
-    all: ['whatsapp-invites'] as const,
-    detail: (bommelId: number) => [...whatsAppInviteKeys.all, bommelId] as const,
-    contacts: (bommelId: number) => [...whatsAppInviteKeys.all, bommelId, 'contacts'] as const,
+export const whatsAppContactKeys = {
+    all: ['whatsapp-contacts'] as const,
+    list: (bommelId: number) => [...whatsAppContactKeys.all, bommelId] as const,
 };
 
-/** The WhatsApp invite of a bommel, or null when it has none. */
-export function useBommelWhatsAppInvite(bommelId: number | undefined) {
+/** People invited to send receipts for the bommel via WhatsApp, newest invitation first. */
+export function useBommelWhatsAppContacts(bommelId: number | undefined) {
     return useQuery({
-        queryKey: whatsAppInviteKeys.detail(bommelId ?? 0),
-        // The endpoint answers 204 without an invite, which the client resolves as null.
-        queryFn: async () => (await apiService.orgService.getBommelWhatsAppInvite(bommelId as number)) ?? null,
+        queryKey: whatsAppContactKeys.list(bommelId ?? 0),
+        queryFn: () => apiService.orgService.getBommelWhatsAppContacts(bommelId as number),
         enabled: !!bommelId,
     });
 }
 
-/** Phone numbers connected to the bommel through its invite, newest first. */
-export function useBommelWhatsAppContacts(bommelId: number | undefined, enabled = true) {
-    return useQuery({
-        queryKey: whatsAppInviteKeys.contacts(bommelId ?? 0),
-        queryFn: () => apiService.orgService.getBommelWhatsAppContacts(bommelId as number),
-        enabled: !!bommelId && enabled,
-    });
-}
-
-/** Creates a new invite; an existing code stops working, connected numbers stay. */
-export function useRegenerateWhatsAppInvite(bommelId: number) {
+/** Hopps sends a WhatsApp invitation to the number; it is connected once the person accepts. */
+export function useInviteWhatsAppContact(bommelId: number) {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (expiresAt: Date | undefined) => apiService.orgService.regenerateBommelWhatsAppInvite(bommelId, new WhatsAppInviteRequest({ expiresAt })),
-        onSuccess: (invite) => queryClient.setQueryData(whatsAppInviteKeys.detail(bommelId), invite),
+        mutationFn: (input: { name: string; phoneNumber: string }) =>
+            apiService.orgService.inviteBommelWhatsAppContact(bommelId, new WhatsAppInvitationRequest(input)),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: whatsAppContactKeys.list(bommelId) }),
     });
 }
 
-/** Turns WhatsApp off for the bommel: deletes the invite and disconnects all numbers. */
-export function useRevokeWhatsAppInvite(bommelId: number) {
+export function useResendWhatsAppInvitation(bommelId: number) {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: () => apiService.orgService.revokeBommelWhatsAppInvite(bommelId),
-        onSuccess: () => {
-            queryClient.setQueryData(whatsAppInviteKeys.detail(bommelId), null);
-            queryClient.setQueryData(whatsAppInviteKeys.contacts(bommelId), []);
-        },
+        mutationFn: (contactId: number) => apiService.orgService.resendBommelWhatsAppInvitation(bommelId, contactId),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: whatsAppContactKeys.list(bommelId) }),
     });
 }
 
+/** Disconnects the number or withdraws its invitation. */
 export function useRemoveWhatsAppContact(bommelId: number) {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (contactId: number) => apiService.orgService.removeBommelWhatsAppContact(bommelId, contactId),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: whatsAppInviteKeys.contacts(bommelId) }),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: whatsAppContactKeys.list(bommelId) }),
     });
 }

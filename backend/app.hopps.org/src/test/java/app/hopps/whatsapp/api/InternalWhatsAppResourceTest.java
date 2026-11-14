@@ -7,8 +7,10 @@ import app.hopps.document.repository.DocumentRepository;
 import app.hopps.document.service.DocumentAnalysisService;
 import app.hopps.shared.bootstrap.TestdataBootstrapper;
 import app.hopps.shared.security.InternalApiFilter;
-import app.hopps.whatsapp.service.InviteCodes;
-import app.hopps.whatsapp.service.WhatsAppInviteService;
+import app.hopps.whatsapp.client.ChatbotClient;
+import app.hopps.whatsapp.domain.WhatsAppContact;
+import app.hopps.whatsapp.repository.WhatsAppContactRepository;
+import app.hopps.whatsapp.service.WhatsAppContactService;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -16,12 +18,12 @@ import io.restassured.builder.MultiPartSpecBuilder;
 import io.restassured.specification.RequestSpecification;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 import static io.restassured.RestAssured.given;
@@ -37,11 +39,16 @@ import static org.mockito.Mockito.doNothing;
 @QuarkusTest
 class InternalWhatsAppResourceTest {
     private static final long KIOSK = 24;
+    private static final long WORKSHOPS = 26;
     private static final String PHONE = "4917612345678";
     private static final String TOKEN = "dev-internal-token";
 
     @InjectMock
     DocumentAnalysisService analysisServiceMock;
+
+    @InjectMock
+    @RestClient
+    ChatbotClient chatbotClient;
 
     @Inject
     Flyway flyway;
@@ -50,7 +57,10 @@ class InternalWhatsAppResourceTest {
     TestdataBootstrapper testdataBootstrapper;
 
     @Inject
-    WhatsAppInviteService inviteService;
+    WhatsAppContactService contactService;
+
+    @Inject
+    WhatsAppContactRepository contactRepository;
 
     @Inject
     BommelRepository bommelRepository;
@@ -70,20 +80,20 @@ class InternalWhatsAppResourceTest {
         return given().header(InternalApiFilter.HEADER, TOKEN);
     }
 
-    private String createInvite(Instant expiresAt) {
+    /** Invites PHONE to the bommel and returns the token of the invitation's buttons. */
+    private String invite(long bommelId) {
         return QuarkusTransaction.requiringNew()
-                .call(() -> InviteCodes.format(inviteService
-                        .regenerate(bommelRepository.findById(KIOSK), expiresAt, "alice@example.test")
-                        .getCode()));
+                .call(() -> contactService
+                        .invite(bommelRepository.findById(bommelId), "Anna", "+" + PHONE, "Alice", "alice")
+                        .getInvitationToken());
     }
 
-    private void join(String code) {
-        internal().contentType(MediaType.APPLICATION_JSON)
-                .body("{\"code\":\"" + code + "\",\"phoneNumber\":\"" + PHONE + "\",\"displayName\":\"Max\"}")
+    private io.restassured.response.ValidatableResponse answer(String token, String action, String phone) {
+        return internal().contentType(MediaType.APPLICATION_JSON)
+                .body("{\"phoneNumber\":\"" + phone + "\"}")
                 .when()
-                .post("/internal/whatsapp/join")
-                .then()
-                .statusCode(200);
+                .post("/internal/whatsapp/invitations/{t}/" + action, token)
+                .then();
     }
 
     @Test
@@ -97,16 +107,11 @@ class InternalWhatsAppResourceTest {
     }
 
     @Test
-    void joinConnectsNumberCaseAndSeparatorInsensitive() {
-        String code = createInvite(null);
+    void acceptConnectsNumber() {
+        String token = invite(KIOSK);
+        internal().when().get("/internal/whatsapp/contacts/{p}", PHONE).then().statusCode(404);
 
-        internal().contentType(MediaType.APPLICATION_JSON)
-                .body("{\"code\":\"" + code.toLowerCase().replace("-", " ") + "\",\"phoneNumber\":\"+" + PHONE
-                        + "\",\"displayName\":\"Max\"}")
-                .when()
-                .post("/internal/whatsapp/join")
-                .then()
-                .statusCode(200)
+        answer(token, "accept", PHONE).statusCode(200)
                 .body("bommelId", equalTo((int) KIOSK))
                 .body("previousBommelName", nullValue());
 
@@ -115,33 +120,58 @@ class InternalWhatsAppResourceTest {
                 .then()
                 .statusCode(200)
                 .body("bommelId", equalTo((int) KIOSK));
+        // pressing Accept twice is harmless
+        answer(token, "accept", PHONE).statusCode(200);
     }
 
     @Test
-    void unknownOrExpiredCodeIsRejected() {
-        internal().contentType(MediaType.APPLICATION_JSON)
-                .body("{\"code\":\"ABCDE-FGHJK\",\"phoneNumber\":\"" + PHONE + "\"}")
-                .when()
-                .post("/internal/whatsapp/join")
-                .then()
-                .statusCode(404);
+    void acceptingAnotherBommelMovesTheNumber() {
+        answer(invite(KIOSK), "accept", PHONE).statusCode(200);
 
-        String expired = createInvite(Instant.now().plus(1, ChronoUnit.SECONDS));
-        QuarkusTransaction.requiringNew()
-                .run(() -> inviteService.find(bommelRepository.findById(KIOSK))
-                        .orElseThrow()
-                        .setExpiresAt(Instant.now().minus(1, ChronoUnit.MINUTES)));
-        internal().contentType(MediaType.APPLICATION_JSON)
-                .body("{\"code\":\"" + expired + "\",\"phoneNumber\":\"" + PHONE + "\"}")
-                .when()
-                .post("/internal/whatsapp/join")
+        answer(invite(WORKSHOPS), "accept", PHONE).statusCode(200)
+                .body("bommelId", equalTo((int) WORKSHOPS))
+                .body("previousBommelName", equalTo(bommelRepository.findById(KIOSK).getName()));
+
+        internal().when()
+                .get("/internal/whatsapp/contacts/{p}", PHONE)
                 .then()
-                .statusCode(410);
+                .body("bommelId", equalTo((int) WORKSHOPS));
     }
 
     @Test
-    void unconnectedNumberIsNotFound() {
+    void answerFromAnotherNumberOrWithOldTokenIsRejected() {
+        String first = invite(KIOSK);
+        answer(first, "accept", "4930111111111").statusCode(404);
+
+        invite(KIOSK); // resend replaces the token
+        answer(first, "accept", PHONE).statusCode(404);
+    }
+
+    @Test
+    void expiredInvitationIsGone() {
+        String token = invite(KIOSK);
+        QuarkusTransaction.requiringNew().run(() -> {
+            WhatsAppContact contact = contactRepository.findByInvitationToken(token).orElseThrow();
+            contact.setInvitedAt(contact.getInvitedAt().minus(31, ChronoUnit.DAYS));
+        });
+
+        answer(token, "accept", PHONE).statusCode(410);
+    }
+
+    @Test
+    void declineMarksContact() {
+        String token = invite(KIOSK);
+
+        answer(token, "decline", PHONE).statusCode(204);
+
+        assertEquals("DECLINED", QuarkusTransaction.requiringNew()
+                .call(() -> contactRepository.findByInvitationToken(token).orElseThrow().getStatus().name()));
         internal().when().get("/internal/whatsapp/contacts/{p}", PHONE).then().statusCode(404);
+    }
+
+    @Test
+    void receiptOnlyFromConnectedNumber() {
+        invite(KIOSK);
         internal().multiPart("file", "beleg.pdf", "%PDF-1.4\n".getBytes(StandardCharsets.US_ASCII),
                 "application/pdf")
                 .when()
@@ -152,7 +182,7 @@ class InternalWhatsAppResourceTest {
 
     @Test
     void filesReceiptIntoTheBommel() {
-        join(createInvite(null));
+        answer(invite(KIOSK), "accept", PHONE).statusCode(200);
 
         internal().multiPart("file", "beleg.pdf", "%PDF-1.4\n% whatsapp\n".getBytes(StandardCharsets.US_ASCII),
                 "application/pdf")
@@ -164,12 +194,11 @@ class InternalWhatsAppResourceTest {
                 .post("/internal/whatsapp/contacts/{p}/receipts", PHONE)
                 .then()
                 .statusCode(201)
-                .body("fileName", equalTo("beleg.pdf"))
-                .body("bommelName", equalTo(bommelRepository.findById(KIOSK).getName()));
+                .body("fileName", equalTo("beleg.pdf"));
 
         Document document = QuarkusTransaction.requiringNew()
                 .call(() -> documentRepository.find("uploadChannel", UploadChannel.WHATSAPP).firstResult());
-        assertEquals("Max", document.getUploadedBy());
+        assertEquals("Anna", document.getUploadedBy());
         assertEquals("Getränke Sommerfest", document.getUploaderComment());
         assertEquals(KIOSK, QuarkusTransaction.requiringNew()
                 .call(() -> documentRepository.findById(document.getId()).getBommel().id));
@@ -177,7 +206,7 @@ class InternalWhatsAppResourceTest {
 
     @Test
     void disconnectStopsUploads() {
-        join(createInvite(null));
+        answer(invite(KIOSK), "accept", PHONE).statusCode(200);
 
         internal().when().delete("/internal/whatsapp/contacts/{p}", PHONE).then().statusCode(204);
 

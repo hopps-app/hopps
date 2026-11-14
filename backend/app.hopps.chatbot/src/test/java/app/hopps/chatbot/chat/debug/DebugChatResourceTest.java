@@ -51,7 +51,7 @@ class DebugChatResourceTest {
     }
 
     @Test
-    void joinsThenFilesReceiptThenDisconnects() {
+    void invitationShowsUpThenAcceptFilesReceiptThenDisconnects() {
         given().queryParam("phoneNumber", PHONE)
                 .when()
                 .get("/debug/chat/connection")
@@ -59,11 +59,29 @@ class DebugChatResourceTest {
                 .statusCode(200)
                 .body("connected", is(false));
 
+        // org sends the invitation; in tests it goes to the debug outbox
+        given().header("X-Hopps-Internal-Token", "dev-internal-token")
+                .contentType("application/json")
+                .body("{\"phoneNumber\":\"" + PHONE + "\",\"recipientName\":\"Max\",\"inviterName\":\"Alice\","
+                        + "\"bommelLabel\":\"🍺 Kiosk\",\"organizationName\":\"Testverein\",\"token\":\"valid-token\"}")
+                .when()
+                .post("/internal/invitations")
+                .then()
+                .statusCode(204);
+        String payload = given().queryParam("phoneNumber", PHONE)
+                .when()
+                .get("/debug/chat/outbox")
+                .then()
+                .statusCode(200)
+                .body("size()", is(1))
+                .extract()
+                .path("[0].buttons[0].payload");
+
         given()
                 .multiPart("conversationId", "c2")
                 .multiPart("phoneNumber", PHONE)
-                .multiPart("senderName", "Max")
-                .multiPart("text", "Hopps-Code: ABCDE-FGHJK")
+                .multiPart("text", "Annehmen")
+                .multiPart("buttonPayload", payload)
                 .when()
                 .post("/debug/chat/messages")
                 .then()

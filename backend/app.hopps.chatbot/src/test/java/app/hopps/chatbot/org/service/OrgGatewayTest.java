@@ -28,20 +28,23 @@ class OrgGatewayTest {
     }
 
     @Test
-    void joinMapsConnectionAndStatusCodes() {
-        var joined = gateway.join("abcde-fghjk", PHONE, "Max");
-        assertEquals(OrgGateway.JoinStatus.CONNECTED, joined.status());
-        assertEquals("🍺 Kiosk", joined.connection().bommelLabel());
-        assertEquals("Testverein", joined.connection().organizationName());
+    void acceptMapsConnectionAndStatusCodes() {
+        var accepted = gateway.accept(FakeOrgInternalApi.VALID_TOKEN, PHONE);
+        assertEquals(OrgGateway.AnswerStatus.DONE, accepted.status());
+        assertEquals("🍺 Kiosk", accepted.connection().bommelLabel());
+        assertEquals("Testverein", accepted.connection().organizationName());
 
-        assertEquals(OrgGateway.JoinStatus.UNKNOWN_CODE, gateway.join("AAAAA-AAAAA", PHONE, null).status());
-        assertEquals(OrgGateway.JoinStatus.EXPIRED, gateway.join("ZZZZZ-ZZZZZ", PHONE, null).status());
+        assertEquals(OrgGateway.AnswerStatus.UNKNOWN_INVITATION, gateway.accept("other", PHONE).status());
+        assertEquals(OrgGateway.AnswerStatus.EXPIRED,
+                gateway.accept(FakeOrgInternalApi.EXPIRED_TOKEN, PHONE).status());
+        assertEquals(OrgGateway.AnswerStatus.DONE, gateway.decline(FakeOrgInternalApi.VALID_TOKEN, PHONE));
+        assertEquals(OrgGateway.AnswerStatus.UNKNOWN_INVITATION, gateway.decline("other", PHONE));
     }
 
     @Test
     void findConnectionIsEmptyForUnknownNumber() {
         assertTrue(gateway.findConnection(PHONE).isEmpty());
-        gateway.join("ABCDE-FGHJK", PHONE, null);
+        gateway.accept(FakeOrgInternalApi.VALID_TOKEN, PHONE);
         assertEquals("Kiosk", gateway.findConnection(PHONE).orElseThrow().bommelName());
         gateway.disconnect(PHONE);
         assertTrue(gateway.findConnection(PHONE).isEmpty());
@@ -49,7 +52,7 @@ class OrgGatewayTest {
 
     @Test
     void submitsFileWithNameTypeAndUtf8Caption() {
-        gateway.join("ABCDE-FGHJK", PHONE, null);
+        gateway.accept(FakeOrgInternalApi.VALID_TOKEN, PHONE);
         byte[] pdf = "%PDF-1.4\n".getBytes(StandardCharsets.US_ASCII);
 
         var status = gateway.submitReceipt(PHONE, pdf, "rechnung.pdf", "application/pdf", "Getränke Sommerfest");

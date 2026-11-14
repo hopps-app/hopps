@@ -3,6 +3,7 @@ package app.hopps.chatbot.chat.debug;
 import app.hopps.chatbot.chat.model.Attachment;
 import app.hopps.chatbot.chat.model.IncomingChatMessage;
 import app.hopps.chatbot.chat.service.ChatService;
+import app.hopps.chatbot.invitation.service.DebugOutbox;
 import app.hopps.chatbot.org.client.dto.OrgConnection;
 import app.hopps.chatbot.org.service.OrgGateway;
 import io.quarkus.arc.profile.UnlessBuildProfile;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.List;
 
 /**
  * Browser chat for trying the bot without WhatsApp. It talks to the same {@link ChatService} as the WhatsApp webhook,
@@ -37,16 +39,17 @@ public class DebugChatResource {
 
     private final ChatService chatService;
     private final OrgGateway org;
+    private final DebugOutbox outbox;
 
-    public DebugChatResource(ChatService chatService, OrgGateway org) {
+    public DebugChatResource(ChatService chatService, OrgGateway org, DebugOutbox outbox) {
         this.chatService = chatService;
         this.org = org;
+        this.outbox = outbox;
     }
 
     @GET
     @Produces(MediaType.TEXT_HTML)
-    @Operation(summary = "Debug chat page", description = "HTML page to chat with the bot (dev and test only). "
-            + "Accepts ?text= like a wa.me link, so WhatsApp invite links of a dev org open here.")
+    @Operation(summary = "Debug chat page", description = "HTML page to chat with the bot (dev and test only)")
     @APIResponse(responseCode = "200", description = "The page")
     public String page() throws IOException {
         try (InputStream in = getClass().getResourceAsStream("/debug/chat.html")) {
@@ -70,6 +73,7 @@ public class DebugChatResource {
             @RestForm String phoneNumber,
             @RestForm String senderName,
             @RestForm String text,
+            @RestForm String buttonPayload,
             @RestForm("file") FileUpload file) throws IOException {
         String phone = requirePhoneNumber(phoneNumber);
         Attachment attachment = null;
@@ -79,7 +83,7 @@ public class DebugChatResource {
             attachment = new Attachment(file.contentType(), file.fileName(), () -> content);
         }
         String reply = chatService.handle(new IncomingChatMessage(CONVERSATION_PREFIX + conversationId, phone,
-                blankToNull(senderName), text, attachment));
+                blankToNull(senderName), text, attachment, blankToNull(buttonPayload)));
         return new DebugChatReply(reply);
     }
 
@@ -98,6 +102,16 @@ public class DebugChatResource {
         } catch (RuntimeException e) {
             return new DebugConnection(false, null, null, "org not reachable: " + e.getMessage());
         }
+    }
+
+    @GET
+    @Path("/outbox")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Messages the bot sent first", description = "Invitations sent to the number while the "
+            + "invitation channel is debug; each is returned once (dev and test only)")
+    @APIResponse(responseCode = "200", description = "Waiting messages, possibly empty")
+    public List<DebugOutbox.Message> outbox(@QueryParam("phoneNumber") String phoneNumber) {
+        return outbox.take(requirePhoneNumber(phoneNumber));
     }
 
     private static String requirePhoneNumber(String phoneNumber) {

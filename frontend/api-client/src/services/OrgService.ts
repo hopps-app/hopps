@@ -5118,11 +5118,15 @@ export class Client {
     }
 
     /**
-     * Redeem a WhatsApp invite code (chatbot only)
+     * Accept a WhatsApp invitation (chatbot only)
+     * @param token Token from the invitation's button
      * @return Number connected
      */
-    internalJoinWhatsAppInvite(body: WhatsAppJoinRequest): Promise<WhatsAppConnection> {
-        let url_ = this.baseUrl + "/internal/whatsapp/join";
+    internalAcceptWhatsAppInvitation(token: string, body: WhatsAppInvitationAnswer): Promise<WhatsAppConnection> {
+        let url_ = this.baseUrl + "/internal/whatsapp/invitations/{token}/accept";
+        if (token === undefined || token === null)
+            throw new globalThis.Error("The parameter 'token' must be defined.");
+        url_ = url_.replace("{token}", encodeURIComponent("" + token));
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(body);
@@ -5137,11 +5141,11 @@ export class Client {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processInternalJoinWhatsAppInvite(_response);
+            return this.processInternalAcceptWhatsAppInvitation(_response);
         });
     }
 
-    protected processInternalJoinWhatsAppInvite(response: Response): Promise<WhatsAppConnection> {
+    protected processInternalAcceptWhatsAppInvitation(response: Response): Promise<WhatsAppConnection> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5161,15 +5165,11 @@ export class Client {
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
-            return throwException("Unknown, replaced or revoked code", status, _responseText, _headers);
+            return throwException("Unknown or replaced invitation, or another number", status, _responseText, _headers);
             });
         } else if (status === 410) {
             return response.text().then((_responseText) => {
-            return throwException("Invite has expired", status, _responseText, _headers);
-            });
-        } else if (status === 429) {
-            return response.text().then((_responseText) => {
-            return throwException("Too many attempts from this number", status, _responseText, _headers);
+            return throwException("Invitation has expired", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -5177,6 +5177,64 @@ export class Client {
             });
         }
         return Promise.resolve<WhatsAppConnection>(null as any);
+    }
+
+    /**
+     * Decline a WhatsApp invitation (chatbot only)
+     * @param token Token from the invitation's button
+     * @return Invitation declined
+     */
+    internalDeclineWhatsAppInvitation(token: string, body: WhatsAppInvitationAnswer): Promise<void> {
+        let url_ = this.baseUrl + "/internal/whatsapp/invitations/{token}/decline";
+        if (token === undefined || token === null)
+            throw new globalThis.Error("The parameter 'token' must be defined.");
+        url_ = url_.replace("{token}", encodeURIComponent("" + token));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processInternalDeclineWhatsAppInvitation(_response);
+        });
+    }
+
+    protected processInternalDeclineWhatsAppInvitation(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("Bad Request", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Missing or wrong internal API token", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Unknown or replaced invitation, or another number", status, _responseText, _headers);
+            });
+        } else if (status === 410) {
+            return response.text().then((_responseText) => {
+            return throwException("Invitation has expired", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
     }
 
     /**
@@ -7070,62 +7128,12 @@ export class Client {
     }
 
     /**
-     * Turn WhatsApp off for a bommel
+     * Invite a phone number via WhatsApp
      * @param bommelId The bommel ID
-     * @return Invite revoked and numbers disconnected (or there was nothing)
+     * @return Invitation sent
      */
-    revokeBommelWhatsAppInvite(bommelId: number): Promise<void> {
-        let url_ = this.baseUrl + "/whatsapp-invites/{bommelId}";
-        if (bommelId === undefined || bommelId === null)
-            throw new globalThis.Error("The parameter 'bommelId' must be defined.");
-        url_ = url_.replace("{bommelId}", encodeURIComponent("" + bommelId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "DELETE",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processRevokeBommelWhatsAppInvite(_response);
-        });
-    }
-
-    protected processRevokeBommelWhatsAppInvite(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 204) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status === 401) {
-            return response.text().then((_responseText) => {
-            return throwException("Not authenticated", status, _responseText, _headers);
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            return throwException("Not Allowed", status, _responseText, _headers);
-            });
-        } else if (status === 404) {
-            return response.text().then((_responseText) => {
-            return throwException("Bommel not found in the current organization", status, _responseText, _headers);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    /**
-     * Create or regenerate the WhatsApp invite of a bommel
-     * @param bommelId The bommel ID
-     * @return Invite created
-     */
-    regenerateBommelWhatsAppInvite(bommelId: number, body: WhatsAppInviteRequest): Promise<WhatsAppInviteResponse> {
-        let url_ = this.baseUrl + "/whatsapp-invites/{bommelId}";
+    inviteBommelWhatsAppContact(bommelId: number, body: WhatsAppInvitationRequest): Promise<WhatsAppContactResponse> {
+        let url_ = this.baseUrl + "/whatsapp-contacts/{bommelId}";
         if (bommelId === undefined || bommelId === null)
             throw new globalThis.Error("The parameter 'bommelId' must be defined.");
         url_ = url_.replace("{bommelId}", encodeURIComponent("" + bommelId));
@@ -7143,23 +7151,23 @@ export class Client {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processRegenerateBommelWhatsAppInvite(_response);
+            return this.processInviteBommelWhatsAppContact(_response);
         });
     }
 
-    protected processRegenerateBommelWhatsAppInvite(response: Response): Promise<WhatsAppInviteResponse> {
+    protected processInviteBommelWhatsAppContact(response: Response): Promise<WhatsAppContactResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = WhatsAppInviteResponse.fromJS(resultData200);
+            result200 = WhatsAppContactResponse.fromJS(resultData200);
             return result200;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Expiry date is in the past", status, _responseText, _headers);
+            return throwException("Name missing, or the number is invalid or lacks a country code", status, _responseText, _headers);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
@@ -7173,75 +7181,33 @@ export class Client {
             return response.text().then((_responseText) => {
             return throwException("Bommel not found in the current organization", status, _responseText, _headers);
             });
-        } else if (status !== 200 && status !== 204) {
+        } else if (status === 409) {
             return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            return throwException("The number is already connected to this bommel", status, _responseText, _headers);
             });
-        }
-        return Promise.resolve<WhatsAppInviteResponse>(null as any);
-    }
-
-    /**
-     * Get the WhatsApp invite of a bommel
-     * @param bommelId The bommel ID
-     * @return Invite found
-     */
-    getBommelWhatsAppInvite(bommelId: number): Promise<WhatsAppInviteResponse> {
-        let url_ = this.baseUrl + "/whatsapp-invites/{bommelId}";
-        if (bommelId === undefined || bommelId === null)
-            throw new globalThis.Error("The parameter 'bommelId' must be defined.");
-        url_ = url_.replace("{bommelId}", encodeURIComponent("" + bommelId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetBommelWhatsAppInvite(_response);
-        });
-    }
-
-    protected processGetBommelWhatsAppInvite(response: Response): Promise<WhatsAppInviteResponse> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
+        } else if (status === 429) {
             return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = WhatsAppInviteResponse.fromJS(resultData200);
-            return result200;
+            return throwException("Too many invitations from this organization", status, _responseText, _headers);
             });
-        } else if (status === 401) {
+        } else if (status === 503) {
             return response.text().then((_responseText) => {
-            return throwException("Not authenticated", status, _responseText, _headers);
-            });
-        } else if (status === 403) {
-            return response.text().then((_responseText) => {
-            return throwException("Not Allowed", status, _responseText, _headers);
-            });
-        } else if (status === 404) {
-            return response.text().then((_responseText) => {
-            return throwException("Bommel not found in the current organization", status, _responseText, _headers);
+            return throwException("The invitation could not be sent; nothing was stored", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<WhatsAppInviteResponse>(null as any);
+        return Promise.resolve<WhatsAppContactResponse>(null as any);
     }
 
     /**
-     * List the phone numbers connected to a bommel
+     * List the WhatsApp contacts of a bommel
      * @param bommelId The bommel ID
-     * @return Connected numbers
+     * @return Contacts
      */
     getBommelWhatsAppContacts(bommelId: number): Promise<WhatsAppContactResponse[]> {
-        let url_ = this.baseUrl + "/whatsapp-invites/{bommelId}/contacts";
+        let url_ = this.baseUrl + "/whatsapp-contacts/{bommelId}";
         if (bommelId === undefined || bommelId === null)
             throw new globalThis.Error("The parameter 'bommelId' must be defined.");
         url_ = url_.replace("{bommelId}", encodeURIComponent("" + bommelId));
@@ -7297,13 +7263,13 @@ export class Client {
     }
 
     /**
-     * Disconnect a phone number from a bommel
+     * Remove a WhatsApp contact
      * @param bommelId The bommel ID
      * @param contactId The contact ID
-     * @return Number disconnected
+     * @return Contact removed
      */
     removeBommelWhatsAppContact(bommelId: number, contactId: number): Promise<void> {
-        let url_ = this.baseUrl + "/whatsapp-invites/{bommelId}/contacts/{contactId}";
+        let url_ = this.baseUrl + "/whatsapp-contacts/{bommelId}/{contactId}";
         if (bommelId === undefined || bommelId === null)
             throw new globalThis.Error("The parameter 'bommelId' must be defined.");
         url_ = url_.replace("{bommelId}", encodeURIComponent("" + bommelId));
@@ -7348,6 +7314,76 @@ export class Client {
             });
         }
         return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Send a WhatsApp invitation again
+     * @param bommelId The bommel ID
+     * @param contactId The contact ID
+     * @return Invitation sent
+     */
+    resendBommelWhatsAppInvitation(bommelId: number, contactId: number): Promise<WhatsAppContactResponse> {
+        let url_ = this.baseUrl + "/whatsapp-contacts/{bommelId}/{contactId}/resend";
+        if (bommelId === undefined || bommelId === null)
+            throw new globalThis.Error("The parameter 'bommelId' must be defined.");
+        url_ = url_.replace("{bommelId}", encodeURIComponent("" + bommelId));
+        if (contactId === undefined || contactId === null)
+            throw new globalThis.Error("The parameter 'contactId' must be defined.");
+        url_ = url_.replace("{contactId}", encodeURIComponent("" + contactId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processResendBommelWhatsAppInvitation(_response);
+        });
+    }
+
+    protected processResendBommelWhatsAppInvitation(response: Response): Promise<WhatsAppContactResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WhatsAppContactResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not authenticated", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Bommel or contact not found", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("The number is already connected", status, _responseText, _headers);
+            });
+        } else if (status === 429) {
+            return response.text().then((_responseText) => {
+            return throwException("Too many invitations from this organization", status, _responseText, _headers);
+            });
+        } else if (status === 503) {
+            return response.text().then((_responseText) => {
+            return throwException("The invitation could not be sent", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WhatsAppContactResponse>(null as any);
     }
 }
 
@@ -14707,8 +14743,12 @@ export interface IWhatsAppConnection {
 
 export class WhatsAppContactResponse implements IWhatsAppContactResponse {
     id?: number;
-    displayName?: string;
+    name?: string;
     maskedPhoneNumber?: string;
+    status?: WhatsAppContactStatus;
+    invitationExpired?: boolean;
+    invitedBy?: string;
+    invitedAt?: Date;
     joinedAt?: Date;
 
     [key: string]: any;
@@ -14729,8 +14769,12 @@ export class WhatsAppContactResponse implements IWhatsAppContactResponse {
                     this[property] = _data[property];
             }
             this.id = _data["id"];
-            this.displayName = _data["displayName"];
+            this.name = _data["name"];
             this.maskedPhoneNumber = _data["maskedPhoneNumber"];
+            this.status = _data["status"];
+            this.invitationExpired = _data["invitationExpired"];
+            this.invitedBy = _data["invitedBy"];
+            this.invitedAt = _data["invitedAt"] ? new Date(_data["invitedAt"].toString()) : undefined as any;
             this.joinedAt = _data["joinedAt"] ? new Date(_data["joinedAt"].toString()) : undefined as any;
         }
     }
@@ -14749,8 +14793,12 @@ export class WhatsAppContactResponse implements IWhatsAppContactResponse {
                 data[property] = this[property];
         }
         data["id"] = this.id;
-        data["displayName"] = this.displayName;
+        data["name"] = this.name;
         data["maskedPhoneNumber"] = this.maskedPhoneNumber;
+        data["status"] = this.status;
+        data["invitationExpired"] = this.invitationExpired;
+        data["invitedBy"] = this.invitedBy;
+        data["invitedAt"] = this.invitedAt ? this.invitedAt.toISOString() : undefined as any;
         data["joinedAt"] = this.joinedAt ? this.joinedAt.toISOString() : undefined as any;
         return data;
     }
@@ -14765,155 +14813,25 @@ export class WhatsAppContactResponse implements IWhatsAppContactResponse {
 
 export interface IWhatsAppContactResponse {
     id?: number;
-    displayName?: string;
+    name?: string;
     maskedPhoneNumber?: string;
+    status?: WhatsAppContactStatus;
+    invitationExpired?: boolean;
+    invitedBy?: string;
+    invitedAt?: Date;
     joinedAt?: Date;
 
     [key: string]: any;
 }
 
-export class WhatsAppInviteRequest implements IWhatsAppInviteRequest {
-    expiresAt?: Date;
+export type WhatsAppContactStatus = "INVITED" | "ACTIVE" | "DECLINED";
 
-    [key: string]: any;
-
-    constructor(data?: IWhatsAppInviteRequest) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.expiresAt = _data["expiresAt"] ? new Date(_data["expiresAt"].toString()) : undefined as any;
-        }
-    }
-
-    static fromJS(data: any): WhatsAppInviteRequest {
-        data = typeof data === 'object' ? data : {};
-        let result = new WhatsAppInviteRequest();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["expiresAt"] = this.expiresAt ? this.expiresAt.toISOString() : undefined as any;
-        return data;
-    }
-
-    clone(): WhatsAppInviteRequest {
-        const json = this.toJSON();
-        let result = new WhatsAppInviteRequest();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface IWhatsAppInviteRequest {
-    expiresAt?: Date;
-
-    [key: string]: any;
-}
-
-export class WhatsAppInviteResponse implements IWhatsAppInviteResponse {
-    bommelId?: number;
-    code?: string;
-    joinUrl?: string;
-    expiresAt?: Date;
-    expired?: boolean;
-    createdAt?: Date;
-    createdBy?: string;
-
-    [key: string]: any;
-
-    constructor(data?: IWhatsAppInviteResponse) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.bommelId = _data["bommelId"];
-            this.code = _data["code"];
-            this.joinUrl = _data["joinUrl"];
-            this.expiresAt = _data["expiresAt"] ? new Date(_data["expiresAt"].toString()) : undefined as any;
-            this.expired = _data["expired"];
-            this.createdAt = _data["createdAt"] ? new Date(_data["createdAt"].toString()) : undefined as any;
-            this.createdBy = _data["createdBy"];
-        }
-    }
-
-    static fromJS(data: any): WhatsAppInviteResponse {
-        data = typeof data === 'object' ? data : {};
-        let result = new WhatsAppInviteResponse();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["bommelId"] = this.bommelId;
-        data["code"] = this.code;
-        data["joinUrl"] = this.joinUrl;
-        data["expiresAt"] = this.expiresAt ? this.expiresAt.toISOString() : undefined as any;
-        data["expired"] = this.expired;
-        data["createdAt"] = this.createdAt ? this.createdAt.toISOString() : undefined as any;
-        data["createdBy"] = this.createdBy;
-        return data;
-    }
-
-    clone(): WhatsAppInviteResponse {
-        const json = this.toJSON();
-        let result = new WhatsAppInviteResponse();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface IWhatsAppInviteResponse {
-    bommelId?: number;
-    code?: string;
-    joinUrl?: string;
-    expiresAt?: Date;
-    expired?: boolean;
-    createdAt?: Date;
-    createdBy?: string;
-
-    [key: string]: any;
-}
-
-export class WhatsAppJoinRequest implements IWhatsAppJoinRequest {
-    code?: string;
+export class WhatsAppInvitationAnswer implements IWhatsAppInvitationAnswer {
     phoneNumber?: string;
-    displayName?: string;
 
     [key: string]: any;
 
-    constructor(data?: IWhatsAppJoinRequest) {
+    constructor(data?: IWhatsAppInvitationAnswer) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -14928,15 +14846,13 @@ export class WhatsAppJoinRequest implements IWhatsAppJoinRequest {
                 if (_data.hasOwnProperty(property))
                     this[property] = _data[property];
             }
-            this.code = _data["code"];
             this.phoneNumber = _data["phoneNumber"];
-            this.displayName = _data["displayName"];
         }
     }
 
-    static fromJS(data: any): WhatsAppJoinRequest {
+    static fromJS(data: any): WhatsAppInvitationAnswer {
         data = typeof data === 'object' ? data : {};
-        let result = new WhatsAppJoinRequest();
+        let result = new WhatsAppInvitationAnswer();
         result.init(data);
         return result;
     }
@@ -14947,24 +14863,79 @@ export class WhatsAppJoinRequest implements IWhatsAppJoinRequest {
             if (this.hasOwnProperty(property))
                 data[property] = this[property];
         }
-        data["code"] = this.code;
         data["phoneNumber"] = this.phoneNumber;
-        data["displayName"] = this.displayName;
         return data;
     }
 
-    clone(): WhatsAppJoinRequest {
+    clone(): WhatsAppInvitationAnswer {
         const json = this.toJSON();
-        let result = new WhatsAppJoinRequest();
+        let result = new WhatsAppInvitationAnswer();
         result.init(json);
         return result;
     }
 }
 
-export interface IWhatsAppJoinRequest {
-    code?: string;
+export interface IWhatsAppInvitationAnswer {
     phoneNumber?: string;
-    displayName?: string;
+
+    [key: string]: any;
+}
+
+export class WhatsAppInvitationRequest implements IWhatsAppInvitationRequest {
+    name?: string;
+    phoneNumber?: string;
+
+    [key: string]: any;
+
+    constructor(data?: IWhatsAppInvitationRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.name = _data["name"];
+            this.phoneNumber = _data["phoneNumber"];
+        }
+    }
+
+    static fromJS(data: any): WhatsAppInvitationRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new WhatsAppInvitationRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["name"] = this.name;
+        data["phoneNumber"] = this.phoneNumber;
+        return data;
+    }
+
+    clone(): WhatsAppInvitationRequest {
+        const json = this.toJSON();
+        let result = new WhatsAppInvitationRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IWhatsAppInvitationRequest {
+    name?: string;
+    phoneNumber?: string;
 
     [key: string]: any;
 }
