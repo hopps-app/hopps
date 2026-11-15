@@ -54,7 +54,7 @@ interface Props {
 }
 
 export function CreateTransactionDrawer({ open, onClose, bankTx, prefillAmount, stacked = false, onCreated }: Props) {
-    const { format, symbol } = useCurrency();
+    const { format, formatInput, symbol } = useCurrency();
     const { t } = useTranslation();
     const createMutation = useCreateTransaction();
     const addMatch = useAddBankTransactionMatch();
@@ -96,7 +96,7 @@ export function CreateTransactionDrawer({ open, onClose, bankTx, prefillAmount, 
         setDirection(amt < 0 ? 'expense' : 'income');
         setName(bankTx.purpose ?? '');
         const prefill = prefillAmount ?? Math.abs(amt);
-        setAmount(prefill !== 0 ? String(Math.round(prefill * 100) / 100) : '');
+        setAmount(prefill !== 0 ? formatInput(prefill) : '');
         setDate(toDateInputValue(bankTx.bookingDate) || new Date().toISOString().slice(0, 10));
         setSenderName(bankTx.counterpartyName ?? '');
         // eslint-disable-next-line react-hooks/exhaustive-deps

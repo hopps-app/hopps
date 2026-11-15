@@ -1,7 +1,15 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { currencySymbol, formatCompactCurrency, formatCurrency, organizationCurrency, type CurrencyCode, type FormatCurrencyOptions } from '@/lib/currency';
+import {
+    currencySymbol,
+    formatAmountInput,
+    formatCompactCurrency,
+    formatCurrency,
+    organizationCurrency,
+    type CurrencyCode,
+    type FormatCurrencyOptions,
+} from '@/lib/currency';
 import { useStore } from '@/store/store';
 
 export type CurrencyFormatter = {
@@ -13,6 +21,8 @@ export type CurrencyFormatter = {
     format: (value: number | null | undefined, options?: FormatCurrencyOptions) => string;
     /** Abbreviated amount ("12.3k€") for space-constrained cards. */
     formatCompact: (value: number) => string;
+    /** Prefill for an editable amount input ("186,40" / "186.40"); empty when the amount is missing. */
+    formatInput: (value: number | null | undefined) => string;
 };
 
 /**
@@ -31,6 +41,7 @@ export function useCurrency(): CurrencyFormatter {
             symbol: currencySymbol(currency),
             format: (value, options) => formatCurrency(value, currency, locale, options),
             formatCompact: (value) => formatCompactCurrency(value, currency, locale),
+            formatInput: (value) => formatAmountInput(value, locale),
         }),
         [currency, locale]
     );
