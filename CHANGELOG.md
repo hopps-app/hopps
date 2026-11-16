@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.1](https://github.com/hopps-app/hopps/compare/v2.5.0...v2.5.1) (2026-11-16)
+
+
+### Bug Fixes
+
+* **receipts:** locale-format amount inputs in receipt review ([#952](https://github.com/hopps-app/hopps/issues/952)) ([6fcadd0](https://github.com/hopps-app/hopps/commit/6fcadd050e62823e9224415a11f0bd2c0c6f4191)), closes [#948](https://github.com/hopps-app/hopps/issues/948)
+
 ## [2.5.0](https://github.com/hopps-app/hopps/compare/v2.4.0...v2.5.0) (2026-11-13)
 
 
