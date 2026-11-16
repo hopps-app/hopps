@@ -52,6 +52,16 @@ export function formatCurrency(value: number | null | undefined, currency: strin
 }
 
 /**
+ * Prefill for an editable amount input: two decimals in the UI language, no currency symbol (the label carries it) and
+ * no thousands separator, so parseAllocationAmount reads it back in every locale ("1234,50" (de) / "1234.50" (en)). A
+ * missing amount gives an empty field.
+ */
+export function formatAmountInput(value: number | null | undefined, locale: string): string {
+    if (value == null || Number.isNaN(value)) return '';
+    return new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false }).format(value);
+}
+
+/**
  * Space-saving amount with a unit suffix for the tiny tree cards: "1.5M€", "12.3k€", "850€" — or "1.5M CHF" when the
  * symbol is a code rather than a single sign.
  */

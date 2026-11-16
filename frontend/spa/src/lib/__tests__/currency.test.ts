@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
     currencySymbol,
+    formatAmountInput,
     formatCompactCurrency,
     formatCurrency,
     isSupportedCurrency,
@@ -10,6 +11,8 @@ import {
     currencyForIban,
     SUPPORTED_COUNTRIES,
 } from '../currency';
+
+import { parseAllocationAmount } from '@/utils/parseAmount';
 
 // Intl separates amount and currency symbol with a no-break space; normalise it for the assertions.
 const normalise = (value: string) => value.replace(/\s/g, ' ');
@@ -119,5 +122,30 @@ describe('currencyForCountry', () => {
         expect(SUPPORTED_COUNTRIES).toContain('CH');
         expect(SUPPORTED_COUNTRIES).not.toContain('US');
         expect(SUPPORTED_COUNTRIES).toHaveLength(23);
+    });
+});
+
+describe('formatAmountInput', () => {
+    it('formats with the decimal separator of the UI language and two decimals', () => {
+        expect(formatAmountInput(186.4, 'de')).toBe('186,40');
+        expect(formatAmountInput(186.4, 'en')).toBe('186.40');
+        expect(formatAmountInput(5, 'de')).toBe('5,00');
+    });
+
+    it('leaves out thousands separators and the currency symbol', () => {
+        expect(formatAmountInput(1234.5, 'de')).toBe('1234,50');
+        expect(formatAmountInput(1234.5, 'en')).toBe('1234.50');
+    });
+
+    it('gives an empty field for a missing amount', () => {
+        expect(formatAmountInput(null, 'de')).toBe('');
+        expect(formatAmountInput(undefined, 'de')).toBe('');
+        expect(formatAmountInput(Number.NaN, 'de')).toBe('');
+    });
+
+    it.each(['de', 'en', 'de-CH'])('is read back unchanged by parseAllocationAmount (%s)', (locale) => {
+        for (const value of [0, 0.5, 186.4, 1234.56, 1000000]) {
+            expect(parseAllocationAmount(formatAmountInput(value, locale))).toBe(value);
+        }
     });
 });

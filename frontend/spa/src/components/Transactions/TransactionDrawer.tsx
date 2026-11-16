@@ -43,7 +43,7 @@ import { useStore } from '@/store/store';
  */
 export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number | null; onClose: () => void; onDeleted: () => void }) {
     const { t } = useTranslation();
-    const { format, symbol } = useCurrency();
+    const { format, formatInput, symbol } = useCurrency();
     const navigate = useNavigate();
     const { data: tx, isLoading, isError } = useTransaction(txId ?? 0);
     // The id may come from the URL (reload, shared link) and point to a transaction that is gone: close instead of
@@ -120,7 +120,7 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
         const total = tx.total != null ? Number(tx.total) : 0;
         setKind(total < 0 ? 'expense' : 'income');
         setName(tx.name ?? '');
-        setAmountStr(tx.total != null ? Math.abs(total).toFixed(2).replace('.', ',') : '');
+        setAmountStr(tx.total != null ? formatInput(Math.abs(total)) : '');
         setDate(tx.transactionTime ? new Date(tx.transactionTime).toISOString().slice(0, 10) : '');
         setSenderName(tx.senderName ?? '');
         // Keep the transaction's own bommel; if it has none, default to the last picked one (batch assignment).

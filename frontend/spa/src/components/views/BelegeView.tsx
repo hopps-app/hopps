@@ -277,7 +277,7 @@ export function ReviewDrawer({
     /** Opened on top of another drawer (e.g. "Kontoumsatz zuordnen"): layered above it, scrim included. */
     stacked?: boolean;
 }) {
-    const { format, symbol } = useCurrency();
+    const { format, formatInput, symbol } = useCurrency();
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -388,7 +388,7 @@ export function ReviewDrawer({
             });
             applyForm({
                 name: linkedTx.name ?? '',
-                amount: linkedTx.total != null ? String(Math.abs(Number(linkedTx.total))) : '',
+                amount: linkedTx.total != null ? formatInput(Math.abs(Number(linkedTx.total))) : '',
                 date: linkedTx.transactionTime ? new Date(linkedTx.transactionTime).toISOString().slice(0, 10) : '',
                 senderName: linkedTx.senderName ?? '',
                 // A freshly created draft carries no bommel, so this falls back to the shared "last used" bommel cache.
@@ -403,7 +403,7 @@ export function ReviewDrawer({
         initializedIdRef.current = docProp.id ?? null;
         applyForm({
             name: docProp.name ?? '',
-            amount: docProp.total != null ? String(Math.abs(Number(docProp.total))) : '',
+            amount: docProp.total != null ? formatInput(Math.abs(Number(docProp.total))) : '',
             date: docProp.transactionTime ? new Date(docProp.transactionTime).toISOString().slice(0, 10) : '',
             senderName: docProp.senderName ?? '',
             bommelId: initialBommelId(docProp.bommelId),
@@ -411,7 +411,7 @@ export function ReviewDrawer({
             direction: docProp.direction ?? 'INCOMING',
             categoryValues: {},
         });
-    }, [docProp, hasLinkedTransaction, linkedTx]);
+    }, [docProp, hasLinkedTransaction, linkedTx, formatInput]);
 
     function applyForm(f: ReviewForm) {
         setName(f.name);
@@ -431,7 +431,7 @@ export function ReviewDrawer({
         if (hasLinkedTransaction) return;
         if (!liveDoc || liveDoc.id !== initializedIdRef.current) return;
         if (liveDoc.name) setName((p) => p || liveDoc.name!);
-        if (liveDoc.total != null) setAmount((p) => p || String(Math.abs(Number(liveDoc.total))));
+        if (liveDoc.total != null) setAmount((p) => p || formatInput(Math.abs(Number(liveDoc.total))));
         if (liveDoc.transactionTime) setDate((p) => p || new Date(liveDoc.transactionTime!).toISOString().slice(0, 10));
         if (liveDoc.senderName) setSenderName((p) => p || liveDoc.senderName!);
         if (liveDoc.bommelId != null) setBommelId((p) => p || String(liveDoc.bommelId));
@@ -440,14 +440,14 @@ export function ReviewDrawer({
                 ? {
                       ...b,
                       name: b.name || liveDoc.name || '',
-                      amount: b.amount || (liveDoc.total != null ? String(Math.abs(Number(liveDoc.total))) : ''),
+                      amount: b.amount || (liveDoc.total != null ? formatInput(Math.abs(Number(liveDoc.total))) : ''),
                       date: b.date || (liveDoc.transactionTime ? new Date(liveDoc.transactionTime).toISOString().slice(0, 10) : ''),
                       senderName: b.senderName || liveDoc.senderName || '',
                       bommelId: b.bommelId || (liveDoc.bommelId != null ? String(liveDoc.bommelId) : ''),
                   }
                 : b
         );
-    }, [liveDoc, hasLinkedTransaction]);
+    }, [liveDoc, hasLinkedTransaction, formatInput]);
 
     const dirty =
         baseline != null &&
@@ -486,7 +486,8 @@ export function ReviewDrawer({
 
     // AI-extracted values from the analysed document, shown in the "Beleg" tab.
     const aiName = liveDoc?.name ?? undefined;
-    const aiAmount = liveDoc?.total != null ? String(Math.abs(Number(liveDoc.total))) : undefined;
+    const aiTotal = liveDoc?.total != null ? Math.abs(Number(liveDoc.total)) : undefined;
+    const aiAmount = aiTotal != null ? formatInput(aiTotal) : undefined;
     const aiDate = liveDoc?.transactionTime ? new Date(liveDoc.transactionTime).toISOString().slice(0, 10) : undefined;
     const aiSender = liveDoc?.senderName ?? undefined;
     const aiRecipient = liveDoc?.recipientName || undefined;
@@ -697,7 +698,7 @@ export function ReviewDrawer({
         if (!doc) return;
         applyForm({
             name: doc.name ?? '',
-            amount: doc.total != null ? String(Math.abs(Number(doc.total))) : '',
+            amount: doc.total != null ? formatInput(Math.abs(Number(doc.total))) : '',
             date: doc.transactionTime ? new Date(doc.transactionTime).toISOString().slice(0, 10) : '',
             senderName: doc.senderName ?? '',
             bommelId: linkedTx?.bommelId != null ? String(linkedTx.bommelId) : doc.bommelId != null ? String(doc.bommelId) : '',
@@ -1314,8 +1315,8 @@ export function ReviewDrawer({
                                                             [t('receipts.review.name'), aiName, !!aiName && aiName !== name, () => setName(aiName!)],
                                                             [
                                                                 `${t('receipts.review.amount')} (${symbol})`,
-                                                                aiAmount ? format(Number(aiAmount)) : undefined,
-                                                                !!aiAmount && aiAmount !== amount,
+                                                                aiAmount ? format(aiTotal) : undefined,
+                                                                !!aiAmount && aiTotal !== parseAllocationAmount(amount),
                                                                 () => setAmount(aiAmount!),
                                                             ],
                                                             [
