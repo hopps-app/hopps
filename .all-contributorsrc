@@ -210,6 +210,24 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "axdotl",
+      "name": "Axel Köhler",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9337156?v=4",
+      "profile": "https://github.com/axdotl",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "einfachyannik",
+      "name": "einfachyannik",
+      "avatar_url": "https://avatars.githubusercontent.com/u/105797555?v=4",
+      "profile": "https://github.com/einfachyannik",
+      "contributions": [
+        "code"
+      ]
     }
   ]
 }

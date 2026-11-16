@@ -67,6 +67,8 @@ der [Dt. Stiftung für Engagement und Ehrenamt](https://www.deutsche-stiftung-en
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/jotwg"><img src="https://avatars.githubusercontent.com/u/843821?v=4?s=100" width="100px;" alt="jotwg"/><br /><sub><b>jotwg</b></sub></a><br /><a href="#bug-jotwg" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/axdotl"><img src="https://avatars.githubusercontent.com/u/9337156?v=4?s=100" width="100px;" alt="Axel Köhler"/><br /><sub><b>Axel Köhler</b></sub></a><br /><a href="#code-axdotl" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/einfachyannik"><img src="https://avatars.githubusercontent.com/u/105797555?v=4?s=100" width="100px;" alt="einfachyannik"/><br /><sub><b>einfachyannik</b></sub></a><br /><a href="#code-einfachyannik" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
