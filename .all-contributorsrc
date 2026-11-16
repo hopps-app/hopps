@@ -129,6 +129,105 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "pro100Koss",
+      "name": "Kostya",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5690948?v=4",
+      "profile": "https://github.com/pro100Koss",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Josh1ku",
+      "name": "Josua Kock",
+      "avatar_url": "https://avatars.githubusercontent.com/u/89323092?v=4",
+      "profile": "https://github.com/Josh1ku",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "D4ykoo",
+      "name": "Daykoo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50523358?v=4",
+      "profile": "https://github.com/D4ykoo",
+      "contributions": [
+        "infra"
+      ]
+    },
+    {
+      "login": "MatthiasRaimann",
+      "name": "Matthias Raimann",
+      "avatar_url": "https://avatars.githubusercontent.com/u/33811156?v=4",
+      "profile": "https://github.com/MatthiasRaimann",
+      "contributions": [
+        "infra"
+      ]
+    },
+    {
+      "login": "bluesigor",
+      "name": "bluesigor",
+      "avatar_url": "https://avatars.githubusercontent.com/u/87902135?v=4",
+      "profile": "https://github.com/bluesigor",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Kleinhummel",
+      "name": "Kleinhummel",
+      "avatar_url": "https://avatars.githubusercontent.com/u/47432229?v=4",
+      "profile": "https://github.com/Kleinhummel",
+      "contributions": [
+        "design"
+      ]
+    },
+    {
+      "login": "Jonas3200",
+      "name": "Jonas Viehof",
+      "avatar_url": "https://avatars.githubusercontent.com/u/82144493?v=4",
+      "profile": "https://github.com/Jonas3200",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "MrBeasy",
+      "name": "MrBeasy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25347170?v=4",
+      "profile": "https://github.com/MrBeasy",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "jotwg",
+      "name": "jotwg",
+      "avatar_url": "https://avatars.githubusercontent.com/u/843821?v=4",
+      "profile": "https://github.com/jotwg",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "axdotl",
+      "name": "Axel Köhler",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9337156?v=4",
+      "profile": "https://github.com/axdotl",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "einfachyannik",
+      "name": "einfachyannik",
+      "avatar_url": "https://avatars.githubusercontent.com/u/105797555?v=4",
+      "profile": "https://github.com/einfachyannik",
+      "contributions": [
+        "code"
+      ]
     }
   ]
 }

@@ -54,6 +54,21 @@ der [Dt. Stiftung für Engagement und Ehrenamt](https://www.deutsche-stiftung-en
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/98jan"><img src="https://avatars.githubusercontent.com/u/46779261?v=4?s=100" width="100px;" alt="Jan"/><br /><sub><b>Jan</b></sub></a><br /><a href="#code-98jan" title="Code">💻</a> <a href="#infra-98jan" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/pweimann"><img src="https://avatars.githubusercontent.com/u/49559453?v=4?s=100" width="100px;" alt="Paul Weimann"/><br /><sub><b>Paul Weimann</b></sub></a><br /><a href="#code-pweimann" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/s0582346"><img src="https://avatars.githubusercontent.com/u/95862918?v=4?s=100" width="100px;" alt="Paolo"/><br /><sub><b>Paolo</b></sub></a><br /><a href="#code-s0582346" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/pro100Koss"><img src="https://avatars.githubusercontent.com/u/5690948?v=4?s=100" width="100px;" alt="Kostya"/><br /><sub><b>Kostya</b></sub></a><br /><a href="#code-pro100Koss" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Josh1ku"><img src="https://avatars.githubusercontent.com/u/89323092?v=4?s=100" width="100px;" alt="Josua Kock"/><br /><sub><b>Josua Kock</b></sub></a><br /><a href="#code-Josh1ku" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/D4ykoo"><img src="https://avatars.githubusercontent.com/u/50523358?v=4?s=100" width="100px;" alt="Daykoo"/><br /><sub><b>Daykoo</b></sub></a><br /><a href="#infra-D4ykoo" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/MatthiasRaimann"><img src="https://avatars.githubusercontent.com/u/33811156?v=4?s=100" width="100px;" alt="Matthias Raimann"/><br /><sub><b>Matthias Raimann</b></sub></a><br /><a href="#infra-MatthiasRaimann" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/bluesigor"><img src="https://avatars.githubusercontent.com/u/87902135?v=4?s=100" width="100px;" alt="bluesigor"/><br /><sub><b>bluesigor</b></sub></a><br /><a href="#code-bluesigor" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Kleinhummel"><img src="https://avatars.githubusercontent.com/u/47432229?v=4?s=100" width="100px;" alt="Kleinhummel"/><br /><sub><b>Kleinhummel</b></sub></a><br /><a href="#design-Kleinhummel" title="Design">🎨</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Jonas3200"><img src="https://avatars.githubusercontent.com/u/82144493?v=4?s=100" width="100px;" alt="Jonas Viehof"/><br /><sub><b>Jonas Viehof</b></sub></a><br /><a href="#code-Jonas3200" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/MrBeasy"><img src="https://avatars.githubusercontent.com/u/25347170?v=4?s=100" width="100px;" alt="MrBeasy"/><br /><sub><b>MrBeasy</b></sub></a><br /><a href="#code-MrBeasy" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/jotwg"><img src="https://avatars.githubusercontent.com/u/843821?v=4?s=100" width="100px;" alt="jotwg"/><br /><sub><b>jotwg</b></sub></a><br /><a href="#bug-jotwg" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/axdotl"><img src="https://avatars.githubusercontent.com/u/9337156?v=4?s=100" width="100px;" alt="Axel Köhler"/><br /><sub><b>Axel Köhler</b></sub></a><br /><a href="#code-axdotl" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/einfachyannik"><img src="https://avatars.githubusercontent.com/u/105797555?v=4?s=100" width="100px;" alt="einfachyannik"/><br /><sub><b>einfachyannik</b></sub></a><br /><a href="#code-einfachyannik" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
