@@ -259,7 +259,6 @@
         "details": {
             "typeVerein": "Verein",
             "title": "Organisationsdetails",
-            "description": "Grundlegende Informationen der Organisation verwalten",
             "name": "Organisationsname",
             "slug": "Slug",
             "type": "Organisationstyp",
@@ -484,8 +483,10 @@
     "settings": {
         "menu": {
             "account": "Mein Konto",
-            "profile": "Profil"
-        }
+            "profile": "Profil",
+            "settings": "Einstellungen"
+        },
+        "description": "Sprache und Darstellung, gespeichert in diesem Browser."
     },
     "reports": {
         "title": "Berichte",
@@ -1882,6 +1883,43 @@
             "server": "Auf dem Server ist ein Fehler aufgetreten. Bitte in ein paar Minuten erneut versuchen.",
             "summary_one": "{{count}} Beleg konnte nicht hochgeladen werden. Über die Schaltfläche unten erneut versuchen.",
             "summary_other": "{{count}} Belege konnten nicht hochgeladen werden. Über die Schaltfläche unten erneut versuchen."
+        }
+    },
+    "myProfile": {
+        "title": "Profil",
+        "personal": {
+            "title": "Persönliche Angaben",
+            "note": "Sichtbar für andere Mitglieder der Organisation"
+        },
+        "firstName": "Vorname",
+        "lastName": "Nachname",
+        "email": "E-Mail",
+        "emailHint": "Die E-Mail-Adresse wird beim Anmeldedienst verwaltet.",
+        "phone": "Telefonnummer",
+        "phonePlaceholder": "z. B. +49 170 1234567",
+        "phoneInvalid": "Nur Ziffern, Leerzeichen und + ( ) / . - erlaubt",
+        "discard": "Verwerfen",
+        "save": "Änderungen speichern",
+        "saved": "Profil gespeichert",
+        "saveError": "Das Profil konnte nicht gespeichert werden.",
+        "loadError": "Das Profil konnte nicht geladen werden.",
+        "permissions": {
+            "title": "Berechtigungen",
+            "note": "Rolle {{role}} in {{organization}}",
+            "items": {
+                "VIEW_BOOKKEEPING": "Buchhaltung ansehen",
+                "EDIT_BOOKKEEPING": "Belege und Buchungen bearbeiten und bestätigen",
+                "MANAGE_ORGANIZATION": "Vereinsdaten pflegen",
+                "MANAGE_MEMBERS": "Mitglieder verwalten und Rollen vergeben"
+            }
+        },
+        "security": {
+            "title": "Konto und Sicherheit",
+            "note": "Öffnet das Konto beim Anmeldedienst in einem neuen Tab.",
+            "password": "Passwort ändern",
+            "passwordHint": "Beim Anmeldedienst",
+            "twoFactor": "Zwei-Faktor-Anmeldung",
+            "twoFactorHint": "Zusätzlicher Code beim Anmelden"
         }
     }
 }

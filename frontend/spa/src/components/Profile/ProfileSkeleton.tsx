@@ -17,7 +17,7 @@ export function ProfileSkeleton() {
                 {t('common.loading')}
             </span>
 
-            <div className="-mx-4 sm:-mx-7 mb-[18px] px-4 sm:px-7 pt-1 pb-[18px] border-b border-[#E9E9EE] dark:border-[#2E2E36]">
+            <div className="-mx-4 sm:-mx-7 mb-[18px] px-4 sm:px-7 pt-1 pb-[18px] border-b border-[#E9E9EE] dark:border-[var(--border-soft)]">
                 <div className="mx-auto w-full max-w-[940px]">
                     <Skeleton className="h-8 w-32" />
                     <Skeleton className="mt-2 h-4 w-72 max-w-full" />

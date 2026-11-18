@@ -16,6 +16,7 @@ function UserMenu() {
     const menuItems = useMemo<DropdownMenuItem[]>(
         () => [
             { title: t('settings.menu.profile'), onClick: () => navigate('/profile'), icon: <Icon icon="Avatar" /> },
+            { title: t('settings.menu.settings'), onClick: () => navigate('/settings'), icon: <Icon icon="Gear" /> },
             { title: t('header.logout'), onClick: () => authService.logout().catch((e) => console.error('Failed to logout:', e)), icon: <Icon icon="Exit" /> },
         ],
         [t, navigate]

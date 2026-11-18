@@ -4,13 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 
 import { SetupNavItem } from './setup-nav-item';
-import { menuConfig } from './shared/menu-config';
+import { menuConfig, userMenuConfig } from './shared/menu-config';
 import { MenuBadge } from './shared/MenuBadge';
 import type { MenuItem } from './shared/types';
 import { useMenuBadges } from './shared/use-menu-badges';
 
 import Icon from '@/components/ui/Icon';
 import { useGuardedNavigate } from '@/hooks/use-unsaved-changes-warning';
+import authService from '@/services/auth/auth.service.ts';
 
 const MobileSidebar: React.FC = () => {
     const location = useLocation();
@@ -93,8 +94,16 @@ const MobileSidebar: React.FC = () => {
                     <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-1">{mainItems.map(renderNavItem)}</nav>
 
                     <div className="flex-shrink-0 px-2 pb-4 space-y-1">
-                        <div className="border-t border-separator mb-2" />
                         {adminItems.map(renderNavItem)}
+                        {userMenuConfig.map(renderNavItem)}
+                        <button
+                            type="button"
+                            onClick={() => authService.logout().catch((e) => console.error('Failed to logout:', e))}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--negative)] transition-colors duration-150 hover:bg-hover-effect dark:hover:bg-purple-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+                        >
+                            <Icon icon="Exit" size={18} />
+                            <span className="flex-1 text-left">{t('header.logout')}</span>
+                        </button>
                     </div>
                 </div>
 

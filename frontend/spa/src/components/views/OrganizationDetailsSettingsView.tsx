@@ -19,6 +19,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
+import { SectionCard } from '@/components/common/SectionCard';
 import { ASSIGNABLE_ROLES, AddUserDialog, type NewUserValues } from '@/components/Organization/AddUserDialog';
 import { EditUserDialog, type EditUserValues } from '@/components/Organization/EditUserDialog';
 import { CARD } from '@/components/Organization/layout';
@@ -65,39 +66,6 @@ function germanToIso(german: string): string {
 }
 
 // ─── Layout primitives ────────────────────────────────────────────────────────
-
-function SectionCard({
-    icon,
-    title,
-    note,
-    action,
-    children,
-}: {
-    icon: React.ReactNode;
-    title: string;
-    note?: string;
-    /** Rendered top right of the card header. */
-    action?: React.ReactNode;
-    children: React.ReactNode;
-}) {
-    return (
-        <section className={`${CARD} px-6 py-[22px] flex flex-col gap-4`}>
-            <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-[13px] min-w-0">
-                    <div className="w-9 h-9 rounded-[10px] bg-[#F1F1F4] text-[#6B6B76] dark:bg-[var(--surface-track)] dark:text-[#A0A0AC] grid place-items-center flex-shrink-0">
-                        {icon}
-                    </div>
-                    <div className="flex flex-col gap-[3px] min-w-0">
-                        <span className="text-[16.5px] font-extrabold tracking-[-0.01em] text-[#1B1B1F] dark:text-[#F2F2F5]">{title}</span>
-                        {note && <span className="text-[13.5px] text-[#6B6B76] dark:text-[#A0A0AC]">{note}</span>}
-                    </div>
-                </div>
-                {action}
-            </div>
-            {children}
-        </section>
-    );
-}
 
 function FieldGrid({ children }: { children: React.ReactNode }) {
     return <div className="grid grid-cols-2 lg:grid-cols-6 gap-[14px]">{children}</div>;
@@ -675,16 +643,13 @@ function OrganizationDetailsSettingsView() {
             <form onSubmit={handleSubmit(onSubmit)} className="relative flex flex-col min-h-full" style={{ fontFamily: FONT }}>
                 {/* Sticky page header — the save action only appears once something changed */}
                 <header className="sticky top-0 z-10 -mx-4 sm:-mx-7 mb-[18px] px-4 sm:px-7 pt-1 pb-[18px] border-b border-[#E9E9EE] bg-[#F3F4F6]/85 dark:border-[var(--border-soft)] dark:bg-[#131317]/85 backdrop-blur-[10px]">
-                    <div className="mx-auto w-full max-w-[940px] flex flex-wrap items-start justify-between gap-4">
-                        <div>
-                            <h1 className="text-[27px] font-extrabold tracking-[-0.02em] leading-tight text-[#1B1B1F] dark:text-[#F2F2F5]">
-                                {t('organization.details.title')}
-                            </h1>
-                            <p className="mt-[5px] text-[14.5px] text-[#6B6B76] dark:text-[#A0A0AC]">{t('organization.details.description')}</p>
-                        </div>
+                    <div className="mx-auto w-full max-w-[940px] flex flex-wrap items-center justify-between gap-4">
+                        <h1 className="text-[27px] font-extrabold tracking-[-0.02em] leading-tight text-[#1B1B1F] dark:text-[#F2F2F5]">
+                            {t('organization.details.title')}
+                        </h1>
 
                         {hasChanges && (
-                            <div className="ml-auto flex items-center gap-2.5 pt-1">
+                            <div className="ml-auto flex items-center gap-2.5">
                                 {/* The counter is the first thing to go when the row gets tight. */}
                                 <span className="hidden lg:flex items-center gap-2 text-[13.5px] font-bold text-[#B47C18] dark:text-[#E4B75B] whitespace-nowrap">
                                     <Info size={16} />

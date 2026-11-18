@@ -260,7 +260,6 @@
         "details": {
             "typeVerein": "Association (Verein)",
             "title": "Organization Details",
-            "description": "Manage your organization's basic information",
             "name": "Organization Name",
             "slug": "Slug",
             "type": "Organization Type",
@@ -485,8 +484,10 @@
     "settings": {
         "menu": {
             "account": "My Account",
-            "profile": "Profile"
-        }
+            "profile": "Profile",
+            "settings": "Settings"
+        },
+        "description": "Language and appearance, saved in this browser."
     },
     "reports": {
         "title": "Reports",
@@ -1882,6 +1883,43 @@
             "server": "Something went wrong on our side. Please try again in a few minutes.",
             "summary_one": "{{count}} receipt could not be uploaded. Use the button below to try again.",
             "summary_other": "{{count}} receipts could not be uploaded. Use the button below to try again."
+        }
+    },
+    "myProfile": {
+        "title": "Profile",
+        "personal": {
+            "title": "Personal details",
+            "note": "Visible to the other members of your organization"
+        },
+        "firstName": "First name",
+        "lastName": "Last name",
+        "email": "Email",
+        "emailHint": "Your email address is managed by the sign-in service.",
+        "phone": "Phone number",
+        "phonePlaceholder": "e.g. +49 170 1234567",
+        "phoneInvalid": "Only digits, spaces and + ( ) / . - are allowed",
+        "discard": "Discard",
+        "save": "Save changes",
+        "saved": "Profile saved",
+        "saveError": "The profile could not be saved.",
+        "loadError": "The profile could not be loaded.",
+        "permissions": {
+            "title": "Permissions",
+            "note": "Role {{role}} in {{organization}}",
+            "items": {
+                "VIEW_BOOKKEEPING": "View the bookkeeping",
+                "EDIT_BOOKKEEPING": "Edit and confirm receipts and transactions",
+                "MANAGE_ORGANIZATION": "Maintain the organization details",
+                "MANAGE_MEMBERS": "Manage members and assign roles"
+            }
+        },
+        "security": {
+            "title": "Account and security",
+            "note": "Opens your account at the sign-in service in a new tab.",
+            "password": "Change password",
+            "passwordHint": "At the sign-in service",
+            "twoFactor": "Two-factor sign-in",
+            "twoFactorHint": "An extra code when signing in"
         }
     }
 }

@@ -58,11 +58,20 @@ export const menuConfig: MenuItem[] = [
         path: '/admin/ngo-details',
         isAdmin: true,
     },
+];
+
+/** Entries of the current user's menu at the bottom of the sidebar, above signing out. */
+export const userMenuConfig: MenuItem[] = [
     {
         id: 'profile',
         label: 'settings.menu.profile',
-        icon: SettingsIcon,
+        icon: 'Avatar',
         path: '/profile',
-        isAdmin: true,
+    },
+    {
+        id: 'settings',
+        label: 'settings.menu.settings',
+        icon: SettingsIcon,
+        path: '/settings',
     },
 ];
