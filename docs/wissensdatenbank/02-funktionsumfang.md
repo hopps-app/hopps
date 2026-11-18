@@ -31,8 +31,8 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 | E-Rechnung ZUGFeRD auslesen | ✅ | XML aus PDF | Service `app.hopps.zugferd` |
 | KI-Analyse abschaltbar | ✅ | Pro Organisation (`autoAnalyzeDocuments`) oder pro Upload (`?analyze=false`) | BE `organization/domain/Organization` |
 | Prüfen/Bestätigen-Workflow | ✅ | Status `UPLOADED → ANALYZING → ANALYZED → CONFIRMED` / `FAILED`, Live-Updates per WebSocket | BE `document/domain/DocumentStatus`, `/ws/documents` |
-| Beleg bearbeiten (Betrag, Kategorie, Bommel, Tags, Steuer, Fälligkeit) | ✅ | Jedes Mitglied der Organisation (keine Rollenprüfung) | `PATCH /documents/{id}`, `PATCH /transactions/{id}` |
-| Beleg löschen | ✅ | **Hartes Löschen** inkl. Datei – kein Papierkorb, keine Rollenprüfung | `DELETE /documents/{id}` |
+| Beleg bearbeiten (Betrag, Kategorie, Bommel, Tags, Steuer, Fälligkeit) | ✅ | Gründer:in und Kasse; Vorstand und Kassenprüfung nur lesend (Stand 2026-11-18) | `PATCH /documents/{id}`, `PATCH /transactions/{id}` |
+| Beleg löschen | ✅ | **Hartes Löschen** inkl. Datei – kein Papierkorb; nur Gründer:in und Kasse (Stand 2026-11-18) | `DELETE /documents/{id}` |
 | Beleg-Detailansicht mit Vorschau | ✅ | Nach dem Buchen führt „Weiter zum nächsten Beleg“ zum nächsten ungeprüften Beleg, beim letzten schließt „Abschließen“ die Prüfung (Stand 2026-11-01) | SPA `BelegeView` ReviewDrawer, `GET /documents/{id}/file` |
 | „Privat bezahlt" (Auslage) markieren | ✅ | Boolean `privatelyPaid`, filterbar | BE `document/domain/Document`, `GET /transactions?privatelyPaid=true` |
 | Auslagen-Erstattung (Empfänger, IBAN, Auszahlungsstatus) | ❌ / 💡 | Nur das Flag oben; keine Person/IBAN/Status/Summe pro Person | – |
@@ -92,12 +92,13 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 
 | Funktion | Status | Details | Beleg |
 |---|---|---|---|
-| Mitglieder per E-Mail einladen | ✅ | Einladung auf **Organisations**-Ebene (Keycloak-Mail) | `POST /organization/my/members`, SPA `AddUserDialog.tsx` |
-| Mitgliederliste mit Funktion (Freitext) & Status | ✅ | `position` ist Freitext **ohne Rechte** | BE `member/domain/Member.java` |
-| Rollen (Admin, Kassier, Prüfer, Leser …) | ❌ | Keycloak-Realm-Rollen existieren, werden aber im Org-Service nicht geprüft → **jedes Mitglied darf alles in seiner Organisation** | BE: nur `@RolesAllowed("admin")` für SaaS-Admin |
+| Mitglieder per E-Mail einladen | ✅ | Einladung auf **Organisations**-Ebene (Keycloak-Mail), mit Wahl der Rolle (Stand 2026-11-18) | `POST /organization/my/members`, SPA `AddUserDialog.tsx` |
+| Mitgliederliste mit Rolle & Status | ✅ | Spalte Rolle statt der früheren Freitext-Funktion (Stand 2026-11-18) | `GET /organization/{slug}/members`, BE `organization/api/dto/OrganizationMemberResponse.java` |
+| Rollen Gründer:in, Kasse, Vorstand, Kassenprüfung | ✅ | Pro Organisation. Gründer:in: alles inkl. Vereinsdaten, Mitglieder und Rollen. Kasse: Buchhaltung bearbeiten und bestätigen. Vorstand und Kassenprüfung: alles sehen, nichts ändern. Der Server prüft jede Anfrage, die Oberfläche blendet nicht erlaubte Aktionen aus. Bisherige Mitglieder haben die Rolle Kasse (Stand 2026-11-18) | BE `member/domain/Role.java`, `shared/security/MemberPermissionCheckers.java` |
+| Kassenprüfung: Buchungen prüfen und festschreiben | 🔜 | Geplant, Issue #960 | – |
 | Rechte pro Bommel (z. B. nur eigener Anlass) | ❌ | `checkUserHasPermission()` ist ein TODO | BE `bommel/api/BommelResource.java` |
 | Einladung / Direktlink zu einem Bommel | ❌ / 💡 | – | – |
-| Mitglied entfernen, Rollen ändern (UI) | ❌ | – | – |
+| Mitglied entfernen, Rollen ändern (UI) | ✅ | Nur die Gründer:in; die eigene Rolle und die der Gründer:in sind nicht änderbar (Stand 2026-11-18) | `DELETE /organization/my/members/{id}`, `PUT /organization/my/members/{id}/role` |
 | Eigenes Profil: Sprache, Theme | ✅ | – | SPA `/profile` |
 | Eigenes Profil: Name, IBAN/Auszahlungskonto | ❌ | Name ggf. über Keycloak-Account-Konsole ❓ | – |
 | SaaS-Administration (alle Organisationen, Impersonation) | ✅ | Nur Betreiber; im Single-Tenant-Modus deaktiviert | `frontend/admin`, BE `AdminOrganizationResource` |
