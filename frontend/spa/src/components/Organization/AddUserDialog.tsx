@@ -1,20 +1,28 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { UserPlus } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
+import { Role } from '@hopps/api-client';
+
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup';
 import TextField from '@/components/ui/TextField';
+
+/** The roles a founder can give; there is always exactly one founder, so OWNER is never offered. */
+export const ASSIGNABLE_ROLES = ['ADMIN', 'BOARD', 'AUDITOR'] as const satisfies readonly Role[];
+export type AssignableRole = (typeof ASSIGNABLE_ROLES)[number];
 
 export type NewUserValues = {
     firstName: string;
     lastName: string;
-    /** Free text, e.g. "1. Vorsitzende" or "Kassenwart". */
-    position: string;
+    role: AssignableRole;
     email: string;
 };
+
+const EMPTY_VALUES: NewUserValues = { firstName: '', lastName: '', role: 'ADMIN', email: '' };
 
 type AddUserDialogProps = {
     open: boolean;
@@ -23,9 +31,8 @@ type AddUserDialogProps = {
 };
 
 /**
- * Dialog for giving a person access to the organization in hopps. These are hopps users, not club members — the
- * backend calls the entity Member. The board function maps to Member.position; the access level from the design has
- * no backend model yet, and neither does the endpoint that would submit this form (see issue #751).
+ * Dialog for giving a person access to the organization in hopps. These are hopps users, not club members; the
+ * backend calls the entity Member. The founder picks the person's role, which decides what they may do (issue #959).
  */
 export function AddUserDialog({ open, onClose, onSubmit }: AddUserDialogProps) {
     const { t } = useTranslation();
@@ -35,7 +42,7 @@ export function AddUserDialog({ open, onClose, onSubmit }: AddUserDialogProps) {
             z.object({
                 firstName: z.string().trim().min(1, t('organization.details.users.add.firstNameRequired')),
                 lastName: z.string().trim().min(1, t('organization.details.users.add.lastNameRequired')),
-                position: z.string().trim(),
+                role: z.enum(ASSIGNABLE_ROLES),
                 email: z.string().trim().email(t('organization.details.users.add.emailInvalid')),
             }),
         [t]
@@ -43,17 +50,18 @@ export function AddUserDialog({ open, onClose, onSubmit }: AddUserDialogProps) {
 
     const {
         register,
+        control,
         handleSubmit,
         reset,
         formState: { errors, isSubmitting },
     } = useForm<NewUserValues>({
         resolver: zodResolver(schema),
-        defaultValues: { firstName: '', lastName: '', position: '', email: '' },
+        defaultValues: EMPTY_VALUES,
     });
 
     // Start from a clean form every time the dialog opens.
     useEffect(() => {
-        if (open) reset({ firstName: '', lastName: '', position: '', email: '' });
+        if (open) reset(EMPTY_VALUES);
     }, [open, reset]);
 
     const submit = handleSubmit(async (values) => {
@@ -67,7 +75,7 @@ export function AddUserDialog({ open, onClose, onSubmit }: AddUserDialogProps) {
 
     return (
         <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-            <DialogContent className="max-w-[460px] gap-0 rounded-[18px] border-[#E9E9EE] p-0 [&_input::placeholder]:text-[#9A9AA3] dark:border-[#2E2E36] dark:bg-[#1C1C21] dark:[&_input::placeholder]:text-[#6E6E7A]">
+            <DialogContent className="max-w-[460px] gap-0 rounded-[18px] border-[#E9E9EE] p-0 [&_input::placeholder]:text-[#9A9AA3] dark:border-[var(--border-soft)] dark:bg-[var(--background-secondary)] dark:[&_input::placeholder]:text-[#6E6E7A]">
                 <form onSubmit={submit}>
                     <DialogHeader className="flex-row items-center gap-[13px] space-y-0 px-6 pt-6 text-left">
                         <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-[12px] bg-[#F3EAFB] text-[#7E3FB4] dark:bg-[#33204A] dark:text-[#C9A6E6]">
@@ -101,26 +109,49 @@ export function AddUserDialog({ open, onClose, onSubmit }: AddUserDialogProps) {
                             />
                         </div>
                         <TextField
-                            label={t('organization.details.users.add.position')}
-                            placeholder={t('organization.details.users.add.positionPlaceholder')}
-                            error={errors.position?.message}
-                            {...register('position')}
-                        />
-                        <TextField
                             label={t('organization.details.users.email')}
                             placeholder={t('organization.details.placeholder.email')}
                             error={errors.email?.message}
                             required
                             {...register('email')}
                         />
+                        <div className="flex flex-col gap-2">
+                            <span id="add-user-role" className="text-[13px] font-bold text-[#1B1B1F] dark:text-[#F2F2F5]">
+                                {t('organization.details.users.add.role')}
+                            </span>
+                            <Controller
+                                control={control}
+                                name="role"
+                                render={({ field }) => (
+                                    <RadioGroup aria-labelledby="add-user-role" value={field.value} onValueChange={field.onChange} className="gap-2">
+                                        {ASSIGNABLE_ROLES.map((role) => (
+                                            <label
+                                                key={role}
+                                                className="flex cursor-pointer items-start gap-3 rounded-[12px] border border-[#E9E9EE] px-3.5 py-3 transition-colors hover:bg-[#F8F8FA] has-[[data-state=checked]]:border-[#9955CC] has-[[data-state=checked]]:bg-[#F7F0FC] dark:border-[var(--border-soft)] dark:hover:bg-[var(--surface-track)] dark:has-[[data-state=checked]]:border-[#AE73DC] dark:has-[[data-state=checked]]:bg-[#2A1E38]"
+                                            >
+                                                <RadioGroupItem value={role} className="mt-[3px]" />
+                                                <span className="flex flex-col gap-0.5">
+                                                    <span className="text-[14px] font-bold text-[#1B1B1F] dark:text-[#F2F2F5]">
+                                                        {t(`organization.details.users.roles.${role}.name`)}
+                                                    </span>
+                                                    <span className="text-[13px] leading-snug text-[#6B6B76] dark:text-[#A0A0AC]">
+                                                        {t(`organization.details.users.roles.${role}.description`)}
+                                                    </span>
+                                                </span>
+                                            </label>
+                                        ))}
+                                    </RadioGroup>
+                                )}
+                            />
+                        </div>
                     </fieldset>
 
-                    <div className="flex justify-end gap-2.5 border-t border-[#E9E9EE] px-6 py-4 dark:border-[#2E2E36]">
+                    <div className="flex justify-end gap-2.5 border-t border-[#E9E9EE] px-6 py-4 dark:border-[var(--border-soft)]">
                         <button
                             type="button"
                             onClick={onClose}
                             disabled={isSubmitting}
-                            className="inline-flex items-center rounded-[var(--btn-radius)] px-4 py-[9px] text-[13.5px] font-bold text-[#6B6B76] transition-colors hover:bg-[#F1F1F4] hover:text-[#1B1B1F] dark:text-[#A0A0AC] dark:hover:bg-[#26262D] dark:hover:text-[#F2F2F5] disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex items-center rounded-[var(--btn-radius)] px-4 py-[9px] text-[13.5px] font-bold text-[#6B6B76] transition-colors hover:bg-[#F1F1F4] hover:text-[#1B1B1F] dark:text-[#A0A0AC] dark:hover:bg-[var(--surface-track)] dark:hover:text-[#F2F2F5] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {t('common.cancel')}
                         </button>

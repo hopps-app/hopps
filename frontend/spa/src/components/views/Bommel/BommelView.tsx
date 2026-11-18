@@ -14,6 +14,7 @@ import { BommelTreeNodeModel } from '@/components/BommelTreeView/BommelTreeNodeM
 import Button from '@/components/ui/Button';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { ReviewDrawer } from '@/components/views/BelegeView';
+import { usePermissions } from '@/hooks/queries/usePermissions';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { usePersistedState } from '@/hooks/usePersistedState';
@@ -51,6 +52,13 @@ function BommelView() {
     const [isEditMode, setIsEditMode] = useState(() => searchParams.get('edit') === '1');
     const [isDragDropMode, setIsDragDropMode] = useState(false);
     const [isDemoMode, setIsDemoMode] = useState(false);
+    // Board members and auditors see the structure but cannot edit it; the example stays editable, it is local only (issue #959).
+    const { data: permissions } = usePermissions();
+    const canEdit = permissions?.includes('EDIT_BOOKKEEPING') ?? false;
+    useEffect(() => {
+        // Only once the permissions are known, so a treasurer's ?edit=1 does not flicker off while they load.
+        if (permissions && !canEdit && !isDemoMode && isEditMode) setIsEditMode(false);
+    }, [permissions, canEdit, isDemoMode, isEditMode]);
     // The guided walk through the page; null while it is closed. Done or skipped once, it does not start by itself again.
     const [guideStep, setGuideStep] = useState<GuideStep | null>(null);
     const [guideDone, setGuideDone] = usePersistedState<boolean>('hopps.bommel.guideDone', false);
@@ -371,6 +379,7 @@ function BommelView() {
                                 {isDemoMode ? t('bommel.demoModeClose') : t('bommel.demoMode')}
                             </Button>
                         )}
+                        {(canEdit || isDemoMode) && (
                         <Button
                             size="sm"
                             variant={isEditMode ? 'default' : 'outline'}
@@ -384,6 +393,7 @@ function BommelView() {
                         >
                             {isEditMode ? t('bommel.done') : t('bommel.edit')}
                         </Button>
+                        )}
                     </div>
                 </div>
 
@@ -497,7 +507,7 @@ function BommelView() {
                             onDelete={handleDelete}
                             onAddChild={handleAddChild}
                             onMove={handleMove}
-                            onRequestEdit={() => setIsEditMode(true)}
+                            onRequestEdit={() => (canEdit || isDemoMode) && setIsEditMode(true)}
                             // The example works out the delete dialog's counts itself instead of asking the server
                             deleteImpact={isDemoMode ? demoTreeData.deleteImpact : undefined}
                         />

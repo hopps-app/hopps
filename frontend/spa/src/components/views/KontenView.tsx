@@ -35,6 +35,7 @@ import {
     bankImportKeys,
     type BankTransactionSortField,
 } from '@/hooks/queries/useBankAccounts';
+import { useCanEditBookkeeping } from '@/hooks/queries/usePermissions';
 import type { SortDirection } from '@/hooks/queries/useTransactions';
 import { useCurrency } from '@/hooks/use-currency';
 import { usePageTitle } from '@/hooks/use-page-title';
@@ -115,6 +116,7 @@ function AccountCard({
 }) {
     const { format } = useCurrency();
     const { t } = useTranslation();
+    const canEdit = useCanEditBookkeeping();
     return (
         <div
             className={cn(
@@ -140,14 +142,16 @@ function AccountCard({
                     <div className="font-bold text-[15px] truncate">{account.name}</div>
                     <div className="text-xs text-muted-foreground font-mono truncate">{account.bankName}</div>
                 </div>
-                <button
-                    type="button"
-                    className="p-1.5 rounded-lg text-muted-foreground hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
-                    onClick={onEdit}
-                    title={t('common.edit')}
-                >
-                    <Edit className="w-4 h-4" />
-                </button>
+                {canEdit && (
+                    <button
+                        type="button"
+                        className="p-1.5 rounded-lg text-muted-foreground hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
+                        onClick={onEdit}
+                        title={t('common.edit')}
+                    >
+                        <Edit className="w-4 h-4" />
+                    </button>
+                )}
             </div>
 
             <div className="mt-3 text-xs font-mono text-muted-foreground tracking-widest">{maskIban(account.iban)}</div>
@@ -173,20 +177,24 @@ function AccountCard({
                 </div>
             </div>
 
-            <button
-                type="button"
-                onClick={onImport}
-                className="mt-3 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-[var(--btn-radius)] text-xs font-semibold text-muted-foreground border border-gray-200 dark:border-gray-700 hover:border-primary/40 hover:text-primary transition-colors"
-            >
-                <Upload className="w-3.5 h-3.5" />
-                {t('konten.import')}
-            </button>
+            {canEdit && (
+                <button
+                    type="button"
+                    onClick={onImport}
+                    className="mt-3 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-[var(--btn-radius)] text-xs font-semibold text-muted-foreground border border-gray-200 dark:border-gray-700 hover:border-primary/40 hover:text-primary transition-colors"
+                >
+                    <Upload className="w-3.5 h-3.5" />
+                    {t('konten.import')}
+                </button>
+            )}
         </div>
     );
 }
 
 function AddAccountCard({ onClick }: { onClick: () => void }) {
     const { t } = useTranslation();
+    const canEdit = useCanEditBookkeeping();
+    if (!canEdit) return null;
     return (
         <button
             type="button"
@@ -202,6 +210,8 @@ function AddAccountCard({ onClick }: { onClick: () => void }) {
 // "Konto hinzufügen" in the collapsed row: a dashed pill of the same height as the account pills.
 function AddAccountPill({ onClick }: { onClick: () => void }) {
     const { t } = useTranslation();
+    const canEdit = useCanEditBookkeeping();
+    if (!canEdit) return null;
     return (
         <button
             type="button"
@@ -281,6 +291,8 @@ function TransactionsTab({
 }) {
     const { t } = useTranslation();
     const keyPrefix = account ? 'hopps.konten.account' : 'hopps.konten.all';
+    // Board members and auditors cannot import or assign; they only view (issue #959).
+    const canEdit = useCanEditBookkeeping();
     const columns = account ? ACCOUNT_TX_COLUMNS : ALL_TX_COLUMNS;
     const [page, setPage] = useState(0);
     const [sortBy, setSortBy] = usePersistedState<BankTransactionSortField>(`${keyPrefix}.sortBy`, 'bookingDate');
@@ -372,7 +384,8 @@ function TransactionsTab({
                     accounts={account ? undefined : accounts}
                     highlight={highlightFilters}
                     actions={
-                        account && (
+                        account &&
+                        canEdit && (
                             <BaseButton size="sm" className="h-11 gap-1.5 whitespace-nowrap" onClick={() => onImport(account.id!)}>
                                 <Upload className="w-4 h-4" />
                                 {t('konten.import')}
@@ -482,13 +495,13 @@ function TransactionsTab({
                                     "Ansehen". Both open the same drawer. */}
                                 <span className="flex justify-end">
                                     <RowAction
-                                        variant={open ? 'primary' : 'neutral'}
+                                        variant={open && canEdit ? 'primary' : 'neutral'}
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             if (tx.id) onOpenDrawer(tx.id);
                                         }}
                                     >
-                                        {open ? t('konten.assign') : t('konten.view')}
+                                        {open && canEdit ? t('konten.assign') : t('konten.view')}
                                     </RowAction>
                                 </span>
                             </div>
@@ -564,6 +577,7 @@ const importDate = (imp: IBankImportResponse) => new Date(imp.finishedAt ?? imp.
 function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
     const { t } = useTranslation();
     const rollbackMutation = useRollbackImport();
+    const canEdit = useCanEditBookkeeping();
     const [deleteTarget, setDeleteTarget] = useState<ImportWithAccount | null>(null);
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState<ImportFilterStatus[]>([]);
@@ -749,7 +763,7 @@ function ImporteTab({ accounts }: { accounts: BankAccountResponse[] }) {
                                                 </Tooltip>
                                             </TooltipProvider>
                                         )}
-                                        {DELETABLE_IMPORT_STATUSES.includes(imp.status ?? '') && imp.deletable && (
+                                        {canEdit && DELETABLE_IMPORT_STATUSES.includes(imp.status ?? '') && imp.deletable && (
                                             <button
                                                 type="button"
                                                 onClick={() => setDeleteTarget(imp)}
@@ -790,6 +804,7 @@ function ArchivedAccounts() {
     const { data: all = [] } = useBankAccounts(true);
     const restore = useRestoreBankAccount();
     const remove = useDeleteBankAccount();
+    const canEdit = useCanEditBookkeeping();
     const [open, setOpen] = useState(false);
     // Waiting for the confirmation. Only an account without imports and movements offers this.
     const [deleteTarget, setDeleteTarget] = useState<BankAccountResponse | null>(null);
@@ -823,10 +838,12 @@ function ArchivedAccounts() {
                         <AccountDot color={a.color} />
                         <span className="min-w-0 truncate font-semibold text-foreground">{a.name}</span>
                         <span className="min-w-0 truncate font-mono text-xs">{a.iban}</span>
-                        <BaseButton variant="ghost" size="sm" className="ml-auto" disabled={restore.isPending} onClick={() => restore.mutate(a.id!)}>
-                            {t('konten.accountActions.restore')}
-                        </BaseButton>
-                        {a.deletable && (
+                        {canEdit && (
+                            <BaseButton variant="ghost" size="sm" className="ml-auto" disabled={restore.isPending} onClick={() => restore.mutate(a.id!)}>
+                                {t('konten.accountActions.restore')}
+                            </BaseButton>
+                        )}
+                        {canEdit && a.deletable && (
                             <button
                                 type="button"
                                 onClick={() => setDeleteTarget(a)}

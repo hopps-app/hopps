@@ -363,7 +363,8 @@
                     "submit": "Add",
                     "success": "User added",
                     "duplicate": "This email address is already in use.",
-                    "error": "The user could not be added."
+                    "error": "The user could not be added.",
+                    "role": "Role"
                 },
                 "setupLink": {
                     "title": "Pass on the invitation link",
@@ -380,6 +381,46 @@
                     "confirm": "Remove",
                     "success": "User removed",
                     "error": "The user could not be removed."
+                },
+                "role": "Role",
+                "roles": {
+                    "OWNER": {
+                        "name": "Founder",
+                        "description": "Created the organization. Can do everything, maintains the organization details and manages members and roles."
+                    },
+                    "ADMIN": {
+                        "name": "Treasurer",
+                        "description": "Views, edits and confirms the bookkeeping."
+                    },
+                    "BOARD": {
+                        "name": "Board",
+                        "description": "Sees all finances, changes nothing."
+                    },
+                    "AUDITOR": {
+                        "name": "Auditor",
+                        "description": "Sees everything, changes nothing."
+                    }
+                },
+                "changeRole": {
+                    "label": "Role of {{name}}",
+                    "success": "Role changed",
+                    "error": "The role could not be changed."
+                },
+                "rolesNotice": {
+                    "title": "Now with roles",
+                    "text": "You can now assign roles: Treasurer, Board or Auditor. All existing members have the Treasurer role and keep their rights. Change a role right here in the list.",
+                    "dismiss": "Got it"
+                },
+                "edit": {
+                    "button": "Edit {{name}}",
+                    "title": "Edit user",
+                    "subtitle": "Correct the name and, while the invitation is pending, the email address.",
+                    "emailHint": "A changed address gets the invitation again.",
+                    "emailLocked": "After their first login, the person changes their email address themselves.",
+                    "submit": "Save",
+                    "success": "Changes saved",
+                    "duplicate": "This email address already belongs to someone else.",
+                    "error": "The changes could not be saved."
                 }
             }
         },

@@ -60,6 +60,7 @@ import { SortHeader } from '@/components/ui/SortHeader';
 import { StatusSegments } from '@/components/ui/StatusSegments';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
+import { useCanEditBookkeeping } from '@/hooks/queries/usePermissions';
 import {
     useDocuments,
     useDocument,
@@ -282,6 +283,8 @@ export function ReviewDrawer({
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const confirmMutation = useConfirmDocument();
+    // Board members and auditors only look: the form is read-only and the footer actions are gone (issue #959).
+    const readOnly = !useCanEditBookkeeping();
     const updateMutation = useUpdateDocument();
     const deleteMutation = useDeleteDocument();
     const reanalyzeMutation = useReanalyzeDocument();
@@ -973,6 +976,7 @@ export function ReviewDrawer({
                                 ))}
                             </div>
 
+                            <fieldset disabled={readOnly} className="m-0 min-w-0 border-0 p-0">
                             {detailTab === 'transaction' && editingForm && (
                                 <div className="flex flex-col gap-4">
                                     {/* What the analysis did, in one line; details in the tooltip. */}
@@ -1355,9 +1359,11 @@ export function ReviewDrawer({
                                     )}
                                 </div>
                             )}
+                            </fieldset>
                         </div>
 
                         {/* Footer */}
+                        {!readOnly && (
                         <div className="flex items-center gap-2.5 border-t border-border-soft px-6 py-4" style={{ background: 'var(--drawer-bg)' }}>
                             <BaseButton
                                 variant="ghost"
@@ -1553,6 +1559,7 @@ export function ReviewDrawer({
                                 </>
                             )}
                         </div>
+                        )}
                     </>
                 )}
             </div>
@@ -2176,6 +2183,8 @@ export function BelegeView() {
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [search, setSearch] = useState('');
     const bulkDelete = useDeleteDocument({ silent: true });
+    // Board members and auditors cannot upload, re-analyze or delete receipts (issue #959).
+    const canEdit = useCanEditBookkeeping();
 
     const { data: allDocs, isLoading, refetch } = useDocuments();
 
@@ -2486,9 +2495,11 @@ export function BelegeView() {
             </div>
 
             {/* Upload zone */}
-            <div ref={uploadZoneRef} className="mb-4">
-                <UploadZone onUploaded={() => refetch()} highlightRequested={uploadRequested} onHighlightHandled={clearUploadParam} />
-            </div>
+            {canEdit && (
+                <div ref={uploadZoneRef} className="mb-4">
+                    <UploadZone onUploaded={() => refetch()} highlightRequested={uploadRequested} onHighlightHandled={clearUploadParam} />
+                </div>
+            )}
 
             {/* Filter tabs + bulk re-analyze action */}
             <div className="flex items-center gap-2 mb-3 flex-wrap">
@@ -2511,7 +2522,7 @@ export function BelegeView() {
                 {/* Right side: re-analyze action + search, pushed to the far right, aligned with the tabs. */}
                 <div className="ml-auto flex items-center gap-2">
                     {/* Only shown when there are receipts that can actually be re-analyzed (failed / not yet analyzed). */}
-                    {reanalyzable.length > 0 && (
+                    {canEdit && reanalyzable.length > 0 && (
                         <button
                             type="button"
                             onClick={handleReanalyzeAll}
@@ -2557,7 +2568,7 @@ export function BelegeView() {
             </div>
 
             {/* Bulk selection toolbar */}
-            {selectedIds.size > 0 && (
+            {canEdit && selectedIds.size > 0 && (
                 <BulkActionBar
                     className="mb-3"
                     label={t('receipts.bulk.selectedCount', { n: selectedIds.size })}

@@ -362,7 +362,8 @@
                     "submit": "Hinzufügen",
                     "success": "Benutzer hinzugefügt",
                     "duplicate": "Diese E-Mail-Adresse wird bereits verwendet.",
-                    "error": "Benutzer konnte nicht hinzugefügt werden."
+                    "error": "Benutzer konnte nicht hinzugefügt werden.",
+                    "role": "Rolle"
                 },
                 "setupLink": {
                     "title": "Einladungslink weitergeben",
@@ -379,6 +380,46 @@
                     "confirm": "Entfernen",
                     "success": "Mitarbeiter entfernt",
                     "error": "Mitarbeiter konnte nicht entfernt werden."
+                },
+                "role": "Rolle",
+                "roles": {
+                    "OWNER": {
+                        "name": "Gründer:in",
+                        "description": "Hat den Verein angelegt. Kann alles, pflegt die Vereinsdaten und verwaltet Mitglieder und Rollen."
+                    },
+                    "ADMIN": {
+                        "name": "Kasse",
+                        "description": "Sieht, bearbeitet und bestätigt die Buchhaltung."
+                    },
+                    "BOARD": {
+                        "name": "Vorstand",
+                        "description": "Sieht alle Finanzen, ändert nichts."
+                    },
+                    "AUDITOR": {
+                        "name": "Kassenprüfung",
+                        "description": "Sieht alles, ändert nichts."
+                    }
+                },
+                "changeRole": {
+                    "label": "Rolle von {{name}}",
+                    "success": "Rolle geändert",
+                    "error": "Die Rolle konnte nicht geändert werden."
+                },
+                "rolesNotice": {
+                    "title": "Jetzt mit Rollen",
+                    "text": "Neu können Rollen vergeben werden: Kasse, Vorstand oder Kassenprüfung. Alle bisherigen Mitglieder haben die Rolle Kasse und behalten damit ihre Rechte. Die Rolle lässt sich hier in der Liste ändern.",
+                    "dismiss": "Verstanden"
+                },
+                "edit": {
+                    "button": "{{name}} bearbeiten",
+                    "title": "Mitarbeiter bearbeiten",
+                    "subtitle": "Namen korrigieren und, solange die Einladung offen ist, die E-Mail-Adresse.",
+                    "emailHint": "An eine geänderte Adresse geht die Einladung erneut.",
+                    "emailLocked": "Nach der ersten Anmeldung ändert die Person ihre E-Mail-Adresse selbst.",
+                    "submit": "Speichern",
+                    "success": "Änderungen gespeichert",
+                    "duplicate": "Diese E-Mail-Adresse gehört bereits einer anderen Person.",
+                    "error": "Die Änderungen konnten nicht gespeichert werden."
                 }
             }
         },

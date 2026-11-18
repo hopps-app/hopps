@@ -5,6 +5,7 @@ import { useDropzone } from 'react-dropzone';
 import { useTranslation } from 'react-i18next';
 
 import { useDocumentFile, useReuploadDocumentFile } from '@/hooks/queries/useDocuments';
+import { useCanEditBookkeeping } from '@/hooks/queries/usePermissions';
 import { cn } from '@/lib/utils';
 
 /**
@@ -24,6 +25,8 @@ export function DocumentFilePreview({ doc, onClose }: { doc: DocumentResponse; o
 
     // Re-upload (restore) the file directly at the preview when it is no longer available in storage.
     const reupload = useReuploadDocumentFile();
+    // Only members who may edit the bookkeeping can restore a missing file (issue #959).
+    const canEdit = useCanEditBookkeeping();
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop: async (acceptedFiles) => {
             const file = acceptedFiles[0];
@@ -33,7 +36,7 @@ export function DocumentFilePreview({ doc, onClose }: { doc: DocumentResponse; o
         },
         multiple: false,
         accept: { 'application/pdf': ['.pdf'], 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'] },
-        disabled: reupload.isPending,
+        disabled: reupload.isPending || !canEdit,
     });
 
     useEffect(() => {
@@ -116,6 +119,7 @@ export function DocumentFilePreview({ doc, onClose }: { doc: DocumentResponse; o
                         <AlertCircle size={24} className="text-[var(--warning)]" />
                         <span className="text-sm font-semibold text-foreground">{t('receipts.preview.missingTitle')}</span>
                         <span className="text-[13px] max-w-xs">{t('receipts.preview.missingHint')}</span>
+                        {canEdit && (
                         <div
                             {...getRootProps()}
                             className={cn(
@@ -142,6 +146,7 @@ export function DocumentFilePreview({ doc, onClose }: { doc: DocumentResponse; o
                                       : t('receipts.preview.reupload')}
                             </span>
                         </div>
+                        )}
                     </div>
                 )}
                 {state === 'ready' && url && isPdf && <iframe src={url} title={doc.fileName} className="w-full h-full border-0" />}
