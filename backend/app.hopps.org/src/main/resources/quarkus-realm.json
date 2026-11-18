@@ -2446,6 +2446,68 @@
       ],
       "notBefore": 0,
       "groups": []
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000023",
+      "username": "bob",
+      "email": "bob@example.test",
+      "enabled": true,
+      "totp": false,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "hashedSaltedValue": "7fGqO2PuX/Et+Z+Url+uuUZwGQB7QMLUXTIii9XBzoErv7djPxa5jEF8ebSVgLuVoLL6LY1ab50j5rHaBQq8Gg==",
+          "salt": "SLcVA+lfZ+jmj7S1oD4r8g==",
+          "hashIterations": 27500,
+          "counter": 0,
+          "algorithm": "pbkdf2-sha256",
+          "digits": 0,
+          "period": 0,
+          "createdDate": 1554245879227,
+          "config": {}
+        }
+      ],
+      "disableableCredentialTypes": [
+        "password"
+      ],
+      "requiredActions": [],
+      "realmRoles": [
+        "user"
+      ],
+      "notBefore": 0,
+      "groups": []
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000015",
+      "username": "samantha",
+      "email": "samantha1284@net-mail.none",
+      "enabled": true,
+      "totp": false,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "hashedSaltedValue": "XmChWhTAPpKxMJptazfncgMH0B7EPmKiak2TzHph5jNvejA+B+kPW9aSRIhSptuwaTmZ1YImhTOlo4tjTpRDOw==",
+          "salt": "yK2INWwfSO5ZlkrXZNK5pg==",
+          "hashIterations": 27500,
+          "counter": 0,
+          "algorithm": "pbkdf2-sha256",
+          "digits": 0,
+          "period": 0,
+          "createdDate": 1554245879227,
+          "config": {}
+        }
+      ],
+      "disableableCredentialTypes": [
+        "password"
+      ],
+      "requiredActions": [],
+      "realmRoles": [
+        "user"
+      ],
+      "notBefore": 0,
+      "groups": []
     }
   ],
   "keycloakVersion": "25.0.6",

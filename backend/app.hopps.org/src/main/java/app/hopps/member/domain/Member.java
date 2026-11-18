@@ -106,14 +106,23 @@ public class Member extends PanacheEntity {
     /** The role this member holds in the given organization, if they belong to it. */
     @JsonIgnore
     public Optional<Role> getRole(Organization organization) {
+        return membershipIn(organization).map(MemberOrganization::getRole);
+    }
+
+    /** This member's membership in the given organization, which carries their role there, if they belong to it. */
+    private Optional<MemberOrganization> membershipIn(Organization organization) {
         return organizationMemberships.stream()
                 .filter(link -> Objects.equals(link.getOrganization().getId(), organization.getId()))
-                .map(MemberOrganization::getRole)
                 .findFirst();
     }
 
     public void addOrganization(Organization organization, Role role) {
         organizationMemberships.add(new MemberOrganization(this, organization, role));
+    }
+
+    /** Changes the role this member holds in the given organization; does nothing if they do not belong to it. */
+    public void changeRole(Organization organization, Role newRole) {
+        membershipIn(organization).ifPresent(membership -> membership.setRole(newRole));
     }
 
     /** Ends this member's membership (and role) in the given organization, deleted via {@code orphanRemoval}. */

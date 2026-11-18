@@ -10,6 +10,7 @@ import Button from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { useBankSchemas, useDeleteBankSchema, useArchiveBankSchema, useRestoreBankSchema } from '@/hooks/queries/useBankAccounts';
+import { useCanEditBookkeeping } from '@/hooks/queries/usePermissions';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { cn } from '@/lib/utils';
 
@@ -40,6 +41,8 @@ function SchemaRow({ schema, onEdit, onRefresh }: { schema: BankCsvSchemaRespons
     };
 
     const isLoading = deleteMutation.isPending || archiveMutation.isPending || restoreMutation.isPending;
+    // Board members and auditors see the schemas but cannot change them (issue #959).
+    const canEdit = useCanEditBookkeeping();
 
     return (
         <div
@@ -66,7 +69,7 @@ function SchemaRow({ schema, onEdit, onRefresh }: { schema: BankCsvSchemaRespons
             </div>
 
             <div className="flex items-center gap-2 flex-shrink-0 ml-3">
-                {
+                {canEdit && (
                     <>
                         {schema.archived ? (
                             <Button variant="outline" size="sm" onClick={handleRestore} disabled={isLoading} title={t('bankSchema.restore')}>
@@ -92,7 +95,7 @@ function SchemaRow({ schema, onEdit, onRefresh }: { schema: BankCsvSchemaRespons
                             </>
                         )}
                     </>
-                }
+                )}
             </div>
 
             <ConfirmDialog
@@ -116,6 +119,7 @@ export function BankSchemasView() {
     const [showArchived, setShowArchived] = useState(false);
     const [createOpen, setCreateOpen] = useState(false);
     const [editSchema, setEditSchema] = useState<BankCsvSchemaResponse | null>(null);
+    const canEdit = useCanEditBookkeeping();
 
     const { data: schemas = [], isLoading, refetch } = useBankSchemas(showArchived);
 
@@ -137,10 +141,12 @@ export function BankSchemasView() {
                     >
                         {showArchived ? t('bankSchema.hideArchived') : t('bankSchema.showArchived')}
                     </button>
-                    <Button onClick={() => setCreateOpen(true)}>
-                        <Plus className="w-4 h-4 mr-1" />
-                        {t('bankSchema.newSchema')}
-                    </Button>
+                    {canEdit && (
+                        <Button onClick={() => setCreateOpen(true)}>
+                            <Plus className="w-4 h-4 mr-1" />
+                            {t('bankSchema.newSchema')}
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -156,7 +162,7 @@ export function BankSchemasView() {
                             title={t('bankSchema.emptyState.title')}
                             description={t('bankSchema.emptyState.description')}
                             icon={Settings}
-                            action={{ label: t('bankSchema.newSchema'), onClick: () => setCreateOpen(true) }}
+                            action={canEdit ? { label: t('bankSchema.newSchema'), onClick: () => setCreateOpen(true) } : undefined}
                         />
                     ) : (
                         <div className="space-y-3">

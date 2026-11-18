@@ -24,6 +24,7 @@ import { SortHeader } from '@/components/ui/SortHeader';
 import { StatusSegments } from '@/components/ui/StatusSegments';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import { useDeleteDocument, usePrefetchDocument } from '@/hooks/queries/useDocuments';
+import { useCanEditBookkeeping } from '@/hooks/queries/usePermissions';
 import {
     useTransactions,
     useTransactionAggregate,
@@ -198,6 +199,8 @@ export function TransactionenView() {
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const bulkDelete = useDeleteTransaction({ silent: true });
+    // Board members and auditors cannot create or delete transactions (issue #959).
+    const canEdit = useCanEditBookkeeping();
     const deleteDocumentBulk = useDeleteDocument({ silent: true });
     const PAGE_SIZE = 30;
 
@@ -520,18 +523,20 @@ export function TransactionenView() {
                         })}
                     </p>
                 </div>
-                <button
-                    onClick={() => setCreateOpen(true)}
-                    className="inline-flex items-center gap-2 whitespace-nowrap bg-primary text-white font-bold shadow-[0_1px_2px_rgba(120,60,180,0.25)] transition-colors hover:bg-primary/90 active:translate-y-[0.5px]"
-                    style={{
-                        fontSize: 14.5,
-                        padding: '11px 20px',
-                        borderRadius: 'var(--btn-radius)',
-                    }}
-                >
-                    <Plus size={17} strokeWidth={2.5} />
-                    {t('transactions.new')}
-                </button>
+                {canEdit && (
+                    <button
+                        onClick={() => setCreateOpen(true)}
+                        className="inline-flex items-center gap-2 whitespace-nowrap bg-primary text-white font-bold shadow-[0_1px_2px_rgba(120,60,180,0.25)] transition-colors hover:bg-primary/90 active:translate-y-[0.5px]"
+                        style={{
+                            fontSize: 14.5,
+                            padding: '11px 20px',
+                            borderRadius: 'var(--btn-radius)',
+                        }}
+                    >
+                        <Plus size={17} strokeWidth={2.5} />
+                        {t('transactions.new')}
+                    </button>
+                )}
             </div>
 
             {/* ── Filter bar ── */}
@@ -704,7 +709,7 @@ export function TransactionenView() {
                 )}
 
                 {/* Bulk selection toolbar */}
-                {selectedIds.size > 0 && (
+                {canEdit && selectedIds.size > 0 && (
                     <BulkActionBar
                         className="mt-1"
                         label={t('transactions.bulk.selectedCount', { n: selectedIds.size })}

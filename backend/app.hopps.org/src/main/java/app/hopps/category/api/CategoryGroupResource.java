@@ -24,12 +24,13 @@ import app.hopps.category.domain.CategoryGroupValue;
 import app.hopps.category.repository.CategoryGroupRepository;
 import app.hopps.category.repository.CategoryGroupValueRepository;
 import app.hopps.category.service.CategoryGroupService;
+import app.hopps.member.domain.Permission;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.template.domain.CategoryGroupTemplate;
 import app.hopps.template.repository.CategoryGroupTemplateRepository;
 import io.quarkus.panache.common.Page;
-import io.quarkus.security.Authenticated;
+import io.quarkus.security.PermissionsAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -68,7 +69,6 @@ import java.util.UUID;
  * CRUD for category groups plus the searchable value sub-resource and the re-draft impact preview.
  */
 @Path("/category-groups")
-@Authenticated
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class CategoryGroupResource {
@@ -94,6 +94,7 @@ public class CategoryGroupResource {
     CategoryGroupTemplateRepository categoryGroupTemplateRepository;
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Operation(summary = "List category groups", description = "All category groups of the current organization, or only those applicable to a bommel when bommelId is given. Values are not included — fetch them via /{id}/values.")
     @APIResponse(responseCode = "200", description = "Category groups", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CategoryGroupResponse[].class)))
     public List<CategoryGroupResponse> list(
@@ -116,6 +117,7 @@ public class CategoryGroupResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/templates")
     @Transactional
     @Operation(operationId = "listCategoryGroupTemplates", summary = "List category group templates", description = "The templates the current organization can add as a category group, with a short value preview. Templates the organization already used carry the id of the group created from them; they can still be used again.")
@@ -141,6 +143,7 @@ public class CategoryGroupResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/templates/{templateId}")
     @Transactional
     @Operation(operationId = "getCategoryGroupTemplate", summary = "Get a category group template", description = "The template with all of its values, used to pre-fill the create dialog. Creating the group then goes through POST /category-groups with the templateId, so the usual checks (required flag, re-draft impact) apply.")
@@ -161,6 +164,7 @@ public class CategoryGroupResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/{id}/values")
     @Operation(summary = "Search a group's values", description = "Paginated, optionally filtered values of one group in tree order — the source for the value picker. The search also matches the parent, so a parent finds its children. Scales to very large value sets.")
     @APIResponse(responseCode = "200", description = "A page of values", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PagedValuesResponse.class)))
@@ -185,6 +189,7 @@ public class CategoryGroupResource {
     }
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Transactional
     @Operation(summary = "Create a category group", description = "Creates a group with its bommel assignments and initial values. Optionally resets affected confirmed transactions to draft.")
     @APIResponse(responseCode = "201", description = "Group created", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CategoryGroupResponse.class)))
@@ -219,6 +224,7 @@ public class CategoryGroupResource {
     }
 
     @PUT
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}")
     @Transactional
     @Operation(summary = "Update a category group", description = "Updates name, required flag and bommel assignments. Values are managed via the /values sub-resource. Optionally resets affected confirmed transactions to draft.")
@@ -242,6 +248,7 @@ public class CategoryGroupResource {
     }
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}/values")
     @Transactional
     @Operation(summary = "Add values to a group", description = "Adds one or more values, optionally under a top-level value. Duplicates within the group are ignored.")
@@ -265,6 +272,7 @@ public class CategoryGroupResource {
     }
 
     @PUT
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}/values/{valueId}")
     @Transactional
     @Operation(summary = "Update a value", description = "Moves a value in the hierarchy and sets whether it can be booked and whether it is hidden. Existing bookings keep the value either way. The value itself is not renamed: transactions store it as text.")
@@ -301,6 +309,7 @@ public class CategoryGroupResource {
     }
 
     @DELETE
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}/values/{valueId}")
     @Transactional
     @Operation(summary = "Remove a value from a group", description = "Deletes a single value; its children move to the top level. Values already recorded on transactions are kept as historical text.")
@@ -313,6 +322,7 @@ public class CategoryGroupResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/{id}/usage")
     @Operation(summary = "Group usage", description = "How many transactions (draft or confirmed) currently carry a value for this group — shown before deletion.")
     @APIResponse(responseCode = "200", description = "Usage count", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CategoryGroupUsageResponse.class)))
@@ -323,6 +333,7 @@ public class CategoryGroupResource {
     }
 
     @DELETE
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}")
     @Transactional
     @Operation(summary = "Delete a category group", description = "Deletes a group and its values, and removes the group's value from every transaction that carried it (draft or confirmed).")
@@ -336,6 +347,7 @@ public class CategoryGroupResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/{id}/export")
     @Transactional
     @Operation(operationId = "exportCategoryGroup", summary = "Export a category group", description = "The group with its hierarchy and settings as a portable file. A group that was never exported gets its stable source key here. Bommel assignments are not part of the file.")
@@ -356,6 +368,7 @@ public class CategoryGroupResource {
     }
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/import")
     @Transactional
     @Operation(operationId = "importCategoryGroup", summary = "Import a category group", description = "Creates a group from an export file. If the organization already has a group from the same source, its missing categories are added instead; existing categories and the group's settings stay as they are.")
@@ -397,6 +410,7 @@ public class CategoryGroupResource {
     }
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/reopen-impact")
     @Operation(summary = "Preview the re-draft impact", description = "For a pending group state (creating or editing), returns the already-confirmed transactions that would be reset to draft if the group became mandatory for its bommels.")
     @APIResponse(responseCode = "200", description = "Impact preview", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ReopenImpactResponse.class)))
@@ -408,6 +422,7 @@ public class CategoryGroupResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/{id}/report")
     @Operation(summary = "Category-group report", description = "Aggregates transaction totals grouped by this group's recorded values within an optional transaction-date range (inclusive). Returns per-value income/expense/count, rolled up to parent values, plus the overall totals.")
     @APIResponse(responseCode = "200", description = "Aggregated report", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CategoryGroupReportResponse.class)))

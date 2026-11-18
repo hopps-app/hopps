@@ -14,6 +14,7 @@ import { rootBommel } from '@/components/CategoryGroups/helpers';
 import Button from '@/components/ui/Button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { useCategoryGroups, useCategoryGroupTemplates, useCategoryGroupUsage, useDeleteCategoryGroup } from '@/hooks/queries/useCategoryGroups';
+import { useCanEditBookkeeping } from '@/hooks/queries/usePermissions';
 import { useEnsureBommels } from '@/hooks/use-ensure-bommels';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
@@ -31,6 +32,8 @@ function CategoryGroupsView() {
     const isSetup = !isLoading && groups.length === 0;
     usePageTitle(isSetup ? t('categoryGroups.setup.title') : t('categoryGroups.title'));
     const deleteMutation = useDeleteCategoryGroup();
+    // Board members and auditors see the groups but cannot set up, import, create or change them (issue #959).
+    const canEdit = useCanEditBookkeeping();
     const { showSuccess, showError } = useToast();
     const allBommels = useBommelsStore((s) => s.allBommels);
     // The assignments show bommel names; load the tree when the page is opened directly.
@@ -102,7 +105,7 @@ function CategoryGroupsView() {
             {/* A skeleton instead of a spinner while it is not yet known whether to show the setup or the overview. */}
             {isLoading || templatesLoading ? (
                 <CategoryGroupsSkeleton />
-            ) : isSetup ? (
+            ) : isSetup && canEdit ? (
                 <>
                     <PageHeader title={t('categoryGroups.setup.title')} />
                     <CategoryGroupSetup templates={templates} onCreated={refetch} onImport={() => setImportOpen(true)} />
@@ -112,16 +115,18 @@ function CategoryGroupsView() {
                     <PageHeader
                         title={t('categoryGroups.title')}
                         action={
-                            <div className="flex flex-wrap gap-2.5">
-                                <Button variant="outline" size="sm" className="h-10" onClick={() => setImportOpen(true)}>
-                                    <FileUp />
-                                    {t('categoryGroups.import.button')}
-                                </Button>
-                                <Button size="sm" className="h-10" onClick={openCreate}>
-                                    <Plus />
-                                    {t('categoryGroups.addButton')}
-                                </Button>
-                            </div>
+                            canEdit && (
+                                <div className="flex flex-wrap gap-2.5">
+                                    <Button variant="outline" size="sm" className="h-10" onClick={() => setImportOpen(true)}>
+                                        <FileUp />
+                                        {t('categoryGroups.import.button')}
+                                    </Button>
+                                    <Button size="sm" className="h-10" onClick={openCreate}>
+                                        <Plus />
+                                        {t('categoryGroups.addButton')}
+                                    </Button>
+                                </div>
+                            )
                         }
                     />
 
@@ -148,14 +153,16 @@ function CategoryGroupsView() {
                                 />
                             </div>
                         ))}
-                        <button
-                            type="button"
-                            onClick={openCreate}
-                            className="flex min-h-[180px] flex-col items-center justify-center gap-2.5 rounded-[var(--r-card)] border-2 border-dashed border-[#E0E0E6] bg-[var(--surface-sunken)] text-[13.5px] font-bold text-purple-700 transition-colors hover:border-[var(--primary)] hover:bg-[var(--accent-surface)] dark:border-gray-700"
-                        >
-                            <Plus size={22} />
-                            {t('categoryGroups.addButton')}
-                        </button>
+                        {canEdit && (
+                            <button
+                                type="button"
+                                onClick={openCreate}
+                                className="flex min-h-[180px] flex-col items-center justify-center gap-2.5 rounded-[var(--r-card)] border-2 border-dashed border-[#E0E0E6] bg-[var(--surface-sunken)] text-[13.5px] font-bold text-purple-700 transition-colors hover:border-[var(--primary)] hover:bg-[var(--accent-surface)] dark:border-gray-700"
+                            >
+                                <Plus size={22} />
+                                {t('categoryGroups.addButton')}
+                            </button>
+                        )}
                     </div>
                 </>
             )}

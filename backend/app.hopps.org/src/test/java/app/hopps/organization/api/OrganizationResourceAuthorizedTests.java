@@ -144,6 +144,8 @@ class OrganizationResourceAuthorizedTests {
                 .statusCode(201)
                 .body("email", is("kim.rakete@example.test"))
                 .body("position", is("Kassenwart"))
+                // Without a chosen role, the person becomes Treasurer.
+                .body("role", is("ADMIN"))
                 // The account is provisioned, but Dev Services builds the test realm without an SMTP server, so the
                 // invitation mail cannot go out. That must not fail the request — it is reported through the status.
                 .body("status", is("INVITATION_FAILED"));
@@ -159,6 +161,70 @@ class OrganizationResourceAuthorizedTests {
 
         // A Keycloak account now exists for them, which is what makes the login possible in the first place.
         assertThat(keycloak.realm(realmName).users().searchByEmail("kim.rakete@example.test", true), hasSize(1));
+    }
+
+    @Test
+    @DisplayName("should invite with a role, list it and let the founder change it")
+    @TestSecurity(user = "emanuel_urban@domain.none")
+    @OidcSecurity(claims = {
+            @Claim(key = "sub", value = "00000000-0000-0000-0000-000000000002")
+    })
+    void shouldInviteWithRoleAndChangeIt() {
+        int memberId = given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"firstName\": \"Bo\", \"lastName\": \"Vorstand\", \"email\": \"board@example.test\", \"role\": \"BOARD\"}")
+                .when()
+                .post("my/members")
+                .then()
+                .statusCode(201)
+                .body("role", is("BOARD"))
+                .extract()
+                .path("id");
+
+        given()
+                .when()
+                .get("gruenes-herz-ev/members")
+                .then()
+                .statusCode(200)
+                .body("find { it.email == 'board@example.test' }.role", is("BOARD"))
+                .body("find { it.email == 'emanuel_urban@domain.none' }.role", is("OWNER"))
+                // The founder heads the list, the new board member comes right after, before the treasurers.
+                .body("[0].role", is("OWNER"))
+                .body("[1].role", is("BOARD"));
+
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"role\": \"AUDITOR\"}")
+                .when()
+                .put("my/members/{id}/role", memberId)
+                .then()
+                .statusCode(200)
+                .body("role", is("AUDITOR"));
+
+        // The founder role cannot be handed out.
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"role\": \"OWNER\"}")
+                .when()
+                .put("my/members/{id}/role", memberId)
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    @DisplayName("should not hand out the founder role when inviting")
+    @TestSecurity(user = "emanuel_urban@domain.none")
+    @OidcSecurity(claims = {
+            @Claim(key = "sub", value = "00000000-0000-0000-0000-000000000002")
+    })
+    void shouldRejectInvitingAFounder() {
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"firstName\": \"Fe\", \"lastName\": \"Founder\", \"email\": \"second-founder@example.test\", \"role\": \"OWNER\"}")
+                .when()
+                .post("my/members")
+                .then()
+                .statusCode(400);
     }
 
     @Test

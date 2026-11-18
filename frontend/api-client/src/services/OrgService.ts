@@ -5401,7 +5401,7 @@ export class Client {
      * Add a member to my organization
      * @return Member added to the organization
      */
-    addOrganizationMember(body: NewMemberInput): Promise<Member> {
+    addOrganizationMember(body: NewMemberInput): Promise<OrganizationMemberResponse> {
         let url_ = this.baseUrl + "/organization/my/members";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -5421,19 +5421,19 @@ export class Client {
         });
     }
 
-    protected processAddOrganizationMember(response: Response): Promise<Member> {
+    protected processAddOrganizationMember(response: Response): Promise<OrganizationMemberResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 201) {
             return response.text().then((_responseText) => {
             let result201: any = null;
             let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result201 = Member.fromJS(resultData201);
+            result201 = OrganizationMemberResponse.fromJS(resultData201);
             return result201;
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Validation of fields failed", status, _responseText, _headers);
+            return throwException("Validation of fields failed, or the founder role was given", status, _responseText, _headers);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
@@ -5456,7 +5456,73 @@ export class Client {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<Member>(null as any);
+        return Promise.resolve<OrganizationMemberResponse>(null as any);
+    }
+
+    /**
+     * Correct a member's details
+     * @param memberId Id of the member to correct
+     * @return Member corrected
+     */
+    updateOrganizationMember(memberId: number, body: MemberUpdateInput): Promise<OrganizationMemberResponse> {
+        let url_ = this.baseUrl + "/organization/my/members/{memberId}";
+        if (memberId === undefined || memberId === null)
+            throw new globalThis.Error("The parameter 'memberId' must be defined.");
+        url_ = url_.replace("{memberId}", encodeURIComponent("" + memberId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateOrganizationMember(_response);
+        });
+    }
+
+    protected processUpdateOrganizationMember(response: Response): Promise<OrganizationMemberResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = OrganizationMemberResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A name is blank or the email is invalid", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("The current user may not manage members", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("No member with that id in the current user\'s organization", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("The email belongs to another member, or the member has logged in and keeps their email", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OrganizationMemberResponse>(null as any);
     }
 
     /**
@@ -5511,6 +5577,72 @@ export class Client {
             });
         }
         return Promise.resolve<void>(null as any);
+    }
+
+    /**
+     * Change a member's role
+     * @param memberId Id of the member whose role changes
+     * @return Role changed; the member with the new role
+     */
+    changeOrganizationMemberRole(memberId: number, body: MemberRoleInput): Promise<OrganizationMemberResponse> {
+        let url_ = this.baseUrl + "/organization/my/members/{memberId}/role";
+        if (memberId === undefined || memberId === null)
+            throw new globalThis.Error("The parameter 'memberId' must be defined.");
+        url_ = url_.replace("{memberId}", encodeURIComponent("" + memberId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processChangeOrganizationMemberRole(_response);
+        });
+    }
+
+    protected processChangeOrganizationMemberRole(response: Response): Promise<OrganizationMemberResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = OrganizationMemberResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("No role, or the founder role, was given", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("The current user may not manage members", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("No member with that id in the current user\'s organization", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("The member is the current user or the founder", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OrganizationMemberResponse>(null as any);
     }
 
     /**
@@ -5611,6 +5743,14 @@ export class Client {
             result400 = ValidationResult.fromJS(resultData400);
             return throwException("Validation failed", status, _responseText, _headers, result400);
             });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -5676,7 +5816,7 @@ export class Client {
      * Get organization members
      * @return Members retrieved successfully
      */
-    members(slug: string): Promise<Member[]> {
+    members(slug: string): Promise<OrganizationMemberResponse[]> {
         let url_ = this.baseUrl + "/organization/{slug}/members";
         if (slug === undefined || slug === null)
             throw new globalThis.Error("The parameter 'slug' must be defined.");
@@ -5695,7 +5835,7 @@ export class Client {
         });
     }
 
-    protected processMembers(response: Response): Promise<Member[]> {
+    protected processMembers(response: Response): Promise<OrganizationMemberResponse[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5705,7 +5845,7 @@ export class Client {
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
-                    result200!.push(Member.fromJS(item));
+                    result200!.push(OrganizationMemberResponse.fromJS(item));
             }
             else {
                 result200 = null as any;
@@ -5729,7 +5869,7 @@ export class Client {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<Member[]>(null as any);
+        return Promise.resolve<OrganizationMemberResponse[]>(null as any);
     }
 
     /**
@@ -11815,7 +11955,125 @@ export interface IMember {
     [key: string]: any;
 }
 
+export class MemberRoleInput implements IMemberRoleInput {
+    role?: Role;
+
+    [key: string]: any;
+
+    constructor(data?: IMemberRoleInput) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.role = _data["role"];
+        }
+    }
+
+    static fromJS(data: any): MemberRoleInput {
+        data = typeof data === 'object' ? data : {};
+        let result = new MemberRoleInput();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["role"] = this.role;
+        return data;
+    }
+
+    clone(): MemberRoleInput {
+        const json = this.toJSON();
+        let result = new MemberRoleInput();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IMemberRoleInput {
+    role?: Role;
+
+    [key: string]: any;
+}
+
 export type MemberStatus = "NO_ACCESS" | "INVITED" | "INVITATION_FAILED" | "ACTIVE";
+
+export class MemberUpdateInput implements IMemberUpdateInput {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+
+    [key: string]: any;
+
+    constructor(data?: IMemberUpdateInput) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.firstName = _data["firstName"];
+            this.lastName = _data["lastName"];
+            this.email = _data["email"];
+        }
+    }
+
+    static fromJS(data: any): MemberUpdateInput {
+        data = typeof data === 'object' ? data : {};
+        let result = new MemberUpdateInput();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["firstName"] = this.firstName;
+        data["lastName"] = this.lastName;
+        data["email"] = this.email;
+        return data;
+    }
+
+    clone(): MemberUpdateInput {
+        const json = this.toJSON();
+        let result = new MemberUpdateInput();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IMemberUpdateInput {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+
+    [key: string]: any;
+}
 
 export type Mode = "SINGLE" | "MULTI";
 
@@ -12033,6 +12291,7 @@ export class NewMemberInput implements INewMemberInput {
     lastName?: string;
     email?: string;
     position?: string;
+    role?: Role;
 
     [key: string]: any;
 
@@ -12055,6 +12314,7 @@ export class NewMemberInput implements INewMemberInput {
             this.lastName = _data["lastName"];
             this.email = _data["email"];
             this.position = _data["position"];
+            this.role = _data["role"];
         }
     }
 
@@ -12075,6 +12335,7 @@ export class NewMemberInput implements INewMemberInput {
         data["lastName"] = this.lastName;
         data["email"] = this.email;
         data["position"] = this.position;
+        data["role"] = this.role;
         return data;
     }
 
@@ -12091,6 +12352,7 @@ export interface INewMemberInput {
     lastName?: string;
     email?: string;
     position?: string;
+    role?: Role;
 
     [key: string]: any;
 }
@@ -12434,6 +12696,107 @@ export interface IOrganizationInput {
     [key: string]: any;
 }
 
+/** A member of the current user's organization, with their role in it */
+export class OrganizationMemberResponse implements IOrganizationMemberResponse {
+    /** Member id, needed to remove the member or change their role */
+    id?: number;
+    /** First name */
+    firstName?: string;
+    /** Last name */
+    lastName?: string;
+    /** Email address */
+    email?: string;
+    /** Free-text office from older invitations; no longer asked for */
+    position?: string;
+    /** Whether the member can log in, and how far their invitation got */
+    status?: MemberStatus;
+    /** The member's role in the organization */
+    role?: Role;
+    /** One-time link in which the invited person sets their password, to be passed on by the inviting admin. Only present right after adding a member whose invitation email could not be sent. */
+    setupLink?: string;
+
+    [key: string]: any;
+
+    constructor(data?: IOrganizationMemberResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.firstName = _data["firstName"];
+            this.lastName = _data["lastName"];
+            this.email = _data["email"];
+            this.position = _data["position"];
+            this.status = _data["status"];
+            this.role = _data["role"];
+            this.setupLink = _data["setupLink"];
+        }
+    }
+
+    static fromJS(data: any): OrganizationMemberResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new OrganizationMemberResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["firstName"] = this.firstName;
+        data["lastName"] = this.lastName;
+        data["email"] = this.email;
+        data["position"] = this.position;
+        data["status"] = this.status;
+        data["role"] = this.role;
+        data["setupLink"] = this.setupLink;
+        return data;
+    }
+
+    clone(): OrganizationMemberResponse {
+        const json = this.toJSON();
+        let result = new OrganizationMemberResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A member of the current user's organization, with their role in it */
+export interface IOrganizationMemberResponse {
+    /** Member id, needed to remove the member or change their role */
+    id?: number;
+    /** First name */
+    firstName?: string;
+    /** Last name */
+    lastName?: string;
+    /** Email address */
+    email?: string;
+    /** Free-text office from older invitations; no longer asked for */
+    position?: string;
+    /** Whether the member can log in, and how far their invitation got */
+    status?: MemberStatus;
+    /** The member's role in the organization */
+    role?: Role;
+    /** One-time link in which the invited person sets their password, to be passed on by the inviting admin. Only present right after adding a member whose invitation email could not be sent. */
+    setupLink?: string;
+
+    [key: string]: any;
+}
+
 export class OrganizationStatistics implements IOrganizationStatistics {
     totalBommels?: number;
     transactionsCount?: number;
@@ -12640,7 +13003,7 @@ export interface IPagedValuesResponse {
     [key: string]: any;
 }
 
-export type Permission = "MANAGE_MEMBERS";
+export type Permission = "VIEW_BOOKKEEPING" | "EDIT_BOOKKEEPING" | "MANAGE_ORGANIZATION" | "MANAGE_MEMBERS";
 
 export class PublicReceiptForm implements IPublicReceiptForm {
     /** The receipt (PNG, JPEG or PDF) */
@@ -12989,6 +13352,8 @@ export interface IReopenImpactResponse {
 
     [key: string]: any;
 }
+
+export type Role = "OWNER" | "ADMIN" | "BOARD" | "AUDITOR";
 
 export class SchemaDetectionResult implements ISchemaDetectionResult {
     /** Type of match found */
