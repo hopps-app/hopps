@@ -3,6 +3,7 @@ package app.hopps.shared.api;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.api.dto.InstanceInfo;
 import app.hopps.shared.tenancy.TenancyService;
+import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -19,6 +20,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
  * mode, so the frontend never needs a configuration value of its own that could disagree with it.
  */
 @Path("/instance")
+@PermitAll
 public class InstanceResource {
 
     @Inject

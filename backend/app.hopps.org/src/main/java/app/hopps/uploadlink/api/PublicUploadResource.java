@@ -13,6 +13,7 @@ import app.hopps.uploadlink.domain.BommelUploadLink;
 import app.hopps.uploadlink.service.UploadLinkService;
 import app.hopps.uploadlink.service.UploadRateLimiter;
 import io.vertx.core.http.HttpServerRequest;
+import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
@@ -43,6 +44,7 @@ import org.slf4j.LoggerFactory;
  * analysis.
  */
 @Path("/public/upload-links/{token}")
+@PermitAll
 public class PublicUploadResource {
     private static final Logger LOG = LoggerFactory.getLogger(PublicUploadResource.class);
     private static final int MAX_NAME_LENGTH = 255;

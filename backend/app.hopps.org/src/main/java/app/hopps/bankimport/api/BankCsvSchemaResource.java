@@ -6,7 +6,8 @@ import app.hopps.bankimport.api.dto.BankCsvSchemaTemplateResponse;
 import app.hopps.bankimport.api.dto.BankCsvSchemaUpdateRequest;
 import app.hopps.bankimport.domain.BankCsvSchema;
 import app.hopps.bankimport.service.BankCsvSchemaService;
-import io.quarkus.security.Authenticated;
+import app.hopps.member.domain.Permission;
+import io.quarkus.security.PermissionsAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
@@ -34,7 +35,6 @@ import java.util.List;
 /**
  * REST API for bank CSV schema management. See bank-import-feature.md §4.4.
  */
-@Authenticated
 @Path("/bank-schemas")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -46,6 +46,7 @@ public class BankCsvSchemaResource {
     BankCsvSchemaService schemaService;
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Operation(summary = "List bank CSV schemas", description = "Returns all schemas of the current organization. Archived schemas excluded by default.")
     @APIResponse(responseCode = "200", description = "List of schemas", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankCsvSchemaResponse[].class)))
     @APIResponse(responseCode = "401", description = "User not logged in")
@@ -58,6 +59,7 @@ public class BankCsvSchemaResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/templates")
     @Operation(summary = "List system CSV templates", description = "Returns built-in templates (Sparkasse MT940, CAMT.052 v2/v8) that can be cloned into the org via POST ?fromTemplate=...")
     @APIResponse(responseCode = "200", description = "List of system templates", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankCsvSchemaTemplateResponse[].class)))
@@ -67,6 +69,7 @@ public class BankCsvSchemaResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/{id}")
     @Operation(summary = "Get a CSV schema", description = "Returns a single CSV schema by ID")
     @APIResponse(responseCode = "200", description = "Schema found", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankCsvSchemaResponse.class)))
@@ -78,6 +81,7 @@ public class BankCsvSchemaResource {
     }
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Operation(summary = "Create a CSV schema", description = "Creates a new schema. When fromTemplate is set, the template's defaults are applied first and then overridden by request fields.")
     @APIResponse(responseCode = "201", description = "Schema created", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankCsvSchemaResponse.class)))
     @APIResponse(responseCode = "400", description = "Invalid input (missing required mappings, invalid amountStrategy combination)")
@@ -95,6 +99,7 @@ public class BankCsvSchemaResource {
     }
 
     @PATCH
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}")
     @Operation(summary = "Update a CSV schema", description = "Partial update — only non-null fields are applied. columnMappings (when set) fully replaces the existing list.")
     @APIResponse(responseCode = "200", description = "Schema updated", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankCsvSchemaResponse.class)))
@@ -110,6 +115,7 @@ public class BankCsvSchemaResource {
     }
 
     @DELETE
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}")
     @Operation(summary = "Delete a CSV schema", description = "Hard-deletes a schema. Fails with 400 if the schema is referenced by a bank account or import — archive it via POST /archive instead.")
     @APIResponse(responseCode = "204", description = "Schema deleted")
@@ -123,6 +129,7 @@ public class BankCsvSchemaResource {
     }
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}/archive")
     @Operation(summary = "Archive a CSV schema", description = "Soft-archives a schema. It stays selectable for historic imports but is hidden from default lists and cannot be picked for new accounts.")
     @APIResponse(responseCode = "204", description = "Schema archived")
@@ -135,6 +142,7 @@ public class BankCsvSchemaResource {
     }
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}/restore")
     @Operation(summary = "Restore an archived schema", description = "Unsets the archived flag of a schema.")
     @APIResponse(responseCode = "200", description = "Schema restored", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankCsvSchemaResponse.class)))
