@@ -104,11 +104,18 @@ class EndpointSecurityTest {
     }
 
     @Test
-    void invitedMembersKeepTheirRightsButCannotManageMembers() {
-        assertEquals(EnumSet.of(Permission.VIEW_BOOKKEEPING, Permission.EDIT_BOOKKEEPING,
-                Permission.MANAGE_ORGANIZATION), Role.ADMIN.getPermissions());
+    void treasurersKeepTheBooksButNeitherManageTheOrganizationNorMembers() {
+        assertEquals(EnumSet.of(Permission.VIEW_BOOKKEEPING, Permission.EDIT_BOOKKEEPING), Role.ADMIN.getPermissions());
         assertFalse(Role.ADMIN.getPermissions().contains(Permission.MANAGE_MEMBERS));
+        assertFalse(Role.ADMIN.getPermissions().contains(Permission.MANAGE_ORGANIZATION));
         assertTrue(Role.OWNER.getPermissions().containsAll(EnumSet.allOf(Permission.class)));
+    }
+
+    @Test
+    void boardAndAuditorOnlyView() {
+        assertEquals(EnumSet.of(Permission.VIEW_BOOKKEEPING), Role.BOARD.getPermissions());
+        assertEquals(EnumSet.of(Permission.VIEW_BOOKKEEPING), Role.AUDITOR.getPermissions());
+        assertFalse(Role.OWNER.isAssignable());
     }
 
     private static boolean hasSecurityAnnotation(java.lang.reflect.AnnotatedElement element) {

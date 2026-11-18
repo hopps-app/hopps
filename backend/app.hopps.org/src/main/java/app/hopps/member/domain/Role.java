@@ -16,8 +16,8 @@ import static app.hopps.member.domain.Permission.VIEW_BOOKKEEPING;
 public enum Role {
 
     /**
-     * Founder (Gründer:in): founded the organization. Listed explicitly rather than {@code allOf}, so a permission
-     * added later (e.g. for the audit) is not granted to the founder by accident.
+     * Founder (Gründer:in): founded the organization; may do everything, including the organization details and
+     * members.
      */
     OWNER(EnumSet.of(
             VIEW_BOOKKEEPING,
@@ -25,14 +25,21 @@ public enum Role {
             MANAGE_ORGANIZATION,
             MANAGE_MEMBERS)),
 
-    /**
-     * Treasurer (Kasse): keeps the books. Everything the founder can do except managing members. Every member invited
-     * before roles could be chosen holds this role; the name stays {@code ADMIN} because it is stored in the database.
-     */
+    /** Treasurer (Kasse): keeps the books. Default role of invited members. */
     ADMIN(EnumSet.of(
             VIEW_BOOKKEEPING,
-            EDIT_BOOKKEEPING,
-            MANAGE_ORGANIZATION));
+            EDIT_BOOKKEEPING)),
+
+    /** Board (Vorstand): keeps an eye on the finances without booking anything. Views everything, changes nothing. */
+    BOARD(EnumSet.of(
+            VIEW_BOOKKEEPING)),
+
+    /**
+     * Auditor (Kassenprüfung): reviews the books independently, so views everything and changes nothing. Reviewing and
+     * locking transactions gets its own permission later.
+     */
+    AUDITOR(EnumSet.of(
+            VIEW_BOOKKEEPING));
 
     private final EnumSet<Permission> permissions;
 
@@ -42,5 +49,13 @@ public enum Role {
 
     public Set<Permission> getPermissions() {
         return permissions.clone();
+    }
+
+    /**
+     * Whether a founder may hand out this role when inviting or changing a member. There is always exactly one founder,
+     * so {@link #OWNER} is never assignable.
+     */
+    public boolean isAssignable() {
+        return this != OWNER;
     }
 }

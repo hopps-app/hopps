@@ -48,4 +48,16 @@ public interface IdentityProvisioningService {
      *            the identity provider's user id, as set on the member by {@link #createOwner} or {@link #inviteMember}
      */
     void deleteUser(String identityId);
+
+    /**
+     * Deletes an account that was provisioned for an invitation, as long as it was never used: no password set and no
+     * linked login at another provider. Used after an invitation moved to a corrected email address, so the account for
+     * the wrong address does not stay behind. Failures are logged, not thrown.
+     *
+     * @param identityId
+     *            the identity provider's user id of the account for the old address
+     *
+     * @return whether the account was deleted
+     */
+    boolean deleteUnusedUser(String identityId);
 }

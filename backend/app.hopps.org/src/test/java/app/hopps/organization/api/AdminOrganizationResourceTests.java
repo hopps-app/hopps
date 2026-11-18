@@ -102,7 +102,7 @@ class AdminOrganizationResourceTests {
                 .body("slug", is("buehnefrei-ev"))
                 .body("belegeCount", is(33))
                 .body("bankImportCount", is(1))
-                .body("members", hasSize(9))
+                .body("members", hasSize(4))
                 .body("contactEmail", notNullValue())
                 .body("address.city", is("Rietberg"));
     }
@@ -113,13 +113,13 @@ class AdminOrganizationResourceTests {
     void shouldReturnLoginActivity() {
         LocalDate today = LocalDate.now();
         Instant base = Instant.parse("2026-07-30T09:00:00Z");
-        // buehnefrei-ev (org 4) has members 15..23. Each member's first signal only starts their clock; the seconds
-        // come from the gaps that follow. Today: member 15 accrues 60s, member 16 accrues 30s, so the organization
-        // total is 90s. Yesterday: member 15 alone accrues 120s.
+        // buehnefrei-ev (org 4) has members 15, 21, 22 and 23. Each member's first signal only starts their clock; the
+        // seconds come from the gaps that follow. Today: member 15 accrues 60s, member 23 accrues 30s, so the
+        // organization total is 90s. Yesterday: member 15 alone accrues 120s.
         memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000015", today, base);
         memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000015", today, base.plusSeconds(60));
-        memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000016", today, base);
-        memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000016", today, base.plusSeconds(30));
+        memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000023", today, base);
+        memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000023", today, base.plusSeconds(30));
         memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000015", today.minusDays(1), base);
         memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000015", today.minusDays(1),
                 base.plusSeconds(120));
@@ -129,7 +129,7 @@ class AdminOrganizationResourceTests {
                 .get(PATH + "/4/login-activity")
                 .then()
                 .statusCode(200)
-                .body("totalMembers", is(9))
+                .body("totalMembers", is(4))
                 .body("days", hasSize(7))
                 // oldest first: index 6 = today, 5 = yesterday, 0 = six days ago
                 .body("days[6].activeSeconds", is(90))

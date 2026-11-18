@@ -25,7 +25,8 @@ class AuthentikIdentityProvisioningServiceTest {
 
     private static final String EMAIL = "founder@example.org";
     private static final String PASSWORD = "testPassword";
-    private static final AuthentikUser ACCOUNT = new AuthentikUser(42L, "uuid-42", EMAIL, "Fiona Founder", EMAIL, true);
+    private static final AuthentikUser ACCOUNT = new AuthentikUser(42L, "uuid-42", EMAIL, "Fiona Founder", EMAIL, true,
+            null);
 
     AuthentikApi api;
     AuthentikIdentityProvisioningService service;
