@@ -16,6 +16,7 @@ import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
@@ -51,6 +52,13 @@ public class Member extends PanacheEntity {
     @Size(max = 255)
     @Schema(examples = "Kassenwart", description = "Office held in the association, free text and optional")
     private String position;
+
+    /** Phone number the member entered on their profile; optional. */
+    @Column(name = "phone_number", length = 40)
+    @Size(max = 40)
+    @Pattern(regexp = "[0-9+()/. -]*", message = "may only contain digits, spaces and + ( ) / . -")
+    @Schema(examples = "+49 170 1234567", description = "Phone number, optional")
+    private String phoneNumber;
 
     /**
      * The stable, immutable Keycloak user id (the JWT {@code sub} claim). This is the canonical link between a Keycloak
@@ -160,6 +168,14 @@ public class Member extends PanacheEntity {
 
     public String getPosition() {
         return position;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
     public void setKeycloakId(String keycloakId) {

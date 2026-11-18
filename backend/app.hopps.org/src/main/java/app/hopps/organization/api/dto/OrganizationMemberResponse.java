@@ -20,6 +20,7 @@ public record OrganizationMemberResponse(
         @Schema(description = "Last name", examples = "Rakete") String lastName,
         @Schema(description = "Email address", examples = "kim.rakete@example.com") String email,
         @Schema(description = "Free-text office from older invitations; no longer asked for", examples = "Kassenwart") String position,
+        @Schema(description = "Phone number the member entered on their profile", examples = "+49 170 1234567") String phoneNumber,
         @Schema(description = "Whether the member can log in, and how far their invitation got", examples = "INVITED") MemberStatus status,
         @Schema(description = "The member's role in the organization", examples = "ADMIN") Role role,
         @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(description = "One-time link in which the invited person sets their password, to be passed on by the "
@@ -42,6 +43,7 @@ public record OrganizationMemberResponse(
                 member.getLastName(),
                 member.getEmail(),
                 member.getPosition(),
+                member.getPhoneNumber(),
                 member.getStatus(),
                 member.getRole(organization).orElse(null),
                 member.getSetupLink());
