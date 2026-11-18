@@ -40,7 +40,8 @@ describe('OrganizationDetailsSettingsView – currency', () => {
         // The form is filled from the store in an effect; a value set that way must survive the Select's hidden
         // native mirror (see the empty-value guard in components/ui/Select.tsx).
         await waitFor(() => expect(currencySelect()).toHaveTextContent('Swiss franc (CHF)'));
-        expect(currencySelect()).toBeEnabled();
+        // Editable once the permissions have loaded.
+        await waitFor(() => expect(currencySelect()).toBeEnabled());
         expect(screen.queryByTestId('currency-locked-note')).not.toBeInTheDocument();
         expect(screen.getByText(/can only be changed while no transaction and no bank account exist yet/i)).toBeInTheDocument();
     });

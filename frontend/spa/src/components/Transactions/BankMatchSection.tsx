@@ -237,15 +237,15 @@ export function BankMatchSection({
                                         onSave={(v) => updateAmount(b.id!, v)}
                                     />
                                     {canEdit && (
-                                    <button
-                                        type="button"
-                                        onClick={() => requestUnlink(b)}
-                                        disabled={removeMatch.isPending}
-                                        title={t('transactions.detail.unlink')}
-                                        className={cn(ICON_BTN, 'hover:border-[var(--negative-border)] hover:text-[var(--negative)] disabled:opacity-50')}
-                                    >
-                                        <Unlink size={15} />
-                                    </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => requestUnlink(b)}
+                                            disabled={removeMatch.isPending}
+                                            title={t('transactions.detail.unlink')}
+                                            className={cn(ICON_BTN, 'hover:border-[var(--negative-border)] hover:text-[var(--negative)] disabled:opacity-50')}
+                                        >
+                                            <Unlink size={15} />
+                                        </button>
                                     )}
                                 </div>
                             </div>

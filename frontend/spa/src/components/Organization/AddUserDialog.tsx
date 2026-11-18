@@ -1,11 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Role } from '@hopps/api-client';
 import { UserPlus } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
-
-import { Role } from '@hopps/api-client';
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup';

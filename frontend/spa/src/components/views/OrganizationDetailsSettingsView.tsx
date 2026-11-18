@@ -25,9 +25,9 @@ import { CARD } from '@/components/Organization/layout';
 import { OrganizationDetailsSkeleton, OrganizationUsersSkeleton } from '@/components/Organization/OrganizationDetailsSkeleton';
 import { SetupLinkDialog } from '@/components/Organization/SetupLinkDialog';
 import Button from '@/components/ui/Button';
-import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import Select from '@/components/ui/Select';
+import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import TextField from '@/components/ui/TextField';
 import { useHasPermission } from '@/hooks/queries';
 import { useCountries } from '@/hooks/use-countries';
@@ -547,7 +547,8 @@ function OrganizationDetailsSettingsView() {
                 updated = await apiService.orgService.updateOrganizationMember(member.id, input);
             } catch (error) {
                 console.error('Failed to update member:', error);
-                const duplicate = ApiException.isApiException(error) && error.status === 409 && !!getErrorBody<{ conflictingFields?: string[] }>(error)?.conflictingFields;
+                const duplicate =
+                    ApiException.isApiException(error) && error.status === 409 && !!getErrorBody<{ conflictingFields?: string[] }>(error)?.conflictingFields;
                 toast({ title: t(`organization.details.users.edit.${duplicate ? 'duplicate' : 'error'}`), variant: 'error' });
                 // Rethrow so the dialog stays open and the entered values are not lost.
                 throw error;
@@ -1000,7 +1001,9 @@ function OrganizationDetailsSettingsView() {
                                                             </span>
                                                         </span>
                                                     </span>
-                                                    <span className="hidden text-[14px] text-[#6B6B76] dark:text-[#A0A0AC] truncate lg:block">{user.email}</span>
+                                                    <span className="hidden text-[14px] text-[#6B6B76] dark:text-[#A0A0AC] truncate lg:block">
+                                                        {user.email}
+                                                    </span>
                                                     {canChangeRole ? (
                                                         <Select
                                                             className="min-w-0"

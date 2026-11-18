@@ -32,7 +32,21 @@ interface SelectProps {
 }
 
 function Select(props: SelectProps) {
-    const { value, items, onValueChanged, label, placeholder, className, error, required, disabled, openDownwards, ariaLabel, size = 'default', ...otherProps } = props;
+    const {
+        value,
+        items,
+        onValueChanged,
+        label,
+        placeholder,
+        className,
+        error,
+        required,
+        disabled,
+        openDownwards,
+        ariaLabel,
+        size = 'default',
+        ...otherProps
+    } = props;
     const [id] = useState(_.uniqueId('select-'));
     const errorId = `${id}-error`;
     // Radix mirrors a programmatic `value` change into a hidden native <select> and reports the outcome through

@@ -524,18 +524,18 @@ export function TransactionenView() {
                     </p>
                 </div>
                 {canEdit && (
-                <button
-                    onClick={() => setCreateOpen(true)}
-                    className="inline-flex items-center gap-2 whitespace-nowrap bg-primary text-white font-bold shadow-[0_1px_2px_rgba(120,60,180,0.25)] transition-colors hover:bg-primary/90 active:translate-y-[0.5px]"
-                    style={{
-                        fontSize: 14.5,
-                        padding: '11px 20px',
-                        borderRadius: 'var(--btn-radius)',
-                    }}
-                >
-                    <Plus size={17} strokeWidth={2.5} />
-                    {t('transactions.new')}
-                </button>
+                    <button
+                        onClick={() => setCreateOpen(true)}
+                        className="inline-flex items-center gap-2 whitespace-nowrap bg-primary text-white font-bold shadow-[0_1px_2px_rgba(120,60,180,0.25)] transition-colors hover:bg-primary/90 active:translate-y-[0.5px]"
+                        style={{
+                            fontSize: 14.5,
+                            padding: '11px 20px',
+                            borderRadius: 'var(--btn-radius)',
+                        }}
+                    >
+                        <Plus size={17} strokeWidth={2.5} />
+                        {t('transactions.new')}
+                    </button>
                 )}
             </div>
 

@@ -380,19 +380,19 @@ function BommelView() {
                             </Button>
                         )}
                         {(canEdit || isDemoMode) && (
-                        <Button
-                            size="sm"
-                            variant={isEditMode ? 'default' : 'outline'}
-                            icon={isEditMode ? 'Check' : 'Pencil2'}
-                            data-guide="edit-button"
-                            onClick={() => {
-                                const newEditMode = !isEditMode;
-                                setIsEditMode(newEditMode);
-                                if (!newEditMode) setIsDragDropMode(false);
-                            }}
-                        >
-                            {isEditMode ? t('bommel.done') : t('bommel.edit')}
-                        </Button>
+                            <Button
+                                size="sm"
+                                variant={isEditMode ? 'default' : 'outline'}
+                                icon={isEditMode ? 'Check' : 'Pencil2'}
+                                data-guide="edit-button"
+                                onClick={() => {
+                                    const newEditMode = !isEditMode;
+                                    setIsEditMode(newEditMode);
+                                    if (!newEditMode) setIsDragDropMode(false);
+                                }}
+                            >
+                                {isEditMode ? t('bommel.done') : t('bommel.edit')}
+                            </Button>
                         )}
                     </div>
                 </div>

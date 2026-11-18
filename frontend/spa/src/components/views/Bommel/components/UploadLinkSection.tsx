@@ -142,30 +142,30 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                             <QrCode size={16} />
                         </Button>
                         {canEdit && (
-                        <>
-                        <HintTooltip content={t('bommel.uploadLink.regenerate')}>
-                            <Button
-                                variant="tonal"
-                                size="icon"
-                                className="h-10 w-9 shrink-0"
-                                onClick={() => setConfirm('regenerate')}
-                                aria-label={t('bommel.uploadLink.regenerate')}
-                            >
-                                <RefreshCw size={16} />
-                            </Button>
-                        </HintTooltip>
-                        <HintTooltip content={t('bommel.uploadLink.revoke')}>
-                            <Button
-                                variant="tonal"
-                                size="icon"
-                                className="h-10 w-9 shrink-0 text-[var(--negative)]"
-                                onClick={() => setConfirm('revoke')}
-                                aria-label={t('bommel.uploadLink.revoke')}
-                            >
-                                <Trash2 size={16} />
-                            </Button>
-                        </HintTooltip>
-                        </>
+                            <>
+                                <HintTooltip content={t('bommel.uploadLink.regenerate')}>
+                                    <Button
+                                        variant="tonal"
+                                        size="icon"
+                                        className="h-10 w-9 shrink-0"
+                                        onClick={() => setConfirm('regenerate')}
+                                        aria-label={t('bommel.uploadLink.regenerate')}
+                                    >
+                                        <RefreshCw size={16} />
+                                    </Button>
+                                </HintTooltip>
+                                <HintTooltip content={t('bommel.uploadLink.revoke')}>
+                                    <Button
+                                        variant="tonal"
+                                        size="icon"
+                                        className="h-10 w-9 shrink-0 text-[var(--negative)]"
+                                        onClick={() => setConfirm('revoke')}
+                                        aria-label={t('bommel.uploadLink.revoke')}
+                                    >
+                                        <Trash2 size={16} />
+                                    </Button>
+                                </HintTooltip>
+                            </>
                         )}
                     </div>
                 </div>

@@ -120,32 +120,32 @@ export function DocumentFilePreview({ doc, onClose }: { doc: DocumentResponse; o
                         <span className="text-sm font-semibold text-foreground">{t('receipts.preview.missingTitle')}</span>
                         <span className="text-[13px] max-w-xs">{t('receipts.preview.missingHint')}</span>
                         {canEdit && (
-                        <div
-                            {...getRootProps()}
-                            className={cn(
-                                'mt-1 w-full max-w-sm flex flex-col items-center gap-2 rounded-2xl border-2 border-dashed px-6 py-6 cursor-pointer transition-colors select-none',
-                                isDragActive
-                                    ? 'border-primary bg-[var(--accent-surface)]'
-                                    : 'border-purple-200 hover:border-primary hover:bg-[var(--accent-surface)]',
-                                reupload.isPending && 'opacity-60 pointer-events-none cursor-not-allowed'
-                            )}
-                        >
-                            <input {...getInputProps()} />
-                            <span className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'var(--accent-surface)' }}>
-                                {reupload.isPending ? (
-                                    <Loader2 size={20} className="text-purple-700 animate-spin" />
-                                ) : (
-                                    <Upload size={20} className="text-purple-700" />
+                            <div
+                                {...getRootProps()}
+                                className={cn(
+                                    'mt-1 w-full max-w-sm flex flex-col items-center gap-2 rounded-2xl border-2 border-dashed px-6 py-6 cursor-pointer transition-colors select-none',
+                                    isDragActive
+                                        ? 'border-primary bg-[var(--accent-surface)]'
+                                        : 'border-purple-200 hover:border-primary hover:bg-[var(--accent-surface)]',
+                                    reupload.isPending && 'opacity-60 pointer-events-none cursor-not-allowed'
                                 )}
-                            </span>
-                            <span className="text-[13px] font-semibold text-purple-700">
-                                {reupload.isPending
-                                    ? t('receipts.preview.reuploading')
-                                    : isDragActive
-                                      ? t('receipts.preview.reuploadDrop')
-                                      : t('receipts.preview.reupload')}
-                            </span>
-                        </div>
+                            >
+                                <input {...getInputProps()} />
+                                <span className="w-11 h-11 rounded-full flex items-center justify-center" style={{ background: 'var(--accent-surface)' }}>
+                                    {reupload.isPending ? (
+                                        <Loader2 size={20} className="text-purple-700 animate-spin" />
+                                    ) : (
+                                        <Upload size={20} className="text-purple-700" />
+                                    )}
+                                </span>
+                                <span className="text-[13px] font-semibold text-purple-700">
+                                    {reupload.isPending
+                                        ? t('receipts.preview.reuploading')
+                                        : isDragActive
+                                          ? t('receipts.preview.reuploadDrop')
+                                          : t('receipts.preview.reupload')}
+                                </span>
+                            </div>
                         )}
                     </div>
                 )}
