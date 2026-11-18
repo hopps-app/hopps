@@ -6,6 +6,7 @@ import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
 import io.quarkus.security.PermissionChecker;
 import io.quarkus.security.identity.SecurityIdentity;
+import io.smallrye.common.annotation.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.control.ActivateRequestContext;
 import jakarta.inject.Inject;
@@ -18,8 +19,10 @@ import java.util.Collection;
  * organization, nothing is granted.
  * <p>
  * Together with {@code quarkus.security.jaxrs.deny-unannotated-endpoints=true}, every endpoint is denied unless it
- * names what it needs. The checkers return {@code boolean}, so Quarkus runs them on a worker thread and they may query
- * the database.
+ * names what it needs.
+ * <p>
+ * The checkers query the database, so they are {@link Blocking}: without it Quarkus calls them on the IO thread, the
+ * query fails there, and Quarkus turns that failure into a plain 403 without logging it.
  */
 @ApplicationScoped
 public class MemberPermissionCheckers {
@@ -31,24 +34,28 @@ public class MemberPermissionCheckers {
     AccessService accessService;
 
     @PermissionChecker(Permission.Names.VIEW_BOOKKEEPING)
+    @Blocking
     @ActivateRequestContext
     public boolean canViewBookkeeping(SecurityIdentity identity) {
         return isGranted(identity, Permission.VIEW_BOOKKEEPING);
     }
 
     @PermissionChecker(Permission.Names.EDIT_BOOKKEEPING)
+    @Blocking
     @ActivateRequestContext
     public boolean canEditBookkeeping(SecurityIdentity identity) {
         return isGranted(identity, Permission.EDIT_BOOKKEEPING);
     }
 
     @PermissionChecker(Permission.Names.MANAGE_ORGANIZATION)
+    @Blocking
     @ActivateRequestContext
     public boolean canManageOrganization(SecurityIdentity identity) {
         return isGranted(identity, Permission.MANAGE_ORGANIZATION);
     }
 
     @PermissionChecker(Permission.Names.MANAGE_MEMBERS)
+    @Blocking
     @ActivateRequestContext
     public boolean canManageMembers(SecurityIdentity identity) {
         return isGranted(identity, Permission.MANAGE_MEMBERS);
