@@ -4991,6 +4991,106 @@ export class Client {
     }
 
     /**
+     * Update my profile
+     * @return Profile updated
+     */
+    updateMyProfile(body: MemberProfileInput): Promise<MyProfileResponse> {
+        let url_ = this.baseUrl + "/member/me";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateMyProfile(_response);
+        });
+    }
+
+    protected processUpdateMyProfile(response: Response): Promise<MyProfileResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = MyProfileResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A name is blank, or the phone number is too long or contains other characters than digits, spaces and + ( ) / . -", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not a member of any organization (code NO_ORGANIZATION_ACCESS)", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MyProfileResponse>(null as any);
+    }
+
+    /**
+     * Get my profile
+     * @return The current user's profile
+     */
+    getMyProfile(): Promise<MyProfileResponse> {
+        let url_ = this.baseUrl + "/member/me";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetMyProfile(_response);
+        });
+    }
+
+    protected processGetMyProfile(response: Response): Promise<MyProfileResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = MyProfileResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("User is not a member of any organization (code NO_ORGANIZATION_ACCESS)", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MyProfileResponse>(null as any);
+    }
+
+    /**
      * Validates the member input
      * @return Validation successful
      */
@@ -11874,6 +11974,8 @@ export class Member implements IMember {
     email!: string;
     /** Office held in the association, free text and optional */
     position?: string;
+    /** Phone number, optional */
+    phoneNumber?: string;
     /** Whether the member can log in, and how far their invitation got */
     readonly status!: MemberStatus;
     /** One-time link in which the invited person sets their password, to be passed on by the inviting admin. Only present right after adding a member whose invitation email could not be sent. */
@@ -11901,6 +12003,7 @@ export class Member implements IMember {
             this.lastName = _data["lastName"];
             this.email = _data["email"];
             this.position = _data["position"];
+            this.phoneNumber = _data["phoneNumber"];
             (this as any).status = _data["status"];
             (this as any).setupLink = _data["setupLink"];
         }
@@ -11924,6 +12027,7 @@ export class Member implements IMember {
         data["lastName"] = this.lastName;
         data["email"] = this.email;
         data["position"] = this.position;
+        data["phoneNumber"] = this.phoneNumber;
         data["status"] = this.status;
         data["setupLink"] = this.setupLink;
         return data;
@@ -11947,10 +12051,75 @@ export interface IMember {
     email: string;
     /** Office held in the association, free text and optional */
     position?: string;
+    /** Phone number, optional */
+    phoneNumber?: string;
     /** Whether the member can log in, and how far their invitation got */
     status: MemberStatus;
     /** One-time link in which the invited person sets their password, to be passed on by the inviting admin. Only present right after adding a member whose invitation email could not be sent. */
     setupLink?: string;
+
+    [key: string]: any;
+}
+
+export class MemberProfileInput implements IMemberProfileInput {
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
+
+    [key: string]: any;
+
+    constructor(data?: IMemberProfileInput) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.firstName = _data["firstName"];
+            this.lastName = _data["lastName"];
+            this.phoneNumber = _data["phoneNumber"];
+        }
+    }
+
+    static fromJS(data: any): MemberProfileInput {
+        data = typeof data === 'object' ? data : {};
+        let result = new MemberProfileInput();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["firstName"] = this.firstName;
+        data["lastName"] = this.lastName;
+        data["phoneNumber"] = this.phoneNumber;
+        return data;
+    }
+
+    clone(): MemberProfileInput {
+        const json = this.toJSON();
+        let result = new MemberProfileInput();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IMemberProfileInput {
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
 
     [key: string]: any;
 }
@@ -12282,6 +12451,115 @@ export class MonthlyUploadResponse implements IMonthlyUploadResponse {
 export interface IMonthlyUploadResponse {
     /** One entry per month, oldest first, gaps filled with zero */
     months?: MonthlyCount[];
+
+    [key: string]: any;
+}
+
+/** The current user's profile in their organization */
+export class MyProfileResponse implements IMyProfileResponse {
+    /** Member id */
+    id?: number;
+    /** First name */
+    firstName?: string;
+    /** Last name */
+    lastName?: string;
+    /** Email address, managed by the sign-in service */
+    email?: string;
+    /** Phone number, optional */
+    phoneNumber?: string;
+    /** Name of the organization */
+    organizationName?: string;
+    /** Role in the organization */
+    role?: Role;
+    /** What the role allows */
+    permissions?: Permission[];
+
+    [key: string]: any;
+
+    constructor(data?: IMyProfileResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.id = _data["id"];
+            this.firstName = _data["firstName"];
+            this.lastName = _data["lastName"];
+            this.email = _data["email"];
+            this.phoneNumber = _data["phoneNumber"];
+            this.organizationName = _data["organizationName"];
+            this.role = _data["role"];
+            if (Array.isArray(_data["permissions"])) {
+                this.permissions = [] as any;
+                for (let item of _data["permissions"])
+                    this.permissions!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): MyProfileResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new MyProfileResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["id"] = this.id;
+        data["firstName"] = this.firstName;
+        data["lastName"] = this.lastName;
+        data["email"] = this.email;
+        data["phoneNumber"] = this.phoneNumber;
+        data["organizationName"] = this.organizationName;
+        data["role"] = this.role;
+        if (Array.isArray(this.permissions)) {
+            data["permissions"] = [];
+            for (let item of this.permissions)
+                data["permissions"].push(item);
+        }
+        return data;
+    }
+
+    clone(): MyProfileResponse {
+        const json = this.toJSON();
+        let result = new MyProfileResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** The current user's profile in their organization */
+export interface IMyProfileResponse {
+    /** Member id */
+    id?: number;
+    /** First name */
+    firstName?: string;
+    /** Last name */
+    lastName?: string;
+    /** Email address, managed by the sign-in service */
+    email?: string;
+    /** Phone number, optional */
+    phoneNumber?: string;
+    /** Name of the organization */
+    organizationName?: string;
+    /** Role in the organization */
+    role?: Role;
+    /** What the role allows */
+    permissions?: Permission[];
 
     [key: string]: any;
 }
@@ -12708,6 +12986,8 @@ export class OrganizationMemberResponse implements IOrganizationMemberResponse {
     email?: string;
     /** Free-text office from older invitations; no longer asked for */
     position?: string;
+    /** Phone number the member entered on their profile */
+    phoneNumber?: string;
     /** Whether the member can log in, and how far their invitation got */
     status?: MemberStatus;
     /** The member's role in the organization */
@@ -12737,6 +13017,7 @@ export class OrganizationMemberResponse implements IOrganizationMemberResponse {
             this.lastName = _data["lastName"];
             this.email = _data["email"];
             this.position = _data["position"];
+            this.phoneNumber = _data["phoneNumber"];
             this.status = _data["status"];
             this.role = _data["role"];
             this.setupLink = _data["setupLink"];
@@ -12761,6 +13042,7 @@ export class OrganizationMemberResponse implements IOrganizationMemberResponse {
         data["lastName"] = this.lastName;
         data["email"] = this.email;
         data["position"] = this.position;
+        data["phoneNumber"] = this.phoneNumber;
         data["status"] = this.status;
         data["role"] = this.role;
         data["setupLink"] = this.setupLink;
@@ -12787,6 +13069,8 @@ export interface IOrganizationMemberResponse {
     email?: string;
     /** Free-text office from older invitations; no longer asked for */
     position?: string;
+    /** Phone number the member entered on their profile */
+    phoneNumber?: string;
     /** Whether the member can log in, and how far their invitation got */
     status?: MemberStatus;
     /** The member's role in the organization */
