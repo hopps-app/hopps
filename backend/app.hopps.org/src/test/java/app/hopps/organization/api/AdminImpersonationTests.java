@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class AdminImpersonationTests {
 
     private static final String PATH = "/admin/organizations";
-    /** buehnefrei-ev (org 4) owns members 15..23; gruenes-herz-ev is org 2. */
+    /** buehnefrei-ev (org 4) owns members 15, 21, 22 and 23; gruenes-herz-ev is org 2. */
     private static final long ORG_ID = 4;
     private static final long MEMBER_ID = 15;
     private static final String ADMIN_SUB = "00000000-0000-0000-0000-0000000000ad";
