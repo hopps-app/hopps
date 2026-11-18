@@ -50,4 +50,4 @@ Die Währung wird am Beleg gespeichert, die Oberfläche rechnet und formatiert a
 Heute nicht – alle Mitglieder einer Organisation haben die gleichen Rechte. Ein Rollen- und Rechtemodell pro Organisationseinheit ist der wichtigste geplante Querschnittsbaustein. → [02 §7](02-funktionsumfang.md)
 
 **Gibt es einen DATEV-Export?**
-Noch nicht; geplant. Heute: CSV-Export der Kategorie-Auswertung und Download einzelner Belege. → [02 §6](02-funktionsumfang.md)
+Noch nicht; geplant. Heute: CSV-Export aller Transaktionen und der Kategorie-Auswertung sowie Download einzelner Belege. → [02 §6](02-funktionsumfang.md)

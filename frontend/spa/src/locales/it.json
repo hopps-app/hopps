@@ -462,6 +462,20 @@
         "title": "Transazioni",
         "subtitle": "{{count}} voci · Entrate {{income}} · Uscite {{expense}}",
         "new": "Registra transazione",
+        "export": {
+            "button": "Esporta",
+            "hint": "Esporta tutte le transazioni, in qualsiasi stato, in un file CSV. Un periodo o un Bommel scelto nei filtri limita l'esportazione.",
+            "fileName": "hopps-transazioni",
+            "done": "{{n}} transazione/i esportata/e",
+            "empty": "Nessuna transazione da esportare per questo periodo e questo Bommel",
+            "failed": "Impossibile esportare le transazioni",
+            "columns": {
+                "currency": "Valuta",
+                "counterparty": "Controparte",
+                "description": "Descrizione",
+                "receipt": "N. ricevuta"
+            }
+        },
         "columns": {
             "transaction": "Transazione",
             "category": "Categoria",

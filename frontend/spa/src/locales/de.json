@@ -532,6 +532,20 @@
         "title": "Transaktionen",
         "subtitle": "{{count}} Einträge · Einnahmen {{income}} · Ausgaben {{expense}}",
         "new": "Transaktion erfassen",
+        "export": {
+            "button": "Exportieren",
+            "hint": "Exportiert alle Transaktionen in jedem Status als CSV-Datei. Ein in den Filtern gewählter Zeitraum oder Bommel schränkt den Export ein.",
+            "fileName": "hopps-transaktionen",
+            "done": "{{n}} Transaktion(en) exportiert",
+            "empty": "Keine Transaktionen für diesen Zeitraum und Bommel vorhanden",
+            "failed": "Transaktionen konnten nicht exportiert werden",
+            "columns": {
+                "currency": "Währung",
+                "counterparty": "Geschäftspartner",
+                "description": "Beschreibung",
+                "receipt": "Beleg-Nr."
+            }
+        },
         "columns": {
             "transaction": "Transaktion",
             "category": "Kategorie",

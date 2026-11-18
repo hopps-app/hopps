@@ -533,6 +533,20 @@
         "title": "Transactions",
         "subtitle": "{{count}} entries · Income {{income}} · Expenses {{expense}}",
         "new": "Record transaction",
+        "export": {
+            "button": "Export",
+            "hint": "Exports all transactions of every status as a CSV file. A period or Bommel selected in the filters limits the export.",
+            "fileName": "hopps-transactions",
+            "done": "{{n}} transaction(s) exported",
+            "empty": "No transactions to export for this period and Bommel",
+            "failed": "Transactions could not be exported",
+            "columns": {
+                "currency": "Currency",
+                "counterparty": "Counterparty",
+                "description": "Description",
+                "receipt": "Receipt no."
+            }
+        },
         "columns": {
             "transaction": "Transaction",
             "category": "Category",

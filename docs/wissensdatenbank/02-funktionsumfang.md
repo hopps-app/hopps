@@ -84,7 +84,8 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 | Einnahmen/Ausgaben/Saldo pro Organisation & Bommel (rekursiv) | ✅ | Auf der Bommel-Seite nach Zeitraum filterbar: ein Jahr (Standard: laufendes Jahr), alle Jahre oder ein freier Zeitraum, z. B. ein Geschäftsjahr; gezählt wird nach Transaktionsdatum. Offene Transaktionen und Belege im Detailbereich bleiben ungefiltert (Stand 2026-11-01) | BE `statistics/` (`startDate`/`endDate`), `GET /statistics/bommels/{id}`, SPA `views/Bommel/components/PeriodField` |
 | Summen pro Kategorie, filterbar nach Bommel & Zeitraum | ✅ | – | `GET /category-groups/{id}/report`, SPA `/reports` |
 | CSV-Export der Kategorie-Auswertung | 🟡 | Clientseitig im Browser, nur Summen | SPA `components/views/ReportsView.tsx` (`exportCsv`) |
-| Export Belegliste / Transaktionen (CSV/Excel) | ❌ / 💡 | Keine Export-Endpoints | – |
+| Export aller Transaktionen (CSV) | ✅ | Clientseitig im Browser, alle Status, optional nach Zeitraum und Bommel inkl. Unterbommel eingeschränkt. Kein XLSX (Stand 2026-11-18) | SPA `components/views/TransactionenView.tsx` (`handleExport`), `components/Transactions/exportTransactions.ts` |
+| Export Belegliste (CSV/Excel) | ❌ / 💡 | Keine Export-Endpoints | – |
 | Export Belegdateien gesammelt (ZIP) | ❌ / 💡 | Nur Einzeldownload | `GET /documents/{id}/file` |
 | DATEV-Export, PDF-Berichte | ❌ | Siehe [04-roadmap.md](04-roadmap.md) | – |
 
