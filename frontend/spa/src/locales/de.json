@@ -1919,7 +1919,8 @@
             "password": "Passwort ändern",
             "passwordHint": "Beim Anmeldedienst",
             "twoFactor": "Zwei-Faktor-Anmeldung",
-            "twoFactorHint": "Zusätzlicher Code beim Anmelden"
+            "twoFactorHint": "Zusätzlicher Code beim Anmelden",
+            "noteKeycloak": "Führt zum Anmeldedienst und danach zurück zu hopps."
         }
     }
 }

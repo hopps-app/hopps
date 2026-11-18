@@ -110,6 +110,14 @@ export class AuthService {
     }
 
     /**
+     * Keycloak only: opens one of its account actions, such as the screen for a new password, in the regular login
+     * flow. Keycloak returns to the current page afterwards, also when the person cancels.
+     */
+    async startAccountAction(action: 'UPDATE_PASSWORD' | 'CONFIGURE_TOTP') {
+        await this.userManager.signinRedirect({ state: this.currentPath(), extraQueryParams: { kc_action: action } });
+    }
+
+    /**
      * Ends the session at the provider's end-session endpoint. The auth state is deliberately left alone until the page
      * unloads: flipping it would make AuthGuard start a new login that races this redirect and wins.
      */

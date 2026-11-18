@@ -1919,7 +1919,8 @@
             "password": "Change password",
             "passwordHint": "At the sign-in service",
             "twoFactor": "Two-factor sign-in",
-            "twoFactorHint": "An extra code when signing in"
+            "twoFactorHint": "An extra code when signing in",
+            "noteKeycloak": "Takes you to the sign-in service and back to hopps."
         }
     }
 }

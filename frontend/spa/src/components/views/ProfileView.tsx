@@ -17,7 +17,8 @@ import { useMyProfile, useUpdateMyProfile } from '@/hooks/queries/useProfile';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { useUnsavedChangesWarning } from '@/hooks/use-unsaved-changes-warning';
-import { accountSecurityUrl } from '@/services/auth/auth.config';
+import { accountSecurityUrl, isKeycloakProvider } from '@/services/auth/auth.config';
+import authService from '@/services/auth/auth.service';
 
 /** Order in which the permissions card lists what a role allows. */
 const PERMISSION_ORDER: Permission[] = ['VIEW_BOOKKEEPING', 'EDIT_BOOKKEEPING', 'MANAGE_ORGANIZATION', 'MANAGE_MEMBERS'];
@@ -32,6 +33,7 @@ function ProfileView() {
     const { data: profile, isLoading, isError } = useMyProfile();
     const updateProfile = useUpdateMyProfile();
     const securityUrl = accountSecurityUrl();
+    const keycloak = isKeycloakProvider();
 
     const schema = useMemo(
         () =>
@@ -169,38 +171,71 @@ function ProfileView() {
                         </ul>
                     </SectionCard>
 
-                    {/* Password and two-factor sign-in live at the sign-in service */}
-                    {securityUrl && (
-                        <SectionCard icon={<KeyRound size={19} aria-hidden="true" />} title={t('myProfile.security.title')} note={t('myProfile.security.note')}>
+                    {/* Password and two-factor sign-in live at the sign-in service: Keycloak opens the screens in the login
+                        flow and returns here, Authentik only has its user settings, opened in a new tab. */}
+                    {(keycloak || securityUrl) && (
+                        <SectionCard
+                            icon={<KeyRound size={19} aria-hidden="true" />}
+                            title={t('myProfile.security.title')}
+                            note={t(keycloak ? 'myProfile.security.noteKeycloak' : 'myProfile.security.note')}
+                        >
                             <div className="flex flex-col divide-y divide-[#E9E9EE] dark:divide-[var(--border-soft)]">
-                                {[
-                                    { key: 'password', icon: Lock, title: t('myProfile.security.password'), hint: t('myProfile.security.passwordHint') },
-                                    {
-                                        key: 'twoFactor',
-                                        icon: Smartphone,
-                                        title: t('myProfile.security.twoFactor'),
-                                        hint: t('myProfile.security.twoFactorHint'),
-                                    },
-                                ].map((row) => (
-                                    <div key={row.key} className="py-1">
-                                        <a
-                                            href={securityUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-3.5 rounded-[12px] px-2 py-3 transition-colors hover:bg-[var(--surface-sunken)]"
-                                        >
+                                {(
+                                    [
+                                        {
+                                            key: 'password',
+                                            action: 'UPDATE_PASSWORD',
+                                            icon: Lock,
+                                            title: t('myProfile.security.password'),
+                                            hint: t('myProfile.security.passwordHint'),
+                                        },
+                                        {
+                                            key: 'twoFactor',
+                                            action: 'CONFIGURE_TOTP',
+                                            icon: Smartphone,
+                                            title: t('myProfile.security.twoFactor'),
+                                            hint: t('myProfile.security.twoFactorHint'),
+                                        },
+                                    ] as const
+                                ).map((row) => {
+                                    const content = (
+                                        <>
                                             <span className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-[10px] bg-[#F1F1F4] text-[#6B6B76] dark:bg-[var(--surface-track)] dark:text-[#A0A0AC]">
                                                 <row.icon size={18} aria-hidden="true" />
                                             </span>
-                                            <span className="flex min-w-0 flex-1 flex-col">
+                                            <span className="flex min-w-0 flex-1 flex-col text-left">
                                                 <span className="text-[14.5px] font-bold text-[#1B1B1F] dark:text-[#F2F2F5]">{row.title}</span>
-                                                <span className="text-[13px] text-[#6B6B76] dark:text-[#A0A0AC]">{row.hint}</span>
+                                                <span className="text-[13px] font-normal text-[#6B6B76] dark:text-[#A0A0AC]">{row.hint}</span>
                                             </span>
-                                            <ExternalLink size={16} aria-hidden="true" className="text-[#9A9AA3]" />
+                                            {!keycloak && <ExternalLink size={16} aria-hidden="true" className="text-[#9A9AA3]" />}
                                             <ChevronRight size={16} aria-hidden="true" className="text-[#9A9AA3]" />
-                                        </a>
-                                    </div>
-                                ))}
+                                        </>
+                                    );
+                                    const rowClass =
+                                        'flex w-full items-center gap-3.5 rounded-[12px] px-2 py-3 transition-colors hover:bg-[var(--surface-sunken)]';
+                                    return (
+                                        <div key={row.key} className="py-1">
+                                            {keycloak ? (
+                                                <BaseButton
+                                                    type="button"
+                                                    variant="ghost"
+                                                    onClick={() =>
+                                                        authService
+                                                            .startAccountAction(row.action)
+                                                            .catch((e) => console.error('Failed to open the account action:', e))
+                                                    }
+                                                    className={`${rowClass} h-auto justify-start hover:text-inherit`}
+                                                >
+                                                    {content}
+                                                </BaseButton>
+                                            ) : (
+                                                <a href={securityUrl} target="_blank" rel="noopener noreferrer" className={rowClass}>
+                                                    {content}
+                                                </a>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </SectionCard>
                     )}

@@ -17,6 +17,11 @@ export const oidcClientId: string | undefined = import.meta.env.VITE_OIDC_CLIENT
  */
 export const oidcScope: string = import.meta.env.VITE_OIDC_SCOPE?.trim() || 'openid profile email';
 
+/** Whether {@link oidcProviderUrl} points to a Keycloak realm, which offers account actions in the login flow. */
+export function isKeycloakProvider(providerUrl: string | undefined = oidcProviderUrl): boolean {
+    return !!providerUrl && /\/realms\/[^/]+\/?$/.test(providerUrl);
+}
+
 /**
  * Page of the sign-in service where a person changes their password and sets up two-factor sign-in, derived from
  * {@link oidcProviderUrl}: the account console of the Keycloak realm, or the user settings of Authentik. Undefined for
