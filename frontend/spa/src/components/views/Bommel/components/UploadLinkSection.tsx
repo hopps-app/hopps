@@ -3,6 +3,8 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { endOfDay, todayIso } from './expiryDate';
+
 import { inputCls } from '@/components/Transactions/drawerParts';
 import { Eyebrow } from '@/components/Transactions/Eyebrow';
 import { fmtDate } from '@/components/Transactions/format';
@@ -20,17 +22,6 @@ import { cn } from '@/lib/utils';
 interface UploadLinkSectionProps {
     bommelId: number;
     bommelName: string;
-}
-
-/** End of the picked day in local time, so a link "valid until 31.12." still works on that day. */
-function endOfDay(date: string): Date {
-    const [y, m, d] = date.split('-').map(Number);
-    return new Date(y, m - 1, d, 23, 59, 59);
-}
-
-function todayIso(): string {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
 /**

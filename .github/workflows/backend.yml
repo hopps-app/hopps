@@ -30,12 +30,20 @@ jobs:
           - label: org
             directory: app.hopps.org
             serviceName: org
+            deploy: true
           - label: az-document-ai
             directory: app.hopps.az-document-ai
             serviceName: azDocumentAi
+            deploy: true
           - label: zugferd
             directory: app.hopps.zugferd
             serviceName: zugferd
+            deploy: true
+          # deploy: false until hopps.cloud can deploy the chatbot (the dispatch would fail otherwise)
+          - label: chatbot
+            directory: app.hopps.chatbot
+            serviceName: chatbot
+            deploy: false
 
     runs-on: ubuntu-latest
     steps:
@@ -88,8 +96,8 @@ jobs:
 
       - name: Trigger deploy workflow
         uses: actions/github-script@v9
-        # only trigger deployment on main
-        if: ${{ github.ref == 'refs/heads/main' }}
+        # only trigger deployment on main, and only for services hopps.cloud knows about
+        if: ${{ github.ref == 'refs/heads/main' && matrix.service.deploy }}
         with:
           github-token: ${{ secrets.TECHNICAL_USER_PAT }}
           script: |

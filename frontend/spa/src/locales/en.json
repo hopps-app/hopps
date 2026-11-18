@@ -1220,6 +1220,11 @@
             "by": "Via link from {{name}}",
             "hint": "Submitted without an account through the bommel's upload link",
             "comment": "Comment"
+        },
+        "whatsapp": {
+            "badge": "WhatsApp",
+            "by": "Via WhatsApp from {{name}}",
+            "hint": "Sent through the Hopps WhatsApp chatbot by a number invited to the bommel"
         }
     },
     "bommel": {
@@ -1417,6 +1422,37 @@
                 "start": "Add the first Bommel"
             },
             "start": "Start the tour"
+        },
+        "whatsapp": {
+            "title": "WhatsApp",
+            "description": "Invite people to send receipts for this bommel via WhatsApp. Hopps sends them an invitation; once they accept, every photo or PDF they send to Hopps lands here as a receipt.",
+            "stopHint": "Sending STOP disconnects a number. Applies to this Bommel only.",
+            "name": "Name",
+            "namePlaceholder": "Name",
+            "phone": "WhatsApp number",
+            "phonePlaceholder": "WhatsApp number, e.g. +49 176 12345678",
+            "invite": "Send invitation",
+            "inviteHint": "Hopps sends the invitation via WhatsApp. The number is connected once it is accepted.",
+            "sent": "Invitation sent to {{name}}",
+            "resend": "Send invitation again",
+            "remove": "Remove",
+            "removed": "Removed",
+            "removeConfirmTitle": "Remove {{name}}?",
+            "removeConfirmActive": "Receipts from this number are no longer accepted for this bommel.",
+            "removeConfirmInvited": "The invitation can no longer be accepted.",
+            "invitedAt": "invited {{date}}",
+            "joinedAt": "since {{date}}",
+            "status": {
+                "invited": "Invited",
+                "expired": "Expired",
+                "active": "Connected",
+                "declined": "Declined"
+            },
+            "error": "Could not change the WhatsApp contacts",
+            "errorInvalid": "Please enter a name and a WhatsApp number with country code, e.g. +49 176 12345678.",
+            "errorAlreadyConnected": "This number is already connected to this bommel.",
+            "errorTooMany": "Too many invitations right now. Please try again later.",
+            "errorNotSent": "The invitation could not be sent. Nothing was saved."
         }
     },
     "bankAccounts": {

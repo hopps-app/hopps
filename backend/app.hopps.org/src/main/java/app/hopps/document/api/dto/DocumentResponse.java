@@ -52,7 +52,8 @@ public record DocumentResponse(
         Instant createdAt,
         Instant updatedAt,
         String uploadedBy,
-        // APP, or UPLOAD_LINK when submitted without an account through the bommel's upload link
+        // APP, UPLOAD_LINK when submitted without an account through the bommel's upload link, or WHATSAPP via the
+        // chatbot
         UploadChannel uploadChannel,
         String uploaderComment) {
     /**

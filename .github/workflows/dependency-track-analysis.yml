@@ -17,6 +17,7 @@ jobs:
           - "app.hopps.org"
           - "app.hopps.az-document-ai"
           - "app.hopps.zugferd"
+          - "app.hopps.chatbot"
 
     steps:
       # Checkout the code
