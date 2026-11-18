@@ -5611,6 +5611,14 @@ export class Client {
             result400 = ValidationResult.fromJS(resultData400);
             return throwException("Validation failed", status, _responseText, _headers, result400);
             });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Authorized", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -12640,7 +12648,7 @@ export interface IPagedValuesResponse {
     [key: string]: any;
 }
 
-export type Permission = "MANAGE_MEMBERS";
+export type Permission = "VIEW_BOOKKEEPING" | "EDIT_BOOKKEEPING" | "MANAGE_ORGANIZATION" | "MANAGE_MEMBERS";
 
 export class PublicReceiptForm implements IPublicReceiptForm {
     /** The receipt (PNG, JPEG or PDF) */
