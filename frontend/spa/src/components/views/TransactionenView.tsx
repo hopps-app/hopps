@@ -1,5 +1,5 @@
 import { TransactionDisplayStatus, TransactionResponse } from '@hopps/api-client';
-import { ChevronLeft, ChevronRight, Plus, Search, FileText, Trash2, Filter, Wallet, Unlink } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Loader2, Plus, Search, FileText, Trash2, Filter, Wallet, Unlink } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
@@ -10,6 +10,7 @@ import { TableEmptyState } from '@/components/common';
 import { ALL_BOMMELS, BommelSelect, BommelSelection } from '@/components/Dashboard/BommelSelect';
 import { collectSubtreeIds, flattenBommelTree } from '@/components/Dashboard/bommelTree';
 import { DeleteTransactionDialog } from '@/components/Receipts/DeleteTransactionDialog';
+import { transactionsCsv, transactionsExportFileName } from '@/components/Transactions/exportTransactions';
 import { FilterBadge } from '@/components/Transactions/FilterBadge';
 import { fmtDate } from '@/components/Transactions/format';
 import { FONT, HIDE_BOMMEL_QUERY, TX_GRID, TX_GRID_NARROW } from '@/components/Transactions/layout';
@@ -25,6 +26,7 @@ import { StatusSegments } from '@/components/ui/StatusSegments';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import { useDeleteDocument, usePrefetchDocument } from '@/hooks/queries/useDocuments';
 import {
+    fetchAllTransactions,
     useTransactions,
     useTransactionAggregate,
     useDeleteTransaction,
@@ -37,6 +39,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
 import { usePersistedState } from '@/hooks/usePersistedState';
+import { downloadCsv } from '@/lib/csv';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 import { useStore } from '@/store/store';
 
@@ -170,8 +173,8 @@ function TransactionRow({
 // ─── Main view ────────────────────────────────────────────────────────────────
 
 export function TransactionenView() {
-    const { t } = useTranslation();
-    const { format } = useCurrency();
+    const { t, i18n } = useTranslation();
+    const { format, currency } = useCurrency();
     usePageTitle(t('transactions.title'));
     const { showSuccess, showWarning, showError } = useToast();
     const hideBommel = useMediaQuery(HIDE_BOMMEL_QUERY);
@@ -197,6 +200,7 @@ export function TransactionenView() {
     const [createOpen, setCreateOpen] = useState(false);
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+    const [exporting, setExporting] = useState(false);
     const bulkDelete = useDeleteTransaction({ silent: true });
     const deleteDocumentBulk = useDeleteDocument({ silent: true });
     const PAGE_SIZE = 30;
@@ -435,6 +439,31 @@ export function TransactionenView() {
         setBulkDeleteOpen(false);
     };
 
+    // The export is meant for the tax advisor or the auditors, so it covers every status (the page starts on the drafts)
+    // and only follows the period and the Bommel, sub-Bommel included.
+    const handleExport = async () => {
+        setExporting(true);
+        try {
+            const rows = await fetchAllTransactions({
+                bommelIds: bommelIds.length > 0 ? bommelIds : undefined,
+                startDate: startDate || undefined,
+                endDate: endDate || undefined,
+                sortBy: 'transactionTime',
+                sortDir: 'asc',
+            });
+            if (rows.length === 0) {
+                showWarning(t('transactions.export.empty'));
+                return;
+            }
+            downloadCsv(transactionsExportFileName(t('transactions.export.fileName')), transactionsCsv(rows, t, i18n.language, currency));
+            showSuccess(t('transactions.export.done', { n: rows.length }));
+        } catch {
+            showError(t('transactions.export.failed'));
+        } finally {
+            setExporting(false);
+        }
+    };
+
     // ── Category-group filter handlers ──
     const addCategoryFilterRow = () => {
         setCategoryFilterRows((prev) => [...prev, { groupId: null }]);
@@ -520,18 +549,36 @@ export function TransactionenView() {
                         })}
                     </p>
                 </div>
-                <button
-                    onClick={() => setCreateOpen(true)}
-                    className="inline-flex items-center gap-2 whitespace-nowrap bg-primary text-white font-bold shadow-[0_1px_2px_rgba(120,60,180,0.25)] transition-colors hover:bg-primary/90 active:translate-y-[0.5px]"
-                    style={{
-                        fontSize: 14.5,
-                        padding: '11px 20px',
-                        borderRadius: 'var(--btn-radius)',
-                    }}
-                >
-                    <Plus size={17} strokeWidth={2.5} />
-                    {t('transactions.new')}
-                </button>
+                <div className="flex flex-wrap items-center justify-end gap-2.5">
+                    <button
+                        onClick={handleExport}
+                        disabled={exporting || totalAggregate?.count === 0}
+                        aria-busy={exporting}
+                        title={t('transactions.export.hint')}
+                        className="inline-flex items-center gap-2 whitespace-nowrap border border-border-soft font-bold text-muted-foreground transition-colors hover:border-purple-300 hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+                        style={{
+                            fontSize: 14.5,
+                            padding: '10px 18px',
+                            borderRadius: 'var(--btn-radius)',
+                            background: 'var(--background-secondary)',
+                        }}
+                    >
+                        {exporting ? <Loader2 size={17} className="animate-spin" /> : <Download size={17} />}
+                        {t('transactions.export.button')}
+                    </button>
+                    <button
+                        onClick={() => setCreateOpen(true)}
+                        className="inline-flex items-center gap-2 whitespace-nowrap bg-primary text-white font-bold shadow-[0_1px_2px_rgba(120,60,180,0.25)] transition-colors hover:bg-primary/90 active:translate-y-[0.5px]"
+                        style={{
+                            fontSize: 14.5,
+                            padding: '11px 20px',
+                            borderRadius: 'var(--btn-radius)',
+                        }}
+                    >
+                        <Plus size={17} strokeWidth={2.5} />
+                        {t('transactions.new')}
+                    </button>
+                </div>
             </div>
 
             {/* ── Filter bar ── */}

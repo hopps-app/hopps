@@ -34,7 +34,9 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
@@ -719,6 +721,48 @@ class TransactionResourceTest {
                 .body("count", is(2))
                 .body("sumIncome", is(100.0f))
                 .body("sumExpense", is(40.0f));
+    }
+
+    @Transactional
+    List<Long> createTransactionsAt(Instant time, int count) {
+        Organization org = organizationRepository.findById(4L);
+        return IntStream.range(0, count).mapToObj(i -> {
+            Transaction tx = new Transaction();
+            tx.setOrganization(org);
+            tx.setCreatedBy("alice@example.test");
+            tx.setTotal(BigDecimal.TEN);
+            tx.setName("Same day " + i);
+            tx.setTransactionTime(time);
+            transactionRepository.persist(tx);
+            return tx.getId();
+        }).toList();
+    }
+
+    @Test
+    void listBreaksSortTiesByIdSoPagesStayStable() {
+        List<Long> ids = createTransactionsAt(Instant.parse("2031-05-05T10:00:00Z"), 5);
+
+        for (String direction : List.of("asc", "desc")) {
+            List<Long> expected = "asc".equals(direction) ? ids : ids.reversed();
+            List<Long> paged = new ArrayList<>();
+            for (int page = 0; page < 3; page++) {
+                paged.addAll(given()
+                        .queryParam("startDate", "2031-05-05")
+                        .queryParam("endDate", "2031-05-05")
+                        .queryParam("sortBy", "transactionTime")
+                        .queryParam("sortDir", direction)
+                        .queryParam("page", page)
+                        .queryParam("size", 2)
+                        .when()
+                        .get()
+                        .then()
+                        .statusCode(200)
+                        .extract()
+                        .jsonPath()
+                        .getList("id", Long.class));
+            }
+            assertEquals(expected, paged);
+        }
     }
 
     protected String getAccessToken(String userName) {

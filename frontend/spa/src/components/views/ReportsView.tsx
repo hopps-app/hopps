@@ -15,6 +15,7 @@ import { useCategoryGroups, useCategoryGroupReport } from '@/hooks/queries/useCa
 import { useCurrency } from '@/hooks/use-currency';
 import { useEnsureBommels } from '@/hooks/use-ensure-bommels';
 import { usePageTitle } from '@/hooks/use-page-title';
+import { downloadCsv, toCsv } from '@/lib/csv';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
 const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
@@ -94,10 +95,6 @@ export function ReportsView() {
         if (hasHierarchy) {
             header.unshift(t('reports.table.parent'));
         }
-        const cell = (v: string | number) => {
-            const s = String(v);
-            return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-        };
         const line = (r: CategoryGroupReportRow) => [r.value ?? '', r.count ?? 0, num(r.income), num(r.expense), num(r.income) - num(r.expense)];
         const body = rows.flatMap((r) => {
             if (!hasHierarchy) {
@@ -107,16 +104,8 @@ export function ReportsView() {
             return children.length > 0 ? children.map((c) => [r.value ?? '', ...line(c)]) : [['', ...line(r)]];
         });
         body.push([...(hasHierarchy ? [''] : []), t('reports.total'), totals.count, totals.income, totals.expense, totals.net]);
-        const csv = [header, ...body].map((row) => row.map(cell).join(';')).join('\r\n');
-        // BOM so Excel reads UTF-8 (umlauts) correctly
-        const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
         const range = [startDate, endDate].filter(Boolean).join('_');
-        a.download = `bericht_${report.groupName ?? groupId}${range ? '_' + range : ''}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
+        downloadCsv(`bericht_${report.groupName ?? groupId}${range ? '_' + range : ''}.csv`, toCsv([header, ...body]));
     }
 
     // Until the groups are known it is unclear whether the setup or the report applies, so show the page shape.
