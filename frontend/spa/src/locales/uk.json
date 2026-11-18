@@ -644,6 +644,20 @@
         }
     },
     "transactions": {
+        "export": {
+            "button": "Експортувати",
+            "hint": "Експортує всі транзакції з будь-яким статусом у файл CSV. Період або Bommel, вибрані у фільтрах, обмежують експорт.",
+            "fileName": "hopps-transactions",
+            "done": "Експортовано транзакцій: {{n}}",
+            "empty": "Немає транзакцій для експорту за цей період і Bommel",
+            "failed": "Не вдалося експортувати транзакції",
+            "columns": {
+                "currency": "Валюта",
+                "counterparty": "Контрагент",
+                "description": "Опис",
+                "receipt": "№ чека"
+            }
+        },
         "detail": {
             "usedAmount": "використано: {{amount}}",
             "unlinkReopen": {

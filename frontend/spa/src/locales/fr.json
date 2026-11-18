@@ -459,6 +459,20 @@
         "title": "Transactions",
         "subtitle": "{{count}} entrées · Recettes {{income}} · Dépenses {{expense}}",
         "new": "Enregistrer une transaction",
+        "export": {
+            "button": "Exporter",
+            "hint": "Exporte toutes les transactions, quel que soit leur statut, dans un fichier CSV. Une période ou un Bommel choisi dans les filtres limite l'export.",
+            "fileName": "hopps-transactions",
+            "done": "{{n}} transaction(s) exportée(s)",
+            "empty": "Aucune transaction à exporter pour cette période et ce Bommel",
+            "failed": "Les transactions n'ont pas pu être exportées",
+            "columns": {
+                "currency": "Devise",
+                "counterparty": "Partenaire commercial",
+                "description": "Description",
+                "receipt": "N° de reçu"
+            }
+        },
         "columns": {
             "transaction": "Transaction",
             "category": "Catégorie",
