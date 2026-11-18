@@ -78,7 +78,7 @@ export function OrganizationRegistrationForm(props: Props) {
         if (getValues('passwordConfirm')) void trigger('passwordConfirm');
     };
 
-    // Two steps: the organization first, then the administrator account that owns it.
+    // Two steps: the organization first, then the account that owns it.
     const [step, setStep] = useState<1 | 2>(1);
     const [organization, setOrganization] = useState<OrganizationFieldValues>(DEFAULT_ORGANIZATION_FIELDS);
     const [organizationErrors, setOrganizationErrors] = useState<ReturnType<typeof organizationFieldErrors>>({});
@@ -164,7 +164,6 @@ export function OrganizationRegistrationForm(props: Props) {
         <form noValidate onSubmit={handleSubmit(onSubmit)}>
             <div className="mb-4">
                 <h1 className="text-xl font-semibold text-left">{isSetup ? t('organization.setup.header') : t('organization.registration.header')}</h1>
-                <p className="mt-1 text-sm text-muted text-left">{isSetup ? t('organization.setup.subtitle') : t('organization.registration.subtitle')}</p>
                 {/* Thin two-part progress bar: done and current segments filled, the step names below. */}
                 <div
                     className="mt-4"
@@ -183,13 +182,16 @@ export function OrganizationRegistrationForm(props: Props) {
                         ))}
                     </div>
                     <div className="mt-1.5 flex text-[11px] font-semibold text-muted-foreground">
-                        {[t('organization.registration.stepOrganization'), t('organization.registration.stepAdmin')].map((label, i) => (
+                        {[t('organization.registration.stepOrganization'), t('organization.registration.stepAccount')].map((label, i) => (
                             <span key={label} className={cn('flex-1', i + 1 === step && 'text-foreground')}>
                                 {label}
                             </span>
                         ))}
                     </div>
                 </div>
+                <p className="mt-4 text-sm text-muted text-left">
+                    {step === 1 ? t('organization.registration.stepOrganizationHint') : t('organization.registration.stepAccountHint')}
+                </p>
             </div>
 
             {step === 1 ? (
