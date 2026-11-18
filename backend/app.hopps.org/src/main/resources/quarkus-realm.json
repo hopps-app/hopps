@@ -2379,7 +2379,8 @@
       "requiredActions": [],
       "realmRoles": [
         "admin",
-        "user"
+        "user",
+        "default-roles-quarkus"
       ],
       "notBefore": 0,
       "groups": []
@@ -2410,7 +2411,8 @@
       ],
       "requiredActions": [],
       "realmRoles": [
-        "user"
+        "user",
+        "default-roles-quarkus"
       ],
       "notBefore": 0,
       "groups": []
@@ -2442,7 +2444,8 @@
       "requiredActions": [],
       "realmRoles": [
         "confidential",
-        "user"
+        "user",
+        "default-roles-quarkus"
       ],
       "notBefore": 0,
       "groups": []
@@ -2473,7 +2476,8 @@
       ],
       "requiredActions": [],
       "realmRoles": [
-        "user"
+        "user",
+        "default-roles-quarkus"
       ],
       "notBefore": 0,
       "groups": []
@@ -2504,7 +2508,8 @@
       ],
       "requiredActions": [],
       "realmRoles": [
-        "user"
+        "user",
+        "default-roles-quarkus"
       ],
       "notBefore": 0,
       "groups": []
