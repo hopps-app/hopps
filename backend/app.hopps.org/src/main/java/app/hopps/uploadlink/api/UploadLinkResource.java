@@ -2,12 +2,13 @@ package app.hopps.uploadlink.api;
 
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.member.domain.Permission;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.uploadlink.api.dto.UploadLinkRequest;
 import app.hopps.uploadlink.api.dto.UploadLinkResponse;
 import app.hopps.uploadlink.service.UploadLinkService;
-import io.quarkus.security.Authenticated;
+import io.quarkus.security.PermissionsAllowed;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -35,7 +36,6 @@ import java.util.Objects;
  * Manages the public upload link of a bommel. Every member of the organization may do this; there is no dedicated
  * permission for it.
  */
-@Authenticated
 @Path("/upload-links")
 public class UploadLinkResource {
 
@@ -52,6 +52,7 @@ public class UploadLinkResource {
     SecurityIdentity securityIdentity;
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/{bommelId}")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(operationId = "getBommelUploadLink", summary = "Get the upload link of a bommel", description = "Returns the bommel's public upload link, including whether it has expired. Answers 204 without a body when the bommel has no link.")
@@ -67,6 +68,7 @@ public class UploadLinkResource {
     }
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{bommelId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -89,6 +91,7 @@ public class UploadLinkResource {
     }
 
     @DELETE
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{bommelId}")
     @Transactional
     @Operation(operationId = "revokeBommelUploadLink", summary = "Revoke the upload link of a bommel", description = "Deletes the bommel's public upload link; uploads through it are no longer accepted.")

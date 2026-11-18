@@ -57,6 +57,10 @@ public class MemberOrganization extends PanacheEntity {
         return organization;
     }
 
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
     public Role getRole() {
         return role;
     }

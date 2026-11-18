@@ -11,5 +11,5 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record AuthentikUser(long pk, String uuid, String username, String name, String email,
-        @JsonProperty("is_active") boolean isActive) {
+        @JsonProperty("is_active") boolean isActive, @JsonProperty("last_login") String lastLogin) {
 }

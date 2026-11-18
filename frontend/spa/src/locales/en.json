@@ -165,7 +165,7 @@
             "serverError": "The server encountered an error. Please try again later.",
             "notFound": "The requested resource was not found.",
             "unauthorized": "Your session has expired. Please log in again.",
-            "forbidden": "You do not have permission to perform this action.",
+            "forbidden": "You don't have permission for this action. Please contact the founder of your organization.",
             "conflict": "A conflict occurred. The resource may have been modified.",
             "badRequest": "The request was invalid. Please check your input.",
             "unknown": "An unexpected error occurred. Please try again.",
@@ -260,7 +260,6 @@
         "details": {
             "typeVerein": "Association (Verein)",
             "title": "Organization Details",
-            "description": "Manage your organization's basic information",
             "name": "Organization Name",
             "slug": "Slug",
             "type": "Organization Type",
@@ -363,7 +362,8 @@
                     "submit": "Add",
                     "success": "User added",
                     "duplicate": "This email address is already in use.",
-                    "error": "The user could not be added."
+                    "error": "The user could not be added.",
+                    "role": "Role"
                 },
                 "setupLink": {
                     "title": "Pass on the invitation link",
@@ -380,7 +380,48 @@
                     "confirm": "Remove",
                     "success": "User removed",
                     "error": "The user could not be removed."
-                }
+                },
+                "role": "Role",
+                "roles": {
+                    "OWNER": {
+                        "name": "Founder",
+                        "description": "Created the organization. Can do everything, maintains the organization details and manages members and roles."
+                    },
+                    "ADMIN": {
+                        "name": "Treasurer",
+                        "description": "Views, edits and confirms the bookkeeping."
+                    },
+                    "BOARD": {
+                        "name": "Board",
+                        "description": "Sees all finances, changes nothing."
+                    },
+                    "AUDITOR": {
+                        "name": "Auditor",
+                        "description": "Sees everything, changes nothing."
+                    }
+                },
+                "changeRole": {
+                    "label": "Role of {{name}}",
+                    "success": "Role changed",
+                    "error": "The role could not be changed."
+                },
+                "rolesNotice": {
+                    "title": "Now with roles",
+                    "text": "You can now assign roles: Treasurer, Board or Auditor. All existing members have the Treasurer role and keep their rights. Change a role right here in the list.",
+                    "dismiss": "Got it"
+                },
+                "edit": {
+                    "button": "Edit {{name}}",
+                    "title": "Edit user",
+                    "subtitle": "Correct the name and, while the invitation is pending, the email address.",
+                    "emailHint": "A changed address gets the invitation again.",
+                    "emailLocked": "After their first login, the person changes their email address themselves.",
+                    "submit": "Save",
+                    "success": "Changes saved",
+                    "duplicate": "This email address already belongs to someone else.",
+                    "error": "The changes could not be saved."
+                },
+                "you": "(you)"
             }
         },
         "noOrganization": {
@@ -443,8 +484,10 @@
     "settings": {
         "menu": {
             "account": "My Account",
-            "profile": "Profile"
-        }
+            "profile": "Profile",
+            "settings": "Settings"
+        },
+        "description": "Language and appearance, saved in this browser."
     },
     "reports": {
         "title": "Reports",
@@ -1840,6 +1883,44 @@
             "server": "Something went wrong on our side. Please try again in a few minutes.",
             "summary_one": "{{count}} receipt could not be uploaded. Use the button below to try again.",
             "summary_other": "{{count}} receipts could not be uploaded. Use the button below to try again."
+        }
+    },
+    "myProfile": {
+        "title": "Profile",
+        "personal": {
+            "title": "Personal details",
+            "note": "Visible to the other members of your organization"
+        },
+        "firstName": "First name",
+        "lastName": "Last name",
+        "email": "Email",
+        "emailHint": "Your email address is managed by the sign-in service.",
+        "phone": "Phone number",
+        "phonePlaceholder": "e.g. +49 170 1234567",
+        "phoneInvalid": "Only digits, spaces and + ( ) / . - are allowed",
+        "discard": "Discard",
+        "save": "Save changes",
+        "saved": "Profile saved",
+        "saveError": "The profile could not be saved.",
+        "loadError": "The profile could not be loaded.",
+        "permissions": {
+            "title": "Permissions",
+            "note": "Role {{role}} in {{organization}}",
+            "items": {
+                "VIEW_BOOKKEEPING": "View the bookkeeping",
+                "EDIT_BOOKKEEPING": "Edit and confirm receipts and transactions",
+                "MANAGE_ORGANIZATION": "Maintain the organization details",
+                "MANAGE_MEMBERS": "Manage members and assign roles"
+            }
+        },
+        "security": {
+            "title": "Account and security",
+            "note": "Opens your account at the sign-in service in a new tab.",
+            "password": "Change password",
+            "passwordHint": "At the sign-in service",
+            "twoFactor": "Two-factor sign-in",
+            "twoFactorHint": "An extra code when signing in",
+            "noteKeycloak": "Takes you to the sign-in service and back to hopps."
         }
     }
 }

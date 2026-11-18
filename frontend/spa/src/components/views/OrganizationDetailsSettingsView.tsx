@@ -1,18 +1,34 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Address, ApiException, Currency, Member, MemberStatus, NewMemberInput, OrganizationInput, OrganizationType } from '@hopps/api-client';
+import {
+    Address,
+    ApiException,
+    Currency,
+    MemberRoleInput,
+    MemberStatus,
+    MemberUpdateInput,
+    NewMemberInput,
+    OrganizationInput,
+    OrganizationMemberResponse,
+    OrganizationType,
+    Role,
+} from '@hopps/api-client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Building2, Check, Coins, Globe, ImageIcon, Info, Landmark, Lock, Trash2, Undo2, Upload, UserPlus, Users } from 'lucide-react';
+import { Building2, Check, Coins, Globe, ImageIcon, Info, Landmark, Lock, Pencil, Trash2, Undo2, Upload, UserPlus, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
-import { AddUserDialog, type NewUserValues } from '@/components/Organization/AddUserDialog';
+import { SectionCard } from '@/components/common/SectionCard';
+import { ASSIGNABLE_ROLES, AddUserDialog, type NewUserValues } from '@/components/Organization/AddUserDialog';
+import { EditUserDialog, type EditUserValues } from '@/components/Organization/EditUserDialog';
 import { CARD } from '@/components/Organization/layout';
 import { OrganizationDetailsSkeleton, OrganizationUsersSkeleton } from '@/components/Organization/OrganizationDetailsSkeleton';
 import { SetupLinkDialog } from '@/components/Organization/SetupLinkDialog';
+import Button from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import Select from '@/components/ui/Select';
+import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import TextField from '@/components/ui/TextField';
 import { useHasPermission } from '@/hooks/queries';
 import { useCountries } from '@/hooks/use-countries';
@@ -30,11 +46,11 @@ const FONT = '"Hanken Grotesk", "Reddit Sans", sans-serif';
 
 /** Field widths follow the design's 6-column grid; everything collapses to full width on small screens. */
 const SPAN: Record<number, string> = {
-    1: 'col-span-2 md:col-span-1',
-    2: 'col-span-2 md:col-span-2',
-    3: 'col-span-2 md:col-span-3',
-    4: 'col-span-2 md:col-span-4',
-    6: 'col-span-2 md:col-span-6',
+    1: 'col-span-2 lg:col-span-1',
+    2: 'col-span-2 lg:col-span-2',
+    3: 'col-span-2 lg:col-span-3',
+    4: 'col-span-2 lg:col-span-4',
+    6: 'col-span-2 lg:col-span-6',
 };
 
 function isoToGerman(iso: string): string {
@@ -51,41 +67,8 @@ function germanToIso(german: string): string {
 
 // ─── Layout primitives ────────────────────────────────────────────────────────
 
-function SectionCard({
-    icon,
-    title,
-    note,
-    action,
-    children,
-}: {
-    icon: React.ReactNode;
-    title: string;
-    note?: string;
-    /** Rendered top right of the card header. */
-    action?: React.ReactNode;
-    children: React.ReactNode;
-}) {
-    return (
-        <section className={`${CARD} px-6 py-[22px] flex flex-col gap-4`}>
-            <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-[13px] min-w-0">
-                    <div className="w-9 h-9 rounded-[10px] bg-[#F1F1F4] text-[#6B6B76] dark:bg-[#26262D] dark:text-[#A0A0AC] grid place-items-center flex-shrink-0">
-                        {icon}
-                    </div>
-                    <div className="flex flex-col gap-[3px] min-w-0">
-                        <span className="text-[16.5px] font-extrabold tracking-[-0.01em] text-[#1B1B1F] dark:text-[#F2F2F5]">{title}</span>
-                        {note && <span className="text-[13.5px] text-[#6B6B76] dark:text-[#A0A0AC]">{note}</span>}
-                    </div>
-                </div>
-                {action}
-            </div>
-            {children}
-        </section>
-    );
-}
-
 function FieldGrid({ children }: { children: React.ReactNode }) {
-    return <div className="grid grid-cols-2 md:grid-cols-6 gap-[14px]">{children}</div>;
+    return <div className="grid grid-cols-2 lg:grid-cols-6 gap-[14px]">{children}</div>;
 }
 
 /** Positions a field in the 6-column grid and renders the design's optional hint line underneath. */
@@ -103,17 +86,39 @@ const AVATAR_TONES = [
     'bg-[#F3EAFB] text-[#7E3FB4] dark:bg-[#33204A] dark:text-[#C9A6E6]',
     'bg-[#E7F4EC] text-[#1F7A50] dark:bg-[#16301F] dark:text-[#7FD3A0]',
     'bg-[#FBF1DD] text-[#B47C18] dark:bg-[#33280F] dark:text-[#E4B75B]',
-    'bg-[#F1F1F4] text-[#6B6B76] dark:bg-[#26262D] dark:text-[#A0A0AC]',
+    'bg-[#F1F1F4] text-[#6B6B76] dark:bg-[var(--surface-track)] dark:text-[#A0A0AC]',
 ];
 
 // One grid for the whole user list, with each row as a subgrid: the columns are sized across all rows, so a long
 // status pill ("Einladung fehlgeschlagen") no longer shifts that one row's columns out of line with the others.
-const USER_LIST_GRID = 'grid grid-cols-[minmax(150px,1.5fr)_minmax(110px,1fr)_minmax(150px,1.4fr)_minmax(104px,auto)] gap-x-3';
-// Same columns plus one for the remove button, for users who may manage members.
-const USER_LIST_GRID_WITH_ACTIONS = 'grid grid-cols-[minmax(150px,1.5fr)_minmax(110px,1fr)_minmax(150px,1.4fr)_minmax(104px,auto)_32px] gap-x-3';
+// Below lg the email moves under the name, so name, role and status fit next to the sidebar without scrolling.
+const USER_LIST_GRID =
+    'grid grid-cols-[minmax(0,1fr)_auto_auto] lg:grid-cols-[minmax(150px,1.5fr)_minmax(150px,1.4fr)_minmax(140px,1fr)_minmax(104px,auto)] gap-x-3';
+// Same columns plus one for the edit and remove buttons, for users who may manage members.
+const USER_LIST_GRID_WITH_ACTIONS =
+    'grid grid-cols-[minmax(0,1fr)_auto_auto_72px] lg:grid-cols-[minmax(150px,1.5fr)_minmax(150px,1.4fr)_minmax(140px,1fr)_minmax(104px,auto)_72px] gap-x-3';
 const USER_ROW = 'col-span-full grid grid-cols-subgrid';
 
-function displayName(member: Member): string {
+/** Remembers per organization and browser that the founder has seen the notice about the new roles (issue #959). */
+const ROLES_NOTICE_KEY = 'hopps.rolesNotice.dismissed';
+
+function rolesNoticeDismissed(slug: string | undefined): boolean {
+    try {
+        return !!slug && localStorage.getItem(`${ROLES_NOTICE_KEY}.${slug}`) === '1';
+    } catch {
+        return false;
+    }
+}
+
+function dismissRolesNotice(slug: string | undefined) {
+    try {
+        if (slug) localStorage.setItem(`${ROLES_NOTICE_KEY}.${slug}`, '1');
+    } catch {
+        // Without storage the notice simply shows again next time.
+    }
+}
+
+function displayName(member: OrganizationMemberResponse): string {
     return [member.firstName, member.lastName].filter(Boolean).join(' ') || member.email || '';
 }
 
@@ -122,7 +127,7 @@ const STATUS_TONES: Record<MemberStatus, string> = {
     ACTIVE: 'bg-[#E7F4EC] text-[#1F7A50] dark:bg-[#16301F] dark:text-[#7FD3A0]',
     INVITED: 'bg-[#FBF1DD] text-[#B47C18] dark:bg-[#33280F] dark:text-[#E4B75B]',
     INVITATION_FAILED: 'bg-[#FBE9E7] text-[#B4342A] dark:bg-[#3A1D19] dark:text-[#F0958A]',
-    NO_ACCESS: 'bg-[#F1F1F4] text-[#6B6B76] dark:bg-[#26262D] dark:text-[#A0A0AC]',
+    NO_ACCESS: 'bg-[#F1F1F4] text-[#6B6B76] dark:bg-[var(--surface-track)] dark:text-[#A0A0AC]',
 };
 
 function StatusPill({ status }: { status: MemberStatus }) {
@@ -250,7 +255,7 @@ function LogoCard({
                 type="button"
                 onClick={() => inputRef.current?.click()}
                 disabled={disabled}
-                className="inline-flex items-center gap-2 rounded-[var(--btn-radius)] border border-[#E0E0E6] bg-white px-4 py-2 text-[13.5px] font-bold text-[#1B1B1F] hover:border-[#9A9AA3] dark:border-[#3A3A44] dark:bg-[#26262D] dark:text-[#F2F2F5] dark:hover:border-[#5A5A66] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 rounded-[var(--btn-radius)] border border-[#E0E0E6] bg-white px-4 py-2 text-[13.5px] font-bold text-[#1B1B1F] hover:border-[#9A9AA3] dark:border-[var(--border-strong)] dark:bg-[var(--surface-track)] dark:text-[#F2F2F5] dark:hover:border-[#5A5A66] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 <Upload size={16} />
                 {hasLogo || pendingFile ? t('organization.details.logo.replace') : t('organization.details.logo.upload')}
@@ -362,9 +367,9 @@ function OrganizationDetailsSettingsView() {
             input.firstName = values.firstName;
             input.lastName = values.lastName;
             input.email = values.email;
-            input.position = values.position || undefined;
+            input.role = values.role;
 
-            let added: Member;
+            let added: OrganizationMemberResponse;
             try {
                 added = await apiService.orgService.addOrganizationMember(input);
             } catch (error) {
@@ -467,15 +472,17 @@ function OrganizationDetailsSettingsView() {
 
     const slug = organization?.slug;
     // The backend calls a hopps user linked to an organization a "Member" — these are not club members.
-    const { data: users = [], isLoading: usersLoading } = useQuery<Member[]>({
+    const { data: users = [], isLoading: usersLoading } = useQuery<OrganizationMemberResponse[]>({
         queryKey: ['organization', slug, 'members'],
         queryFn: () => apiService.orgService.members(slug!),
         enabled: !!slug,
     });
     const canManageMembers = useHasPermission('MANAGE_MEMBERS');
+    // Board and auditors see the organization details but cannot change them (issue #959).
+    const canManageOrganization = useHasPermission('MANAGE_ORGANIZATION');
     const currentUserEmail = useStore((state) => state.user?.email)?.toLowerCase();
 
-    const [memberToRemove, setMemberToRemove] = useState<Member | null>(null);
+    const [memberToRemove, setMemberToRemove] = useState<OrganizationMemberResponse | null>(null);
     const [removingMember, setRemovingMember] = useState(false);
     const handleRemoveMember = useCallback(async () => {
         if (memberToRemove?.id == null) return;
@@ -493,6 +500,61 @@ function OrganizationDetailsSettingsView() {
         }
     }, [memberToRemove, queryClient, slug, t, toast]);
     const userListGrid = canManageMembers ? USER_LIST_GRID_WITH_ACTIONS : USER_LIST_GRID;
+
+    const roleItems = useMemo(() => ASSIGNABLE_ROLES.map((role) => ({ label: t(`organization.details.users.roles.${role}.name`), value: role })), [t]);
+    const [memberToEdit, setMemberToEdit] = useState<OrganizationMemberResponse | null>(null);
+    const handleEditMember = useCallback(
+        async (member: OrganizationMemberResponse, values: EditUserValues) => {
+            if (member.id == null) return;
+            const input = new MemberUpdateInput();
+            input.firstName = values.firstName;
+            input.lastName = values.lastName;
+            input.email = values.email;
+            let updated: OrganizationMemberResponse;
+            try {
+                updated = await apiService.orgService.updateOrganizationMember(member.id, input);
+            } catch (error) {
+                console.error('Failed to update member:', error);
+                const duplicate =
+                    ApiException.isApiException(error) && error.status === 409 && !!getErrorBody<{ conflictingFields?: string[] }>(error)?.conflictingFields;
+                toast({ title: t(`organization.details.users.edit.${duplicate ? 'duplicate' : 'error'}`), variant: 'error' });
+                // Rethrow so the dialog stays open and the entered values are not lost.
+                throw error;
+            }
+            await queryClient.invalidateQueries({ queryKey: ['organization', slug, 'members'] });
+            toast({ title: t('organization.details.users.edit.success'), variant: 'success' });
+            if (updated.setupLink) {
+                setSetupLink({ link: updated.setupLink, name: `${updated.firstName ?? ''} ${updated.lastName ?? ''}`.trim() });
+            }
+        },
+        [queryClient, slug, t, toast]
+    );
+
+    const [changingRoleOf, setChangingRoleOf] = useState<number | null>(null);
+    const handleChangeRole = useCallback(
+        async (member: OrganizationMemberResponse, role: Role) => {
+            if (member.id == null || role === member.role) return;
+            setChangingRoleOf(member.id);
+            try {
+                const input = new MemberRoleInput();
+                input.role = role;
+                await apiService.orgService.changeOrganizationMemberRole(member.id, input);
+                await queryClient.invalidateQueries({ queryKey: ['organization', slug, 'members'] });
+                toast({ title: t('organization.details.users.changeRole.success'), variant: 'success' });
+            } catch (error) {
+                console.error('Failed to change member role:', error);
+                toast({ title: t('organization.details.users.changeRole.error'), variant: 'error' });
+            } finally {
+                setChangingRoleOf(null);
+            }
+        },
+        [queryClient, slug, t, toast]
+    );
+
+    // Shown once to the founder after roles were introduced; existing members all hold the Treasurer role by then.
+    const [rolesNoticeHidden, setRolesNoticeHidden] = useState(() => rolesNoticeDismissed(slug));
+    useEffect(() => setRolesNoticeHidden(rolesNoticeDismissed(slug)), [slug]);
+    const showRolesNotice = canManageMembers && !rolesNoticeHidden && users.length > 1;
 
     const onSubmit = useCallback(
         async (data: FormValues) => {
@@ -580,17 +642,14 @@ function OrganizationDetailsSettingsView() {
                 document, which shows a second, empty scrollbar. */}
             <form onSubmit={handleSubmit(onSubmit)} className="relative flex flex-col min-h-full" style={{ fontFamily: FONT }}>
                 {/* Sticky page header — the save action only appears once something changed */}
-                <header className="sticky top-0 z-10 -mx-4 sm:-mx-7 mb-[18px] px-4 sm:px-7 pt-1 pb-[18px] border-b border-[#E9E9EE] bg-[#F3F4F6]/85 dark:border-[#2E2E36] dark:bg-[#131317]/85 backdrop-blur-[10px]">
-                    <div className="mx-auto w-full max-w-[940px] flex flex-wrap items-start justify-between gap-4">
-                        <div>
-                            <h1 className="text-[27px] font-extrabold tracking-[-0.02em] leading-tight text-[#1B1B1F] dark:text-[#F2F2F5]">
-                                {t('organization.details.title')}
-                            </h1>
-                            <p className="mt-[5px] text-[14.5px] text-[#6B6B76] dark:text-[#A0A0AC]">{t('organization.details.description')}</p>
-                        </div>
+                <header className="sticky top-0 z-10 -mx-4 sm:-mx-7 mb-[18px] px-4 sm:px-7 pt-1 pb-[18px] border-b border-[#E9E9EE] bg-[#F3F4F6]/85 dark:border-[var(--border-soft)] dark:bg-[#131317]/85 backdrop-blur-[10px]">
+                    <div className="mx-auto w-full max-w-[940px] flex flex-wrap items-center justify-between gap-4">
+                        <h1 className="text-[27px] font-extrabold tracking-[-0.02em] leading-tight text-[#1B1B1F] dark:text-[#F2F2F5]">
+                            {t('organization.details.title')}
+                        </h1>
 
                         {hasChanges && (
-                            <div className="ml-auto flex items-center gap-2.5 pt-1">
+                            <div className="ml-auto flex items-center gap-2.5">
                                 {/* The counter is the first thing to go when the row gets tight. */}
                                 <span className="hidden lg:flex items-center gap-2 text-[13.5px] font-bold text-[#B47C18] dark:text-[#E4B75B] whitespace-nowrap">
                                     <Info size={16} />
@@ -600,7 +659,7 @@ function OrganizationDetailsSettingsView() {
                                     type="button"
                                     onClick={discardChanges}
                                     disabled={isSubmitting}
-                                    className="inline-flex items-center gap-2 rounded-[var(--btn-radius)] px-4 py-[9px] text-[13.5px] font-bold text-[#6B6B76] hover:bg-[#F1F1F4] hover:text-[#1B1B1F] dark:text-[#A0A0AC] dark:hover:bg-[#26262D] dark:hover:text-[#F2F2F5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="inline-flex items-center gap-2 rounded-[var(--btn-radius)] px-4 py-[9px] text-[13.5px] font-bold text-[#6B6B76] hover:bg-[#F1F1F4] hover:text-[#1B1B1F] dark:text-[#A0A0AC] dark:hover:bg-[var(--surface-track)] dark:hover:text-[#F2F2F5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <Undo2 size={15} />
                                     {t('organization.details.discard')}
@@ -619,11 +678,16 @@ function OrganizationDetailsSettingsView() {
                 </header>
 
                 <div className="mx-auto w-full max-w-[940px] flex flex-col gap-[18px] pb-8">
-                    <LogoCard pendingFile={pendingLogo} onFileSelected={handleLogoSelected} version={logoVersion} disabled={isSubmitting} />
+                    <LogoCard
+                        pendingFile={pendingLogo}
+                        onFileSelected={handleLogoSelected}
+                        version={logoVersion}
+                        disabled={isSubmitting || !canManageOrganization}
+                    />
 
                     {/* Placeholders use the design system's quiet ink (--ink-3) instead of the app-wide, much darker --muted. */}
                     <fieldset
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || !canManageOrganization}
                         className="min-w-0 flex flex-col gap-[18px] [&_input::placeholder]:text-[#9A9AA3] dark:[&_input::placeholder]:text-[#6E6E7A]"
                     >
                         {/* Name & address */}
@@ -832,6 +896,31 @@ function OrganizationDetailsSettingsView() {
                                 )
                             }
                         >
+                            {showRolesNotice && (
+                                <div
+                                    role="note"
+                                    data-testid="roles-notice"
+                                    className="mb-3 flex items-start gap-3 rounded-[12px] bg-[#F3EAFB] px-4 py-3 text-[13.5px] leading-snug text-[#5E2D88] dark:bg-[#2A1E38] dark:text-[#D2AEEE]"
+                                >
+                                    <Info size={16} aria-hidden="true" className="mt-[2px] flex-shrink-0" />
+                                    <div className="flex flex-1 flex-col gap-1">
+                                        <span className="font-bold">{t('organization.details.users.rolesNotice.title')}</span>
+                                        <span>{t('organization.details.users.rolesNotice.text')}</span>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="tonal"
+                                        size="sm"
+                                        className="flex-shrink-0"
+                                        onClick={() => {
+                                            dismissRolesNotice(slug);
+                                            setRolesNoticeHidden(true);
+                                        }}
+                                    >
+                                        {t('organization.details.users.rolesNotice.dismiss')}
+                                    </Button>
+                                </div>
+                            )}
                             {usersLoading ? (
                                 <OrganizationUsersSkeleton />
                             ) : users.length === 0 ? (
@@ -845,8 +934,8 @@ function OrganizationDetailsSettingsView() {
                                             className={`${USER_ROW} px-1 pb-2 text-[12px] font-bold uppercase tracking-[0.04em] text-[#6B6B76] dark:text-[#A0A0AC]`}
                                         >
                                             <span>{t('organization.details.users.name')}</span>
-                                            <span>{t('organization.details.users.position')}</span>
-                                            <span>{t('organization.details.users.email')}</span>
+                                            <span className="hidden lg:block">{t('organization.details.users.email')}</span>
+                                            <span>{t('organization.details.users.role')}</span>
                                             <span>{t('organization.details.users.status.title')}</span>
                                             {canManageMembers && <span />}
                                         </div>
@@ -854,38 +943,77 @@ function OrganizationDetailsSettingsView() {
                                             const name = displayName(user);
                                             // Nobody can remove themselves (the backend refuses too).
                                             const isCurrentUser = !!currentUserEmail && user.email?.toLowerCase() === currentUserEmail;
-                                            // The backend does not carry a position per member yet — see issue #751.
-                                            const position = typeof user.position === 'string' ? user.position.trim() : '';
+                                            // Nobody changes their own role or the founder's (the backend refuses too).
+                                            const canChangeRole = canManageMembers && !isCurrentUser && user.role !== 'OWNER';
                                             return (
                                                 <div
                                                     key={user.id ?? user.email}
-                                                    className={`${USER_ROW} items-center px-1 py-[11px] border-t border-[#E9E9EE] dark:border-[#2E2E36]`}
+                                                    className={`${USER_ROW} items-center px-1 py-[11px] border-t border-[#E9E9EE] dark:border-[var(--border-soft)]`}
                                                 >
                                                     <span className="flex items-center gap-2.5 text-[14.5px] font-bold text-[#1B1B1F] dark:text-[#F2F2F5] min-w-0">
                                                         <UserAvatar name={name} />
-                                                        <span className="truncate">{name}</span>
+                                                        <span className="flex min-w-0 flex-col">
+                                                            <span className="truncate">
+                                                                {name}
+                                                                {isCurrentUser && (
+                                                                    <span className="ml-1 font-normal text-[#6B6B76] dark:text-[#A0A0AC]">
+                                                                        {t('organization.details.users.you')}
+                                                                    </span>
+                                                                )}
+                                                            </span>
+                                                            <span className="truncate text-[13px] font-normal text-[#6B6B76] dark:text-[#A0A0AC] lg:hidden">
+                                                                {user.email}
+                                                            </span>
+                                                        </span>
                                                     </span>
-                                                    <span
-                                                        className={`text-[14px] truncate ${position ? 'text-[#6B6B76] dark:text-[#A0A0AC]' : 'text-[#9A9AA3] dark:text-[#7A7A86]'}`}
-                                                    >
-                                                        {position || '–'}
+                                                    <span className="hidden text-[14px] text-[#6B6B76] dark:text-[#A0A0AC] truncate lg:block">
+                                                        {user.email}
                                                     </span>
-                                                    <span className="text-[14px] text-[#6B6B76] dark:text-[#A0A0AC] truncate">{user.email}</span>
+                                                    {canChangeRole ? (
+                                                        <Select
+                                                            className="min-w-0"
+                                                            size="sm"
+                                                            value={user.role}
+                                                            items={roleItems}
+                                                            disabled={changingRoleOf === user.id}
+                                                            onValueChanged={(role) => handleChangeRole(user, role as Role)}
+                                                            ariaLabel={t('organization.details.users.changeRole.label', { name })}
+                                                        />
+                                                    ) : (
+                                                        <span className="text-[14px] truncate text-[#6B6B76] dark:text-[#A0A0AC]">
+                                                            {user.role ? t(`organization.details.users.roles.${user.role}.name`) : '–'}
+                                                        </span>
+                                                    )}
                                                     <StatusPill status={user.status ?? 'NO_ACCESS'} />
-                                                    {canManageMembers &&
-                                                        (isCurrentUser ? (
-                                                            <span />
-                                                        ) : (
-                                                            <button
+                                                    {canManageMembers && (
+                                                        <span className="flex justify-end gap-1">
+                                                            <BaseButton
                                                                 type="button"
-                                                                onClick={() => setMemberToRemove(user)}
-                                                                aria-label={t('organization.details.users.remove.button', { name })}
-                                                                title={t('organization.details.users.remove.button', { name })}
-                                                                className="grid h-8 w-8 place-items-center rounded-[var(--btn-radius)] text-[#9A9AA3] transition-colors hover:bg-[#FBE9E7] hover:text-[#B4342A] dark:text-[#7A7A86] dark:hover:bg-[#3A1D19] dark:hover:text-[#F0958A]"
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() => setMemberToEdit(user)}
+                                                                aria-label={t('organization.details.users.edit.button', { name })}
+                                                                title={t('organization.details.users.edit.button', { name })}
+                                                                className="h-8 w-8 text-[#9A9AA3] dark:text-[#7A7A86]"
                                                             >
-                                                                <Trash2 size={16} aria-hidden="true" />
-                                                            </button>
-                                                        ))}
+                                                                <Pencil size={16} aria-hidden="true" />
+                                                            </BaseButton>
+                                                            {/* Nobody can remove themselves or the founder (the backend refuses too). */}
+                                                            {!isCurrentUser && user.role !== 'OWNER' && (
+                                                                <BaseButton
+                                                                    type="button"
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    onClick={() => setMemberToRemove(user)}
+                                                                    aria-label={t('organization.details.users.remove.button', { name })}
+                                                                    title={t('organization.details.users.remove.button', { name })}
+                                                                    className="h-8 w-8 text-[#9A9AA3] hover:bg-[#FBE9E7] hover:text-[#B4342A] dark:text-[#7A7A86] dark:hover:bg-[#3A1D19] dark:hover:text-[#F0958A]"
+                                                                >
+                                                                    <Trash2 size={16} aria-hidden="true" />
+                                                                </BaseButton>
+                                                            )}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             );
                                         })}
@@ -899,6 +1027,7 @@ function OrganizationDetailsSettingsView() {
 
             {/* Outside the form on purpose: a portalled dialog still bubbles its submit up the React tree. */}
             <AddUserDialog open={addUserOpen} onClose={() => setAddUserOpen(false)} onSubmit={handleAddUser} />
+            <EditUserDialog member={memberToEdit} onClose={() => setMemberToEdit(null)} onSubmit={handleEditMember} />
             <SetupLinkDialog link={setupLink?.link ?? null} name={setupLink?.name ?? ''} onClose={() => setSetupLink(null)} />
             <ConfirmDialog
                 open={memberToRemove !== null}

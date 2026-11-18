@@ -15,6 +15,7 @@ import {
     useRemoveBankTransactionMatch,
     useUpdateBankTransactionMatchAmount,
 } from '@/hooks/queries/useBankAccounts';
+import { useCanEditBookkeeping } from '@/hooks/queries/usePermissions';
 import { useReopenTransaction } from '@/hooks/queries/useTransactions';
 import { useCurrency } from '@/hooks/use-currency';
 import { cn } from '@/lib/utils';
@@ -44,6 +45,8 @@ export function BankMatchSection({
     const removeMatch = useRemoveBankTransactionMatch();
     const updateMatchAmount = useUpdateBankTransactionMatchAmount();
     const reopenMutation = useReopenTransaction();
+    // Board members and auditors see the linked bank transactions but cannot link or unlink them (issue #959).
+    const canEdit = useCanEditBookkeeping();
 
     // A bank match whose removal would leave a *confirmed* transaction no longer fully covered — pending user
     // confirmation, because unlinking it also reopens the transaction (back to draft).
@@ -233,15 +236,17 @@ export function BankMatchSection({
                                         pending={updateMatchAmount.isPending}
                                         onSave={(v) => updateAmount(b.id!, v)}
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={() => requestUnlink(b)}
-                                        disabled={removeMatch.isPending}
-                                        title={t('transactions.detail.unlink')}
-                                        className={cn(ICON_BTN, 'hover:border-[var(--negative-border)] hover:text-[var(--negative)] disabled:opacity-50')}
-                                    >
-                                        <Unlink size={15} />
-                                    </button>
+                                    {canEdit && (
+                                        <button
+                                            type="button"
+                                            onClick={() => requestUnlink(b)}
+                                            disabled={removeMatch.isPending}
+                                            title={t('transactions.detail.unlink')}
+                                            className={cn(ICON_BTN, 'hover:border-[var(--negative-border)] hover:text-[var(--negative)] disabled:opacity-50')}
+                                        >
+                                            <Unlink size={15} />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         );
@@ -261,6 +266,7 @@ export function BankMatchSection({
                         onClose={closePicker}
                     />
                 ) : (
+                    canEdit &&
                     !covered && (
                         <button
                             type="button"

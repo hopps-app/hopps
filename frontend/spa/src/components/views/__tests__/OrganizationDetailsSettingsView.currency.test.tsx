@@ -12,6 +12,7 @@ vi.mock('@/services/ApiService', () => ({
     default: {
         orgService: {
             members: vi.fn().mockResolvedValue([]),
+            getMyPermissions: vi.fn().mockResolvedValue(['VIEW_BOOKKEEPING', 'EDIT_BOOKKEEPING', 'MANAGE_ORGANIZATION', 'MANAGE_MEMBERS']),
             myGET: vi.fn(),
             myPUT: vi.fn(),
         },
@@ -39,7 +40,8 @@ describe('OrganizationDetailsSettingsView – currency', () => {
         // The form is filled from the store in an effect; a value set that way must survive the Select's hidden
         // native mirror (see the empty-value guard in components/ui/Select.tsx).
         await waitFor(() => expect(currencySelect()).toHaveTextContent('Swiss franc (CHF)'));
-        expect(currencySelect()).toBeEnabled();
+        // Editable once the permissions have loaded.
+        await waitFor(() => expect(currencySelect()).toBeEnabled());
         expect(screen.queryByTestId('currency-locked-note')).not.toBeInTheDocument();
         expect(screen.getByText(/can only be changed while no transaction and no bank account exist yet/i)).toBeInTheDocument();
     });
@@ -69,5 +71,32 @@ describe('OrganizationDetailsSettingsView – currency', () => {
         renderWithProviders(<OrganizationDetailsSettingsView />);
 
         await waitFor(() => expect(currencySelect()).toHaveTextContent('Euro (€)'));
+    });
+});
+
+describe('OrganizationDetailsSettingsView – roles', () => {
+    beforeEach(() => {
+        useStore.setState({ organization: organization({ currency: 'EUR', currencyLocked: false }), organizationError: false });
+    });
+
+    it('shows the organization details read-only to a board member', async () => {
+        vi.mocked(apiService.orgService.getMyPermissions).mockResolvedValueOnce(['VIEW_BOOKKEEPING']);
+        renderWithProviders(<OrganizationDetailsSettingsView />);
+
+        await waitFor(() => expect(currencySelect()).toHaveTextContent('Euro (€)'));
+        expect(currencySelect()).toBeDisabled();
+        expect(screen.queryByRole('button', { name: /add user/i })).not.toBeInTheDocument();
+    });
+
+    it('lists the role of each member', async () => {
+        vi.mocked(apiService.orgService.getMyPermissions).mockResolvedValueOnce(['VIEW_BOOKKEEPING']);
+        vi.mocked(apiService.orgService.members).mockResolvedValueOnce([
+            { id: 1, firstName: 'Anna', lastName: 'Gründerin', email: 'anna@example.test', status: 'ACTIVE', role: 'OWNER' },
+            { id: 2, firstName: 'Ben', lastName: 'Prüfer', email: 'ben@example.test', status: 'ACTIVE', role: 'AUDITOR' },
+        ] as Awaited<ReturnType<typeof apiService.orgService.members>>);
+        renderWithProviders(<OrganizationDetailsSettingsView />);
+
+        expect(await screen.findByText('Founder')).toBeInTheDocument();
+        expect(screen.getByText('Auditor')).toBeInTheDocument();
     });
 });

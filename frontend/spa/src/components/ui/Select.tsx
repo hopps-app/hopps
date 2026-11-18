@@ -20,6 +20,10 @@ interface SelectProps {
     error?: string;
     required?: boolean;
     disabled?: boolean;
+    /** Accessible name of the field when it has no visible {@link label}, e.g. inside a table row. */
+    ariaLabel?: string;
+    /** `sm`: a lower, narrower field for selects inside table rows. */
+    size?: 'default' | 'sm';
     /**
      * Always open the list below the field, shortened to the space there (scrollable), instead of letting it flip
      * upwards when there is more room above. For long lists in forms, where an upward list hides the fields above.
@@ -28,7 +32,21 @@ interface SelectProps {
 }
 
 function Select(props: SelectProps) {
-    const { value, items, onValueChanged, label, placeholder, className, error, required, disabled, openDownwards, ...otherProps } = props;
+    const {
+        value,
+        items,
+        onValueChanged,
+        label,
+        placeholder,
+        className,
+        error,
+        required,
+        disabled,
+        openDownwards,
+        ariaLabel,
+        size = 'default',
+        ...otherProps
+    } = props;
     const [id] = useState(_.uniqueId('select-'));
     const errorId = `${id}-error`;
     // Radix mirrors a programmatic `value` change into a hidden native <select> and reports the outcome through
@@ -53,6 +71,8 @@ function Select(props: SelectProps) {
                     aria-invalid={error ? true : undefined}
                     aria-describedby={error ? errorId : undefined}
                     aria-required={required || undefined}
+                    aria-label={label ? undefined : ariaLabel}
+                    className={size === 'sm' ? 'h-8 w-[150px] max-w-full rounded-[10px] px-2.5' : undefined}
                 >
                     <SelectValue placeholder={placeholder || 'Select'} className="placeholder:text-muted" />
                 </SelectTrigger>

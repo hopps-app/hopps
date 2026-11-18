@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { useSetupSteps } from './useSetupSteps';
 
+import { useCanEditBookkeeping } from '@/hooks/queries/usePermissions';
 import { cn } from '@/lib/utils';
 import { useSetupStore } from '@/store/setup/setupStore';
 
@@ -19,8 +20,10 @@ export function SetupStrip({ organizationId }: { organizationId: number }) {
     const hidden = useSetupStore((s) => !!s.hiddenFor[organizationId]);
     const hide = useSetupStore((s) => s.hide);
     const { steps, doneCount, complete } = useSetupSteps(organizationId);
+    // The steps (upload, accounts, categories) are for members who keep the books (issue #959).
+    const canEdit = useCanEditBookkeeping();
 
-    if (!steps || complete || hidden) {
+    if (!steps || complete || hidden || !canEdit) {
         return null;
     }
 

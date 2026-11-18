@@ -85,11 +85,11 @@ class AdminDashboardResourceTest {
     void shouldReportDailyActivity() {
         LocalDate today = LocalDate.now();
         Instant base = Instant.parse("2026-07-30T09:00:00Z");
-        // Members 15 and 16 both belong to buehnefrei-ev: 60s today plus 30s today, so 90s estate-wide.
+        // Members 15 and 23 both belong to buehnefrei-ev: 60s today plus 30s today, so 90s estate-wide.
         memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000015", today, base);
         memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000015", today, base.plusSeconds(60));
-        memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000016", today, base);
-        memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000016", today, base.plusSeconds(30));
+        memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000023", today, base);
+        memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000023", today, base.plusSeconds(30));
         // Two days ago, member 15 alone accrues 120s.
         memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000015", today.minusDays(2), base);
         memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000015", today.minusDays(2),
@@ -116,11 +116,11 @@ class AdminDashboardResourceTest {
     void shouldCountDistinctOrganizationsPerDay() {
         LocalDate today = LocalDate.now();
         Instant base = Instant.parse("2026-07-30T09:00:00Z");
-        // Members 15 and 16 both belong to buehnefrei-ev, so today is ONE active organization, not two.
+        // Members 15 and 23 both belong to buehnefrei-ev, so today is ONE active organization, not two.
         memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000015", today, base);
         memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000015", today, base.plusSeconds(60));
-        memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000016", today, base);
-        memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000016", today, base.plusSeconds(30));
+        memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000023", today, base);
+        memberActivityRepository.accumulate("00000000-0000-0000-0000-000000000023", today, base.plusSeconds(30));
 
         int last = AdminDashboardResource.ACTIVITY_WINDOW_DAYS - 1;
         given()

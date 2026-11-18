@@ -165,7 +165,7 @@
             "serverError": "Auf dem Server ist ein Fehler aufgetreten. Bitte später erneut versuchen.",
             "notFound": "Der Eintrag wurde nicht gefunden.",
             "unauthorized": "Die Sitzung ist abgelaufen. Bitte erneut anmelden.",
-            "forbidden": "Keine Berechtigung für diese Aktion.",
+            "forbidden": "Für diese Aktion fehlt die Berechtigung. Bitte an die Gründer:in des Vereins wenden.",
             "conflict": "Der Eintrag wurde inzwischen geändert. Bitte die Seite neu laden.",
             "badRequest": "Die Eingaben sind ungültig. Bitte überprüfen.",
             "unknown": "Ein unerwarteter Fehler ist aufgetreten. Bitte erneut versuchen.",
@@ -259,7 +259,6 @@
         "details": {
             "typeVerein": "Verein",
             "title": "Organisationsdetails",
-            "description": "Grundlegende Informationen der Organisation verwalten",
             "name": "Organisationsname",
             "slug": "Slug",
             "type": "Organisationstyp",
@@ -362,7 +361,8 @@
                     "submit": "Hinzufügen",
                     "success": "Benutzer hinzugefügt",
                     "duplicate": "Diese E-Mail-Adresse wird bereits verwendet.",
-                    "error": "Benutzer konnte nicht hinzugefügt werden."
+                    "error": "Benutzer konnte nicht hinzugefügt werden.",
+                    "role": "Rolle"
                 },
                 "setupLink": {
                     "title": "Einladungslink weitergeben",
@@ -379,7 +379,48 @@
                     "confirm": "Entfernen",
                     "success": "Mitarbeiter entfernt",
                     "error": "Mitarbeiter konnte nicht entfernt werden."
-                }
+                },
+                "role": "Rolle",
+                "roles": {
+                    "OWNER": {
+                        "name": "Gründer:in",
+                        "description": "Hat den Verein angelegt. Kann alles, pflegt die Vereinsdaten und verwaltet Mitglieder und Rollen."
+                    },
+                    "ADMIN": {
+                        "name": "Kasse",
+                        "description": "Sieht, bearbeitet und bestätigt die Buchhaltung."
+                    },
+                    "BOARD": {
+                        "name": "Vorstand",
+                        "description": "Sieht alle Finanzen, ändert nichts."
+                    },
+                    "AUDITOR": {
+                        "name": "Kassenprüfung",
+                        "description": "Sieht alles, ändert nichts."
+                    }
+                },
+                "changeRole": {
+                    "label": "Rolle von {{name}}",
+                    "success": "Rolle geändert",
+                    "error": "Die Rolle konnte nicht geändert werden."
+                },
+                "rolesNotice": {
+                    "title": "Jetzt mit Rollen",
+                    "text": "Neu können Rollen vergeben werden: Kasse, Vorstand oder Kassenprüfung. Alle bisherigen Mitglieder haben die Rolle Kasse und behalten damit ihre Rechte. Die Rolle lässt sich hier in der Liste ändern.",
+                    "dismiss": "Verstanden"
+                },
+                "edit": {
+                    "button": "{{name}} bearbeiten",
+                    "title": "Mitarbeiter bearbeiten",
+                    "subtitle": "Namen korrigieren und, solange die Einladung offen ist, die E-Mail-Adresse.",
+                    "emailHint": "An eine geänderte Adresse geht die Einladung erneut.",
+                    "emailLocked": "Nach der ersten Anmeldung ändert die Person ihre E-Mail-Adresse selbst.",
+                    "submit": "Speichern",
+                    "success": "Änderungen gespeichert",
+                    "duplicate": "Diese E-Mail-Adresse gehört bereits einer anderen Person.",
+                    "error": "Die Änderungen konnten nicht gespeichert werden."
+                },
+                "you": "(ich)"
             }
         },
         "noOrganization": {
@@ -442,8 +483,10 @@
     "settings": {
         "menu": {
             "account": "Mein Konto",
-            "profile": "Profil"
-        }
+            "profile": "Profil",
+            "settings": "Einstellungen"
+        },
+        "description": "Sprache und Darstellung, gespeichert in diesem Browser."
     },
     "reports": {
         "title": "Berichte",
@@ -1840,6 +1883,44 @@
             "server": "Auf dem Server ist ein Fehler aufgetreten. Bitte in ein paar Minuten erneut versuchen.",
             "summary_one": "{{count}} Beleg konnte nicht hochgeladen werden. Über die Schaltfläche unten erneut versuchen.",
             "summary_other": "{{count}} Belege konnten nicht hochgeladen werden. Über die Schaltfläche unten erneut versuchen."
+        }
+    },
+    "myProfile": {
+        "title": "Profil",
+        "personal": {
+            "title": "Persönliche Angaben",
+            "note": "Sichtbar für andere Mitglieder der Organisation"
+        },
+        "firstName": "Vorname",
+        "lastName": "Nachname",
+        "email": "E-Mail",
+        "emailHint": "Die E-Mail-Adresse wird beim Anmeldedienst verwaltet.",
+        "phone": "Telefonnummer",
+        "phonePlaceholder": "z. B. +49 170 1234567",
+        "phoneInvalid": "Nur Ziffern, Leerzeichen und + ( ) / . - erlaubt",
+        "discard": "Verwerfen",
+        "save": "Änderungen speichern",
+        "saved": "Profil gespeichert",
+        "saveError": "Das Profil konnte nicht gespeichert werden.",
+        "loadError": "Das Profil konnte nicht geladen werden.",
+        "permissions": {
+            "title": "Berechtigungen",
+            "note": "Rolle {{role}} in {{organization}}",
+            "items": {
+                "VIEW_BOOKKEEPING": "Buchhaltung ansehen",
+                "EDIT_BOOKKEEPING": "Belege und Buchungen bearbeiten und bestätigen",
+                "MANAGE_ORGANIZATION": "Vereinsdaten pflegen",
+                "MANAGE_MEMBERS": "Mitglieder verwalten und Rollen vergeben"
+            }
+        },
+        "security": {
+            "title": "Konto und Sicherheit",
+            "note": "Öffnet das Konto beim Anmeldedienst in einem neuen Tab.",
+            "password": "Passwort ändern",
+            "passwordHint": "Beim Anmeldedienst",
+            "twoFactor": "Zwei-Faktor-Anmeldung",
+            "twoFactorHint": "Zusätzlicher Code beim Anmelden",
+            "noteKeycloak": "Führt zum Anmeldedienst und danach zurück zu hopps."
         }
     }
 }

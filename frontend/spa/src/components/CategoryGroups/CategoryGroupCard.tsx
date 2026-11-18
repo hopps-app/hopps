@@ -7,6 +7,7 @@ import { RequiredBadge } from './CategoryGroupSetup';
 
 import Emoji from '@/components/ui/Emoji';
 import { useCategoryGroupValues } from '@/hooks/queries/useCategoryGroups';
+import { useCanEditBookkeeping } from '@/hooks/queries/usePermissions';
 import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
@@ -30,6 +31,8 @@ const sectionLabel = 'mb-2 text-[11.5px] font-bold uppercase tracking-[0.08em] t
 const CategoryGroupCard: FC<CategoryGroupCardProps> = ({ group, rootId, onEdit, onExport, onDelete }) => {
     const { t } = useTranslation();
     const allBommels = useBommelsStore((s) => s.allBommels);
+    // Board members and auditors see the groups and can export them, but not change them (issue #959).
+    const canEdit = useCanEditBookkeeping();
     const { data: values } = useCategoryGroupValues(group.id, '', true, { topLevel: true });
 
     const valueCount = group.valueCount ?? 0;
@@ -56,14 +59,16 @@ const CategoryGroupCard: FC<CategoryGroupCardProps> = ({ group, rootId, onEdit, 
                     </div>
                 </div>
                 <div className="flex shrink-0 gap-1">
-                    <button
-                        type="button"
-                        onClick={onEdit}
-                        aria-label={t('common.edit')}
-                        className="grid rounded-lg p-1 text-[var(--muted)] hover:bg-[var(--surface-track)]"
-                    >
-                        <Pencil size={16} />
-                    </button>
+                    {canEdit && (
+                        <button
+                            type="button"
+                            onClick={onEdit}
+                            aria-label={t('common.edit')}
+                            className="grid rounded-lg p-1 text-[var(--muted)] hover:bg-[var(--surface-track)]"
+                        >
+                            <Pencil size={16} />
+                        </button>
+                    )}
                     <button
                         type="button"
                         onClick={onExport}
@@ -73,14 +78,16 @@ const CategoryGroupCard: FC<CategoryGroupCardProps> = ({ group, rootId, onEdit, 
                     >
                         <Download size={16} />
                     </button>
-                    <button
-                        type="button"
-                        onClick={onDelete}
-                        aria-label={t('common.delete')}
-                        className="grid rounded-lg p-1 text-[var(--muted)] hover:bg-[var(--negative-surface)] hover:text-[var(--negative)]"
-                    >
-                        <Trash2 size={16} />
-                    </button>
+                    {canEdit && (
+                        <button
+                            type="button"
+                            onClick={onDelete}
+                            aria-label={t('common.delete')}
+                            className="grid rounded-lg p-1 text-[var(--muted)] hover:bg-[var(--negative-surface)] hover:text-[var(--negative)]"
+                        >
+                            <Trash2 size={16} />
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -134,23 +141,31 @@ const CategoryGroupCard: FC<CategoryGroupCardProps> = ({ group, rootId, onEdit, 
                         </span>
                     ))}
                     {/* The rest is in the edit dialog, which this opens */}
-                    {notShown > 0 && shown.length > 0 && (
+                    {notShown > 0 &&
+                        shown.length > 0 &&
+                        (canEdit ? (
+                            <button
+                                type="button"
+                                onClick={onEdit}
+                                className="inline-flex items-center rounded-[var(--r-sm)] px-1.5 py-[5px] text-[13px] font-bold text-purple-700 hover:bg-[var(--accent-surface)] hover:underline"
+                            >
+                                {t('categoryGroups.setup.moreValues', { count: notShown })}
+                            </button>
+                        ) : (
+                            <span className="inline-flex items-center px-1.5 py-[5px] text-[13px] font-bold text-[var(--muted)]">
+                                {t('categoryGroups.setup.moreValues', { count: notShown })}
+                            </span>
+                        ))}
+                    {canEdit && (
                         <button
                             type="button"
                             onClick={onEdit}
-                            className="inline-flex items-center rounded-[var(--r-sm)] px-1.5 py-[5px] text-[13px] font-bold text-purple-700 hover:bg-[var(--accent-surface)] hover:underline"
+                            className="inline-flex items-center gap-[5px] rounded-[var(--r-sm)] border-[1.5px] border-dashed border-[var(--border-soft)] px-[11px] py-[5px] text-[13px] font-bold text-purple-700 hover:bg-[var(--accent-surface)]"
                         >
-                            {t('categoryGroups.setup.moreValues', { count: notShown })}
+                            <Plus size={14} />
+                            {t('categoryGroups.card.addValue')}
                         </button>
                     )}
-                    <button
-                        type="button"
-                        onClick={onEdit}
-                        className="inline-flex items-center gap-[5px] rounded-[var(--r-sm)] border-[1.5px] border-dashed border-[var(--border-soft)] px-[11px] py-[5px] text-[13px] font-bold text-purple-700 hover:bg-[var(--accent-surface)]"
-                    >
-                        <Plus size={14} />
-                        {t('categoryGroups.card.addValue')}
-                    </button>
                 </div>
             </div>
         </div>

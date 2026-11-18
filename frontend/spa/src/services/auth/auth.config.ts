@@ -16,3 +16,22 @@ export const oidcClientId: string | undefined = import.meta.env.VITE_OIDC_CLIENT
  * default comes from `docker/replaceEnvs.sh`.
  */
 export const oidcScope: string = import.meta.env.VITE_OIDC_SCOPE?.trim() || 'openid profile email';
+
+/** Whether {@link oidcProviderUrl} points to a Keycloak realm, which offers account actions in the login flow. */
+export function isKeycloakProvider(providerUrl: string | undefined = oidcProviderUrl): boolean {
+    return !!providerUrl && /\/realms\/[^/]+\/?$/.test(providerUrl);
+}
+
+/**
+ * Page of the sign-in service where a person changes their password and sets up two-factor sign-in, derived from
+ * {@link oidcProviderUrl}: the account console of the Keycloak realm, or the user settings of Authentik. Undefined for
+ * other providers.
+ */
+export function accountSecurityUrl(providerUrl: string | undefined = oidcProviderUrl): string | undefined {
+    if (!providerUrl) return undefined;
+    const url = providerUrl.replace(/\/+$/, '');
+    if (/\/realms\/[^/]+$/.test(url)) return `${url}/account/account-security/signing-in`;
+    const authentik = url.match(/^(https?:\/\/[^/]+)\/application\/o\//);
+    if (authentik) return `${authentik[1]}/if/user/#/settings`;
+    return undefined;
+}

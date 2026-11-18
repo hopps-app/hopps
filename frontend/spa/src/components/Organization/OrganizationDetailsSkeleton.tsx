@@ -36,7 +36,7 @@ export function OrganizationUsersSkeleton({ rows = 3 }: { rows?: number }) {
         <div role="status" aria-busy="true" aria-live="polite">
             <span className="sr-only">{t('common.loading')}</span>
             {Array.from({ length: rows }).map((_, row) => (
-                <div key={row} className="flex items-center gap-3 px-1 py-[11px] border-t border-[#E9E9EE] first:border-t-0 dark:border-[#2E2E36]">
+                <div key={row} className="flex items-center gap-3 px-1 py-[11px] border-t border-[#E9E9EE] first:border-t-0 dark:border-[var(--border-soft)]">
                     <span className="flex flex-[1.5] items-center gap-2.5 min-w-0">
                         <Skeleton className="h-8 w-8 rounded-full" />
                         <Skeleton className="h-3.5 w-32" />
@@ -63,7 +63,7 @@ export function OrganizationDetailsSkeleton() {
                 {t('common.loading')}
             </span>
 
-            <div className="-mx-4 sm:-mx-7 mb-[18px] px-4 sm:px-7 pt-1 pb-[18px] border-b border-[#E9E9EE] dark:border-[#2E2E36]">
+            <div className="-mx-4 sm:-mx-7 mb-[18px] px-4 sm:px-7 pt-1 pb-[18px] border-b border-[#E9E9EE] dark:border-[var(--border-soft)]">
                 <div className="mx-auto w-full max-w-[940px]">
                     <Skeleton className="h-8 w-60" />
                     <Skeleton className="mt-2 h-4 w-96 max-w-full" />

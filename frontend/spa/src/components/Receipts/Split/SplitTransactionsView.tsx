@@ -16,6 +16,7 @@ import { StatusBadge as TxStatusBadge } from '@/components/Transactions/StatusBa
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { BaseButton } from '@/components/ui/shadecn/BaseButton';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
+import { useCanEditBookkeeping } from '@/hooks/queries/usePermissions';
 import { useConfirmTransaction } from '@/hooks/queries/useTransactions';
 import { useCurrency } from '@/hooks/use-currency';
 import { useToast } from '@/hooks/use-toast';
@@ -46,6 +47,8 @@ function ReadPart({ tx, index, groups, bommelName }: { tx: TransactionResponse; 
     const navigate = useNavigate();
     const { showSuccess } = useToast();
     const confirmMutation = useConfirmTransaction();
+    // Board members and auditors cannot confirm a part (issue #959).
+    const canEdit = useCanEditBookkeeping();
     const { data: linkedBankTxns = [] } = useBankTransactionsForTransaction(tx.id);
     const values = categoryValuesOf(tx);
     const total = Number(tx.total ?? 0);
@@ -126,7 +129,7 @@ function ReadPart({ tx, index, groups, bommelName }: { tx: TransactionResponse; 
             </div>
             <InfoRows rows={rows} />
             {!tx.privatelyPaid && <BankMatchSection tx={tx} className="mt-1 border-t border-border-soft pt-4" />}
-            {tx.status === 'DRAFT' && (
+            {canEdit && tx.status === 'DRAFT' && (
                 <div className="flex justify-end">
                     <HintTooltip content={blockers}>
                         <BaseButton variant="default" onClick={confirm} disabled={confirmMutation.isPending || !canConfirm} className={footerBtn}>

@@ -155,6 +155,25 @@ public class AuthentikIdentityProvisioningService implements IdentityProvisionin
     }
 
     /**
+     * Deletes the Authentik user unless it has ever logged in.
+     */
+    @Override
+    public boolean deleteUnusedUser(String identityId) {
+        try {
+            AuthentikUser found = findByUuid(identityId);
+            if (found == null || found.lastLogin() != null) {
+                LOG.info("Keeping Authentik user {}: not found or it has logged in before", identityId);
+                return false;
+            }
+            api.deleteUser(found.pk());
+            return true;
+        } catch (Exception e) {
+            LOG.warn("Could not remove unused Authentik user {}", identityId, e);
+            return false;
+        }
+    }
+
+    /**
      * Asks Authentik to email the recovery link. Returns false instead of throwing when that fails, most commonly
      * because the email stage id is missing or wrong, or its flow has no working email backend. The account exists at
      * this point, and failing the whole request would leave the member unpersisted while the Authentik user exists.
