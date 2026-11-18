@@ -12,7 +12,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup';
 import TextField from '@/components/ui/TextField';
 
 /** The roles a founder can give; there is always exactly one founder, so OWNER is never offered. */
-export const ASSIGNABLE_ROLES = ['ADMIN', 'BOARD', 'AUDITOR'] as const satisfies readonly Role[];
+export const ASSIGNABLE_ROLES = ['BOARD', 'ADMIN', 'AUDITOR'] as const satisfies readonly Role[];
 export type AssignableRole = (typeof ASSIGNABLE_ROLES)[number];
 
 export type NewUserValues = {

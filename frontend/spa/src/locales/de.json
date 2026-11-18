@@ -420,7 +420,8 @@
                     "success": "Änderungen gespeichert",
                     "duplicate": "Diese E-Mail-Adresse gehört bereits einer anderen Person.",
                     "error": "Die Änderungen konnten nicht gespeichert werden."
-                }
+                },
+                "you": "(ich)"
             }
         },
         "noOrganization": {

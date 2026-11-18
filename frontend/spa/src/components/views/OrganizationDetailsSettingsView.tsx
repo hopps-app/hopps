@@ -125,10 +125,10 @@ const AVATAR_TONES = [
 // status pill ("Einladung fehlgeschlagen") no longer shifts that one row's columns out of line with the others.
 // Below lg the email moves under the name, so name, role and status fit next to the sidebar without scrolling.
 const USER_LIST_GRID =
-    'grid grid-cols-[minmax(0,1fr)_auto_auto] lg:grid-cols-[minmax(150px,1.5fr)_minmax(140px,1fr)_minmax(150px,1.4fr)_minmax(104px,auto)] gap-x-3';
+    'grid grid-cols-[minmax(0,1fr)_auto_auto] lg:grid-cols-[minmax(150px,1.5fr)_minmax(150px,1.4fr)_minmax(140px,1fr)_minmax(104px,auto)] gap-x-3';
 // Same columns plus one for the edit and remove buttons, for users who may manage members.
 const USER_LIST_GRID_WITH_ACTIONS =
-    'grid grid-cols-[minmax(0,1fr)_auto_auto_72px] lg:grid-cols-[minmax(150px,1.5fr)_minmax(140px,1fr)_minmax(150px,1.4fr)_minmax(104px,auto)_72px] gap-x-3';
+    'grid grid-cols-[minmax(0,1fr)_auto_auto_72px] lg:grid-cols-[minmax(150px,1.5fr)_minmax(150px,1.4fr)_minmax(140px,1fr)_minmax(104px,auto)_72px] gap-x-3';
 const USER_ROW = 'col-span-full grid grid-cols-subgrid';
 
 /** Remembers per organization and browser that the founder has seen the notice about the new roles (issue #959). */
@@ -968,8 +968,8 @@ function OrganizationDetailsSettingsView() {
                                             className={`${USER_ROW} px-1 pb-2 text-[12px] font-bold uppercase tracking-[0.04em] text-[#6B6B76] dark:text-[#A0A0AC]`}
                                         >
                                             <span>{t('organization.details.users.name')}</span>
-                                            <span>{t('organization.details.users.role')}</span>
                                             <span className="hidden lg:block">{t('organization.details.users.email')}</span>
+                                            <span>{t('organization.details.users.role')}</span>
                                             <span>{t('organization.details.users.status.title')}</span>
                                             {canManageMembers && <span />}
                                         </div>
@@ -987,12 +987,20 @@ function OrganizationDetailsSettingsView() {
                                                     <span className="flex items-center gap-2.5 text-[14.5px] font-bold text-[#1B1B1F] dark:text-[#F2F2F5] min-w-0">
                                                         <UserAvatar name={name} />
                                                         <span className="flex min-w-0 flex-col">
-                                                            <span className="truncate">{name}</span>
+                                                            <span className="truncate">
+                                                                {name}
+                                                                {isCurrentUser && (
+                                                                    <span className="ml-1 font-normal text-[#6B6B76] dark:text-[#A0A0AC]">
+                                                                        {t('organization.details.users.you')}
+                                                                    </span>
+                                                                )}
+                                                            </span>
                                                             <span className="truncate text-[13px] font-normal text-[#6B6B76] dark:text-[#A0A0AC] lg:hidden">
                                                                 {user.email}
                                                             </span>
                                                         </span>
                                                     </span>
+                                                    <span className="hidden text-[14px] text-[#6B6B76] dark:text-[#A0A0AC] truncate lg:block">{user.email}</span>
                                                     {canChangeRole ? (
                                                         <Select
                                                             className="min-w-0"
@@ -1008,7 +1016,6 @@ function OrganizationDetailsSettingsView() {
                                                             {user.role ? t(`organization.details.users.roles.${user.role}.name`) : '–'}
                                                         </span>
                                                     )}
-                                                    <span className="hidden text-[14px] text-[#6B6B76] dark:text-[#A0A0AC] truncate lg:block">{user.email}</span>
                                                     <StatusPill status={user.status ?? 'NO_ACCESS'} />
                                                     {canManageMembers && (
                                                         <span className="flex justify-end gap-1">

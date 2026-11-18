@@ -421,7 +421,8 @@
                     "success": "Changes saved",
                     "duplicate": "This email address already belongs to someone else.",
                     "error": "The changes could not be saved."
-                }
+                },
+                "you": "(you)"
             }
         },
         "noOrganization": {
