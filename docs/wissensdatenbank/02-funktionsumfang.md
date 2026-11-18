@@ -99,8 +99,9 @@ Status-Skala siehe [README.md](README.md). Pfade relativ zu
 | Rechte pro Bommel (z. B. nur eigener Anlass) | ❌ | `checkUserHasPermission()` ist ein TODO | BE `bommel/api/BommelResource.java` |
 | Einladung / Direktlink zu einem Bommel | ❌ / 💡 | – | – |
 | Mitglied entfernen, Rollen ändern (UI) | ✅ | Nur die Gründer:in; die eigene Rolle und die der Gründer:in sind nicht änderbar (Stand 2026-11-18) | `DELETE /organization/my/members/{id}`, `PUT /organization/my/members/{id}/role` |
-| Eigenes Profil: Sprache, Theme | ✅ | – | SPA `/profile` |
-| Eigenes Profil: Name, IBAN/Auszahlungskonto | ❌ | Name ggf. über Keycloak-Account-Konsole ❓ | – |
+| Einstellungen: Sprache, Theme | ✅ | Im Browser gespeichert, erreichbar über das Benutzermenü (Stand 2026-11-18) | SPA `/settings` |
+| Eigenes Profil: Name, Telefonnummer, Rolle und Berechtigungen | ✅ | E-Mail-Adresse nur lesbar (verwaltet beim Anmeldedienst); Passwort und Zwei-Faktor-Anmeldung über Links zum Konto beim Anmeldedienst (Stand 2026-11-18) | `GET/PUT /member/me`, SPA `/profile` |
+| Eigenes Profil: IBAN/Auszahlungskonto | ❌ | – | – |
 | SaaS-Administration (alle Organisationen, Impersonation) | ✅ | Nur Betreiber; im Single-Tenant-Modus deaktiviert | `frontend/admin`, BE `AdminOrganizationResource` |
 
 ## 8. Login & Identity
