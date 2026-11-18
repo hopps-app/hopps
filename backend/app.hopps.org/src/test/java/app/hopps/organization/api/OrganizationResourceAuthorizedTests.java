@@ -188,9 +188,9 @@ class OrganizationResourceAuthorizedTests {
                 .statusCode(200)
                 .body("find { it.email == 'board@example.test' }.role", is("BOARD"))
                 .body("find { it.email == 'emanuel_urban@domain.none' }.role", is("OWNER"))
-                // The founder heads the list, the new board member follows the treasurers.
+                // The founder heads the list, the new board member comes right after, before the treasurers.
                 .body("[0].role", is("OWNER"))
-                .body("role[-1]", is("BOARD"));
+                .body("[1].role", is("BOARD"));
 
         given()
                 .contentType(MediaType.APPLICATION_JSON)

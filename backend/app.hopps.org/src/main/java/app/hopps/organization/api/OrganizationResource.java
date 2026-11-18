@@ -317,7 +317,7 @@ public class OrganizationResource {
     @Path("{slug}/members")
     @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get organization members", description = "Retrieves the members of the current user's organization using its unique slug identifier, each with their role in it, ordered by role (founder, treasurer, board, auditor) and then by name. Other organizations' slugs answer 404.")
+    @Operation(summary = "Get organization members", description = "Retrieves the members of the current user's organization using its unique slug identifier, each with their role in it, ordered by role (founder, board, treasurer, auditor) and then by name. Other organizations' slugs answer 404.")
     @APIResponse(responseCode = "200", description = "Members retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = OrganizationMemberResponse.class)))
     @APIResponse(responseCode = "403", description = "User is not a member of any organization")
     @APIResponse(responseCode = "404", description = "Organization not found for provided slug")

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import java.util.Comparator;
+import java.util.List;
 
 /**
  * Entry of the member list: the member's contact data, invitation status and role in the organization.
@@ -24,9 +25,13 @@ public record OrganizationMemberResponse(
         @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(description = "One-time link in which the invited person sets their password, to be passed on by the "
                 + "inviting admin. Only present right after adding a member whose invitation email could not be sent.") String setupLink) {
 
-    /** Order of the member list: by role as declared in {@link Role} (founder first), then by last and first name. */
+    /** Order of the roles in the member list: founder, board, treasurer, auditor. */
+    private static final List<Role> ROLE_ORDER = List.of(Role.OWNER, Role.BOARD, Role.ADMIN, Role.AUDITOR);
+
+    /** Order of the member list: by {@link #ROLE_ORDER}, then by last and first name. */
     public static final Comparator<OrganizationMemberResponse> BY_ROLE_THEN_NAME = Comparator
-            .comparing(OrganizationMemberResponse::role, Comparator.nullsLast(Comparator.naturalOrder()))
+            .comparing(OrganizationMemberResponse::role,
+                    Comparator.nullsLast(Comparator.comparingInt(ROLE_ORDER::indexOf)))
             .thenComparing(OrganizationMemberResponse::lastName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER))
             .thenComparing(OrganizationMemberResponse::firstName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
 
