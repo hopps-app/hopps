@@ -1,0 +1,6 @@
+Buchungstag;Wertstellung;Umsatzart;Buchungstext;Betrag;Währung;IBAN Kontoinhaber;Kategorie;Sender;Empfänger;Verwendungszweck
+03.11.2026;03.11.2026;Überweisung;Test Person 1 Mitgliedsbeitrag 2026;25,00;EUR;DE89370400440532013000;;Test Person 1;;Mitgliedsbeitrag 2026
+04.11.2026;04.11.2026;Lastschrift;Testfirma GmbH Rechnung 4711;-119,90;EUR;DE89370400440532013000;;;Testfirma GmbH;Rechnung 4711
+05.11.2026;05.11.2026;Zinsen/Entgelte;Entgelt Kontoführung 10/2026;-5,5;EUR;DE89370400440532013000;;;Testbank AG;
+05.11.2026;06.11.2026;Überweisung (Echtzeit);Test Person 2 Spende Projekt;1250,00;EUR;DE89370400440532013000;;Test Person 2;;
+06.11.2026;06.11.2026;Dauerauftrag;Test Verein Miete November;-480,00;EUR;DE89370400440532013000;;;Test Verein;Miete November
