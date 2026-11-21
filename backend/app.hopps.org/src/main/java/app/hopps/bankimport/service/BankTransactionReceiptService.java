@@ -106,6 +106,9 @@ public class BankTransactionReceiptService {
         if (bankTx.getStatus() == BankTransactionStatus.IGNORED) {
             throw new BadRequestException("Cannot attach a receipt to an ignored bank transaction");
         }
+        if (bankTx.getStatus() == BankTransactionStatus.TRANSFER) {
+            throw new BadRequestException("Cannot attach a receipt to a transfer between own accounts");
+        }
 
         Organization organization = organizationContext.getCurrentOrganization();
         if (organization == null) {

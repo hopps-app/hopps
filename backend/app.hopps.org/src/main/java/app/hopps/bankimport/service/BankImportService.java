@@ -6,6 +6,7 @@ import app.hopps.bankimport.domain.BankCsvSchema;
 import app.hopps.bankimport.domain.BankImport;
 import app.hopps.bankimport.domain.BankImportStatus;
 import app.hopps.bankimport.parser.Mt940Parser;
+import app.hopps.bankimport.parser.PaypalCsvParser;
 import app.hopps.bankimport.repository.BankImportRepository;
 import app.hopps.bankimport.repository.BankTransactionRepository;
 import app.hopps.shared.infrastructure.storage.StorageKeys;
@@ -84,10 +85,17 @@ public class BankImportService {
             throw new BadRequestException("Could not read uploaded file: " + e.getMessage());
         }
 
-        // Detect file type
+        // Detect file type. A PayPal export only fits a PayPal account, and a PayPal account takes nothing else.
         String fileType;
         BankCsvSchema schema = null;
-        if (Mt940Parser.isMt940(content)) {
+        boolean paypalFile = !Mt940Parser.isMt940(content) && PaypalCsvParser.isPaypal(content);
+        if (paypalFile != account.isPaypal()) {
+            throw paypalFile ? BankImportRejectedException.paypalFileForBankAccount()
+                    : BankImportRejectedException.bankFileForPaypalAccount();
+        }
+        if (paypalFile) {
+            fileType = PaypalImportService.FILE_TYPE;
+        } else if (Mt940Parser.isMt940(content)) {
             fileType = "MT940";
         } else {
             if (schemaId == null) {

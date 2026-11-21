@@ -3,9 +3,11 @@ package app.hopps.bankimport.api;
 import app.hopps.bankimport.api.dto.BankImportResponse;
 import app.hopps.bankimport.api.dto.CsvPreviewResponse;
 import app.hopps.bankimport.api.dto.SchemaDetectionResult;
+import app.hopps.bankimport.domain.BankAccount;
 import app.hopps.bankimport.domain.BankImport;
 import app.hopps.bankimport.domain.BankTransactionStatus;
 import app.hopps.bankimport.repository.BankTransactionRepository;
+import app.hopps.bankimport.service.BankAccountService;
 import app.hopps.bankimport.service.BankImportRejectedException;
 import app.hopps.bankimport.service.BankImportService;
 import app.hopps.bankimport.service.CsvPreviewService;
@@ -57,13 +59,16 @@ public class BankAccountImportResource {
     CsvPreviewService csvPreviewService;
 
     @Inject
+    BankAccountService bankAccountService;
+
+    @Inject
     SchemaDetectionService schemaDetectionService;
 
     @POST
     @Path("/preview")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Preview an uploaded CSV", description = "Synchronously decodes the file, detects encoding and delimiter, and returns the first 20 raw lines plus header columns for the schema wizard. Does not persist anything.")
+    @Operation(summary = "Preview an uploaded CSV", description = "Synchronously decodes the file, detects encoding and delimiter, and returns the first 20 raw lines plus header columns for the schema wizard. MT940 files and PayPal activity exports (fileType MT940 / PAYPAL) instead return their parsed movements: bookingDate, amount, currency, purpose, counterpartyName (and kind PAYMENT / FEE / TRANSFER for PayPal). Does not persist anything.")
     @APIResponse(responseCode = "200", description = "Preview generated", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CsvPreviewResponse.class)))
     @APIResponse(responseCode = "400", description = "File missing or unreadable")
     @APIResponse(responseCode = "401", description = "User not logged in")
@@ -81,13 +86,14 @@ public class BankAccountImportResource {
             throw new BadRequestException("Could not read uploaded file: " + e.getMessage());
         }
         LOG.info("CSV preview requested: account={}, file={}, size={}", accountId, file.fileName(), file.size());
-        return csvPreviewService.preview(content);
+        BankAccount account = bankAccountService.get(accountId);
+        return csvPreviewService.preview(content, account.getCurrency());
     }
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Queue a bank file import", description = "Uploads the file (CSV or MT940), archives it in S3, creates a BankImport job in QUEUED state and returns 202 Accepted. MT940 files are auto-detected and require no schemaId. The worker picks it up within a few seconds. Poll GET /imports/{id} for status.")
+    @Operation(summary = "Queue a bank file import", description = "Uploads the file (CSV or MT940), archives it in S3, creates a BankImport job in QUEUED state and returns 202 Accepted. MT940 files and PayPal activity exports are auto-detected and require no schemaId; a PayPal export only goes into a PayPal account and a PayPal account only takes a PayPal export (409 WRONG_ACCOUNT_TYPE otherwise). The worker picks it up within a few seconds. Poll GET /imports/{id} for status.")
     @APIResponse(responseCode = "202", description = "Import queued", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankImportResponse.class)))
     @APIResponse(responseCode = "400", description = "File missing, schemaId missing, or duplicate file already queued")
     @APIResponse(responseCode = "401", description = "User not logged in")
@@ -95,7 +101,9 @@ public class BankAccountImportResource {
     @APIResponse(responseCode = "409", description = "The file's amounts are in another currency than the account, or in several (code "
             + BankImportRejectedException.CURRENCY_MISMATCH
             + ", fields fileCurrencies, accountCurrency), or the file was already imported into another account (code "
-            + BankImportRejectedException.FILE_ALREADY_IMPORTED + ", fields accountName, accountArchived)")
+            + BankImportRejectedException.FILE_ALREADY_IMPORTED + ", fields accountName, accountArchived), or a PayPal "
+            + "export was dropped on a bank account or a bank file on a PayPal account (code "
+            + BankImportRejectedException.WRONG_ACCOUNT_TYPE + ", field fileAccountType BANK / PAYPAL)")
     public Response createImport(
             @PathParam("accountId") @Parameter(description = "Bank account ID") Long accountId,
             @RestForm("file") FileUpload file,

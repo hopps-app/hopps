@@ -1460,8 +1460,16 @@
                 "bicTooLong": "BIC darf maximal 11 Zeichen lang sein",
                 "openingBalanceDateRequired": "Datum des Eröffnungssaldos ist erforderlich, wenn ein Saldo angegeben wird",
                 "openingBalanceRequired": "Eröffnungssaldo ist erforderlich, wenn ein Datum angegeben wird",
-                "duplicateIban": "Ein Konto mit dieser IBAN existiert bereits in der Organisation"
-            }
+                "duplicateIban": "Ein Konto mit dieser IBAN existiert bereits in der Organisation",
+                "paypalEmailRequired": "Bitte die PayPal-E-Mail-Adresse angeben",
+                "paypalEmailInvalid": "Keine gültige E-Mail-Adresse"
+            },
+            "type": "Art des Kontos",
+            "typeBank": "Bankkonto",
+            "typePaypal": "PayPal",
+            "paypalEmail": "PayPal-E-Mail-Adresse",
+            "paypalEmailPlaceholder": "kasse@verein.de",
+            "paypalEmailHint": "Die Adresse, mit der sich der Verein bei PayPal anmeldet."
         },
         "toast": {
             "createSuccess": "Bankkonto erstellt",
@@ -1484,7 +1492,10 @@
             "currencyMismatchTitle": "Falsche Währung",
             "currencyMismatch": "Die Datei enthält Beträge in {{fileCurrencies}}, das Konto wird aber in {{accountCurrency}} geführt. Die Datei bitte in ein Konto mit dieser Währung importieren.",
             "mixedCurrencies": "Die Datei enthält Beträge in mehreren Währungen ({{fileCurrencies}}). Ein Konto kann nur eine Währung führen, deshalb kann die Datei nicht importiert werden.",
-            "startError": "Der Import konnte nicht gestartet werden."
+            "startError": "Der Import konnte nicht gestartet werden.",
+            "wrongAccountTypeTitle": "Datei passt nicht zum Konto",
+            "paypalFileForBankAccount": "Das ist ein PayPal-Export. Bitte in ein PayPal-Konto importieren.",
+            "bankFileForPaypalAccount": "Ein PayPal-Konto übernimmt nur den PayPal-Aktivitätenexport (CSV)."
         },
         "title": "Kontoauszug importieren",
         "wizard": {
@@ -1518,7 +1529,15 @@
             "previewButton": "Vorschau anzeigen",
             "previewError": "Fehler beim Laden der Vorschau",
             "confirmTitle": "Import bestätigen",
-            "startImport": "Import starten"
+            "startImport": "Import starten",
+            "paypalDetected": "PayPal-Export erkannt · {{count}} Buchungen · kein Schema nötig",
+            "paypalHint": "Aufladungen und Abbuchungen auf das Bankkonto werden als Umbuchung markiert, Entgelte als eigene Buchung, Zahlungen in Fremdwährung über ihre Umrechnung.",
+            "paypalUnreadable": "Der PayPal-Export konnte nicht gelesen werden. Bitte die Aktivitäten als CSV mit Sprache Deutsch herunterladen.",
+            "paypalKind": {
+                "PAYMENT": "Zahlung",
+                "FEE": "Entgelt",
+                "TRANSFER": "Umbuchung"
+            }
         },
         "preview": {
             "encoding": "Kodierung",
@@ -1655,7 +1674,8 @@
             "open": "Offen",
             "matched": "Zugeordnet",
             "partial": "Teilverknüpft",
-            "ignored": "Ignoriert"
+            "ignored": "Ignoriert",
+            "transfer": "Umbuchung"
         },
         "filter": {
             "open": "Offen",
@@ -1761,7 +1781,8 @@
             "suggestionLink": "Verknüpfen",
             "review": "Prüfen",
             "assignPartial": "Teilweise zuordnen",
-            "zugferdCreatedHint": "Aus den ZUGFeRD-Daten der E-Rechnung erstellt. Kategorie und Bommel lassen sich in der Transaktion prüfen."
+            "zugferdCreatedHint": "Aus den ZUGFeRD-Daten der E-Rechnung erstellt. Kategorie und Bommel lassen sich in der Transaktion prüfen.",
+            "transferHint": "Umbuchung zwischen eigenen Konten, z. B. Aufladung von PayPal über das Bankkonto. Dafür ist kein Beleg nötig."
         },
         "createTx": {
             "title": "Transaktion aus Banktransaktion",
