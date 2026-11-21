@@ -13,6 +13,9 @@ import app.hopps.organization.service.OrganizationCreationService;
 import app.hopps.organization.service.OrganizationCurrencyService;
 import app.hopps.organization.service.OrganizationLogoService;
 import app.hopps.organization.service.OrganizationMemberService;
+import app.hopps.organization.service.RegistrationNotifier;
+import app.hopps.shared.altcha.AltchaFailedException;
+import app.hopps.shared.altcha.AltchaService;
 import app.hopps.shared.infrastructure.storage.StoredFileNotFoundException;
 import app.hopps.shared.security.AccessService;
 import app.hopps.shared.security.SecurityUtils;
@@ -84,6 +87,12 @@ public class OrganizationResource {
 
     @Inject
     JsonWebToken jwt;
+
+    @Inject
+    AltchaService altchaService;
+
+    @Inject
+    RegistrationNotifier registrationNotifier;
 
     @GET
     @Path("{slug}")
@@ -286,6 +295,8 @@ public class OrganizationResource {
         }
 
         LOG.info("Successfully created organization for current user: {}", organization.getSlug());
+        registrationNotifier.organizationRegistered(organization,
+                new RegistrationNotifier.ContactPerson(firstName, lastName, email));
         return Response.status(Response.Status.CREATED).entity(organization).build();
     }
 
@@ -328,12 +339,15 @@ public class OrganizationResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create a new organization", description = "Registers a new organization together with its owner account. On a single-tenant installation this is the one-time initial setup: it works while no organization exists and answers 403 (code SETUP_COMPLETE) afterwards.")
+    @Operation(summary = "Create a new organization", description = "Registers a new organization together with its owner account. The request needs a solved ALTCHA challenge (see GET /public/altcha/challenge) in `altcha`; it is checked before anything else, so an unsolved request learns nothing about existing emails or slugs. On a single-tenant installation this is the one-time initial setup: it works while no organization exists and answers 403 (code SETUP_COMPLETE) afterwards.")
     @APIResponse(responseCode = "201", description = "Organization created successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
-    @APIResponse(responseCode = "400", description = "Validation of fields failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
+    @APIResponse(responseCode = "400", description = "Validation of fields failed, or the ALTCHA challenge is missing, invalid, expired or already used (code "
+            + AltchaFailedException.CODE
+            + ")", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
     @APIResponse(responseCode = "403", description = "Single-tenant installation that is already set up (code SETUP_COMPLETE)")
     @APIResponse(responseCode = "409", description = "Email or slug already exists", content = @Content(mediaType = MediaType.APPLICATION_JSON))
     public Response create(NewOrganizationInput input) {
+        altchaService.requireSolved(input.altcha());
         requireSupportedCountry(input.organization().country());
         Organization organization = input.toOrganization();
         Member owner = input.toOwner();
@@ -358,6 +372,8 @@ public class OrganizationResource {
         }
 
         LOG.info("Successfully created organization: {}", organization.getSlug());
+        registrationNotifier.organizationRegistered(organization,
+                new RegistrationNotifier.ContactPerson(owner.getFirstName(), owner.getLastName(), owner.getEmail()));
         return Response.status(Response.Status.CREATED)
                 .entity(organization)
                 .build();

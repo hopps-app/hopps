@@ -263,6 +263,13 @@ switched over by accident. Switching from `single` to `multi` is always possible
 The SPA reads the mode from the backend (`GET /instance`); there is nothing to
 configure on the frontend.
 
+The initial setup, like the public sign-up of the hosted SaaS, is protected by an
+[ALTCHA](https://altcha.org) proof of work that the browser solves before the
+request is sent: no cookies, no third-party service. Nothing needs configuring for
+a single org container. With several replicas, give them one shared
+`HOPPS_ALTCHA_HMAC_SECRET`, otherwise a challenge issued by one replica is
+rejected by another.
+
 ## File storage
 
 Uploaded files (receipts, logos, bank import files) go to the `org_storage`

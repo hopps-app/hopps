@@ -12099,6 +12099,8 @@ export class NewOrganizationInput implements INewOrganizationInput {
     owner!: OwnerInput;
     newPassword!: string;
     organization!: OrganizationInput;
+    /** Payload of the solved ALTCHA challenge from GET /public/altcha/challenge, as the altcha widget produces it. Required unless spam protection is switched off (hopps.altcha.enabled=false). */
+    altcha?: string;
 
     [key: string]: any;
 
@@ -12124,6 +12126,7 @@ export class NewOrganizationInput implements INewOrganizationInput {
             this.owner = _data["owner"] ? OwnerInput.fromJS(_data["owner"]) : new OwnerInput();
             this.newPassword = _data["newPassword"];
             this.organization = _data["organization"] ? OrganizationInput.fromJS(_data["organization"]) : new OrganizationInput();
+            this.altcha = _data["altcha"];
         }
     }
 
@@ -12143,6 +12146,7 @@ export class NewOrganizationInput implements INewOrganizationInput {
         data["owner"] = this.owner ? this.owner.toJSON() : undefined as any;
         data["newPassword"] = this.newPassword;
         data["organization"] = this.organization ? this.organization.toJSON() : undefined as any;
+        data["altcha"] = this.altcha;
         return data;
     }
 
@@ -12158,6 +12162,8 @@ export interface INewOrganizationInput {
     owner: OwnerInput;
     newPassword: string;
     organization: OrganizationInput;
+    /** Payload of the solved ALTCHA challenge from GET /public/altcha/challenge, as the altcha widget produces it. Required unless spam protection is switched off (hopps.altcha.enabled=false). */
+    altcha?: string;
 
     [key: string]: any;
 }

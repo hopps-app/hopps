@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
+import LanguageSelector from '@/components/common/LanguageSelector/LanguageSelector';
 import Button from '@/components/ui/Button.tsx';
 import { useInstance } from '@/hooks/use-instance';
 import UserMenu from '@/layouts/default/UserMenu.tsx';
@@ -44,14 +45,18 @@ function Header() {
                     {isAuthenticated ? (
                         <UserMenu />
                     ) : (
-                        !isRegisterPage && (
-                            <div className="flex flex-row gap-5 items-center mt-0 ps-5">
-                                <Button variant="link" className="px-0" onClick={onClickLogin}>
-                                    {t('header.login')}
-                                </Button>
-                                {showRegister && <Button onClick={onClickRegister}>{registerLabel}</Button>}
-                            </div>
-                        )
+                        <div className="flex flex-row gap-5 items-center mt-0 ps-5">
+                            {/* Logged-in accounts change it in their profile settings. */}
+                            <LanguageSelector />
+                            {!isRegisterPage && (
+                                <>
+                                    <Button variant="link" className="px-0" onClick={onClickLogin}>
+                                        {t('header.login')}
+                                    </Button>
+                                    {showRegister && <Button onClick={onClickRegister}>{registerLabel}</Button>}
+                                </>
+                            )}
+                        </div>
                     )}
                 </div>
             </nav>
