@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.6.0](https://github.com/hopps-app/hopps/compare/v2.5.1...v2.6.0) (2026-11-21)
+
+
+### Features
+
+* **registration:** ALTCHA spam protection, sign-up notifications and language switch ([#942](https://github.com/hopps-app/hopps/issues/942)) ([bfe38c6](https://github.com/hopps-app/hopps/commit/bfe38c6c71f36bd9c36a99509bf49cfa65bf4cbd))
+
+
+### Bug Fixes
+
+* **admin:** sort vereine by last activity and use the spa buttons ([#937](https://github.com/hopps-app/hopps/issues/937)) ([8f38cf3](https://github.com/hopps-app/hopps/commit/8f38cf347f0013f2971946ab008ca1587c7ed69d))
+
 ## [2.5.1](https://github.com/hopps-app/hopps/compare/v2.5.0...v2.5.1) (2026-11-16)
 
 
