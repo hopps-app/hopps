@@ -10,7 +10,8 @@ import app.hopps.bankimport.service.BankImportRejectedException;
 import app.hopps.bankimport.service.BankImportService;
 import app.hopps.bankimport.service.CsvPreviewService;
 import app.hopps.bankimport.service.SchemaDetectionService;
-import io.quarkus.security.Authenticated;
+import app.hopps.member.domain.Permission;
+import io.quarkus.security.PermissionsAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
@@ -41,7 +42,6 @@ import java.util.List;
  * Per-account import endpoints: preview a CSV file, queue an import, and inspect the import history. The cross-cutting
  * status/rollback endpoints live on {@link BankImportResource} under {@code /imports}.
  */
-@Authenticated
 @Path("/bankaccounts/{accountId}/imports")
 public class BankAccountImportResource {
 
@@ -60,6 +60,7 @@ public class BankAccountImportResource {
     SchemaDetectionService schemaDetectionService;
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/preview")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
@@ -85,6 +86,7 @@ public class BankAccountImportResource {
     }
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Queue a bank file import", description = "Uploads the file (CSV or MT940), archives it in S3, creates a BankImport job in QUEUED state and returns 202 Accepted. MT940 files are auto-detected and require no schemaId. The worker picks it up within a few seconds. Poll GET /imports/{id} for status.")
@@ -116,6 +118,7 @@ public class BankAccountImportResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/suggest-schema")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Auto-detect schema from CSV headers", description = "Compares the provided header column names against the org's existing schemas and built-in templates. Returns the best match above the confidence threshold, or type=NONE if nothing matched.")
@@ -131,6 +134,7 @@ public class BankAccountImportResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "List imports for a bank account", description = "Returns the import history of the given account, newest first.")
     @APIResponse(responseCode = "200", description = "Import history", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankImportResponse[].class)))

@@ -165,7 +165,7 @@
             "serverError": "Auf dem Server ist ein Fehler aufgetreten. Bitte später erneut versuchen.",
             "notFound": "Der Eintrag wurde nicht gefunden.",
             "unauthorized": "Die Sitzung ist abgelaufen. Bitte erneut anmelden.",
-            "forbidden": "Keine Berechtigung für diese Aktion.",
+            "forbidden": "Für diese Aktion fehlt die Berechtigung. Bitte an die Gründer:in des Vereins wenden.",
             "conflict": "Der Eintrag wurde inzwischen geändert. Bitte die Seite neu laden.",
             "badRequest": "Die Eingaben sind ungültig. Bitte überprüfen.",
             "unknown": "Ein unerwarteter Fehler ist aufgetreten. Bitte erneut versuchen.",

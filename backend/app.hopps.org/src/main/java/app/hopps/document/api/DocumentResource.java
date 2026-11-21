@@ -14,6 +14,7 @@ import app.hopps.document.service.DocumentFileService;
 import app.hopps.document.service.DocumentTransactionService;
 import app.hopps.document.service.DocumentUploadService;
 import app.hopps.document.service.TradePartyService;
+import app.hopps.member.domain.Permission;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.infrastructure.storage.StoredFileNotFoundException;
 import app.hopps.shared.security.OrganizationContext;
@@ -22,8 +23,8 @@ import app.hopps.transaction.api.dto.TransactionResponse;
 import app.hopps.transaction.domain.Transaction;
 import app.hopps.transaction.domain.TransactionDeletedEvent;
 import app.hopps.transaction.repository.TransactionRepository;
+import io.quarkus.security.PermissionsAllowed;
 import jakarta.enterprise.event.Event;
-import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -53,7 +54,6 @@ import java.util.Set;
 /**
  * REST API for document management. Handles document upload, retrieval, and updates.
  */
-@Authenticated
 @Path("/documents")
 public class DocumentResource {
     private static final Logger LOG = LoggerFactory.getLogger(DocumentResource.class);
@@ -105,6 +105,7 @@ public class DocumentResource {
     CategoryGroupService categoryGroupService;
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
@@ -141,6 +142,7 @@ public class DocumentResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "List all documents", description = "Returns all documents for the current organization")
     @APIResponse(responseCode = "200", description = "List of documents", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = DocumentResponse[].class)))
@@ -159,6 +161,7 @@ public class DocumentResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get a document", description = "Returns a document by ID including its analysis status and results")
@@ -175,6 +178,7 @@ public class DocumentResource {
     }
 
     @PATCH
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -272,6 +276,7 @@ public class DocumentResource {
     }
 
     @DELETE
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}")
     @Transactional
     @Operation(summary = "Delete a document", description = "Deletes a document and its associated file from storage")
@@ -317,6 +322,7 @@ public class DocumentResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/{id}/file")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Operation(summary = "Download document file", description = "Downloads the document file from storage")
@@ -345,6 +351,7 @@ public class DocumentResource {
     }
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}/file")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
@@ -392,6 +399,7 @@ public class DocumentResource {
     }
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}/reanalyze")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
@@ -423,6 +431,7 @@ public class DocumentResource {
     }
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}/confirm")
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
@@ -474,6 +483,7 @@ public class DocumentResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/{id}/transactions")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(operationId = "listDocumentTransactions", summary = "List the transactions of a document", description = "Returns the transactions booked from this document in part order (\"Teil 1 von n\" first), each with its bank coverage and, when the document is split, its position among the parts. Empty while no transaction has been created.")
@@ -486,6 +496,7 @@ public class DocumentResource {
     }
 
     @PUT
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}/transactions")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
