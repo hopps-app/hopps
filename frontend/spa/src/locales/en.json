@@ -165,7 +165,7 @@
             "serverError": "The server encountered an error. Please try again later.",
             "notFound": "The requested resource was not found.",
             "unauthorized": "Your session has expired. Please log in again.",
-            "forbidden": "You do not have permission to perform this action.",
+            "forbidden": "You don't have permission for this action. Please contact the founder of your organization.",
             "conflict": "A conflict occurred. The resource may have been modified.",
             "badRequest": "The request was invalid. Please check your input.",
             "unknown": "An unexpected error occurred. Please try again.",

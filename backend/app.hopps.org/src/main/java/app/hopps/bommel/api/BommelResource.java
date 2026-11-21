@@ -3,10 +3,11 @@ package app.hopps.bommel.api;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.domain.TreeSearchBommel;
 import app.hopps.bommel.repository.BommelRepository;
+import app.hopps.member.domain.Permission;
 import app.hopps.org.service.UserOrganizationService;
 import app.hopps.organization.domain.Organization;
 import io.quarkus.runtime.configuration.ConfigUtils;
-import io.quarkus.security.Authenticated;
+import io.quarkus.security.PermissionsAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
@@ -25,7 +26,6 @@ import java.util.Optional;
 import java.util.Set;
 
 @Path("/bommel")
-@Authenticated
 public class BommelResource {
     public static final String RELATION_WRITE = "write";
     public static final String BOMMEL_NOT_FOUND = "Bommel not found";
@@ -50,6 +50,7 @@ public class BommelResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/{id}/children")
     @Operation(summary = "Fetch the children of bommel")
     @APIResponse(responseCode = "200", description = "Children of bommel", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel[].class)))
@@ -64,6 +65,7 @@ public class BommelResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/{id}/children/recursive")
     @Operation(summary = "Fetch the children of bommel recursively")
     @APIResponse(responseCode = "200", description = "Recursive children of bommel", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TreeSearchBommel[].class)))
@@ -77,6 +79,7 @@ public class BommelResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/{id}")
     @Operation(summary = "Fetch a bommel by its id")
     @APIResponse(responseCode = "200", description = "Bommel found", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel.class)))
@@ -91,6 +94,7 @@ public class BommelResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/root/{orgId}")
     @Operation(summary = "Fetch root-bommel for organization")
     @APIResponse(responseCode = "200", description = "Root-Bommel found", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Bommel.class)))
@@ -108,6 +112,7 @@ public class BommelResource {
     }
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/")
     @Transactional
     @Operation(summary = "Create bommel", description = "Create bommel underneath a root-bommel, without the parent-bommel it will fail.")
@@ -130,6 +135,7 @@ public class BommelResource {
     }
 
     @PUT
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}")
     @Transactional
     @Operation(summary = "Update bommel")
@@ -152,6 +158,7 @@ public class BommelResource {
      * Moves the bommel specified by id (first parameter) to the new parent (specified by newParentId)
      */
     @PUT
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/move/{id}/to/{newParentId}")
     @Transactional
     @Operation(summary = "Move a bommel underneath a different parent")
@@ -180,6 +187,7 @@ public class BommelResource {
     }
 
     @DELETE
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}")
     @Transactional
     @Operation(summary = "Delete bommel")

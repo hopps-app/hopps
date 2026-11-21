@@ -5,7 +5,8 @@ import app.hopps.bankimport.api.dto.BankAccountResponse;
 import app.hopps.bankimport.api.dto.BankAccountUpdateRequest;
 import app.hopps.bankimport.domain.BankAccount;
 import app.hopps.bankimport.service.BankAccountService;
-import io.quarkus.security.Authenticated;
+import app.hopps.member.domain.Permission;
+import io.quarkus.security.PermissionsAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -34,7 +35,6 @@ import java.util.List;
 /**
  * REST API for bank account management. See bank-import-feature.md §4.4.
  */
-@Authenticated
 @Path("/bankaccounts")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -46,6 +46,7 @@ public class BankAccountResource {
     BankAccountService bankAccountService;
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Operation(summary = "List bank accounts", description = "Returns all bank accounts of the current organization. Archived accounts are excluded by default.")
     @APIResponse(responseCode = "200", description = "List of bank accounts", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankAccountResponse[].class)))
     @APIResponse(responseCode = "401", description = "User not logged in")
@@ -58,6 +59,7 @@ public class BankAccountResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/{id}")
     @Operation(summary = "Get a bank account", description = "Returns a single bank account by ID")
     @APIResponse(responseCode = "200", description = "Bank account found", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankAccountResponse.class)))
@@ -71,6 +73,7 @@ public class BankAccountResource {
 
     @Transactional
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Operation(summary = "Create a bank account", description = "Creates a new bank account. If bommelId is omitted, the account is attached to the organization's root bommel.")
     @APIResponse(responseCode = "201", description = "Bank account created", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankAccountResponse.class)))
     @APIResponse(responseCode = "400", description = "Invalid input (e.g. invalid IBAN format)")
@@ -87,6 +90,7 @@ public class BankAccountResource {
     // One transaction for the change and the response, which reads lazy associations (bommel name).
     @Transactional
     @PATCH
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}")
     @Operation(summary = "Update a bank account", description = "Partial update — only non-null fields are applied (PATCH semantics).")
     @APIResponse(responseCode = "200", description = "Bank account updated", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankAccountResponse.class)))
@@ -103,6 +107,7 @@ public class BankAccountResource {
     }
 
     @DELETE
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}")
     @Operation(summary = "Archive a bank account", description = "Soft-deletes the account (sets archived=true). Imports and transactions are preserved, but its transactions leave the lists across accounts. Not possible while transactions are linked to bookkeeping transactions (see 'linked' on the account). Use POST /restore to undo.")
     @APIResponse(responseCode = "204", description = "Bank account archived")
@@ -116,6 +121,7 @@ public class BankAccountResource {
     }
 
     @DELETE
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}/permanent")
     @Operation(summary = "Delete an unused bank account", description = "Deletes the account for good, e.g. one created with a mistyped IBAN. Only possible while it has no imports and no transactions (see 'deletable' on the account); otherwise it can only be archived.")
     @APIResponse(responseCode = "204", description = "Bank account deleted")
@@ -130,6 +136,7 @@ public class BankAccountResource {
 
     @Transactional
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}/restore")
     @Consumes(MediaType.WILDCARD) // No body, so the client sends no JSON content type.
     @Operation(summary = "Restore an archived bank account", description = "Sets archived=false on a previously archived account.")

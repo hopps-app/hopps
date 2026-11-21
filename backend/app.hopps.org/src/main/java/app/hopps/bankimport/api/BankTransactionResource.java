@@ -11,8 +11,9 @@ import app.hopps.bankimport.repository.BankTransactionRepository;
 import app.hopps.bankimport.service.BankTransactionMatchService;
 import app.hopps.bankimport.service.BankTransactionReceiptService;
 import app.hopps.document.api.dto.DocumentResponse;
+import app.hopps.member.domain.Permission;
 import io.quarkus.panache.common.Page;
-import io.quarkus.security.Authenticated;
+import io.quarkus.security.PermissionsAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
@@ -48,7 +49,6 @@ import java.util.Map;
  * Read-only cross-account listing & aggregation of bank transactions. The per-account listing reuses the same query
  * with a single accountIds value (see {@link #listForAccount}).
  */
-@Authenticated
 @Path("/bank-transactions")
 @Produces(MediaType.APPLICATION_JSON)
 public class BankTransactionResource {
@@ -63,6 +63,7 @@ public class BankTransactionResource {
     BankTransactionReceiptService receiptService;
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Operation(summary = "List bank transactions", description = "Cross-account listing scoped to the current org. Filters: accountIds, dateFrom/dateTo, status (multi), search (purpose/counterparty), minAmount/maxAmount (magnitude range).")
     @APIResponse(responseCode = "200", description = "List of transactions", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankTransactionResponse[].class)))
     @APIResponse(responseCode = "401", description = "User not logged in")
@@ -90,6 +91,7 @@ public class BankTransactionResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/aggregate")
     @Operation(summary = "Aggregate totals", description = "Returns sumIncoming, sumOutgoing, net and count for the same filter set as GET /bank-transactions.")
     @APIResponse(responseCode = "200", description = "Aggregated totals", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankTransactionAggregateResponse.class)))
@@ -116,6 +118,7 @@ public class BankTransactionResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/{id}")
     @Operation(summary = "Get a bank transaction", description = "Returns a bank transaction by ID, including matched transaction IDs")
     @APIResponse(responseCode = "200", description = "Transaction found", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankTransactionResponse.class)))
@@ -132,6 +135,7 @@ public class BankTransactionResource {
     }
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}/matches")
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Link a bank transaction to a hopps transaction", description = "Creates a MANUAL match between the bank transaction and a bookkeeping transaction. Optionally records how much of the bank movement is used for this transaction (the allocation) — omit for the full amount, or set it to split a collective transfer across several transactions.")
@@ -153,6 +157,7 @@ public class BankTransactionResource {
     }
 
     @PATCH
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}/matches/{transactionId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Update the used amount of a match", description = "Sets how much of the bank movement is used for the linked transaction (the allocation). Used to disentangle a collective transfer after the fact.")
@@ -169,6 +174,7 @@ public class BankTransactionResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/{id}/matches")
     @Operation(summary = "List the matches of a bank transaction", description = "Returns each linked bookkeeping transaction together with the portion of the bank movement allocated to it.")
     @APIResponse(responseCode = "200", description = "List of allocations", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = MatchAllocationResponse[].class)))
@@ -183,6 +189,7 @@ public class BankTransactionResource {
     }
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}/receipt")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Operation(summary = "Create a receipt and a linked transaction for a bank transaction", description = "Uploads a receipt document and creates a DRAFT bookkeeping transaction pre-filled from the bank movement (counterparty as trade party, amount and purpose). The document, the transaction and the bank transaction are linked, and the document is analysed by the Document-AI for later review.")
@@ -203,6 +210,7 @@ public class BankTransactionResource {
     }
 
     @DELETE
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}/matches/{transactionId}")
     @Operation(summary = "Unlink a bank transaction from a hopps transaction", description = "Removes a match between the bank transaction and the bookkeeping transaction.")
     @APIResponse(responseCode = "204", description = "Match removed")
@@ -216,6 +224,7 @@ public class BankTransactionResource {
     }
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}/ignore")
     @Operation(summary = "Mark a bank transaction as ignored", description = "Sets the status to IGNORED — the transaction will not appear in the reconciliation worklist.")
     @APIResponse(responseCode = "204", description = "Transaction marked as ignored")
@@ -228,6 +237,7 @@ public class BankTransactionResource {
     }
 
     @DELETE
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}/ignore")
     @Operation(summary = "Unmark a bank transaction as ignored", description = "Reverts the IGNORED status — recomputes status from existing matches.")
     @APIResponse(responseCode = "204", description = "Transaction unignored")
@@ -240,6 +250,7 @@ public class BankTransactionResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/for-transaction/{transactionId}")
     @Operation(summary = "List bank transactions linked to a bookkeeping transaction", description = "Returns the bank transactions matched to the given transaction — the reverse direction of the N:M match mapping, scoped to the current organization.")
     @APIResponse(responseCode = "200", description = "List of linked bank transactions", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankTransactionResponse[].class)))
@@ -255,6 +266,7 @@ public class BankTransactionResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/by-account/{accountId}")
     @Operation(summary = "List transactions of one account", description = "Convenience endpoint equivalent to GET /bank-transactions?accountIds={accountId} — used by the bank account detail screen.")
     @APIResponse(responseCode = "200", description = "List of transactions", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankTransactionResponse[].class)))

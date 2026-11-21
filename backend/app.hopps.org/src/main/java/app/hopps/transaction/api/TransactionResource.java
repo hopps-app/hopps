@@ -10,6 +10,7 @@ import app.hopps.document.domain.DocumentStatus;
 import app.hopps.document.domain.TradeParty;
 import app.hopps.document.service.DocumentTransactionService;
 import app.hopps.document.service.TradePartyService;
+import app.hopps.member.domain.Permission;
 import app.hopps.organization.domain.Organization;
 import app.hopps.shared.security.OrganizationContext;
 import app.hopps.transaction.api.dto.TransactionAggregateResponse;
@@ -25,7 +26,7 @@ import app.hopps.transaction.domain.TransactionStatus;
 import app.hopps.transaction.repository.TransactionRepository;
 import io.quarkus.panache.common.Page;
 import io.quarkus.panache.common.Sort;
-import io.quarkus.security.Authenticated;
+import io.quarkus.security.PermissionsAllowed;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
@@ -53,7 +54,6 @@ import java.util.Map;
 /**
  * REST API for transaction management.
  */
-@Authenticated
 @Path("/transactions")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -104,6 +104,7 @@ public class TransactionResource {
     Event<DocumentChangedEvent> documentChangedEvent;
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Operation(summary = "List all transactions", description = "Returns all transactions for the current organization with optional filters")
     @APIResponse(responseCode = "200", description = "List of transactions", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TransactionResponse[].class)))
     public List<TransactionResponse> listTransactions(
@@ -164,6 +165,7 @@ public class TransactionResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/aggregate")
     @Operation(summary = "Aggregate transaction totals", description = "Returns the total count and income/expense sums for the same filter set as GET /transactions. Drives paging (count) and the overview totals across all pages, not just the current one.")
     @APIResponse(responseCode = "200", description = "Aggregated totals", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TransactionAggregateResponse.class)))
@@ -210,6 +212,7 @@ public class TransactionResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/{id}")
     @Operation(summary = "Get a transaction", description = "Returns a transaction by ID")
     @APIResponse(responseCode = "200", description = "Transaction found", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TransactionResponse.class)))
@@ -224,6 +227,7 @@ public class TransactionResource {
     }
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Transactional
     @Operation(summary = "Create a manual transaction", description = "Creates a transaction without a document (manual entry)")
     @APIResponse(responseCode = "201", description = "Transaction created", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TransactionResponse.class)))
@@ -253,6 +257,7 @@ public class TransactionResource {
     }
 
     @PATCH
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}")
     @Transactional
     @Operation(summary = "Update a transaction", description = "Updates a transaction with user-provided data")
@@ -305,6 +310,7 @@ public class TransactionResource {
     }
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}/confirm")
     @Transactional
     @Operation(summary = "Confirm a transaction", description = "Marks a transaction as confirmed. Only permitted when the mandatory fields (amount, date, counterparty, name, bommel) are set and the amount is exactly covered by linked bank transactions.")
@@ -405,6 +411,7 @@ public class TransactionResource {
     }
 
     @POST
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}/reopen")
     @Transactional
     @Operation(summary = "Reopen a transaction", description = "Reverts a confirmed transaction back to draft status")
@@ -435,6 +442,7 @@ public class TransactionResource {
     }
 
     @DELETE
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}")
     @Transactional
     @Operation(summary = "Delete a transaction", description = "Deletes a transaction")

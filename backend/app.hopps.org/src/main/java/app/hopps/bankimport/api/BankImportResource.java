@@ -4,7 +4,8 @@ import app.hopps.bankimport.api.dto.BankImportResponse;
 import app.hopps.bankimport.domain.BankTransactionStatus;
 import app.hopps.bankimport.repository.BankTransactionRepository;
 import app.hopps.bankimport.service.BankImportService;
-import io.quarkus.security.Authenticated;
+import app.hopps.member.domain.Permission;
+import io.quarkus.security.PermissionsAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -24,7 +25,6 @@ import org.slf4j.LoggerFactory;
  * Cross-account import endpoints: status polling and rollback. Used by the wizard's progress polling and the "remove a
  * botched import" admin action.
  */
-@Authenticated
 @Path("/imports")
 @Produces(MediaType.APPLICATION_JSON)
 public class BankImportResource {
@@ -38,6 +38,7 @@ public class BankImportResource {
     BankTransactionRepository transactionRepository;
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/{id}")
     @Operation(summary = "Get import status", description = "Returns the live status of an import job (progress, counters, error report). Always responds with HTTP 200 — clients inspect the status field rather than the HTTP code.")
     @APIResponse(responseCode = "200", description = "Import status", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = BankImportResponse.class)))
@@ -52,6 +53,7 @@ public class BankImportResource {
     }
 
     @DELETE
+    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
     @Path("/{id}")
     @Operation(summary = "Rollback an import", description = "Deletes all transactions created by this import and removes the import record itself. Not possible once a movement is linked to a transaction or ignored. Allowed only for finished imports (COMPLETED / PARTIAL / FAILED).")
     @APIResponse(responseCode = "204", description = "Import rolled back")

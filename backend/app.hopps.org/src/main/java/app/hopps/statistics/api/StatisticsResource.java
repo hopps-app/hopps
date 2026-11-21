@@ -1,10 +1,11 @@
 package app.hopps.statistics.api;
 
+import app.hopps.member.domain.Permission;
 import app.hopps.statistics.api.dto.BommelStatistics;
 import app.hopps.statistics.api.dto.BommelStatisticsMap;
 import app.hopps.statistics.api.dto.OrganizationStatistics;
 import app.hopps.statistics.service.StatisticsService;
-import io.quarkus.security.Authenticated;
+import io.quarkus.security.PermissionsAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.DefaultValue;
@@ -28,7 +29,6 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 
 @Path("/statistics")
-@Authenticated
 @Produces(MediaType.APPLICATION_JSON)
 public class StatisticsResource {
 
@@ -36,6 +36,7 @@ public class StatisticsResource {
     StatisticsService statisticsService;
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/organizations/{orgId}")
     @Operation(summary = "Get organization statistics", description = "Returns aggregated statistics for the entire organization including total bommels, "
             +
@@ -50,6 +51,7 @@ public class StatisticsResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/bommels/{bommelId}")
     @Operation(summary = "Get bommel statistics", description = "Returns statistics for a specific bommel including income, expenses, balance, "
             +
@@ -78,6 +80,7 @@ public class StatisticsResource {
     }
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/organizations/{orgId}/bommels")
     @Operation(summary = "Get statistics for all bommels in an organization", description = "Returns statistics for all bommels in the organization as a map. "
             +

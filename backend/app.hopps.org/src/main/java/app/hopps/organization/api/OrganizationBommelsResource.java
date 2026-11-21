@@ -3,7 +3,8 @@ package app.hopps.organization.api;
 import app.hopps.bommel.domain.Bommel;
 import app.hopps.bommel.domain.TreeSearchBommel;
 import app.hopps.bommel.repository.BommelRepository;
-import io.quarkus.security.Authenticated;
+import app.hopps.member.domain.Permission;
+import io.quarkus.security.PermissionsAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -23,7 +24,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Path("/organizations")
-@Authenticated
 @Produces(MediaType.APPLICATION_JSON)
 public class OrganizationBommelsResource {
 
@@ -33,6 +33,7 @@ public class OrganizationBommelsResource {
     BommelRepository bommelRepository;
 
     @GET
+    @PermissionsAllowed(Permission.Names.VIEW_BOOKKEEPING)
     @Path("/{orgId}/bommels")
     @Operation(summary = "Fetch all bommels for an organization", description = "Retrieves the root bommel and all its children for the specified organization")
     @APIResponse(responseCode = "200", description = "All bommels for organization", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TreeSearchBommel[].class)))
