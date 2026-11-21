@@ -2,6 +2,8 @@ import { AlertTriangle } from 'lucide-react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import Button from '@/components/ui/Button';
+
 /**
  * Confirmation before assuming a member's identity.
  *
@@ -49,12 +51,12 @@ export default function ImpersonateDialog({
                 )}
 
                 <div className="flex justify-end gap-2.5 mt-6">
-                    <button type="button" className="btn btn--ton" disabled={busy} onClick={onClose}>
+                    <Button variant="outline" className="px-4" disabled={busy} onClick={onClose}>
                         {t('common.cancel')}
-                    </button>
-                    <button type="button" className="btn btn--brand" disabled={busy} onClick={onConfirm}>
+                    </Button>
+                    <Button className="px-4" disabled={busy} onClick={onConfirm}>
                         {busy ? t('organizations.impersonate.starting') : t('organizations.impersonate.action')}
-                    </button>
+                    </Button>
                 </div>
             </div>
         </>

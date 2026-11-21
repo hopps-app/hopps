@@ -12,11 +12,14 @@ const BASE =
 const VARIANTS = {
     default: 'bg-[var(--purple-500)] text-white hover:bg-[var(--primary-active)]',
     destructive: 'bg-[var(--destructive)] text-[var(--destructive-foreground)] hover:bg-[var(--destructive)]/90',
-    /** Not in the SPA: the first, reversible step of a delete. Mirrors .btn--danger from the design handoff. */
+    /** Not in the SPA: the first, reversible step of a delete, before the solid destructive confirm. */
     'destructive-outline': 'bg-transparent text-neg-ink border border-[var(--neg)] hover:bg-neg-bg',
     secondary: 'bg-[var(--purple-100)] text-ink border border-[var(--purple-300)] hover:bg-[var(--purple-200)] hover:border-[var(--purple-400)]',
+    /** Light purple fill without a border, for secondary actions. */
+    tonal: 'bg-[var(--accent-surface)] text-[var(--purple-700)] font-bold hover:bg-[var(--accent-surface-strong)]',
     outline:
         'text-[#666666] border border-[#CBC6D4] bg-surface shadow-[0_1px_2px_rgba(60,20,90,0.04),0_4px_12px_rgba(60,20,90,0.06)] hover:border-[var(--purple-500)] hover:text-[var(--purple-500)] hover:shadow-[0_2px_4px_rgba(60,20,90,0.06),0_8px_24px_rgba(60,20,90,0.10)]',
+    ghost: 'hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]',
     link: 'text-[var(--purple-500)] underline-offset-4 hover:underline',
 } as const;
 

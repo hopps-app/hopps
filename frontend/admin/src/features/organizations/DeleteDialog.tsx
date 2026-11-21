@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import Button from '@/components/ui/Button';
+
 type DeleteDialogProps = {
     /** The name the user must type verbatim to enable deletion. */
     confirmText: string;
@@ -43,12 +45,12 @@ export default function DeleteDialog({ confirmText, busy, onConfirm, onClose }: 
                 />
 
                 <div className="flex items-center justify-end gap-2.5 mt-6">
-                    <button type="button" className="btn btn--ton" disabled={busy} onClick={onClose}>
+                    <Button variant="outline" className="px-4" disabled={busy} onClick={onClose}>
                         {t('common.cancel')}
-                    </button>
-                    <button type="button" className="btn btn--danger-solid" disabled={!matches || busy} onClick={onConfirm}>
+                    </Button>
+                    <Button variant="destructive" className="px-4" disabled={!matches || busy} onClick={onConfirm}>
                         {busy ? t('organizations.delete.deleting') : t('organizations.delete.confirm')}
-                    </button>
+                    </Button>
                 </div>
             </div>
         </>
