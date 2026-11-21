@@ -54,7 +54,10 @@ public class SchemaDetectionService {
             "umsatz-csv-18", Set.of(
                     "iban auftragskonto", "bankname auftragskonto", "name zahlungsbeteiligter",
                     "iban zahlungsbeteiligter", "saldo nach buchung", "buchungstag", "valutadatum",
-                    "buchungstext", "verwendungszweck", "betrag", "waehrung"));
+                    "buchungstext", "verwendungszweck", "betrag", "waehrung"),
+            // Commerzbank Umsatz-CSV: Wertstellung / Umsatzart / IBAN Kontoinhaber appear in no other template
+            "commerzbank-csv", Set.of(
+                    "buchungstag", "wertstellung", "umsatzart", "buchungstext", "betrag", "iban kontoinhaber"));
 
     /**
      * Sparkasse CAMT v2 and v8 have identical headers. We prefer v8 (recommended) when both score equally. The
