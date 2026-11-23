@@ -1,5 +1,25 @@
 # Changelog
 
+## [2.6.0](https://github.com/hopps-app/hopps/compare/v2.5.1...v2.6.0) (2026-11-23)
+
+
+### Features
+
+* **bank-import:** add Commerzbank CSV template ([be8e082](https://github.com/hopps-app/hopps/commit/be8e0825e707fe4a57a4634b31d789e3779a549f))
+* **bankimport:** import paypal activity exports ([eff945f](https://github.com/hopps-app/hopps/commit/eff945fb4dc2909753d51c36ae098659a8ccdaef))
+* **bankimport:** import paypal activity exports ([3fc5987](https://github.com/hopps-app/hopps/commit/3fc59871f6355fc193d6f71f4f1ea9f938322f15))
+* **bankimport:** import paypal activity exports ([b983c99](https://github.com/hopps-app/hopps/commit/b983c990597047d1014c58aabdd06c9566ed66f0))
+* **bankimport:** import paypal activity exports ([9f0d17b](https://github.com/hopps-app/hopps/commit/9f0d17bebc180bdc331e09f6cb84d40cbaf65024))
+* **bankimport:** import paypal activity exports ([707f07e](https://github.com/hopps-app/hopps/commit/707f07e31457f873e12115759ff91c99949fc768))
+* **registration:** ALTCHA spam protection, sign-up notifications and language switch ([#942](https://github.com/hopps-app/hopps/issues/942)) ([bfe38c6](https://github.com/hopps-app/hopps/commit/bfe38c6c71f36bd9c36a99509bf49cfa65bf4cbd))
+* **transactions:** export all transactions as CSV ([1919a35](https://github.com/hopps-app/hopps/commit/1919a354b6fdc0ff48e3d78112d72813bd780247)), closes [#933](https://github.com/hopps-app/hopps/issues/933)
+
+
+### Bug Fixes
+
+* **admin:** sort vereine by last activity and use the spa buttons ([#937](https://github.com/hopps-app/hopps/issues/937)) ([8f38cf3](https://github.com/hopps-app/hopps/commit/8f38cf347f0013f2971946ab008ca1587c7ed69d))
+* **i18n:** default app language to German ([#945](https://github.com/hopps-app/hopps/issues/945)) ([cc0f9eb](https://github.com/hopps-app/hopps/commit/cc0f9eb3d9ebe70e1ebc481dcabc61259772cb3e))
+
 ## [2.5.1](https://github.com/hopps-app/hopps/compare/v2.5.0...v2.5.1) (2026-11-16)
 
 
