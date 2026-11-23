@@ -21,8 +21,8 @@ Heute prüft hopps nur bei der Mitgliederverwaltung, wer etwas darf. Jedes einge
 
 | Rolle | Für | Darf |
 |---|---|---|
-| Gründer:in | Person, die den Verein angelegt hat | alles, dazu Mitglieder einladen, entfernen und Rollen vergeben |
-| Kasse | Kassenwart:in, Schatzmeister:in | Buchhaltung sehen, bearbeiten und bestätigen, Vereinsdaten pflegen |
+| Gründer:in | Person, die den Verein angelegt hat | alles, dazu Vereinsdaten pflegen, Mitglieder einladen, korrigieren, entfernen und Rollen vergeben |
+| Kasse | Kassenwart:in, Schatzmeister:in | Buchhaltung sehen, bearbeiten und bestätigen |
 | Vorstand | Vorsitzende, weitere Vorstandsmitglieder | alles sehen, nichts ändern |
 | Kassenprüfung | gewählte Kassenprüfer:innen | alles sehen, bestätigte Buchungen prüfen und damit festschreiben |
 
@@ -34,13 +34,13 @@ Es gibt immer genau eine Gründer:in pro Verein. Die Rolle gilt pro Verein: Dies
 - **Die Gründer:in prüft nicht.** Das Recht, Buchungen zu prüfen und festzuschreiben, hat nur die Kassenprüfung. Wer bucht, prüft nicht die eigene Arbeit.
 - **Zwei Schritte: erst bestätigen, dann prüfen.** Die Kasse bestätigt eine Buchung, wenn sie vollständig und mit dem Bankumsatz verknüpft ist. Danach kann die Kassenprüfung sie prüfen. „Geprüft“ ist ein eigener Status nach „bestätigt“, den nur die Kassenprüfung setzen kann. Die Kasse prüft nicht, die Kassenprüfung bestätigt nicht.
 - **Geprüft heißt festgeschrieben, pro Buchung.** Die Markierung ist endgültig. Die Kassenprüfung kann auch alle bestätigten Buchungen bis zu einem Stichtag auf einmal als geprüft markieren.
-- **Vereinsdaten pflegt nicht der Vorstand.** Name, Adresse und Logo ändern nur Gründer:in und Kasse. Der Vorstand sieht sie nur.
-- **Bestehende Mitglieder werden Kasse.** Die Rolle Kasse entspricht genau den heutigen Rechten eingeladener Mitglieder. Es müssen keine Daten umgeschrieben werden.
+- **Vereinsdaten pflegt nur die Gründer:in.** Name, Adresse und Logo ändert nur die Gründer:in. Alle anderen sehen sie nur.
+- **Bestehende Mitglieder werden Kasse.** Sie behalten ihre Rechte an der Buchhaltung; die Vereinsdaten pflegt danach nur noch die Gründer:in. Es müssen keine Daten umgeschrieben werden.
 
 ## Bestehende Vereine
 
 - Die Gründer:in kann nach dem Update weiterhin alles.
-- Bisher eingeladene Mitglieder haben die Rolle Kasse und behalten ihre bisherigen Rechte.
+- Bisher eingeladene Mitglieder haben die Rolle Kasse und behalten ihre Rechte an der Buchhaltung. Die Vereinsdaten können sie nicht mehr ändern.
 - Die Gründer:in sieht einmalig in der Mitgliederliste den Hinweis, dass jetzt Rollen vergeben werden können, und kann dort Vorstand und Kassenprüfung umstellen.
 
 ## Offene Fragen
