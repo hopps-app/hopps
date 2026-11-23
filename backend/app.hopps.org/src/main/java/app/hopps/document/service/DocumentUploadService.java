@@ -65,7 +65,7 @@ public class DocumentUploadService {
      */
     public static void validateFile(FileUpload file) {
         if (file == null || file.fileName() == null || file.fileName().isBlank()) {
-            LOG.warn("File validation failed: file={}, fileName={}", file, file != null ? file.fileName() : "null");
+            LOG.warn("File validation failed: file or file name missing");
             throw new BadRequestException("File is required");
         }
         if (!ALLOWED_CONTENT_TYPES.contains(file.contentType())) {
@@ -126,8 +126,7 @@ public class DocumentUploadService {
         document.setDocumentStatus(DocumentStatus.UPLOADED);
         documentRepository.persistAndFlush(document);
         documentAuditor.created(document);
-        LOG.info("Document created: id={}, fileName={}, channel={}", document.getId(), document.getFileName(),
-                document.getUploadChannel());
+        LOG.info("Document created: id={}, channel={}", document.getId(), document.getUploadChannel());
 
         // Fire event to trigger async analysis after transaction commits (only if requested)
         if (analyze) {

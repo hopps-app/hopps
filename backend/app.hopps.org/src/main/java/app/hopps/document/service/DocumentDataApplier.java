@@ -126,13 +126,13 @@ public class DocumentDataApplier {
             entityManager.persist(sender);
             entityManager.flush();
             document.setSender(sender);
-            LOG.debug("Autofilled sender: {} (id={})", sender.getName(), sender.id);
+            LOG.debug("Autofilled sender: id={}", sender.id);
             return 1;
         } else if (data.merchantName() != null) {
             // When only a merchant name is provided (no address), don't create a TradeParty
             // entity. The name will be applied via applyDocumentName instead.
             // This avoids FK ordering issues during async analysis.
-            LOG.debug("Skipping TradeParty creation for name-only merchant: {}", data.merchantName());
+            LOG.debug("Skipping TradeParty creation for name-only merchant");
             return 0;
         }
 
@@ -161,7 +161,7 @@ public class DocumentDataApplier {
         entityManager.persist(recipient);
         entityManager.flush();
         document.setRecipient(recipient);
-        LOG.debug("Autofilled recipient: {} (id={})", recipient.getName(), recipient.id);
+        LOG.debug("Autofilled recipient: id={}", recipient.id);
         return 1;
     }
 
@@ -172,11 +172,11 @@ public class DocumentDataApplier {
 
         if (data.merchantName() != null) {
             document.setName(data.merchantName());
-            LOG.debug("Autofilled name from merchant: {}", data.merchantName());
+            LOG.debug("Autofilled name from merchant");
             return 1;
         } else if (data.customerName() != null) {
             document.setName(data.customerName());
-            LOG.debug("Autofilled name from customer: {}", data.customerName());
+            LOG.debug("Autofilled name from customer");
             return 1;
         }
 

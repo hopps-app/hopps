@@ -121,9 +121,8 @@ public class DocumentResource {
             @RestForm("file") FileUpload file,
             @QueryParam("analyze") @DefaultValue("true") @Parameter(description = "Whether to trigger automatic AI analysis after upload") boolean analyze,
             @QueryParam("direction") @Parameter(description = "Document direction: INCOMING (Eingangsbeleg, expense) or OUTGOING (Ausgangsbeleg, income). Defaults to INCOMING.") DocumentDirection direction) {
-        LOG.info("Upload request received - file: {}", file);
         DocumentUploadService.validateFile(file);
-        LOG.info("File details: name={}, contentType={}, size={}", file.fileName(), file.contentType(), file.size());
+        LOG.info("Upload request received: contentType={}, size={}", file.contentType(), file.size());
 
         // Get current organization
         Organization organization = organizationContext.getCurrentOrganization();
@@ -387,7 +386,7 @@ public class DocumentResource {
         }
 
         notifyChanged(document);
-        LOG.info("Document file replaced: id={}, fileName={}", id, document.getFileName());
+        LOG.info("Document file replaced: id={}", id);
         return DocumentResponse.from(document);
     }
 

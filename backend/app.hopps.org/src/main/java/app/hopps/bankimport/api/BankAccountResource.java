@@ -78,7 +78,7 @@ public class BankAccountResource {
     @APIResponse(responseCode = "409", description = "The IBAN belongs to another account (code IBAN_IN_USE) or to an archived one (code IBAN_ARCHIVED, fields archivedAccountId, archivedAccountName)")
     public Response createBankAccount(@Valid BankAccountCreateRequest request) {
         BankAccount account = bankAccountService.create(request);
-        LOG.info("Bank account created: id={}, iban={}", account.getId(), account.getIban());
+        LOG.info("Bank account created: id={}", account.getId());
         return Response.status(Response.Status.CREATED)
                 .entity(toResponse(account))
                 .build();

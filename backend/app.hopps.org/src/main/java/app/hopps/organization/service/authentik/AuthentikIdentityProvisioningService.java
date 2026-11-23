@@ -115,7 +115,7 @@ public class AuthentikIdentityProvisioningService implements IdentityProvisionin
     public boolean inviteMember(Member user, String roleName) {
         AuthentikUser existing = findByEmail(user.getEmail());
         if (existing != null) {
-            LOG.info("Authentik account for {} already exists, linking it", user.getEmail());
+            LOG.info("Authentik account {} already exists, linking it", existing.uuid());
             // Persist the stable Authentik user id (uuid) so the member is linked by id, not by the mutable email.
             user.setKeycloakId(existing.uuid());
             user.setStatus(MemberStatus.INVITED);
@@ -124,7 +124,7 @@ public class AuthentikIdentityProvisioningService implements IdentityProvisionin
 
         AuthentikUser created = api.createUser(toUserRequest(user));
         user.setKeycloakId(created.uuid());
-        if (sendInvitationEmail(created.pk(), user.getEmail())) {
+        if (sendInvitationEmail(created.pk())) {
             user.setStatus(MemberStatus.INVITED);
         } else {
             // Only ever for an account created right here: a link for an existing account would let the inviting admin
@@ -159,9 +159,10 @@ public class AuthentikIdentityProvisioningService implements IdentityProvisionin
      * because the email stage id is missing or wrong, or its flow has no working email backend. The account exists at
      * this point, and failing the whole request would leave the member unpersisted while the Authentik user exists.
      */
-    private boolean sendInvitationEmail(long userId, String email) {
+    private boolean sendInvitationEmail(long userId) {
         if (recoveryEmailStageId.isEmpty()) {
-            LOG.info("No email stage configured (app.hopps.org.auth.authentik.email-stage-id), not emailing {}", email);
+            LOG.info("No email stage configured (app.hopps.org.auth.authentik.email-stage-id), not emailing user {}",
+                    userId);
             return false;
         }
         try {
@@ -169,8 +170,8 @@ public class AuthentikIdentityProvisioningService implements IdentityProvisionin
             api.sendRecoveryEmail(userId, stageId, new AuthentikRecoveryRequest(stageId, tokenDuration()));
             return true;
         } catch (Exception e) {
-            LOG.warn("Could not send the invitation email to {}. Is app.hopps.org.auth.authentik.email-stage-id a "
-                    + "working email stage?", email, e);
+            LOG.warn("Could not send the invitation email to user {}. Is app.hopps.org.auth.authentik.email-stage-id a "
+                    + "working email stage?", userId, e);
             return false;
         }
     }

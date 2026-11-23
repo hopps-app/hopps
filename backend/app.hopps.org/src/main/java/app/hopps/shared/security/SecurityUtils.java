@@ -111,9 +111,9 @@ public class SecurityUtils {
             QuarkusTransaction.requiringNew().run(() -> memberRepository.markActive(member.id));
             // Keep the instance the running request holds in sync with the row we just wrote.
             member.setStatus(MemberStatus.ACTIVE);
-            LOG.info("Member {} has logged in, status is now {}", member.getEmail(), MemberStatus.ACTIVE);
+            LOG.info("Member {} has logged in, status is now {}", member.id, MemberStatus.ACTIVE);
         } catch (RuntimeException e) {
-            LOG.warn("Could not mark member {} as active", member.getEmail(), e);
+            LOG.warn("Could not mark member {} as active", member.id, e);
         }
     }
 }

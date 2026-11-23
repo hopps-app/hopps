@@ -85,7 +85,7 @@ public class BankAccountImportResource {
         } catch (IOException e) {
             throw new BadRequestException("Could not read uploaded file: " + e.getMessage());
         }
-        LOG.info("CSV preview requested: account={}, file={}, size={}", accountId, file.fileName(), file.size());
+        LOG.info("CSV preview requested: account={}, size={}", accountId, file.size());
         BankAccount account = bankAccountService.get(accountId);
         return csvPreviewService.preview(content, account.getCurrency());
     }
