@@ -180,12 +180,23 @@ class EndpointSecurityTest {
     /**
      * Calls every {@code @PermissionsAllowed} endpoint as the current test user, who holds {@code role}. A role without
      * the permission must get a 403; a role with it must get past the check (any status but 401 and 403).
+     * <p>
+     * The matrix needs the test data and empties the database again afterwards. Test data left behind would collide
+     * with entity ids Hibernate already reserved while an earlier test class ran on an empty database.
      */
     private void assertRoleMatrix(Role role) throws Exception {
         flyway.clean();
         flyway.migrate();
         testdataBootstrapper.loadTestdata();
+        try {
+            checkRoleMatrix(role);
+        } finally {
+            flyway.clean();
+            flyway.migrate();
+        }
+    }
 
+    private void checkRoleMatrix(Role role) throws Exception {
         Set<String> granted = role.getPermissions().stream().map(Enum::name).collect(Collectors.toSet());
         List<String> wrong = new ArrayList<>();
         int checked = 0;
