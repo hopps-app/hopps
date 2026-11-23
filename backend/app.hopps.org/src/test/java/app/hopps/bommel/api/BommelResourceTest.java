@@ -10,6 +10,8 @@ import io.quarkus.test.TestTransaction;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
+import io.quarkus.test.security.oidc.Claim;
+import io.quarkus.test.security.oidc.OidcSecurity;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +29,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusTest
 @TestHTTPEndpoint(BommelResource.class)
+// Alice is a member (Treasurer) of a test organization; the bommel endpoints need a membership with the bookkeeping
+// permissions.
+@TestSecurity(user = "alice@example.test")
+@OidcSecurity(claims = @Claim(key = "sub", value = "eb4123a3-b722-4798-9af5-8957f823657a"))
 class BommelResourceTest {
 
     @Inject
@@ -39,7 +45,6 @@ class BommelResourceTest {
     BommelTestResourceCreator resourceCreator;
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void shouldNotFindRoot() {
         Organization organization = resourceCreator.setupOrganization();
@@ -53,7 +58,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void createBommelSuccessfully() {
         var bommels = resourceCreator.setupSimpleTree();
@@ -73,7 +77,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void updateBommelSuccessfully() {
         var bommels = resourceCreator.setupSimpleTree();
@@ -101,7 +104,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void getBommelSuccessfully() {
         var bommels = resourceCreator.setupSimpleTree();
@@ -122,7 +124,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void moveBommelSuccessfully() {
         var bommels = resourceCreator.setupSimpleTree();
@@ -144,7 +145,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void getChildrenRecursiveReturnsAllChildren() {
         var bommels = resourceCreator.setupSimpleTree();
@@ -177,7 +177,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void getChildrenReturnsAllDirectChildren() {
         var bommels = resourceCreator.setupSimpleTree();
@@ -193,7 +192,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void deleteBommelSuccessfully() {
         var bommels = resourceCreator.setupSimpleTree();
@@ -210,7 +208,6 @@ class BommelResourceTest {
     }
 
     @Test
-    @TestSecurity(user = "test")
     @TestTransaction
     void getRootBommelTest() {
         var organization = orgRepo.findBySlug("gruenes-herz-ev"); // id=2 from migration

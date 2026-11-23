@@ -23,6 +23,8 @@ import app.hopps.shared.validation.NonUniqueConstraintViolation;
 import app.hopps.shared.validation.RestValidator;
 import app.hopps.shared.validation.RestValidator.ValidationResult;
 import io.quarkus.security.Authenticated;
+import io.quarkus.security.PermissionsAllowed;
+import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolationException;
@@ -132,7 +134,7 @@ public class OrganizationResource {
 
     @PUT
     @Path("/my")
-    @Authenticated
+    @PermissionsAllowed(Permission.Names.MANAGE_ORGANIZATION)
     @Transactional
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -201,7 +203,7 @@ public class OrganizationResource {
 
     @POST
     @Path("/my/logo")
-    @Authenticated
+    @PermissionsAllowed(Permission.Names.MANAGE_ORGANIZATION)
     @Transactional
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
@@ -337,6 +339,7 @@ public class OrganizationResource {
     }
 
     @POST
+    @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Create a new organization", description = "Registers a new organization together with its owner account. The request needs a solved ALTCHA challenge (see GET /public/altcha/challenge) in `altcha`; it is checked before anything else, so an unsolved request learns nothing about existing emails or slugs. On a single-tenant installation this is the one-time initial setup: it works while no organization exists and answers 403 (code SETUP_COMPLETE) afterwards.")
@@ -381,7 +384,7 @@ public class OrganizationResource {
 
     @POST
     @Path("/my/members")
-    @Authenticated
+    @PermissionsAllowed(Permission.Names.MANAGE_MEMBERS)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(operationId = "addOrganizationMember", summary = "Add a member to my organization", description = "Adds a person to the current user's organization and gives them access to the app. Needs the MANAGE_MEMBERS permission. With Keycloak, an account is provisioned and Keycloak emails them an invitation link in which they set their own password. With Authentik, an existing account for that email is linked as is; otherwise one is created and Authentik emails the link, or, without a mail server, the returned member carries it as setupLink for the inviting admin to pass on. The status says whether an email went out (INVITED) or not (INVITATION_FAILED); the account exists either way.")
@@ -436,7 +439,7 @@ public class OrganizationResource {
 
     @DELETE
     @Path("/my/members/{memberId}")
-    @Authenticated
+    @PermissionsAllowed(Permission.Names.MANAGE_MEMBERS)
     @Operation(operationId = "removeOrganizationMember", summary = "Remove a member from my organization", description = "Removes a person from the current user's organization. Needs the MANAGE_MEMBERS permission; nobody can remove themselves or the owner. Only hopps's own records are deleted: the person's account at the identity provider (Keycloak or Authentik) stays untouched, so they can still log in there, just no longer into this organization.")
     @APIResponse(responseCode = "204", description = "Member removed")
     @APIResponse(responseCode = "401", description = "User not logged in")
@@ -453,6 +456,7 @@ public class OrganizationResource {
 
     @POST
     @Path(("validate"))
+    @Authenticated
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Validates the organization input")
