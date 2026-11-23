@@ -23,8 +23,8 @@ describe('Header', () => {
             </BrowserRouter>
         );
 
-        expect(screen.getByText('header.login')).toBeInTheDocument();
-        expect(screen.getByText('header.register')).toBeInTheDocument();
+        expect(screen.getByText('Login')).toBeInTheDocument();
+        expect(screen.getByText('Register')).toBeInTheDocument();
     });
 
     test('hides the auth buttons on the registration page', () => {
@@ -34,8 +34,8 @@ describe('Header', () => {
             </MemoryRouter>
         );
 
-        expect(screen.queryByText('header.login')).not.toBeInTheDocument();
-        expect(screen.queryByText('header.register')).not.toBeInTheDocument();
+        expect(screen.queryByText('Login')).not.toBeInTheDocument();
+        expect(screen.queryByText('Register')).not.toBeInTheDocument();
     });
 
     test('offers the language switch to visitors, also on the registration page', () => {
@@ -67,9 +67,9 @@ describe('Header', () => {
             </BrowserRouter>
         );
 
-        expect(screen.getByText('header.login')).toBeInTheDocument();
-        expect(screen.getByText('home.setup')).toBeInTheDocument();
-        expect(screen.queryByText('header.register')).not.toBeInTheDocument();
+        expect(screen.getByText('Login')).toBeInTheDocument();
+        expect(screen.getByText('Start initial setup')).toBeInTheDocument();
+        expect(screen.queryByText('Register')).not.toBeInTheDocument();
     });
 
     test('shows only the login once a single-tenant installation is set up', () => {
@@ -80,8 +80,8 @@ describe('Header', () => {
             </BrowserRouter>
         );
 
-        expect(screen.getByText('header.login')).toBeInTheDocument();
-        expect(screen.queryByText('header.register')).not.toBeInTheDocument();
-        expect(screen.queryByText('home.setup')).not.toBeInTheDocument();
+        expect(screen.getByText('Login')).toBeInTheDocument();
+        expect(screen.queryByText('Register')).not.toBeInTheDocument();
+        expect(screen.queryByText('Start initial setup')).not.toBeInTheDocument();
     });
 });
