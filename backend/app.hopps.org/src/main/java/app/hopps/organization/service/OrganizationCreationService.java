@@ -83,8 +83,7 @@ public class OrganizationCreationService {
      *             if the single-tenant installation already has its organization
      */
     public void createOrganization(Organization organization, Member owner, String newPassword) {
-        LOG.info("Starting organization creation: name={}, slug={}, owner={}",
-                organization.getName(), organization.getSlug(), owner.getEmail());
+        LOG.info("Starting organization creation: slug={}", organization.getSlug());
 
         // Step 0: On a single-tenant installation, sign-up is only the one-time initial setup
         tenancyService.assertSignUpAllowed();
@@ -99,14 +98,14 @@ public class OrganizationCreationService {
 
         // Step 3: Create user with the identity provider
         // TODO: send duplicate responso if the email is already in the identity provider
-        LOG.debug("Creating identity provider account: {}", owner.getEmail());
+        LOG.debug("Creating identity provider account for the owner");
         identityProvisioningService.createOwner(owner, newPassword);
-        LOG.info("Successfully created identity provider account: {}", owner.getEmail());
+        LOG.info("Successfully created identity provider account: {}", owner.getKeycloakId());
 
         // Step 4: Persist JPA entities (Organization, Member, root Bommel)
         LOG.debug("Persisting organization entities");
         persistenceDelegate.persistOrg(organization, owner);
-        LOG.info("Successfully created organization: {} ({})", organization.getName(), organization.getSlug());
+        LOG.info("Successfully created organization: {}", organization.getSlug());
     }
 
     /**
@@ -176,8 +175,7 @@ public class OrganizationCreationService {
         member.addOrganization(organization, Role.OWNER);
         organization.addMember(member, Role.OWNER);
 
-        LOG.info("Created organization {} ({}) for existing user {}", organization.getName(), organization.getSlug(),
-                keycloakId);
+        LOG.info("Created organization {} for existing user {}", organization.getSlug(), keycloakId);
         return organization;
     }
 }

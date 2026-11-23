@@ -107,7 +107,7 @@ public class DocumentAnalysisService {
             return;
         }
 
-        LOG.info("Starting document analysis: id={}, fileName={}", documentId, document.getFileName());
+        LOG.info("Starting document analysis: id={}", documentId);
         document.setAnalysisStatus(AnalysisStatus.ANALYZING);
         Map<String, Object> before = documentAuditor.snapshot(document);
 

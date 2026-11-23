@@ -45,7 +45,7 @@ public class TradePartyService {
         }
 
         entityManager.remove(party);
-        LOG.debug("Deleted unreferenced trade party: id={}, name={}", party.id, party.getName());
+        LOG.debug("Deleted unreferenced trade party: id={}", party.id);
     }
 
     private long countReferences(TradeParty party) {

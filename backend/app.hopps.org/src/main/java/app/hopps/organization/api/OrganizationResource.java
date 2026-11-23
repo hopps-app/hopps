@@ -464,7 +464,7 @@ public class OrganizationResource {
                 .with(validator)
                 .build();
 
-        LOG.info("Validating Organization {}", organization.getName());
+        LOG.info("Validating organization {}", organization.getSlug());
 
         if (result.isValid() == ValidationResult.Validity.INVALID) {
             Response response = Response.status(Response.Status.BAD_REQUEST).entity(result).build();

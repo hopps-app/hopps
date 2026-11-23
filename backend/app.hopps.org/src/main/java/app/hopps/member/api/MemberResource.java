@@ -46,7 +46,7 @@ public class MemberResource {
                 .with(validator)
                 .build();
 
-        LOG.info("Validating Member {} {}", member.getFirstName(), member.getLastName());
+        LOG.info("Validating member");
 
         if (result.isValid() == ValidationResult.Validity.INVALID) {
             Response response = Response.status(Response.Status.BAD_REQUEST).entity(result).build();

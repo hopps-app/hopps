@@ -135,7 +135,7 @@ public class KeycloakIdentityProvisioningService implements IdentityProvisioning
                 .realmLevel()
                 .add(List.of(role));
 
-        boolean invitationSent = sendInvitationEmail(usersResource, userId, user.getEmail());
+        boolean invitationSent = sendInvitationEmail(usersResource, userId);
         user.setStatus(invitationSent ? MemberStatus.INVITED : MemberStatus.INVITATION_FAILED);
 
         return userCreated;
@@ -163,15 +163,15 @@ public class KeycloakIdentityProvisioningService implements IdentityProvisioning
      * because the realm has no SMTP server configured. The account is already usable at this point, and letting the
      * whole request fail here would leave the member unpersisted while the Keycloak user exists.
      */
-    private boolean sendInvitationEmail(UsersResource usersResource, String userId, String email) {
+    private boolean sendInvitationEmail(UsersResource usersResource, String userId) {
         try {
             usersResource.get(userId)
                     .executeActionsEmail(invitationClientId, invitationRedirectUri, invitationLifespanSeconds,
                             List.of(UPDATE_PASSWORD_ACTION, VERIFY_EMAIL_ACTION));
             return true;
         } catch (Exception e) {
-            LOG.warn("Could not send the invitation email to {} — is an SMTP server configured for realm {}?", email,
-                    realmName, e);
+            LOG.warn("Could not send the invitation email to user {} — is an SMTP server configured for realm {}?",
+                    userId, realmName, e);
             return false;
         }
     }
@@ -182,7 +182,7 @@ public class KeycloakIdentityProvisioningService implements IdentityProvisioning
                 .findFirst()
                 .map(UserRepresentation::getId)
                 .orElseThrow(() -> new WebApplicationException(
-                        "Keycloak user for " + email + " could not be found right after creating it",
+                        "Keycloak user could not be found right after creating it",
                         Response.Status.INTERNAL_SERVER_ERROR));
     }
 

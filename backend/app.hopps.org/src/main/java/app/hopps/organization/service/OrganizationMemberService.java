@@ -79,7 +79,7 @@ public class OrganizationMemberService {
     public Member addMember(Organization organization, Member member, Member currentUser) {
         accessService.require(currentUser, Permission.MANAGE_MEMBERS, organization);
 
-        LOG.info("Adding member {} to organization {}", member.getEmail(), organization.getSlug());
+        LOG.info("Adding a member to organization {}", organization.getSlug());
 
         // validate constraints using Jakarta Bean Validation
         Set<ConstraintViolation<Member>> violations = validator.validate(member);
@@ -104,13 +104,13 @@ public class OrganizationMemberService {
             // an account we created ourselves may go — a linked, pre-existing one belongs to someone else.
             if (userCreated) {
                 LOG.warn("Persisting member {} failed, removing the identity provider account again",
-                        member.getEmail());
+                        member.getKeycloakId());
                 identityProvisioningService.deleteUser(member.getKeycloakId());
             }
             throw e;
         }
 
-        LOG.info("Added member {} to organization {} with status {}", member.getEmail(), organization.getSlug(),
+        LOG.info("Added member {} to organization {} with status {}", member.id, organization.getSlug(),
                 member.getStatus());
         return member;
     }
@@ -157,6 +157,6 @@ public class OrganizationMemberService {
             bommelRepository.update("responsibleMember = null where responsibleMember = ?1", member);
             memberRepository.delete(member);
         }
-        LOG.info("Removed member {} from organization {}", member.getEmail(), organization.getSlug());
+        LOG.info("Removed member {} from organization {}", member.id, organization.getSlug());
     }
 }
