@@ -114,7 +114,7 @@ export function WhatsAppInviteSection({ bommelId }: WhatsAppInviteSectionProps) 
 
             <form onSubmit={submit} className="flex flex-col gap-2 rounded-[14px] bg-[var(--surface-sunken)] px-[13px] py-3">
                 <input
-                    className={cn(inputCls, 'font-semibold')}
+                    className={cn(inputCls, 'font-semibold placeholder:font-normal')}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder={t('bommel.whatsapp.namePlaceholder')}
@@ -123,7 +123,7 @@ export function WhatsAppInviteSection({ bommelId }: WhatsAppInviteSectionProps) 
                     autoComplete="off"
                 />
                 <input
-                    className={cn(inputCls, 'font-semibold')}
+                    className={cn(inputCls, 'font-semibold placeholder:font-normal')}
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     placeholder={t('bommel.whatsapp.phonePlaceholder')}
