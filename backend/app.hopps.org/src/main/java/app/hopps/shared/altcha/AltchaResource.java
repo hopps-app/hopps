@@ -1,5 +1,6 @@
 package app.hopps.shared.altcha;
 
+import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -21,6 +22,7 @@ public class AltchaResource {
     AltchaService altchaService;
 
     @GET
+    @PermitAll
     @Path("/challenge")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get a spam-protection challenge", description = "Issues a fresh ALTCHA proof-of-work challenge. The altcha widget in the registration form fetches and solves it, and the result goes along with the registration as `altcha`. A challenge is valid for five minutes and for one registration.")

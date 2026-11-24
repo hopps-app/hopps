@@ -25,8 +25,8 @@ public class OrganizationRepository implements PanacheRepository<Organization> {
     }
 
     /**
-     * How many owners the organization has besides the given member, as stored: committed changes of other
-     * transactions count, the current one's not yet flushed ones do not. Call it after {@link #lockForOwnerChange}.
+     * How many owners the organization has besides the given member, as stored: committed changes of other transactions
+     * count, the current one's not yet flushed ones do not. Call it after {@link #lockForOwnerChange}.
      */
     public long countOwnersExcept(Organization organization, Member member) {
         return MemberOrganization.count("organization.id = ?1 and role = ?2 and member.id <> ?3",
