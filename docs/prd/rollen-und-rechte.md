@@ -1,52 +1,66 @@
 # PRD: Rollen und Rechte
 
-Stand: 18.11.2026 · Status: Entwurf
+Stand: 24.11.2026 · Status: Entwurf
 
 ## Problem
 
 Heute prüft hopps nur bei der Mitgliederverwaltung, wer etwas darf. Jedes eingeladene Mitglied kann die gesamte Buchhaltung sehen und bearbeiten. Im Verein haben aber nicht alle dieselbe Aufgabe:
 
 - Die **Kasse** führt die Bücher.
-- Der **Vorstand** will die Finanzen im Blick haben, ohne selbst zu buchen.
-- Die **Kassenprüfung** muss alles sehen, darf aber nichts ändern, damit sie unabhängig prüfen kann. Was sie geprüft hat, soll danach nicht mehr veränderbar sein (GoBD).
+- Der **Vorstand** verantwortet den Verein und verwaltet Mitglieder und Rollen.
+- Weitere Mitglieder wollen die Finanzen nur **lesen**.
+- Die Grundlagen (Kategorien, Vereinsdaten) soll nur die Person pflegen, die den Verein angelegt hat.
 
 ## Ziele
 
 - Jedes Mitglied kann nur das tun, was seine Rolle erlaubt, auch wenn es die Oberfläche umgeht.
-- Vereine können Vorstand und Kassenprüfung einladen, ohne ihnen Schreibrechte zu geben.
-- Die Kassenprüfung kann bestätigte Buchungen prüfen und damit festschreiben.
-- Für bestehende Vereine ändert sich durch das Update nichts, bis die Gründer:in Rollen vergibt.
+- Vereine können Vorstand und lesende Mitglieder einladen, ohne ihnen unnötige Schreibrechte zu geben.
+- Ein Verein kann mehrere Besitzer haben, zum Beispiel bei einem Wechsel im Vorstand oder wenn mehrere Personen den Verein gegründet haben. Er hat immer mindestens einen.
+- Neue Rechte (zum Beispiel pro Bereich der Oberfläche) lassen sich später ergänzen, ohne bestehende Prüfungen anzufassen.
 
 ## Rollen
 
-| Rolle | Für | Darf |
-|---|---|---|
-| Gründer:in | Person, die den Verein angelegt hat | alles, dazu Vereinsdaten pflegen, Mitglieder einladen, korrigieren, entfernen und Rollen vergeben |
-| Kasse | Kassenwart:in, Schatzmeister:in | Buchhaltung sehen, bearbeiten und bestätigen |
-| Vorstand | Vorsitzende, weitere Vorstandsmitglieder | alles sehen, nichts ändern |
-| Kassenprüfung | gewählte Kassenprüfer:innen | alles sehen, bestätigte Buchungen prüfen und damit festschreiben |
+| Rolle | Technisch | Für | Darf |
+|---|---|---|---|
+| Besitzer | `OWNER` | Person, die den Verein angelegt hat, und weitere von ihr ernannte Personen | alles, dazu Vereinsdaten und Kategorien pflegen, Rollen vergeben, weitere Besitzer ernennen |
+| Vorstand | `ADMIN` | Vorsitzende, weitere Vorstandsmitglieder | Buchhaltung sehen und bearbeiten, Mitglieder einladen, korrigieren und entfernen, Rollen vergeben (außer die des Besitzers) |
+| Kassier:in | `TREASURER` | Kassenwart:in, Schatzmeister:in | Buchhaltung sehen, bearbeiten und bestätigen |
+| Leser | `VIEWER` | weitere Mitglieder | alles sehen, nichts ändern |
 
-Es gibt immer genau eine Gründer:in pro Verein. Die Rolle gilt pro Verein: Dieselbe Person kann in zwei Vereinen unterschiedliche Rollen haben.
+Es gibt ein oder mehrere Besitzer pro Verein, nie null. Die Rolle gilt pro Verein: Dieselbe Person kann in zwei Vereinen unterschiedliche Rollen haben.
 
-## Entscheidungen
+Die Rolle **Kassenprüfer** (`AUDITOR`, nur lesend) ist im System vorhanden, aber ausgeblendet: Sie lässt sich nicht vergeben und taucht in der Auswahl nicht auf. Wer sie bereits hat, behält sie. Das Prüfen und Festschreiben von Buchungen ist zurückgestellt.
 
-- **Zentrale Rechteprüfung auf dem Server.** Grundregel: Etwas ansehen braucht das Leserecht, etwas ändern das Bearbeitungsrecht. Wo eine Funktion ein anderes Recht braucht (z. B. Vereinsdaten, Mitglieder), wird das an der Funktion festgelegt. Neue Funktionen sind damit automatisch geschützt.
-- **Die Gründer:in prüft nicht.** Das Recht, Buchungen zu prüfen und festzuschreiben, hat nur die Kassenprüfung. Wer bucht, prüft nicht die eigene Arbeit.
-- **Zwei Schritte: erst bestätigen, dann prüfen.** Die Kasse bestätigt eine Buchung, wenn sie vollständig und mit dem Bankumsatz verknüpft ist. Danach kann die Kassenprüfung sie prüfen. „Geprüft“ ist ein eigener Status nach „bestätigt“, den nur die Kassenprüfung setzen kann. Die Kasse prüft nicht, die Kassenprüfung bestätigt nicht.
-- **Geprüft heißt festgeschrieben, pro Buchung.** Die Markierung ist endgültig. Die Kassenprüfung kann auch alle bestätigten Buchungen bis zu einem Stichtag auf einmal als geprüft markieren.
-- **Vereinsdaten pflegt nur die Gründer:in.** Name, Adresse und Logo ändert nur die Gründer:in. Alle anderen sehen sie nur.
-- **Bestehende Mitglieder werden Kasse.** Sie behalten ihre Rechte an der Buchhaltung; die Vereinsdaten pflegt danach nur noch die Gründer:in. Es müssen keine Daten umgeschrieben werden.
+## Rechte
+
+| Recht | Besitzer | Vorstand | Kassier:in | Leser |
+|---|---|---|---|---|
+| Buchhaltung sehen | ja | ja | ja | ja |
+| Buchhaltung bearbeiten | ja | ja | ja | nein |
+| Kategorien pflegen | ja | nein | nein | nein |
+| Vereinsdaten pflegen | ja | nein | nein | nein |
+| Mitglieder einladen, korrigieren, entfernen | ja | ja | nein | nein |
+| Rollen vergeben | ja | ja (nicht die des Besitzers) | nein | nein |
+| Besitzer ernennen, zurückstufen, entfernen | ja | nein | nein | nein |
 
 ## Bestehende Vereine
 
-- Die Gründer:in kann nach dem Update weiterhin alles.
-- Bisher eingeladene Mitglieder haben die Rolle Kasse und behalten ihre Rechte an der Buchhaltung. Die Vereinsdaten können sie nicht mehr ändern.
-- Die Gründer:in sieht einmalig in der Mitgliederliste den Hinweis, dass jetzt Rollen vergeben werden können, und kann dort Vorstand und Kassenprüfung umstellen.
+Es sind noch keine Rollen vergeben worden: Alle bisher eingeladenen Mitglieder haben die Standardrolle `ADMIN`. Die Rolle wird deshalb nicht umgeschrieben, sondern nur neu benannt:
+
+| Bisher | Danach | Wirkung |
+|---|---|---|
+| Gründer:in (`OWNER`) | Besitzer | unverändert, dazu Kategorien pflegen und weitere Besitzer ernennen |
+| `ADMIN` (bisher Kasse) | Vorstand (`ADMIN`) | Buchhaltung wie bisher, dazu Mitglieder und Rollen verwalten. Kategorien können nicht mehr geändert werden |
+| `BOARD` | Leser (`VIEWER`) | nur lesend wie bisher (Sicherheitsnetz, falls ein Verein die Rolle schon vergeben hat) |
+| Kassenprüfung (`AUDITOR`) | unverändert, ausgeblendet | nur lesend |
+
+- Neu ist die Rolle Kassier:in (`TREASURER`). Sie ist die Standardrolle für neue Einladungen.
+- Der Besitzer sieht nach dem Update weiterhin einmalig in der Mitgliederliste den Hinweis auf die Rollen.
+- Bisher eingeladene Mitglieder können nach dem Update Mitglieder und Rollen verwalten. Wer nur die Buchhaltung führen soll, muss vom Besitzer auf **Kassier:in** umgestellt werden. Das gehört in die Upgrade-Hinweise für Betreiber.
 
 ## Offene Fragen
 
-- **Stornobuchung:** Ohne sie lässt sich ein Fehler in einer geprüften Buchung nicht mehr korrigieren. Muss vor dem Release des Prüfens geklärt sein: eigenes Issue davor oder Teil davon?
-
+- **Stornobuchung und Festschreiben:** Das Prüfen und Festschreiben von Buchungen durch die Kassenprüfung ist zurückgestellt (Issue #960). Ohne Stornobuchung lässt sich ein Fehler in einer geprüften Buchung nicht mehr korrigieren. Das muss vor dem Release des Prüfens geklärt sein.
 ## Umsetzung
 
 Übersicht: #957
@@ -54,7 +68,7 @@ Es gibt immer genau eine Gründer:in pro Verein. Die Rolle gilt pro Verein: Dies
 | Issue | Inhalt | Baut auf |
 |---|---|---|
 | #958 | Rechte für alle Funktionen serverseitig durchsetzen | |
-| #959 | Rollen Vorstand und Kassenprüfung | #958 |
-| #960 | Buchungen durch die Kassenprüfung prüfen und festschreiben | #959 |
+| #959 | Rollen Besitzer, Vorstand, Kassier:in, Leser, Rechte für Rollen, Kategorien und mehrere Besitzer | #958 |
+| #960 | Buchungen durch die Kassenprüfung prüfen und festschreiben (zurückgestellt) | #959 |
 
 Technik: Quarkus `@PermissionsAllowed` mit `deny-unannotated-endpoints`, Rechte pro Verein aus dem `AccessService`.
