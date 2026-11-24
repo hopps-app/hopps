@@ -14,7 +14,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8080";
+        this.baseUrl = baseUrl ?? "http://localhost:8101";
     }
 
     /**
@@ -5086,7 +5086,7 @@ export class Client {
             let result400: any = null;
             let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result400 = ValidationResult.fromJS(resultData400);
-            return throwException("Validation of fields failed", status, _responseText, _headers, result400);
+            return throwException("Validation of fields failed, or the ALTCHA challenge is missing, invalid, expired or already used (code ALTCHA_FAILED)", status, _responseText, _headers, result400);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -5433,7 +5433,7 @@ export class Client {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Validation of fields failed, or the founder role was given", status, _responseText, _headers);
+            return throwException("Validation of fields failed, or a role that cannot be given", status, _responseText, _headers);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
@@ -5441,7 +5441,7 @@ export class Client {
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
-            return throwException("The current user may not manage members", status, _responseText, _headers);
+            return throwException("The current user may not manage members, or not owners when the owner role was given", status, _responseText, _headers);
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
@@ -5561,7 +5561,7 @@ export class Client {
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
-            return throwException("The current user may not manage members", status, _responseText, _headers);
+            return throwException("The current user may not manage members, or not owners when the member is one", status, _responseText, _headers);
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
@@ -5569,7 +5569,7 @@ export class Client {
             });
         } else if (status === 409) {
             return response.text().then((_responseText) => {
-            return throwException("The member to remove is the current user or the owner", status, _responseText, _headers);
+            return throwException("The member to remove is the current user", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -5619,7 +5619,7 @@ export class Client {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("No role, or the founder role, was given", status, _responseText, _headers);
+            return throwException("No role, or a role that cannot be given, was given", status, _responseText, _headers);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
@@ -5627,7 +5627,7 @@ export class Client {
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
-            return throwException("The current user may not manage members", status, _responseText, _headers);
+            return throwException("The current user may not manage roles, or not owners when an owner is involved", status, _responseText, _headers);
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
@@ -5635,7 +5635,7 @@ export class Client {
             });
         } else if (status === 409) {
             return response.text().then((_responseText) => {
-            return throwException("The member is the current user or the founder", status, _responseText, _headers);
+            return throwException("The member is the current user", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -5931,6 +5931,44 @@ export class Client {
             });
         }
         return Promise.resolve<TreeSearchBommel[]>(null as any);
+    }
+
+    /**
+     * Get a spam-protection challenge
+     * @return A new challenge
+     */
+    challenge(): Promise<Challenge> {
+        let url_ = this.baseUrl + "/public/altcha/challenge";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processChallenge(_response);
+        });
+    }
+
+    protected processChallenge(response: Response): Promise<Challenge> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = Challenge.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Challenge>(null as any);
     }
 
     /**
@@ -10524,6 +10562,79 @@ export interface ICategoryValueEntry {
     [key: string]: any;
 }
 
+/** An ALTCHA proof-of-work challenge (protocol version 2), solved by the altcha widget */
+export class Challenge implements IChallenge {
+    parameters?: { [key: string]: any; };
+    signature?: string;
+
+    [key: string]: any;
+
+    constructor(data?: IChallenge) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (_data["parameters"]) {
+                this.parameters = {} as any;
+                for (let key in _data["parameters"]) {
+                    if (_data["parameters"].hasOwnProperty(key))
+                        (this.parameters as any)![key] = _data["parameters"][key];
+                }
+            }
+            this.signature = _data["signature"];
+        }
+    }
+
+    static fromJS(data: any): Challenge {
+        data = typeof data === 'object' ? data : {};
+        let result = new Challenge();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (this.parameters) {
+            data["parameters"] = {};
+            for (let key in this.parameters) {
+                if (this.parameters.hasOwnProperty(key))
+                    (data["parameters"] as any)[key] = (this.parameters as any)[key];
+            }
+        }
+        data["signature"] = this.signature;
+        return data;
+    }
+
+    clone(): Challenge {
+        const json = this.toJSON();
+        let result = new Challenge();
+        result.init(json);
+        return result;
+    }
+}
+
+/** An ALTCHA proof-of-work challenge (protocol version 2), solved by the altcha widget */
+export interface IChallenge {
+    parameters?: { [key: string]: any; };
+    signature?: string;
+
+    [key: string]: any;
+}
+
 export class CsvPreviewResponse implements ICsvPreviewResponse {
     detectedEncoding?: string;
     detectedDelimiter?: string;
@@ -13031,7 +13142,7 @@ export interface IPagedValuesResponse {
     [key: string]: any;
 }
 
-export type Permission = "VIEW_BOOKKEEPING" | "EDIT_BOOKKEEPING" | "MANAGE_ORGANIZATION" | "MANAGE_MEMBERS";
+export type Permission = "VIEW_BOOKKEEPING" | "EDIT_BOOKKEEPING" | "MANAGE_ORGANIZATION" | "MANAGE_MEMBERS" | "MANAGE_ROLES" | "MANAGE_CATEGORIES" | "MANAGE_OWNERS";
 
 export class PublicReceiptForm implements IPublicReceiptForm {
     /** The receipt (PNG, JPEG or PDF) */
@@ -13381,7 +13492,7 @@ export interface IReopenImpactResponse {
     [key: string]: any;
 }
 
-export type Role = "OWNER" | "ADMIN" | "BOARD" | "AUDITOR";
+export type Role = "OWNER" | "ADMIN" | "TREASURER" | "VIEWER" | "AUDITOR";
 
 export class SchemaDetectionResult implements ISchemaDetectionResult {
     /** Type of match found */
