@@ -6,11 +6,15 @@ import app.hopps.member.domain.Role;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.domain.OrganizationType;
+import app.hopps.organization.model.MemberUpdateInput;
+import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.shared.validation.NonUniqueConstraintViolation;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.ForbiddenException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -46,6 +50,9 @@ class OrganizationMemberServiceTest {
     @InjectMock
     MemberRepository memberRepository;
 
+    @InjectMock
+    OrganizationRepository organizationRepository;
+
     private Organization testOrganization;
     private Member testMember;
     private Member owner;
@@ -69,6 +76,8 @@ class OrganizationMemberServiceTest {
         owner.addOrganization(testOrganization, Role.OWNER);
 
         when(memberRepository.findByEmail(anyString())).thenReturn(null);
+        // Another owner exists, unless a test says otherwise.
+        when(organizationRepository.countOwnersExcept(any(), any())).thenReturn(1L);
     }
 
     /** Stands in for the real invitation, which sets these two fields on the member it is given. */
@@ -85,13 +94,13 @@ class OrganizationMemberServiceTest {
     @DisplayName("should provision an account and persist the member")
     void shouldAddMember() {
         stubSuccessfulInvite(true);
-        doNothing().when(persistenceDelegate).persistMember(any(), any());
+        doNothing().when(persistenceDelegate).persistMember(any(), any(), any());
 
-        Member added = organizationMemberService.addMember(testOrganization, testMember, owner);
+        Member added = organizationMemberService.addMember(testOrganization, testMember, Role.TREASURER, owner);
 
         assertEquals(MemberStatus.INVITED, added.getStatus());
         assertEquals(KEYCLOAK_ID, added.getKeycloakId());
-        verify(persistenceDelegate, times(1)).persistMember(testMember, testOrganization);
+        verify(persistenceDelegate, times(1)).persistMember(testMember, testOrganization, Role.TREASURER);
         verify(identityProvisioningService, never()).deleteUser(anyString());
     }
 
@@ -100,10 +109,10 @@ class OrganizationMemberServiceTest {
     void shouldRollBackKeycloakUserOnPersistenceFailure() {
         stubSuccessfulInvite(true);
         doThrow(new IllegalStateException("database is down")).when(persistenceDelegate)
-                .persistMember(any(), any());
+                .persistMember(any(), any(), any());
 
         assertThrows(IllegalStateException.class,
-                () -> organizationMemberService.addMember(testOrganization, testMember, owner));
+                () -> organizationMemberService.addMember(testOrganization, testMember, Role.ADMIN, owner));
 
         verify(identityProvisioningService, times(1)).deleteUser(KEYCLOAK_ID);
     }
@@ -114,10 +123,10 @@ class OrganizationMemberServiceTest {
         // The account belonged to someone before this request — it must survive our failure.
         stubSuccessfulInvite(false);
         doThrow(new IllegalStateException("database is down")).when(persistenceDelegate)
-                .persistMember(any(), any());
+                .persistMember(any(), any(), any());
 
         assertThrows(IllegalStateException.class,
-                () -> organizationMemberService.addMember(testOrganization, testMember, owner));
+                () -> organizationMemberService.addMember(testOrganization, testMember, Role.ADMIN, owner));
 
         verify(identityProvisioningService, never()).deleteUser(anyString());
     }
@@ -128,10 +137,10 @@ class OrganizationMemberServiceTest {
         when(memberRepository.findByEmail(eq("invited@example.com"))).thenReturn(new Member());
 
         assertThrows(NonUniqueConstraintViolation.NonUniqueConstraintViolationException.class,
-                () -> organizationMemberService.addMember(testOrganization, testMember, owner));
+                () -> organizationMemberService.addMember(testOrganization, testMember, Role.ADMIN, owner));
 
         verify(identityProvisioningService, never()).inviteMember(any(), anyString());
-        verify(persistenceDelegate, never()).persistMember(any(), any());
+        verify(persistenceDelegate, never()).persistMember(any(), any(), any());
     }
 
     @Test
@@ -140,25 +149,323 @@ class OrganizationMemberServiceTest {
         testMember.setEmail("not-an-email");
 
         assertThrows(ConstraintViolationException.class,
-                () -> organizationMemberService.addMember(testOrganization, testMember, owner));
+                () -> organizationMemberService.addMember(testOrganization, testMember, Role.ADMIN, owner));
 
         verify(identityProvisioningService, never()).inviteMember(any(), anyString());
-        verify(persistenceDelegate, never()).persistMember(any(), any());
+        verify(persistenceDelegate, never()).persistMember(any(), any(), any());
     }
 
     @Test
     @DisplayName("should reject adding a member when the caller may not manage members")
     void shouldRejectAddMemberWithoutPermission() {
         Member nonOwner = new Member();
-        nonOwner.setEmail("admin@example.com");
+        nonOwner.setEmail("treasurer@example.com");
         nonOwner.setFirstName("Regular");
-        nonOwner.setLastName("Admin");
-        nonOwner.addOrganization(testOrganization, Role.ADMIN);
+        nonOwner.setLastName("Treasurer");
+        nonOwner.addOrganization(testOrganization, Role.TREASURER);
 
         assertThrows(ForbiddenException.class,
-                () -> organizationMemberService.addMember(testOrganization, testMember, nonOwner));
+                () -> organizationMemberService.addMember(testOrganization, testMember, Role.TREASURER, nonOwner));
 
         verify(identityProvisioningService, never()).inviteMember(any(), anyString());
-        verify(persistenceDelegate, never()).persistMember(any(), any());
+        verify(persistenceDelegate, never()).persistMember(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("should give the invited person the chosen role")
+    void shouldPersistTheChosenRole() {
+        stubSuccessfulInvite(true);
+        doNothing().when(persistenceDelegate).persistMember(any(), any(), any());
+
+        organizationMemberService.addMember(testOrganization, testMember, Role.VIEWER, owner);
+
+        verify(persistenceDelegate, times(1)).persistMember(testMember, testOrganization, Role.VIEWER);
+    }
+
+    @Test
+    @DisplayName("should let an owner invite a further owner")
+    void shouldLetAnOwnerInviteAnOwner() {
+        stubSuccessfulInvite(true);
+        doNothing().when(persistenceDelegate).persistMember(any(), any(), any());
+
+        organizationMemberService.addMember(testOrganization, testMember, Role.OWNER, owner);
+
+        verify(persistenceDelegate, times(1)).persistMember(testMember, testOrganization, Role.OWNER);
+    }
+
+    @Test
+    @DisplayName("should not hand out the hidden auditor role when inviting")
+    void shouldRejectInvitingAnAuditor() {
+        assertThrows(BadRequestException.class,
+                () -> organizationMemberService.addMember(testOrganization, testMember, Role.AUDITOR, owner));
+
+        verify(identityProvisioningService, never()).inviteMember(any(), anyString());
+    }
+
+    @Test
+    @DisplayName("should change the role of a member")
+    void shouldChangeRole() {
+        Member treasurer = memberWithId(2L, Role.TREASURER);
+        when(memberRepository.findById(2L)).thenReturn(treasurer);
+
+        organizationMemberService.changeRole(testOrganization, 2L, Role.ADMIN, owner);
+
+        assertEquals(Role.ADMIN, treasurer.getRole(testOrganization).orElseThrow());
+    }
+
+    @Test
+    @DisplayName("should let the board change the role of another board member")
+    void shouldLetTheBoardChangeAnotherBoardMember() {
+        Member board = memberWithId(2L, Role.ADMIN);
+        Member otherBoard = memberWithId(3L, Role.ADMIN);
+        when(memberRepository.findById(3L)).thenReturn(otherBoard);
+
+        organizationMemberService.changeRole(testOrganization, 3L, Role.VIEWER, board);
+
+        assertEquals(Role.VIEWER, otherBoard.getRole(testOrganization).orElseThrow());
+    }
+
+    @Test
+    @DisplayName("should not let the board change the role of an owner")
+    void shouldRejectTheBoardChangingTheOwner() {
+        Member board = memberWithId(2L, Role.ADMIN);
+        owner.id = 1L;
+        when(memberRepository.findById(1L)).thenReturn(owner);
+
+        assertThrows(ForbiddenException.class,
+                () -> organizationMemberService.changeRole(testOrganization, 1L, Role.VIEWER, board));
+
+        assertEquals(Role.OWNER, owner.getRole(testOrganization).orElseThrow());
+    }
+
+    @Test
+    @DisplayName("should not hand out the hidden auditor role when changing a role")
+    void shouldRejectChangingToAuditor() {
+        Member treasurer = memberWithId(2L, Role.TREASURER);
+        when(memberRepository.findById(2L)).thenReturn(treasurer);
+
+        assertThrows(BadRequestException.class,
+                () -> organizationMemberService.changeRole(testOrganization, 2L, Role.AUDITOR, owner));
+
+        assertEquals(Role.TREASURER, treasurer.getRole(testOrganization).orElseThrow());
+    }
+
+    @Test
+    @DisplayName("should not let anyone change their own role")
+    void shouldRejectChangingOwnRole() {
+        owner.id = 1L;
+        when(memberRepository.findById(1L)).thenReturn(owner);
+
+        ClientErrorException self = assertThrows(ClientErrorException.class,
+                () -> organizationMemberService.changeRole(testOrganization, 1L, Role.ADMIN, owner));
+        assertEquals(409, self.getResponse().getStatus());
+    }
+
+    @Test
+    @DisplayName("should reject changing a role when the caller may not manage roles")
+    void shouldRejectChangeRoleWithoutPermission() {
+        Member treasurer = memberWithId(2L, Role.TREASURER);
+        when(memberRepository.findById(3L)).thenReturn(memberWithId(3L, Role.TREASURER));
+
+        assertThrows(ForbiddenException.class,
+                () -> organizationMemberService.changeRole(testOrganization, 3L, Role.ADMIN, treasurer));
+    }
+
+    @Test
+    @DisplayName("should let an owner appoint a further owner")
+    void shouldLetAnOwnerAppointAnotherOwner() {
+        Member board = memberWithId(2L, Role.ADMIN);
+        when(memberRepository.findById(2L)).thenReturn(board);
+
+        organizationMemberService.changeRole(testOrganization, 2L, Role.OWNER, owner);
+
+        assertEquals(Role.OWNER, board.getRole(testOrganization).orElseThrow());
+    }
+
+    @Test
+    @DisplayName("should let an owner step another owner down")
+    void shouldLetAnOwnerChangeAnotherOwner() {
+        Member otherOwner = memberWithId(2L, Role.OWNER);
+        when(memberRepository.findById(2L)).thenReturn(otherOwner);
+
+        organizationMemberService.changeRole(testOrganization, 2L, Role.ADMIN, owner);
+
+        assertEquals(Role.ADMIN, otherOwner.getRole(testOrganization).orElseThrow());
+    }
+
+    @Test
+    @DisplayName("should lock the organization before stepping an owner down")
+    void shouldLockTheOrganizationWhenSteppingAnOwnerDown() {
+        Member otherOwner = memberWithId(2L, Role.OWNER);
+        when(memberRepository.findById(2L)).thenReturn(otherOwner);
+
+        organizationMemberService.changeRole(testOrganization, 2L, Role.ADMIN, owner);
+
+        verify(organizationRepository, times(1)).lockForOwnerChange(testOrganization);
+    }
+
+    @Test
+    @DisplayName("should not step down an owner when none would be left")
+    void shouldRejectSteppingDownTheLastOwner() {
+        Member otherOwner = memberWithId(2L, Role.OWNER);
+        when(memberRepository.findById(2L)).thenReturn(otherOwner);
+        // The other owner stepped the caller down in the meantime, so nobody else is left.
+        when(organizationRepository.countOwnersExcept(any(), any())).thenReturn(0L);
+
+        ClientErrorException conflict = assertThrows(ClientErrorException.class,
+                () -> organizationMemberService.changeRole(testOrganization, 2L, Role.ADMIN, owner));
+
+        assertEquals(409, conflict.getResponse().getStatus());
+        assertEquals(Role.OWNER, otherOwner.getRole(testOrganization).orElseThrow());
+    }
+
+    @Test
+    @DisplayName("should not remove an owner when none would be left")
+    void shouldRejectRemovingTheLastOwner() {
+        Member otherOwner = memberWithId(2L, Role.OWNER);
+        when(memberRepository.findById(2L)).thenReturn(otherOwner);
+        when(organizationRepository.countOwnersExcept(any(), any())).thenReturn(0L);
+
+        ClientErrorException conflict = assertThrows(ClientErrorException.class,
+                () -> organizationMemberService.removeMember(testOrganization, 2L, owner));
+
+        assertEquals(409, conflict.getResponse().getStatus());
+        assertEquals(Role.OWNER, otherOwner.getRole(testOrganization).orElseThrow());
+    }
+
+    @Test
+    @DisplayName("should not take the lock when appointing an owner")
+    void shouldNotLockWhenAppointingAnOwner() {
+        Member board = memberWithId(2L, Role.ADMIN);
+        when(memberRepository.findById(2L)).thenReturn(board);
+
+        organizationMemberService.changeRole(testOrganization, 2L, Role.OWNER, owner);
+
+        verify(organizationRepository, never()).lockForOwnerChange(any());
+    }
+
+    @Test
+    @DisplayName("should not let the board appoint an owner")
+    void shouldRejectTheBoardAppointingAnOwner() {
+        Member board = memberWithId(2L, Role.ADMIN);
+        Member treasurer = memberWithId(3L, Role.TREASURER);
+        when(memberRepository.findById(3L)).thenReturn(treasurer);
+
+        assertThrows(ForbiddenException.class,
+                () -> organizationMemberService.changeRole(testOrganization, 3L, Role.OWNER, board));
+
+        assertEquals(Role.TREASURER, treasurer.getRole(testOrganization).orElseThrow());
+    }
+
+    @Test
+    @DisplayName("should not let the board remove an owner")
+    void shouldRejectTheBoardRemovingAnOwner() {
+        Member board = memberWithId(2L, Role.ADMIN);
+        owner.id = 1L;
+        when(memberRepository.findById(1L)).thenReturn(owner);
+
+        assertThrows(ForbiddenException.class,
+                () -> organizationMemberService.removeMember(testOrganization, 1L, board));
+
+        assertEquals(Role.OWNER, owner.getRole(testOrganization).orElseThrow());
+    }
+
+    @Test
+    @DisplayName("should not let the board invite an owner")
+    void shouldRejectTheBoardInvitingAnOwner() {
+        Member board = memberWithId(2L, Role.ADMIN);
+
+        assertThrows(ForbiddenException.class,
+                () -> organizationMemberService.addMember(testOrganization, testMember, Role.OWNER, board));
+
+        verify(identityProvisioningService, never()).inviteMember(any(), anyString());
+    }
+
+    @Test
+    @DisplayName("should not let an owner remove themselves, so the last owner stays")
+    void shouldRejectRemovingOneself() {
+        owner.id = 1L;
+        when(memberRepository.findById(1L)).thenReturn(owner);
+
+        ClientErrorException self = assertThrows(ClientErrorException.class,
+                () -> organizationMemberService.removeMember(testOrganization, 1L, owner));
+
+        assertEquals(409, self.getResponse().getStatus());
+    }
+
+    @Test
+    @DisplayName("should correct the name of a member")
+    void shouldCorrectName() {
+        Member invited = memberWithId(2L, Role.ADMIN);
+        invited.setStatus(MemberStatus.ACTIVE);
+        when(memberRepository.findById(2L)).thenReturn(invited);
+        when(persistenceDelegate.updateMember(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Member updated = organizationMemberService.updateMember(testOrganization, 2L,
+                new MemberUpdateInput(" Kim ", "Rakete", null), owner);
+
+        assertEquals("Kim", updated.getFirstName());
+        assertEquals("Rakete", updated.getLastName());
+        assertEquals("member2@example.com", updated.getEmail());
+        verify(identityProvisioningService, never()).inviteMember(any(), anyString());
+    }
+
+    @Test
+    @DisplayName("should move a pending invitation to a corrected email and drop the unused account")
+    void shouldMoveInvitationToCorrectedEmail() {
+        Member invited = memberWithId(2L, Role.ADMIN);
+        invited.setStatus(MemberStatus.INVITATION_FAILED);
+        invited.setKeycloakId("old-account");
+        when(memberRepository.findById(2L)).thenReturn(invited);
+        when(persistenceDelegate.updateMember(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        stubSuccessfulInvite(true);
+
+        Member updated = organizationMemberService.updateMember(testOrganization, 2L,
+                new MemberUpdateInput(null, null, "right@example.com"), owner);
+
+        assertEquals("right@example.com", updated.getEmail());
+        assertEquals(KEYCLOAK_ID, updated.getKeycloakId());
+        assertEquals(MemberStatus.INVITED, updated.getStatus());
+        verify(identityProvisioningService, times(1)).deleteUnusedUser("old-account");
+    }
+
+    @Test
+    @DisplayName("should keep the email of a member who has logged in")
+    void shouldKeepEmailOfActiveMember() {
+        Member active = memberWithId(2L, Role.ADMIN);
+        active.setStatus(MemberStatus.ACTIVE);
+        when(memberRepository.findById(2L)).thenReturn(active);
+
+        ClientErrorException conflict = assertThrows(ClientErrorException.class,
+                () -> organizationMemberService.updateMember(testOrganization, 2L,
+                        new MemberUpdateInput(null, null, "other@example.com"), owner));
+
+        assertEquals(409, conflict.getResponse().getStatus());
+        verify(identityProvisioningService, never()).inviteMember(any(), anyString());
+    }
+
+    @Test
+    @DisplayName("should reject an email that belongs to another member")
+    void shouldRejectEmailOfAnotherMember() {
+        Member invited = memberWithId(2L, Role.ADMIN);
+        invited.setStatus(MemberStatus.INVITED);
+        when(memberRepository.findById(2L)).thenReturn(invited);
+        when(memberRepository.findByEmail(eq("taken@example.com"))).thenReturn(new Member());
+
+        assertThrows(NonUniqueConstraintViolation.NonUniqueConstraintViolationException.class,
+                () -> organizationMemberService.updateMember(testOrganization, 2L,
+                        new MemberUpdateInput(null, null, "taken@example.com"), owner));
+
+        verify(identityProvisioningService, never()).inviteMember(any(), anyString());
+    }
+
+    private Member memberWithId(long id, Role role) {
+        Member member = new Member();
+        member.id = id;
+        member.setEmail("member" + id + "@example.com");
+        member.setFirstName("Member");
+        member.setLastName(String.valueOf(id));
+        member.addOrganization(testOrganization, role);
+        return member;
     }
 }

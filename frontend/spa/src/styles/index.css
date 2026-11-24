@@ -240,6 +240,31 @@ body {
     font-family: var(--font-family);
 }
 
+/* ALTCHA spam check in the registration form, styled like the text fields around it (see inputStyles.ts):
+   same corners, border and background, and the brand purple once the switch is on. The widget reads these
+   custom properties; color-scheme drives its own light-dark() fallbacks. */
+altcha-widget {
+    color-scheme: light;
+    --altcha-max-width: 100%;
+    --altcha-padding: 0.5rem 0.75rem;
+    --altcha-border-radius: 0.75rem; /* rounded-xl */
+    --altcha-border-color: #E0E0E6;
+    --altcha-color-base: #FFFFFF;
+    --altcha-color-base-content: var(--foreground);
+    --altcha-color-neutral: #D9D4E0;
+    --altcha-color-neutral-content: var(--muted-foreground);
+    --altcha-color-primary: var(--primary);
+    --altcha-color-success: var(--primary);
+    --altcha-checkbox-outline-color: var(--purple-300);
+}
+
+.dark altcha-widget {
+    color-scheme: dark;
+    --altcha-border-color: oklch(37.3% 0.034 259.733); /* gray-700 */
+    --altcha-color-base: var(--purple-50);
+    --altcha-color-neutral: var(--border-soft);
+}
+
 /*
  * Guide highlights on the Bommel page. A page element sets `data-guide-highlight` to the targets of the current guide
  * step, and the elements meant carry `data-guide` (several names separated by spaces). The ring pulses for as long as

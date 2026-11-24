@@ -5,6 +5,7 @@ import { KontenPageSkeleton } from '@/components/BankAccounts/KontenSkeleton';
 import { CategoryGroupsSkeleton } from '@/components/CategoryGroups/CategoryGroupsSkeleton';
 import { LoadingState } from '@/components/common/LoadingState';
 import { DashboardSkeleton } from '@/components/Dashboard/DashboardSkeleton';
+import { RegistrationSkeleton } from '@/components/Forms/OrganizationRegistrationForm/RegistrationSkeleton';
 import { OrganizationDetailsSkeleton } from '@/components/Organization/OrganizationDetailsSkeleton';
 import { ProfileSkeleton } from '@/components/Profile/ProfileSkeleton';
 import { ReceiptsSkeleton } from '@/components/Receipts/ReceiptsSkeleton';
@@ -27,7 +28,8 @@ const RegisterOrganizationView = lazy(() =>
 );
 const DashboardView = lazy(() => import('@/components/views/DashboardView'));
 const BommelView = lazy(() => import('./components/views/Bommel').then((module) => ({ default: module.BommelView })));
-const ProfileSettingsView = lazy(() => import('./components/views/ProfileSettingsView'));
+const SettingsView = lazy(() => import('./components/views/SettingsView'));
+const ProfileView = lazy(() => import('./components/views/ProfileView'));
 const CategoryGroupsView = lazy(() => import('./components/views/CategoryGroupsView'));
 const OrganizationDetailsSettingsView = lazy(() => import('./components/views/OrganizationDetailsSettingsView'));
 const ReceiptView = lazy(() => import('@/components/views/ReceiptView'));
@@ -53,7 +55,7 @@ export default function AppRoutes() {
                     path="/register"
                     element={
                         <SetupGuard>
-                            <LazyRoute>
+                            <LazyRoute fallback={<RegistrationSkeleton />}>
                                 <RegisterOrganizationView />
                             </LazyRoute>
                         </SetupGuard>
@@ -101,7 +103,15 @@ export default function AppRoutes() {
                     path="/profile"
                     element={
                         <LazyRoute fallback={<ProfileSkeleton />}>
-                            <ProfileSettingsView />
+                            <ProfileView />
+                        </LazyRoute>
+                    }
+                />
+                <Route
+                    path="/settings"
+                    element={
+                        <LazyRoute fallback={<ProfileSkeleton />}>
+                            <SettingsView />
                         </LazyRoute>
                     }
                 />

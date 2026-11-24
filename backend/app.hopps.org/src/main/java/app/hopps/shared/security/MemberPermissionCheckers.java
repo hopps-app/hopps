@@ -61,6 +61,20 @@ public class MemberPermissionCheckers {
         return isGranted(identity, Permission.MANAGE_MEMBERS);
     }
 
+    @PermissionChecker(Permission.Names.MANAGE_ROLES)
+    @Blocking
+    @ActivateRequestContext
+    public boolean canManageRoles(SecurityIdentity identity) {
+        return isGranted(identity, Permission.MANAGE_ROLES);
+    }
+
+    @PermissionChecker(Permission.Names.MANAGE_CATEGORIES)
+    @Blocking
+    @ActivateRequestContext
+    public boolean canManageCategories(SecurityIdentity identity) {
+        return isGranted(identity, Permission.MANAGE_CATEGORIES);
+    }
+
     boolean isGranted(SecurityIdentity identity, Permission permission) {
         if (identity == null || identity.isAnonymous()) {
             return false;

@@ -29,6 +29,7 @@ import TextField from '@/components/ui/TextField';
 import { useBankTransactionsForTransaction } from '@/hooks/queries/useBankAccounts';
 import { useCategoryGroups } from '@/hooks/queries/useCategoryGroups';
 import { useDeleteDocument, useDocument } from '@/hooks/queries/useDocuments';
+import { useCanEditBookkeeping } from '@/hooks/queries/usePermissions';
 import { useTransaction, useDeleteTransaction, useUpdateTransaction, useConfirmTransaction, useReopenTransaction } from '@/hooks/queries/useTransactions';
 import { useCurrency } from '@/hooks/use-currency';
 import { useToast } from '@/hooks/use-toast';
@@ -61,6 +62,8 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
     const updateMutation = useUpdateTransaction();
     const confirmMutation = useConfirmTransaction();
     const reopenMutation = useReopenTransaction();
+    // Board members and auditors only see the transaction; editing, confirming and deleting are hidden (issue #959).
+    const canEdit = useCanEditBookkeeping();
     // The bank transaction(s) matched to this transaction — used to gate the confirm action on full coverage.
     const { data: linkedBankTxns = [] } = useBankTransactionsForTransaction(txId ?? undefined);
     const { organization } = useStore();
@@ -589,7 +592,7 @@ export function TransactionDrawer({ txId, onClose, onDeleted }: { txId: number |
                 )}
 
                 {/* Sticky footer */}
-                {tx && !isLoading && (
+                {tx && !isLoading && canEdit && (
                     <div className="flex items-center gap-2.5 border-t border-border-soft px-6 py-4" style={{ background: 'var(--drawer-bg)' }}>
                         {editMode ? (
                             <>

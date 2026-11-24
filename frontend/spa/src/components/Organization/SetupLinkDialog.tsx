@@ -33,7 +33,7 @@ export function SetupLinkDialog({ link, name, onClose }: SetupLinkDialogProps) {
 
     return (
         <Dialog open={link !== null} onOpenChange={(isOpen) => !isOpen && onClose()}>
-            <DialogContent className="max-w-[460px] gap-0 rounded-[18px] border-[#E9E9EE] p-0 dark:border-[#2E2E36] dark:bg-[#1C1C21]">
+            <DialogContent className="max-w-[460px] gap-0 rounded-[18px] border-[#E9E9EE] p-0 dark:border-[var(--border-soft)] dark:bg-[var(--background-secondary)]">
                 <DialogHeader className="flex-row items-center gap-[13px] space-y-0 px-6 pt-6 text-left">
                     <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-[12px] bg-[#F3EAFB] text-[#7E3FB4] dark:bg-[#33204A] dark:text-[#C9A6E6]">
                         <KeyRound size={20} aria-hidden="true" />
@@ -52,15 +52,15 @@ export function SetupLinkDialog({ link, name, onClose }: SetupLinkDialogProps) {
                         value={link ?? ''}
                         aria-label={t('organization.details.users.setupLink.linkLabel')}
                         onFocus={(event) => event.target.select()}
-                        className="w-full rounded-[10px] border border-[#E9E9EE] bg-[#F7F7F9] px-3 py-2 font-mono text-[12.5px] text-[#1B1B1F] dark:border-[#2E2E36] dark:bg-[#26262D] dark:text-[#F2F2F5]"
+                        className="w-full rounded-[10px] border border-[#E9E9EE] bg-[#F7F7F9] px-3 py-2 font-mono text-[12.5px] text-[#1B1B1F] dark:border-[var(--border-soft)] dark:bg-[var(--surface-track)] dark:text-[#F2F2F5]"
                     />
                 </div>
 
-                <div className="flex justify-end gap-2.5 border-t border-[#E9E9EE] px-6 py-4 dark:border-[#2E2E36]">
+                <div className="flex justify-end gap-2.5 border-t border-[#E9E9EE] px-6 py-4 dark:border-[var(--border-soft)]">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="inline-flex items-center rounded-[var(--btn-radius)] px-4 py-[9px] text-[13.5px] font-bold text-[#6B6B76] transition-colors hover:bg-[#F1F1F4] hover:text-[#1B1B1F] dark:text-[#A0A0AC] dark:hover:bg-[#26262D] dark:hover:text-[#F2F2F5]"
+                        className="inline-flex items-center rounded-[var(--btn-radius)] px-4 py-[9px] text-[13.5px] font-bold text-[#6B6B76] transition-colors hover:bg-[#F1F1F4] hover:text-[#1B1B1F] dark:text-[#A0A0AC] dark:hover:bg-[var(--surface-track)] dark:hover:text-[#F2F2F5]"
                     >
                         {t('common.close')}
                     </button>

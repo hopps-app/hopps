@@ -140,41 +140,7 @@ members:
     firstName: "Samantha"
     lastName: "Adomeit"
     organizationIds: [4]
-
-  - id: 16
-    email: "m-linner@private.none"
-    keycloakId: "00000000-0000-0000-0000-000000000016"
-    firstName: "Margund"
-    lastName: "Linner"
-    organizationIds: [4]
-
-  - id: 17
-    email: "b-bork@mymail.none"
-    keycloakId: "00000000-0000-0000-0000-000000000017"
-    firstName: "Birgit"
-    lastName: "Bork"
-    organizationIds: [4]
-
-  - id: 18
-    email: "gkalb@quickmail.none"
-    keycloakId: "00000000-0000-0000-0000-000000000018"
-    firstName: "Gunther"
-    lastName: "Kalb"
-    organizationIds: [4]
-
-  - id: 19
-    email: "b-schlicker@trashmail.none"
-    keycloakId: "00000000-0000-0000-0000-000000000019"
-    firstName: "Burckhard"
-    lastName: "Schlicker"
-    organizationIds: [4]
-
-  - id: 20
-    email: "alix1980@validmail.none"
-    keycloakId: "00000000-0000-0000-0000-000000000020"
-    firstName: "Alix"
-    lastName: "Raff"
-    organizationIds: [4]
+    role: VIEWER
 
   # Test users (used in tests)
   - id: 21
@@ -183,6 +149,7 @@ members:
     firstName: "Alice"
     lastName: "Musterfrau"
     organizationIds: [4]
+    role: OWNER
 
   - id: 22
     email: "jdoe@example.test"
@@ -190,6 +157,7 @@ members:
     firstName: "Jdoe"
     lastName: "Mustermann"
     organizationIds: [4]
+    role: TREASURER
 
   - id: 23
     email: "bob@example.test"
@@ -197,6 +165,7 @@ members:
     firstName: "Bob"
     lastName: "Mustermann"
     organizationIds: [4]
+    role: ADMIN
 
 bommels:
   # gruenes-herz-ev (organization id=2)

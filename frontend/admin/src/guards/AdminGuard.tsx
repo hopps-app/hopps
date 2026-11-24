@@ -1,6 +1,7 @@
 import { ReactNode, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import Button from '@/components/ui/Button';
 import authService from '@/services/auth/auth.service';
 import { useStore } from '@/store/store';
 
@@ -52,13 +53,9 @@ const AdminGuard: React.FC<AdminGuardProps> = ({ children }) => {
             <div className="flex h-screen flex-col items-center justify-center gap-4 p-6 text-center">
                 <h1 className="text-2xl font-semibold">{t('auth.forbidden.title')}</h1>
                 <p className="max-w-md text-sm text-grey-800">{t('auth.forbidden.description')}</p>
-                <button
-                    type="button"
-                    onClick={() => authService.logout().catch((e) => console.error('Failed to logout:', e))}
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-                >
+                <Button className="px-4" onClick={() => authService.logout().catch((e) => console.error('Failed to logout:', e))}>
                     {t('menu.logout')}
-                </button>
+                </Button>
             </div>
         );
     }

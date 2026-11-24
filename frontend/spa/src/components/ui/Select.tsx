@@ -4,10 +4,17 @@ import { useState } from 'react';
 import { Label } from './Label.tsx';
 
 import { BaseSelect, SelectItem, SelectContent, SelectTrigger, SelectValue, SelectGroup } from '@/components/ui/shadecn/BaseSelect.tsx';
+import { cn } from '@/lib/utils';
 
 export interface SelectItem {
     label: string;
     value: string | number;
+    /** A line of explanation under the label in the open list; the field itself shows only the label. */
+    description?: string;
+    /** The entry is shown but cannot be chosen. */
+    disabled?: boolean;
+    /** Shows a lock, for an entry that is disabled because the user may not choose it. */
+    locked?: boolean;
 }
 
 interface SelectProps {
@@ -20,6 +27,10 @@ interface SelectProps {
     error?: string;
     required?: boolean;
     disabled?: boolean;
+    /** Accessible name of the field when it has no visible {@link label}, e.g. inside a table row. */
+    ariaLabel?: string;
+    /** `sm`: a lower, narrower field for selects inside table rows. */
+    size?: 'default' | 'sm';
     /**
      * Always open the list below the field, shortened to the space there (scrollable), instead of letting it flip
      * upwards when there is more room above. For long lists in forms, where an upward list hides the fields above.
@@ -28,8 +39,23 @@ interface SelectProps {
 }
 
 function Select(props: SelectProps) {
-    const { value, items, onValueChanged, label, placeholder, className, error, required, disabled, openDownwards, ...otherProps } = props;
+    const {
+        value,
+        items,
+        onValueChanged,
+        label,
+        placeholder,
+        className,
+        error,
+        required,
+        disabled,
+        openDownwards,
+        ariaLabel,
+        size = 'default',
+        ...otherProps
+    } = props;
     const [id] = useState(_.uniqueId('select-'));
+    const hasDescriptions = items.some((item) => item.description);
     const errorId = `${id}-error`;
     // Radix mirrors a programmatic `value` change into a hidden native <select> and reports the outcome through
     // onValueChange. When the matching <option> is not registered yet (e.g. right after react-hook-form's reset()),
@@ -53,6 +79,8 @@ function Select(props: SelectProps) {
                     aria-invalid={error ? true : undefined}
                     aria-describedby={error ? errorId : undefined}
                     aria-required={required || undefined}
+                    aria-label={label ? undefined : ariaLabel}
+                    className={size === 'sm' ? 'h-8 w-[150px] max-w-full rounded-[10px] px-2.5' : undefined}
                 >
                     <SelectValue placeholder={placeholder || 'Select'} className="placeholder:text-muted" />
                 </SelectTrigger>
@@ -60,12 +88,22 @@ function Select(props: SelectProps) {
                     {...(openDownwards && {
                         side: 'bottom' as const,
                         avoidCollisions: false,
-                        className: 'max-h-[min(24rem,var(--radix-select-content-available-height))]',
                     })}
+                    className={cn(
+                        openDownwards && 'max-h-[min(24rem,var(--radix-select-content-available-height))]',
+                        // Entries with a description need room for it, also in a narrow field.
+                        hasDescriptions && 'min-w-[min(20rem,var(--radix-select-content-available-width))]'
+                    )}
                 >
                     <SelectGroup>
                         {items.map((item) => (
-                            <SelectItem key={item.value} value={String(item.value)}>
+                            <SelectItem
+                                key={item.value}
+                                value={String(item.value)}
+                                description={item.description}
+                                disabled={item.disabled}
+                                locked={item.locked}
+                            >
                                 {item.label}
                             </SelectItem>
                         ))}

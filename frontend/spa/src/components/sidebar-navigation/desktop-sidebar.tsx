@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 
 import { SetupNavItem } from './setup-nav-item';
-import { menuConfig } from './shared/menu-config';
+import { menuConfig, userMenuConfig } from './shared/menu-config';
 import { MenuBadge } from './shared/MenuBadge';
 import type { MenuItem } from './shared/types';
 import { useMenuBadges } from './shared/use-menu-badges';
@@ -13,6 +13,7 @@ import { useMenuBadges } from './shared/use-menu-badges';
 import DropdownMenu, { DropdownMenuItem } from '@/components/ui/DropdownMenu.tsx';
 import Icon from '@/components/ui/Icon';
 import { MoreVerticalIcon } from '@/components/ui/icons/lineIcons';
+import { useMyProfile } from '@/hooks/queries/useProfile';
 import { useGuardedNavigate } from '@/hooks/use-unsaved-changes-warning';
 import authService from '@/services/auth/auth.service.ts';
 import { useStore } from '@/store/store.ts';
@@ -30,9 +31,18 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
     const { t } = useTranslation();
     const { user, isAuthenticated } = useStore();
     const badges = useMenuBadges();
+    // The name members gave themselves in hopps; the token's name only until the profile has loaded.
+    const { data: profile } = useMyProfile();
+    const displayName = profile ? [profile.firstName, profile.lastName].filter(Boolean).join(' ') : (user?.name ?? '');
+    const initials = profile ? `${profile.firstName?.charAt(0) ?? ''}${profile.lastName?.charAt(0) ?? ''}`.toUpperCase() : user?.name?.charAt(0).toUpperCase();
 
     const userMenuItems = React.useMemo<DropdownMenuItem[]>(
         () => [
+            ...userMenuConfig.map((item) => ({
+                title: t(item.label),
+                onClick: () => navigate(item.path),
+                icon: typeof item.icon === 'string' ? <Icon icon={item.icon} /> : <item.icon size={15} />,
+            })),
             {
                 title: t('header.logout'),
                 onClick: () => authService.logout().catch((e) => console.error('Failed to logout:', e)),
@@ -40,7 +50,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
                 variant: 'destructive',
             },
         ],
-        [t]
+        [t, navigate]
     );
 
     const isItemActive = (path: string) => {
@@ -128,7 +138,6 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
                 <nav className="flex-1 overflow-y-auto px-2 py-2 space-y-1">{mainItems.map(renderNavItem)}</nav>
 
                 <div className="flex-shrink-0 px-2 pb-3 space-y-1">
-                    <div className="border-t border-separator mb-2" />
                     {adminItems.map(renderNavItem)}
 
                     <div className="border-t border-separator my-2" />
@@ -138,21 +147,21 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ collapsed, onToggle }) 
                         <DropdownMenu items={userMenuItems} className="w-52" side="top">
                             <button
                                 type="button"
-                                className={`w-full flex items-center gap-2.5 rounded-[10px] transition-colors hover:bg-hover-effect dark:hover:bg-purple-200 ${collapsed ? 'justify-center p-2' : 'px-2 py-2'}`}
+                                className={`w-full flex items-center gap-2.5 rounded-[10px] transition-colors hover:bg-hover-effect dark:hover:bg-purple-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${collapsed ? 'justify-center p-2' : 'px-2 py-2'}`}
                             >
                                 <div
                                     className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-sm"
                                     style={{ background: 'linear-gradient(135deg,#7E3FB4,#9955CC)' }}
                                 >
-                                    {user?.name ? user.name.charAt(0).toUpperCase() : <PersonIcon className="w-4 h-4" />}
+                                    {initials || <PersonIcon className="w-4 h-4" />}
                                 </div>
                                 {!collapsed && (
                                     <>
                                         <div className="flex flex-col min-w-0 text-left">
                                             <span className="text-[13px] font-semibold text-[#1B1B1F] dark:text-white truncate leading-tight">
-                                                {user?.name ?? 'User'}
+                                                {displayName || 'User'}
                                             </span>
-                                            <span className="text-[11px] text-[#9A9AA3] truncate leading-tight">{user?.email ?? ''}</span>
+                                            <span className="text-[11px] text-[#9A9AA3] truncate leading-tight">{profile?.email ?? user?.email ?? ''}</span>
                                         </div>
                                         <MoreVerticalIcon size={16} className="ml-auto flex-shrink-0 text-grey-700" />
                                     </>
