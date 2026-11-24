@@ -14,7 +14,7 @@ export class Client {
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
         this.http = http ? http : window as any;
-        this.baseUrl = baseUrl ?? "http://localhost:8080";
+        this.baseUrl = baseUrl ?? "http://localhost:8101";
     }
 
     /**
@@ -1286,7 +1286,7 @@ export class Client {
      * @param search (optional) Substring match on purpose / counterparty name
      * @param size (optional) Page size
      * @param sort (optional) Sort field: bookingDate, amount or counterpartyName
-     * @param status (optional) Comma-separated statuses (UNMATCHED, PARTIALLY_MATCHED, FULLY_MATCHED, IGNORED)
+     * @param status (optional) Comma-separated statuses (UNMATCHED, PARTIALLY_MATCHED, FULLY_MATCHED, IGNORED, TRANSFER)
      * @return List of transactions
      */
     bankTransactionsAll(accountIds: string | undefined, dateFrom: string | undefined, dateTo: string | undefined, direction: string | undefined, maxAmount: string | undefined, minAmount: string | undefined, page: number | undefined, search: string | undefined, size: number | undefined, sort: string | undefined, status: string | undefined): Promise<BankTransactionResponse[]> {
@@ -2334,7 +2334,7 @@ export class Client {
             });
         } else if (status === 409) {
             return response.text().then((_responseText) => {
-            return throwException("The file\'s amounts are in another currency than the account, or in several (code CURRENCY_MISMATCH, fields fileCurrencies, accountCurrency), or the file was already imported into another account (code FILE_ALREADY_IMPORTED, fields accountName, accountArchived)", status, _responseText, _headers);
+            return throwException("The file\'s amounts are in another currency than the account, or in several (code CURRENCY_MISMATCH, fields fileCurrencies, accountCurrency), or the file was already imported into another account (code FILE_ALREADY_IMPORTED, fields accountName, accountArchived), or a PayPal export was dropped on a bank account or a bank file on a PayPal account (code WRONG_ACCOUNT_TYPE, field fileAccountType BANK / PAYPAL)", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -5186,7 +5186,7 @@ export class Client {
             let result400: any = null;
             let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result400 = ValidationResult.fromJS(resultData400);
-            return throwException("Validation of fields failed", status, _responseText, _headers, result400);
+            return throwException("Validation of fields failed, or the ALTCHA challenge is missing, invalid, expired or already used (code ALTCHA_FAILED)", status, _responseText, _headers, result400);
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
@@ -5533,7 +5533,7 @@ export class Client {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("Validation of fields failed, or the founder role was given", status, _responseText, _headers);
+            return throwException("Validation of fields failed, or a role that cannot be given", status, _responseText, _headers);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
@@ -5541,7 +5541,7 @@ export class Client {
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
-            return throwException("The current user may not manage members", status, _responseText, _headers);
+            return throwException("The current user may not manage members, or not owners when the owner role was given", status, _responseText, _headers);
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
@@ -5661,7 +5661,7 @@ export class Client {
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
-            return throwException("The current user may not manage members", status, _responseText, _headers);
+            return throwException("The current user may not manage members, or not owners when the member is one", status, _responseText, _headers);
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
@@ -5669,7 +5669,7 @@ export class Client {
             });
         } else if (status === 409) {
             return response.text().then((_responseText) => {
-            return throwException("The member to remove is the current user or the owner", status, _responseText, _headers);
+            return throwException("The member to remove is the current user", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -5719,7 +5719,7 @@ export class Client {
             });
         } else if (status === 400) {
             return response.text().then((_responseText) => {
-            return throwException("No role, or the founder role, was given", status, _responseText, _headers);
+            return throwException("No role, or a role that cannot be given, was given", status, _responseText, _headers);
             });
         } else if (status === 401) {
             return response.text().then((_responseText) => {
@@ -5727,7 +5727,7 @@ export class Client {
             });
         } else if (status === 403) {
             return response.text().then((_responseText) => {
-            return throwException("The current user may not manage members", status, _responseText, _headers);
+            return throwException("The current user may not manage roles, or not owners when an owner is involved", status, _responseText, _headers);
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
@@ -5735,7 +5735,7 @@ export class Client {
             });
         } else if (status === 409) {
             return response.text().then((_responseText) => {
-            return throwException("The member is the current user or the founder", status, _responseText, _headers);
+            return throwException("The member is the current user", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -6031,6 +6031,44 @@ export class Client {
             });
         }
         return Promise.resolve<TreeSearchBommel[]>(null as any);
+    }
+
+    /**
+     * Get a spam-protection challenge
+     * @return A new challenge
+     */
+    challenge(): Promise<Challenge> {
+        let url_ = this.baseUrl + "/public/altcha/challenge";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processChallenge(_response);
+        });
+    }
+
+    protected processChallenge(response: Response): Promise<Challenge> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = Challenge.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<Challenge>(null as any);
     }
 
     /**
@@ -7481,7 +7519,9 @@ export type AnalysisStatus = "PENDING" | "ANALYZING" | "COMPLETED" | "FAILED" | 
 
 export class BankAccountCreateRequest implements IBankAccountCreateRequest {
     name!: string;
-    iban!: string;
+    accountType?: BankAccountType;
+    iban?: string;
+    paypalEmail?: string;
     bic?: string;
     bankName?: string;
     accountHolder?: string;
@@ -7511,7 +7551,9 @@ export class BankAccountCreateRequest implements IBankAccountCreateRequest {
                     this[property] = _data[property];
             }
             this.name = _data["name"];
+            this.accountType = _data["accountType"];
             this.iban = _data["iban"];
+            this.paypalEmail = _data["paypalEmail"];
             this.bic = _data["bic"];
             this.bankName = _data["bankName"];
             this.accountHolder = _data["accountHolder"];
@@ -7539,7 +7581,9 @@ export class BankAccountCreateRequest implements IBankAccountCreateRequest {
                 data[property] = this[property];
         }
         data["name"] = this.name;
+        data["accountType"] = this.accountType;
         data["iban"] = this.iban;
+        data["paypalEmail"] = this.paypalEmail;
         data["bic"] = this.bic;
         data["bankName"] = this.bankName;
         data["accountHolder"] = this.accountHolder;
@@ -7563,7 +7607,9 @@ export class BankAccountCreateRequest implements IBankAccountCreateRequest {
 
 export interface IBankAccountCreateRequest {
     name: string;
-    iban: string;
+    accountType?: BankAccountType;
+    iban?: string;
+    paypalEmail?: string;
     bic?: string;
     bankName?: string;
     accountHolder?: string;
@@ -7584,7 +7630,9 @@ export class BankAccountResponse implements IBankAccountResponse {
     bommelId?: number;
     bommelName?: string;
     name?: string;
+    accountType?: BankAccountType;
     iban?: string;
+    paypalEmail?: string;
     bic?: string;
     bankName?: string;
     accountHolder?: string;
@@ -7626,7 +7674,9 @@ export class BankAccountResponse implements IBankAccountResponse {
             this.bommelId = _data["bommelId"];
             this.bommelName = _data["bommelName"];
             this.name = _data["name"];
+            this.accountType = _data["accountType"];
             this.iban = _data["iban"];
+            this.paypalEmail = _data["paypalEmail"];
             this.bic = _data["bic"];
             this.bankName = _data["bankName"];
             this.accountHolder = _data["accountHolder"];
@@ -7666,7 +7716,9 @@ export class BankAccountResponse implements IBankAccountResponse {
         data["bommelId"] = this.bommelId;
         data["bommelName"] = this.bommelName;
         data["name"] = this.name;
+        data["accountType"] = this.accountType;
         data["iban"] = this.iban;
+        data["paypalEmail"] = this.paypalEmail;
         data["bic"] = this.bic;
         data["bankName"] = this.bankName;
         data["accountHolder"] = this.accountHolder;
@@ -7702,7 +7754,9 @@ export interface IBankAccountResponse {
     bommelId?: number;
     bommelName?: string;
     name?: string;
+    accountType?: BankAccountType;
     iban?: string;
+    paypalEmail?: string;
     bic?: string;
     bankName?: string;
     accountHolder?: string;
@@ -7725,9 +7779,12 @@ export interface IBankAccountResponse {
     [key: string]: any;
 }
 
+export type BankAccountType = "BANK" | "PAYPAL";
+
 export class BankAccountUpdateRequest implements IBankAccountUpdateRequest {
     name?: string;
     iban?: string;
+    paypalEmail?: string;
     bic?: string;
     bankName?: string;
     accountHolder?: string;
@@ -7757,6 +7814,7 @@ export class BankAccountUpdateRequest implements IBankAccountUpdateRequest {
             }
             this.name = _data["name"];
             this.iban = _data["iban"];
+            this.paypalEmail = _data["paypalEmail"];
             this.bic = _data["bic"];
             this.bankName = _data["bankName"];
             this.accountHolder = _data["accountHolder"];
@@ -7784,6 +7842,7 @@ export class BankAccountUpdateRequest implements IBankAccountUpdateRequest {
         }
         data["name"] = this.name;
         data["iban"] = this.iban;
+        data["paypalEmail"] = this.paypalEmail;
         data["bic"] = this.bic;
         data["bankName"] = this.bankName;
         data["accountHolder"] = this.accountHolder;
@@ -7807,6 +7866,7 @@ export class BankAccountUpdateRequest implements IBankAccountUpdateRequest {
 export interface IBankAccountUpdateRequest {
     name?: string;
     iban?: string;
+    paypalEmail?: string;
     bic?: string;
     bankName?: string;
     accountHolder?: string;
@@ -8767,7 +8827,7 @@ export interface IBankTransactionResponse {
     [key: string]: any;
 }
 
-export type BankTransactionStatus = "UNMATCHED" | "PARTIALLY_MATCHED" | "FULLY_MATCHED" | "IGNORED";
+export type BankTransactionStatus = "UNMATCHED" | "PARTIALLY_MATCHED" | "FULLY_MATCHED" | "IGNORED" | "TRANSFER";
 
 export class Bommel implements IBommel {
     id?: number;
@@ -10598,6 +10658,79 @@ export interface ICategoryValueEntry {
     bookable?: boolean;
     /** Whether the category is hidden from the pickers. Defaults to false. */
     hidden?: boolean;
+
+    [key: string]: any;
+}
+
+/** An ALTCHA proof-of-work challenge (protocol version 2), solved by the altcha widget */
+export class Challenge implements IChallenge {
+    parameters?: { [key: string]: any; };
+    signature?: string;
+
+    [key: string]: any;
+
+    constructor(data?: IChallenge) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (_data["parameters"]) {
+                this.parameters = {} as any;
+                for (let key in _data["parameters"]) {
+                    if (_data["parameters"].hasOwnProperty(key))
+                        (this.parameters as any)![key] = _data["parameters"][key];
+                }
+            }
+            this.signature = _data["signature"];
+        }
+    }
+
+    static fromJS(data: any): Challenge {
+        data = typeof data === 'object' ? data : {};
+        let result = new Challenge();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (this.parameters) {
+            data["parameters"] = {};
+            for (let key in this.parameters) {
+                if (this.parameters.hasOwnProperty(key))
+                    (data["parameters"] as any)[key] = (this.parameters as any)[key];
+            }
+        }
+        data["signature"] = this.signature;
+        return data;
+    }
+
+    clone(): Challenge {
+        const json = this.toJSON();
+        let result = new Challenge();
+        result.init(json);
+        return result;
+    }
+}
+
+/** An ALTCHA proof-of-work challenge (protocol version 2), solved by the altcha widget */
+export interface IChallenge {
+    parameters?: { [key: string]: any; };
+    signature?: string;
 
     [key: string]: any;
 }
@@ -12639,6 +12772,8 @@ export class NewOrganizationInput implements INewOrganizationInput {
     owner!: OwnerInput;
     newPassword!: string;
     organization!: OrganizationInput;
+    /** Payload of the solved ALTCHA challenge from GET /public/altcha/challenge, as the altcha widget produces it. Required unless spam protection is switched off (hopps.altcha.enabled=false). */
+    altcha?: string;
 
     [key: string]: any;
 
@@ -12664,6 +12799,7 @@ export class NewOrganizationInput implements INewOrganizationInput {
             this.owner = _data["owner"] ? OwnerInput.fromJS(_data["owner"]) : new OwnerInput();
             this.newPassword = _data["newPassword"];
             this.organization = _data["organization"] ? OrganizationInput.fromJS(_data["organization"]) : new OrganizationInput();
+            this.altcha = _data["altcha"];
         }
     }
 
@@ -12683,6 +12819,7 @@ export class NewOrganizationInput implements INewOrganizationInput {
         data["owner"] = this.owner ? this.owner.toJSON() : undefined as any;
         data["newPassword"] = this.newPassword;
         data["organization"] = this.organization ? this.organization.toJSON() : undefined as any;
+        data["altcha"] = this.altcha;
         return data;
     }
 
@@ -12698,6 +12835,8 @@ export interface INewOrganizationInput {
     owner: OwnerInput;
     newPassword: string;
     organization: OrganizationInput;
+    /** Payload of the solved ALTCHA challenge from GET /public/altcha/challenge, as the altcha widget produces it. Required unless spam protection is switched off (hopps.altcha.enabled=false). */
+    altcha?: string;
 
     [key: string]: any;
 }
@@ -13287,7 +13426,7 @@ export interface IPagedValuesResponse {
     [key: string]: any;
 }
 
-export type Permission = "VIEW_BOOKKEEPING" | "EDIT_BOOKKEEPING" | "MANAGE_ORGANIZATION" | "MANAGE_MEMBERS";
+export type Permission = "VIEW_BOOKKEEPING" | "EDIT_BOOKKEEPING" | "MANAGE_ORGANIZATION" | "MANAGE_MEMBERS" | "MANAGE_ROLES" | "MANAGE_CATEGORIES" | "MANAGE_OWNERS";
 
 export class PublicReceiptForm implements IPublicReceiptForm {
     /** The receipt (PNG, JPEG or PDF) */
@@ -13637,7 +13776,7 @@ export interface IReopenImpactResponse {
     [key: string]: any;
 }
 
-export type Role = "OWNER" | "ADMIN" | "BOARD" | "AUDITOR";
+export type Role = "OWNER" | "ADMIN" | "TREASURER" | "VIEWER" | "AUDITOR";
 
 export class SchemaDetectionResult implements ISchemaDetectionResult {
     /** Type of match found */

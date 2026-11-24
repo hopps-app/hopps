@@ -23,6 +23,12 @@ public class SystemTemplateService {
     /** Marker used on the MT940 PURPOSE mapping. The parser splits the SVWZ blob into structured fields (Q12b). */
     public static final String TRANSFORM_MT940_BLOB = "mt940-blob";
 
+    /**
+     * Prefix of a mapping transform that names a second column, read when the mapped column is empty or missing, e.g.
+     * {@code fallback-column:8}. Needed where a bank splits one field over two columns, filled row by row.
+     */
+    public static final String TRANSFORM_FALLBACK_COLUMN = "fallback-column:";
+
     private final Map<String, BankCsvSchemaTemplateResponse> templates;
 
     public SystemTemplateService() {
@@ -31,6 +37,20 @@ public class SystemTemplateService {
         register(buildSparkasseCamtV2());
         register(buildSparkasseCamtV8());
         register(buildUmsatzCsv18());
+        register(buildCommerzbank());
+    }
+
+    /** Column index of a {@link #TRANSFORM_FALLBACK_COLUMN} transform, or {@code null} for any other transform. */
+    public static Integer fallbackColumn(String transform) {
+        if (transform == null || !transform.startsWith(TRANSFORM_FALLBACK_COLUMN)) {
+            return null;
+        }
+        try {
+            int index = Integer.parseInt(transform.substring(TRANSFORM_FALLBACK_COLUMN.length()).trim());
+            return index >= 0 ? index : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     public List<BankCsvSchemaTemplateResponse> list() {
@@ -169,6 +189,42 @@ public class SystemTemplateService {
                 "dd.MM.yyyy",
                 ",",
                 ".",
+                AmountStrategy.SIGNED_SINGLE_COLUMN,
+                List.of(),
+                mappings);
+    }
+
+    // -------------------------------------------------------------------------------------------
+    // Commerzbank Umsatz-CSV (11 columns, 4-digit years, UTF-8 with BOM, no counterparty IBAN)
+    // -------------------------------------------------------------------------------------------
+    private BankCsvSchemaTemplateResponse buildCommerzbank() {
+        // Column layout (0-based): 0=Buchungstag, 1=Wertstellung, 2=Umsatzart, 3=Buchungstext, 4=Betrag, 5=Währung,
+        // 6=IBAN Kontoinhaber (own account), 7=Kategorie, 8=Sender, 9=Empfänger, 10=Verwendungszweck.
+        // The counterparty is in Sender on credits and in Empfänger on debits, never both. Buchungstext holds the
+        // combined text and stands in when Verwendungszweck is empty (e.g. fees). Columns from index 8 on are read
+        // only when present, so a file that ends after Kategorie still imports.
+        List<BankCsvColumnMappingDto> mappings = List.of(
+                map(BankFieldType.BOOKING_DATE, 0),
+                map(BankFieldType.VALUE_DATE, 1),
+                map(BankFieldType.TRANSACTION_TYPE, 2),
+                map(BankFieldType.AMOUNT, 4),
+                map(BankFieldType.CURRENCY, 5),
+                mapWithTransform(BankFieldType.COUNTERPARTY_NAME, 9, TRANSFORM_FALLBACK_COLUMN + 8),
+                mapWithTransform(BankFieldType.PURPOSE, 10, TRANSFORM_FALLBACK_COLUMN + 3));
+
+        return new BankCsvSchemaTemplateResponse(
+                "commerzbank-csv",
+                "Commerzbank Umsatz-CSV",
+                "Commerzbank",
+                "Umsatz-Export aus dem Commerzbank-Online-Banking (Buchungstag, Wertstellung, Umsatzart, Buchungstext, Betrag, Währung, IBAN Kontoinhaber, Kategorie, Sender, Empfänger, Verwendungszweck). Vierstellige Jahreszahlen, UTF-8.",
+                ";",
+                "\"",
+                "UTF-8",
+                0,
+                true,
+                "dd.MM.yyyy",
+                ",",
+                null,
                 AmountStrategy.SIGNED_SINGLE_COLUMN,
                 List.of(),
                 mappings);

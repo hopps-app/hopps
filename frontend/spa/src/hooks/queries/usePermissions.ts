@@ -8,7 +8,7 @@ export const permissionKeys = {
 };
 
 /**
- * The current user's permissions in their organization. A founder can change someone's role at any time, so this is
+ * The current user's permissions in their organization. The owner or the board can change someone's role at any time, so this is
  * refetched when the window regains focus and after a minute at most; the server checks every request anyway.
  */
 export function usePermissions() {
@@ -27,8 +27,8 @@ export function useHasPermission(permission: Permission): boolean {
 }
 
 /**
- * Whether the current user may create, change, confirm or delete anything in the bookkeeping. Board members and
- * auditors may only view, so every such button is hidden for them.
+ * Whether the current user may create, change, confirm or delete anything in the bookkeeping. Readers and auditors may
+ * only view, so every such button is hidden for them.
  */
 export function useCanEditBookkeeping(): boolean {
     return useHasPermission('EDIT_BOOKKEEPING');

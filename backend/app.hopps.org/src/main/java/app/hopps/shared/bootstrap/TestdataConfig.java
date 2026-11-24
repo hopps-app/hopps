@@ -242,7 +242,7 @@ public class TestdataConfig {
         private String firstName;
         private String lastName;
         private List<Long> organizationIds;
-        /** Role in the organizations listed in {@link #organizationIds}: OWNER, ADMIN, BOARD or AUDITOR. */
+        /** Role in the organizations listed in {@link #organizationIds}: OWNER, ADMIN, TREASURER, VIEWER or AUDITOR. */
         private String role;
 
         public Long getId() {

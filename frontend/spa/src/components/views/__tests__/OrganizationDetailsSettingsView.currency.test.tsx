@@ -79,7 +79,7 @@ describe('OrganizationDetailsSettingsView – roles', () => {
         useStore.setState({ organization: organization({ currency: 'EUR', currencyLocked: false }), organizationError: false });
     });
 
-    it('shows the organization details read-only to a board member', async () => {
+    it('shows the organization details read-only to a reader', async () => {
         vi.mocked(apiService.orgService.getMyPermissions).mockResolvedValueOnce(['VIEW_BOOKKEEPING']);
         renderWithProviders(<OrganizationDetailsSettingsView />);
 
@@ -92,11 +92,11 @@ describe('OrganizationDetailsSettingsView – roles', () => {
         vi.mocked(apiService.orgService.getMyPermissions).mockResolvedValueOnce(['VIEW_BOOKKEEPING']);
         vi.mocked(apiService.orgService.members).mockResolvedValueOnce([
             { id: 1, firstName: 'Anna', lastName: 'Gründerin', email: 'anna@example.test', status: 'ACTIVE', role: 'OWNER' },
-            { id: 2, firstName: 'Ben', lastName: 'Prüfer', email: 'ben@example.test', status: 'ACTIVE', role: 'AUDITOR' },
+            { id: 2, firstName: 'Ben', lastName: 'Leser', email: 'ben@example.test', status: 'ACTIVE', role: 'VIEWER' },
         ] as Awaited<ReturnType<typeof apiService.orgService.members>>);
         renderWithProviders(<OrganizationDetailsSettingsView />);
 
-        expect(await screen.findByText('Founder')).toBeInTheDocument();
-        expect(screen.getByText('Auditor')).toBeInTheDocument();
+        expect(await screen.findByText('Owner')).toBeInTheDocument();
+        expect(screen.getByText('Reader')).toBeInTheDocument();
     });
 });

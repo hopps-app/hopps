@@ -347,7 +347,7 @@ public class CsvImportService {
         return value;
     }
 
-    private static String optional(
+    static String optional(
             List<String> row,
             Map<BankFieldType, BankCsvColumnMapping> mappingByField,
             BankFieldType field) {
@@ -355,7 +355,15 @@ public class CsvImportService {
         if (mapping == null) {
             return null;
         }
-        Integer index = mapping.getSourceColumnIndex();
+        String value = cell(row, mapping.getSourceColumnIndex());
+        Integer fallback = SystemTemplateService.fallbackColumn(mapping.getTransform());
+        if (fallback != null && (value == null || value.isEmpty())) {
+            value = cell(row, fallback);
+        }
+        return value;
+    }
+
+    private static String cell(List<String> row, Integer index) {
         if (index == null || index < 0 || index >= row.size()) {
             return null;
         }

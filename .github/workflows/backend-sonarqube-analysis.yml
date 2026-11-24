@@ -39,19 +39,21 @@ jobs:
       - name: mvn package
         run: mvn -B verify --file backend/${{ matrix.sonar.folder }}/pom.xml
 
-      - name: Cache SonarQube packages
-        uses: actions/cache@v6
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
+      # TODO: SonarCloud-Scan vorübergehend deaktiviert – SONAR_TOKEN ist ungültig
+      # ("Not authorized or project not found"). Wieder aktivieren, sobald der Token erneuert ist.
+      # - name: Cache SonarQube packages
+      #   uses: actions/cache@v6
+      #   with:
+      #     path: ~/.sonar/cache
+      #     key: ${{ runner.os }}-sonar
+      #     restore-keys: ${{ runner.os }}-sonar
 
-      - name: SonarQube Scan "${{ matrix.sonar.label }}"
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          mvn -B sonar:sonar \
-            --file backend/${{ matrix.sonar.folder }}/pom.xml \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.organization=hopps-app \
-            -Dsonar.projectKey=${{ matrix.sonar.key }}
+      # - name: SonarQube Scan "${{ matrix.sonar.label }}"
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #   run: |
+      #     mvn -B sonar:sonar \
+      #       --file backend/${{ matrix.sonar.folder }}/pom.xml \
+      #       -Dsonar.host.url=https://sonarcloud.io \
+      #       -Dsonar.organization=hopps-app \
+      #       -Dsonar.projectKey=${{ matrix.sonar.key }}

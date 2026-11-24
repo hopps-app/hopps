@@ -21,7 +21,15 @@ import { accountSecurityUrl, isKeycloakProvider } from '@/services/auth/auth.con
 import authService from '@/services/auth/auth.service';
 
 /** Order in which the permissions card lists what a role allows. */
-const PERMISSION_ORDER: Permission[] = ['VIEW_BOOKKEEPING', 'EDIT_BOOKKEEPING', 'MANAGE_ORGANIZATION', 'MANAGE_MEMBERS'];
+const PERMISSION_ORDER: Permission[] = [
+    'VIEW_BOOKKEEPING',
+    'EDIT_BOOKKEEPING',
+    'MANAGE_CATEGORIES',
+    'MANAGE_ORGANIZATION',
+    'MANAGE_MEMBERS',
+    'MANAGE_ROLES',
+    'MANAGE_OWNERS',
+];
 
 type ProfileValues = { firstName: string; lastName: string; phoneNumber: string };
 

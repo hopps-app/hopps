@@ -7,7 +7,7 @@ const CURRENCY_CODE = /^[A-Z]{3}$/;
 
 /**
  * The currencies in the preview's sample rows: the CSV column the schema maps to CURRENCY, or the currency column of an
- * MT940 preview. Only covers the sample (the first lines of the file); the backend checks the whole file on import.
+ * MT940 or PayPal preview (a PayPal preview only holds the movements in the account currency). Only covers the sample (the first lines of the file); the backend checks the whole file on import.
  * Returns an empty list when the currency cannot be told yet (no schema chosen, no currency column).
  */
 export function previewCurrencies(preview: CsvPreviewResponse | null, schema: SchemaLike | undefined): string[] {
@@ -15,7 +15,7 @@ export function previewCurrencies(preview: CsvPreviewResponse | null, schema: Sc
 
     let column: number | undefined;
     let dataRows: string[][];
-    if (preview.fileType === 'MT940') {
+    if (preview.fileType === 'MT940' || preview.fileType === 'PAYPAL') {
         column = preview.headerColumns?.indexOf('currency');
         dataRows = preview.sampleRows;
     } else {

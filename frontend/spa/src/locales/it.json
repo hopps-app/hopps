@@ -192,11 +192,14 @@
             "organizationEmail": "Email dell'organizzazione (facoltativa)",
             "step": "Passo {{current}} di {{total}}",
             "stepOrganization": "Organizzazione",
-            "stepAdmin": "Amministratore",
+            "stepAccount": "Account",
+            "stepOrganizationHint": "L’organizzazione di cui gestirai la contabilità in hopps.",
+            "stepAccountHint": "Il tuo account personale che gestisce l’organizzazione. Userai questi dati per accedere.",
             "country": "Paese",
             "legalForm": "Forma giuridica",
             "currencyInfo": "Valuta contabile: {{currency}}. Deriva dal paese e può essere modificata in seguito nelle impostazioni finché non esistono conti bancari né transazioni.",
             "failed": "Registrazione dell'organizzazione non riuscita",
+            "spamCheckFailed": "Il controllo di sicurezza non è riuscito. Riprova.",
             "emailAlreadyRegistered": "Questo indirizzo email è già registrato",
             "organizationAlreadyExists": "Esiste già un'organizzazione con questo nome",
             "emailAndOrganizationAlreadyExist": "Questo indirizzo email e questo nome dell'organizzazione sono già in uso",
@@ -459,6 +462,20 @@
         "title": "Transazioni",
         "subtitle": "{{count}} voci · Entrate {{income}} · Uscite {{expense}}",
         "new": "Registra transazione",
+        "export": {
+            "button": "Esporta",
+            "hint": "Esporta tutte le transazioni, in qualsiasi stato, in un file CSV. Un periodo o un Bommel scelto nei filtri limita l'esportazione.",
+            "fileName": "hopps-transazioni",
+            "done": "{{n}} transazione/i esportata/e",
+            "empty": "Nessuna transazione da esportare per questo periodo e questo Bommel",
+            "failed": "Impossibile esportare le transazioni",
+            "columns": {
+                "currency": "Valuta",
+                "counterparty": "Controparte",
+                "description": "Descrizione",
+                "receipt": "N. ricevuta"
+            }
+        },
         "columns": {
             "transaction": "Transazione",
             "category": "Categoria",
@@ -1345,8 +1362,16 @@
                 "bicTooLong": "Il BIC non può superare gli 11 caratteri",
                 "openingBalanceDateRequired": "La data del saldo iniziale è obbligatoria quando è indicato un saldo",
                 "openingBalanceRequired": "Il saldo iniziale è obbligatorio quando è indicata una data",
-                "duplicateIban": "Esiste già un conto con questo IBAN nella tua organizzazione"
-            }
+                "duplicateIban": "Esiste già un conto con questo IBAN nella tua organizzazione",
+                "paypalEmailRequired": "Inserire l'indirizzo e-mail PayPal",
+                "paypalEmailInvalid": "Indirizzo e-mail non valido"
+            },
+            "type": "Tipo di conto",
+            "typeBank": "Conto bancario",
+            "typePaypal": "PayPal",
+            "paypalEmail": "Indirizzo e-mail PayPal",
+            "paypalEmailPlaceholder": "tesoreria@associazione.it",
+            "paypalEmailHint": "L'indirizzo con cui l'organizzazione accede a PayPal."
         },
         "toast": {
             "createSuccess": "Conto bancario creato",
@@ -1369,7 +1394,10 @@
             "currencyMismatchTitle": "Valuta errata",
             "currencyMismatch": "Il file contiene importi in {{fileCurrencies}}, ma il conto è tenuto in {{accountCurrency}}. Importa il file in un conto con questa valuta.",
             "mixedCurrencies": "Il file contiene importi in più valute ({{fileCurrencies}}). Un conto può avere una sola valuta, quindi il file non può essere importato.",
-            "startError": "Non è stato possibile avviare l'importazione."
+            "startError": "Non è stato possibile avviare l'importazione.",
+            "wrongAccountTypeTitle": "Il file non corrisponde al conto",
+            "paypalFileForBankAccount": "Questa è un'esportazione PayPal. Importarla in un conto PayPal.",
+            "bankFileForPaypalAccount": "Un conto PayPal accetta solo l'esportazione delle attività PayPal (CSV)."
         },
         "title": "Importa estratto conto",
         "wizard": {
@@ -1403,7 +1431,15 @@
             "previewButton": "Mostra anteprima",
             "previewError": "Caricamento dell'anteprima non riuscito",
             "confirmTitle": "Conferma importazione",
-            "startImport": "Avvia importazione"
+            "startImport": "Avvia importazione",
+            "paypalDetected": "Esportazione PayPal rilevata · {{count}} movimenti · nessuno schema necessario",
+            "paypalHint": "Ricariche e prelievi verso il conto bancario sono contrassegnati come giroconti, le commissioni diventano movimenti separati e i pagamenti in valuta estera sono registrati tramite la loro conversione.",
+            "paypalUnreadable": "Impossibile leggere l'esportazione PayPal. Scaricare l'attività in formato CSV con la lingua tedesca.",
+            "paypalKind": {
+                "PAYMENT": "Pagamento",
+                "FEE": "Commissione",
+                "TRANSFER": "Giroconto"
+            }
         },
         "preview": {
             "encoding": "Codifica",
@@ -1554,7 +1590,8 @@
             "open": "Aperta",
             "matched": "Abbinata",
             "partial": "Parziale",
-            "ignored": "Ignorata"
+            "ignored": "Ignorata",
+            "transfer": "Giroconto"
         },
         "filter": {
             "open": "Aperte",
@@ -1680,7 +1717,8 @@
             "partialAmountRange": "Tra {{min}} e {{max}}.",
             "confidence": "{{pct}} %",
             "showReceipt": "Mostra ricevuta",
-            "hideReceipt": "Nascondi ricevuta"
+            "hideReceipt": "Nascondi ricevuta",
+            "transferHint": "Giroconto tra conti propri, ad es. una ricarica PayPal dal conto bancario. Nessuna ricevuta necessaria."
         },
         "openAmount": "aperto: {{amount}}",
         "createTx": {

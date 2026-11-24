@@ -14,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -37,7 +38,7 @@ class MemberProfileResourceTest {
     }
 
     @Test
-    @DisplayName("should return the founder's profile with role and permissions")
+    @DisplayName("should return the owner's profile with role and permissions")
     @TestSecurity(user = "alice@example.test")
     @OidcSecurity(claims = @Claim(key = "sub", value = "eb4123a3-b722-4798-9af5-8957f823657a"))
     void shouldReturnMyProfile() {
@@ -50,11 +51,11 @@ class MemberProfileResourceTest {
                 .body("email", is("alice@example.test"))
                 .body("organizationName", is("Theatervereine Bühnefrei e.V."))
                 .body("role", is("OWNER"))
-                .body("permissions", hasItems("VIEW_BOOKKEEPING", "MANAGE_MEMBERS"));
+                .body("permissions", hasItems("VIEW_BOOKKEEPING", "MANAGE_MEMBERS", "MANAGE_OWNERS"));
     }
 
     @Test
-    @DisplayName("should show a board member only the read permission")
+    @DisplayName("should show a board member the bookkeeping, members and roles but not the owner's areas")
     @TestSecurity(user = "bob@example.test")
     @OidcSecurity(claims = @Claim(key = "sub", value = "00000000-0000-0000-0000-000000000023"))
     void shouldReturnBoardPermissions() {
@@ -63,7 +64,22 @@ class MemberProfileResourceTest {
                 .get("me")
                 .then()
                 .statusCode(200)
-                .body("role", is("BOARD"))
+                .body("role", is("ADMIN"))
+                .body("permissions", containsInAnyOrder("VIEW_BOOKKEEPING", "EDIT_BOOKKEEPING", "MANAGE_MEMBERS",
+                        "MANAGE_ROLES"));
+    }
+
+    @Test
+    @DisplayName("should show a reader only the read permission")
+    @TestSecurity(user = "samantha1284@net-mail.none")
+    @OidcSecurity(claims = @Claim(key = "sub", value = "00000000-0000-0000-0000-000000000015"))
+    void shouldReturnReaderPermissions() {
+        given()
+                .when()
+                .get("me")
+                .then()
+                .statusCode(200)
+                .body("role", is("VIEWER"))
                 .body("permissions", is(java.util.List.of("VIEW_BOOKKEEPING")));
     }
 

@@ -140,7 +140,7 @@ members:
     firstName: "Samantha"
     lastName: "Adomeit"
     organizationIds: [4]
-    role: AUDITOR
+    role: VIEWER
 
   # Test users (used in tests)
   - id: 21
@@ -157,7 +157,7 @@ members:
     firstName: "Jdoe"
     lastName: "Mustermann"
     organizationIds: [4]
-    role: ADMIN
+    role: TREASURER
 
   - id: 23
     email: "bob@example.test"
@@ -165,7 +165,7 @@ members:
     firstName: "Bob"
     lastName: "Mustermann"
     organizationIds: [4]
-    role: BOARD
+    role: ADMIN
 
 bommels:
   # gruenes-herz-ev (organization id=2)

@@ -20,7 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { SectionCard } from '@/components/common/SectionCard';
-import { ASSIGNABLE_ROLES, AddUserDialog, type NewUserValues } from '@/components/Organization/AddUserDialog';
+import { AddUserDialog, assignableRoles, type NewUserValues } from '@/components/Organization/AddUserDialog';
 import { EditUserDialog, type EditUserValues } from '@/components/Organization/EditUserDialog';
 import { CARD } from '@/components/Organization/layout';
 import { OrganizationDetailsSkeleton, OrganizationUsersSkeleton } from '@/components/Organization/OrganizationDetailsSkeleton';
@@ -99,7 +99,7 @@ const USER_LIST_GRID_WITH_ACTIONS =
     'grid grid-cols-[minmax(0,1fr)_auto_auto_72px] lg:grid-cols-[minmax(150px,1.5fr)_minmax(150px,1.4fr)_minmax(140px,1fr)_minmax(104px,auto)_72px] gap-x-3';
 const USER_ROW = 'col-span-full grid grid-cols-subgrid';
 
-/** Remembers per organization and browser that the founder has seen the notice about the new roles (issue #959). */
+/** Remembers per organization and browser that the owner has seen the notice about the new roles (issue #959). */
 const ROLES_NOTICE_KEY = 'hopps.rolesNotice.dismissed';
 
 function rolesNoticeDismissed(slug: string | undefined): boolean {
@@ -478,7 +478,10 @@ function OrganizationDetailsSettingsView() {
         enabled: !!slug,
     });
     const canManageMembers = useHasPermission('MANAGE_MEMBERS');
-    // Board and auditors see the organization details but cannot change them (issue #959).
+    const canManageRoles = useHasPermission('MANAGE_ROLES');
+    // Appointing, changing and removing owners is for owners only (the backend refuses it for anyone else).
+    const canManageOwners = useHasPermission('MANAGE_OWNERS');
+    // Only the owner changes the organization details; everyone else sees them (issue #959).
     const canManageOrganization = useHasPermission('MANAGE_ORGANIZATION');
     const currentUserEmail = useStore((state) => state.user?.email)?.toLowerCase();
 
@@ -501,7 +504,12 @@ function OrganizationDetailsSettingsView() {
     }, [memberToRemove, queryClient, slug, t, toast]);
     const userListGrid = canManageMembers ? USER_LIST_GRID_WITH_ACTIONS : USER_LIST_GRID;
 
-    const roleItems = useMemo(() => ASSIGNABLE_ROLES.map((role) => ({ label: t(`organization.details.users.roles.${role}.name`), value: role })), [t]);
+    const roleItems = useMemo(
+        () => assignableRoles(canManageOwners).map((role) => ({ label: t(`organization.details.users.roles.${role}.name`), value: role })),
+        [t, canManageOwners]
+    );
+    // The auditor role is hidden: it is not offered, but a member who already holds it still shows it in their select.
+    const roleItemsWithAuditor = useMemo(() => [...roleItems, { label: t('organization.details.users.roles.AUDITOR.name'), value: 'AUDITOR' }], [roleItems, t]);
     const [memberToEdit, setMemberToEdit] = useState<OrganizationMemberResponse | null>(null);
     const handleEditMember = useCallback(
         async (member: OrganizationMemberResponse, values: EditUserValues) => {
@@ -551,7 +559,7 @@ function OrganizationDetailsSettingsView() {
         [queryClient, slug, t, toast]
     );
 
-    // Shown once to the founder after roles were introduced; existing members all hold the Treasurer role by then.
+    // Shown once to the owner after roles were introduced; existing members all hold the board role by then.
     const [rolesNoticeHidden, setRolesNoticeHidden] = useState(() => rolesNoticeDismissed(slug));
     useEffect(() => setRolesNoticeHidden(rolesNoticeDismissed(slug)), [slug]);
     const showRolesNotice = canManageMembers && !rolesNoticeHidden && users.length > 1;
@@ -878,8 +886,10 @@ function OrganizationDetailsSettingsView() {
                                 </div>
                             )}
                         </SectionCard>
+                    </fieldset>
 
-                        {/* Users */}
+                    {/* Users: outside the fieldset above, which is disabled for everyone who may not change the organization details. */}
+                    <div className="min-w-0">
                         <SectionCard
                             icon={<Users size={19} aria-hidden="true" />}
                             title={t('organization.details.users.title')}
@@ -943,8 +953,8 @@ function OrganizationDetailsSettingsView() {
                                             const name = displayName(user);
                                             // Nobody can remove themselves (the backend refuses too).
                                             const isCurrentUser = !!currentUserEmail && user.email?.toLowerCase() === currentUserEmail;
-                                            // Nobody changes their own role or the founder's (the backend refuses too).
-                                            const canChangeRole = canManageMembers && !isCurrentUser && user.role !== 'OWNER';
+                                            // Nobody changes their own role, and only owners change an owner's (the backend refuses too).
+                                            const canChangeRole = canManageRoles && !isCurrentUser && (user.role !== 'OWNER' || canManageOwners);
                                             return (
                                                 <div
                                                     key={user.id ?? user.email}
@@ -974,7 +984,7 @@ function OrganizationDetailsSettingsView() {
                                                             className="min-w-0"
                                                             size="sm"
                                                             value={user.role}
-                                                            items={roleItems}
+                                                            items={user.role === 'AUDITOR' ? roleItemsWithAuditor : roleItems}
                                                             disabled={changingRoleOf === user.id}
                                                             onValueChanged={(role) => handleChangeRole(user, role as Role)}
                                                             ariaLabel={t('organization.details.users.changeRole.label', { name })}
@@ -998,8 +1008,8 @@ function OrganizationDetailsSettingsView() {
                                                             >
                                                                 <Pencil size={16} aria-hidden="true" />
                                                             </BaseButton>
-                                                            {/* Nobody can remove themselves or the founder (the backend refuses too). */}
-                                                            {!isCurrentUser && user.role !== 'OWNER' && (
+                                                            {/* Nobody can remove themselves, and only owners remove owners (the backend refuses too). */}
+                                                            {!isCurrentUser && (user.role !== 'OWNER' || canManageOwners) && (
                                                                 <BaseButton
                                                                     type="button"
                                                                     variant="ghost"
@@ -1021,12 +1031,12 @@ function OrganizationDetailsSettingsView() {
                                 </div>
                             )}
                         </SectionCard>
-                    </fieldset>
+                    </div>
                 </div>
             </form>
 
             {/* Outside the form on purpose: a portalled dialog still bubbles its submit up the React tree. */}
-            <AddUserDialog open={addUserOpen} onClose={() => setAddUserOpen(false)} onSubmit={handleAddUser} />
+            <AddUserDialog open={addUserOpen} canManageOwners={canManageOwners} onClose={() => setAddUserOpen(false)} onSubmit={handleAddUser} />
             <EditUserDialog member={memberToEdit} onClose={() => setMemberToEdit(null)} onSubmit={handleEditMember} />
             <SetupLinkDialog link={setupLink?.link ?? null} name={setupLink?.name ?? ''} onClose={() => setSetupLink(null)} />
             <ConfirmDialog

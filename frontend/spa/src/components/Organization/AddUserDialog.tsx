@@ -10,9 +10,18 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup';
 import TextField from '@/components/ui/TextField';
 
-/** The roles a founder can give; there is always exactly one founder, so OWNER is never offered. */
-export const ASSIGNABLE_ROLES = ['BOARD', 'ADMIN', 'AUDITOR'] as const satisfies readonly Role[];
-export type AssignableRole = (typeof ASSIGNABLE_ROLES)[number];
+/** The roles anyone who manages roles can give; the auditor is hidden, so it is not offered. */
+export const ASSIGNABLE_ROLES = ['ADMIN', 'TREASURER', 'VIEWER'] as const satisfies readonly Role[];
+
+/** Owners are only appointed by owners, so this role is offered to them alone. */
+export const OWNER_ROLE = 'OWNER' as const satisfies Role;
+
+/** The roles offered to someone who may, or may not, appoint owners, the owner role first. */
+export function assignableRoles(canManageOwners: boolean): readonly AssignableRole[] {
+    return canManageOwners ? [OWNER_ROLE, ...ASSIGNABLE_ROLES] : ASSIGNABLE_ROLES;
+}
+
+export type AssignableRole = (typeof ASSIGNABLE_ROLES)[number] | typeof OWNER_ROLE;
 
 export type NewUserValues = {
     firstName: string;
@@ -21,30 +30,33 @@ export type NewUserValues = {
     email: string;
 };
 
-const EMPTY_VALUES: NewUserValues = { firstName: '', lastName: '', role: 'ADMIN', email: '' };
+const EMPTY_VALUES: NewUserValues = { firstName: '', lastName: '', role: 'TREASURER', email: '' };
 
 type AddUserDialogProps = {
     open: boolean;
+    /** Whether the owner role is offered too, which only owners may hand out. */
+    canManageOwners?: boolean;
     onClose: () => void;
     onSubmit: (values: NewUserValues) => Promise<void>;
 };
 
 /**
  * Dialog for giving a person access to the organization in hopps. These are hopps users, not club members; the
- * backend calls the entity Member. The founder picks the person's role, which decides what they may do (issue #959).
+ * backend calls the entity Member. Whoever invites picks the person's role, which decides what they may do (issue #959).
  */
-export function AddUserDialog({ open, onClose, onSubmit }: AddUserDialogProps) {
+export function AddUserDialog({ open, canManageOwners = false, onClose, onSubmit }: AddUserDialogProps) {
     const { t } = useTranslation();
+    const roles = useMemo(() => assignableRoles(canManageOwners), [canManageOwners]);
 
     const schema = useMemo(
         () =>
             z.object({
                 firstName: z.string().trim().min(1, t('organization.details.users.add.firstNameRequired')),
                 lastName: z.string().trim().min(1, t('organization.details.users.add.lastNameRequired')),
-                role: z.enum(ASSIGNABLE_ROLES),
+                role: z.enum([OWNER_ROLE, ...ASSIGNABLE_ROLES]).refine((role) => roles.includes(role)),
                 email: z.string().trim().email(t('organization.details.users.add.emailInvalid')),
             }),
-        [t]
+        [t, roles]
     );
 
     const {
@@ -123,7 +135,7 @@ export function AddUserDialog({ open, onClose, onSubmit }: AddUserDialogProps) {
                                 name="role"
                                 render={({ field }) => (
                                     <RadioGroup aria-labelledby="add-user-role" value={field.value} onValueChange={field.onChange} className="gap-2">
-                                        {ASSIGNABLE_ROLES.map((role) => (
+                                        {roles.map((role) => (
                                             <label
                                                 key={role}
                                                 className="flex cursor-pointer items-start gap-3 rounded-[12px] border border-[#E9E9EE] px-3.5 py-3 transition-colors hover:bg-[#F8F8FA] has-[[data-state=checked]]:border-[#9955CC] has-[[data-state=checked]]:bg-[#F7F0FC] dark:border-[var(--border-soft)] dark:hover:bg-[var(--surface-track)] dark:has-[[data-state=checked]]:border-[#AE73DC] dark:has-[[data-state=checked]]:bg-[#2A1E38]"
