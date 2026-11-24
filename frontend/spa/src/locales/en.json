@@ -386,6 +386,7 @@
                 },
                 "role": "Role",
                 "roles": {
+                    "ownerOnly": "Only owners can appoint owners.",
                     "OWNER": {
                         "name": "Owner",
                         "description": "Can do everything, maintains the organization details and categories, manages members and roles and appoints further owners."

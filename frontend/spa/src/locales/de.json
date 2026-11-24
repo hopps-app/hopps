@@ -385,6 +385,7 @@
                 },
                 "role": "Rolle",
                 "roles": {
+                    "ownerOnly": "Nur Besitzer können Besitzer ernennen.",
                     "OWNER": {
                         "name": "Besitzer",
                         "description": "Kann alles, pflegt Vereinsdaten und Kategorien, verwaltet Mitglieder und Rollen und ernennt weitere Besitzer."

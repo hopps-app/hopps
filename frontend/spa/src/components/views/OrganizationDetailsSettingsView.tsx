@@ -19,10 +19,11 @@ import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
-import { AddUserDialog, assignableRoles, type NewUserValues } from '@/components/Organization/AddUserDialog';
+import { AddUserDialog, type NewUserValues } from '@/components/Organization/AddUserDialog';
 import { EditUserDialog, type EditUserValues } from '@/components/Organization/EditUserDialog';
 import { CARD } from '@/components/Organization/layout';
 import { OrganizationDetailsSkeleton, OrganizationUsersSkeleton } from '@/components/Organization/OrganizationDetailsSkeleton';
+import { roleSelectItems } from '@/components/Organization/roles';
 import { SetupLinkDialog } from '@/components/Organization/SetupLinkDialog';
 import Button from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -536,12 +537,6 @@ function OrganizationDetailsSettingsView() {
     }, [memberToRemove, queryClient, slug, t, toast]);
     const userListGrid = canManageMembers ? USER_LIST_GRID_WITH_ACTIONS : USER_LIST_GRID;
 
-    const roleItems = useMemo(
-        () => assignableRoles(canManageOwners).map((role) => ({ label: t(`organization.details.users.roles.${role}.name`), value: role })),
-        [t, canManageOwners]
-    );
-    // The auditor role is hidden: it is not offered, but a member who already holds it still shows it in their select.
-    const roleItemsWithAuditor = useMemo(() => [...roleItems, { label: t('organization.details.users.roles.AUDITOR.name'), value: 'AUDITOR' }], [roleItems, t]);
     const [memberToEdit, setMemberToEdit] = useState<OrganizationMemberResponse | null>(null);
     const handleEditMember = useCallback(
         async (member: OrganizationMemberResponse, values: EditUserValues) => {
@@ -1019,7 +1014,7 @@ function OrganizationDetailsSettingsView() {
                                                             className="min-w-0"
                                                             size="sm"
                                                             value={user.role}
-                                                            items={user.role === 'AUDITOR' ? roleItemsWithAuditor : roleItems}
+                                                            items={roleSelectItems(t, canManageOwners, user.role)}
                                                             disabled={changingRoleOf === user.id}
                                                             onValueChanged={(role) => handleChangeRole(user, role as Role)}
                                                             ariaLabel={t('organization.details.users.changeRole.label', { name })}

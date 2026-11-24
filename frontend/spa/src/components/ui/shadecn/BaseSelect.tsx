@@ -1,4 +1,4 @@
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from '@radix-ui/react-icons';
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon, LockClosedIcon } from '@radix-ui/react-icons';
 import * as SelectPrimitive from '@radix-ui/react-select';
 import * as React from 'react';
 
@@ -93,8 +93,15 @@ const SelectLabel = React.forwardRef<React.ElementRef<typeof SelectPrimitive.Lab
 );
 SelectLabel.displayName = SelectPrimitive.Label.displayName;
 
-const SelectItem = React.forwardRef<React.ElementRef<typeof SelectPrimitive.Item>, React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>>(
-    ({ className, children, ...props }, ref) => (
+type SelectItemProps = React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item> & {
+    /** A line of explanation under the label, in the list only: the field shows just the label once chosen. */
+    description?: React.ReactNode;
+    /** Marks an entry that exists but cannot be chosen by this user, with a lock; combine with `disabled`. */
+    locked?: boolean;
+};
+
+const SelectItem = React.forwardRef<React.ElementRef<typeof SelectPrimitive.Item>, SelectItemProps>(
+    ({ className, children, description, locked, ...props }, ref) => (
         <SelectPrimitive.Item
             ref={ref}
             className={cn(
@@ -108,7 +115,17 @@ const SelectItem = React.forwardRef<React.ElementRef<typeof SelectPrimitive.Item
                     <CheckIcon className="h-4 w-4" />
                 </SelectPrimitive.ItemIndicator>
             </span>
-            <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+            {description || locked ? (
+                <span className="flex min-w-0 flex-col gap-0.5">
+                    <span className="flex items-center gap-1.5">
+                        <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+                        {locked && <LockClosedIcon aria-hidden="true" className="h-3.5 w-3.5 flex-shrink-0 text-[var(--purple-300)]" />}
+                    </span>
+                    {description && <span className="whitespace-normal text-xs leading-snug text-muted-foreground">{description}</span>}
+                </span>
+            ) : (
+                <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+            )}
         </SelectPrimitive.Item>
     )
 );

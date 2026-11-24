@@ -4,10 +4,17 @@ import { useState } from 'react';
 import { Label } from './Label.tsx';
 
 import { BaseSelect, SelectItem, SelectContent, SelectTrigger, SelectValue, SelectGroup } from '@/components/ui/shadecn/BaseSelect.tsx';
+import { cn } from '@/lib/utils';
 
 export interface SelectItem {
     label: string;
     value: string | number;
+    /** A line of explanation under the label in the open list; the field itself shows only the label. */
+    description?: string;
+    /** The entry is shown but cannot be chosen. */
+    disabled?: boolean;
+    /** Shows a lock, for an entry that is disabled because the user may not choose it. */
+    locked?: boolean;
 }
 
 interface SelectProps {
@@ -48,6 +55,7 @@ function Select(props: SelectProps) {
         ...otherProps
     } = props;
     const [id] = useState(_.uniqueId('select-'));
+    const hasDescriptions = items.some((item) => item.description);
     const errorId = `${id}-error`;
     // Radix mirrors a programmatic `value` change into a hidden native <select> and reports the outcome through
     // onValueChange. When the matching <option> is not registered yet (e.g. right after react-hook-form's reset()),
@@ -80,12 +88,22 @@ function Select(props: SelectProps) {
                     {...(openDownwards && {
                         side: 'bottom' as const,
                         avoidCollisions: false,
-                        className: 'max-h-[min(24rem,var(--radix-select-content-available-height))]',
                     })}
+                    className={cn(
+                        openDownwards && 'max-h-[min(24rem,var(--radix-select-content-available-height))]',
+                        // Entries with a description need room for it, also in a narrow field.
+                        hasDescriptions && 'min-w-[min(20rem,var(--radix-select-content-available-width))]'
+                    )}
                 >
                     <SelectGroup>
                         {items.map((item) => (
-                            <SelectItem key={item.value} value={String(item.value)}>
+                            <SelectItem
+                                key={item.value}
+                                value={String(item.value)}
+                                description={item.description}
+                                disabled={item.disabled}
+                                locked={item.locked}
+                            >
                                 {item.label}
                             </SelectItem>
                         ))}

@@ -1,27 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Role } from '@hopps/api-client';
 import { UserPlus } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
+import { type AssignableRole, ASSIGNABLE_ROLES, roleSelectItems } from '@/components/Organization/roles';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import Select from '@/components/ui/Select';
 import TextField from '@/components/ui/TextField';
-
-/** The roles anyone who manages roles can give; the auditor is hidden, so it is not offered. */
-export const ASSIGNABLE_ROLES = ['ADMIN', 'TREASURER', 'VIEWER'] as const satisfies readonly Role[];
-
-/** Owners are only appointed by owners, so this role is offered to them alone. */
-export const OWNER_ROLE = 'OWNER' as const satisfies Role;
-
-/** The roles offered to someone who may, or may not, appoint owners, the owner role first. */
-export function assignableRoles(canManageOwners: boolean): readonly AssignableRole[] {
-    return canManageOwners ? [OWNER_ROLE, ...ASSIGNABLE_ROLES] : ASSIGNABLE_ROLES;
-}
-
-export type AssignableRole = (typeof ASSIGNABLE_ROLES)[number] | typeof OWNER_ROLE;
 
 export type NewUserValues = {
     firstName: string;
@@ -34,7 +21,7 @@ const EMPTY_VALUES: NewUserValues = { firstName: '', lastName: '', role: 'TREASU
 
 type AddUserDialogProps = {
     open: boolean;
-    /** Whether the owner role is offered too, which only owners may hand out. */
+    /** Whether the owner role can be chosen, which only owners may hand out. For anyone else it is shown but locked. */
     canManageOwners?: boolean;
     onClose: () => void;
     onSubmit: (values: NewUserValues) => Promise<void>;
@@ -46,18 +33,18 @@ type AddUserDialogProps = {
  */
 export function AddUserDialog({ open, canManageOwners = false, onClose, onSubmit }: AddUserDialogProps) {
     const { t } = useTranslation();
-    const roles = useMemo(() => assignableRoles(canManageOwners), [canManageOwners]);
-    const roleItems = useMemo(() => roles.map((role) => ({ label: t(`organization.details.users.roles.${role}.name`), value: role })), [roles, t]);
+    const roleItems = useMemo(() => roleSelectItems(t, canManageOwners), [t, canManageOwners]);
 
     const schema = useMemo(
         () =>
             z.object({
                 firstName: z.string().trim().min(1, t('organization.details.users.add.firstNameRequired')),
                 lastName: z.string().trim().min(1, t('organization.details.users.add.lastNameRequired')),
-                role: z.enum([OWNER_ROLE, ...ASSIGNABLE_ROLES]).refine((role) => roles.includes(role)),
+                // Only owners may hand out the owner role (the backend refuses it for anyone else as well).
+                role: z.enum(ASSIGNABLE_ROLES).refine((role) => role !== 'OWNER' || canManageOwners),
                 email: z.string().trim().email(t('organization.details.users.add.emailInvalid')),
             }),
-        [t, roles]
+        [t, canManageOwners]
     );
 
     const {
