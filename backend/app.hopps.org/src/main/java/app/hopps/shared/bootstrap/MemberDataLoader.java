@@ -54,8 +54,8 @@ public class MemberDataLoader implements EntityDataLoader<TestdataConfig.MemberD
                     .setParameter("status", status)
                     .executeUpdate();
 
-            // Insert member-organization relationships with the member's role, ADMIN if none is given. Organizations
-            // without an OWNER get their founder below.
+            // Insert member-organization relationships with the member's role, TREASURER if none is given.
+            // Organizations without an OWNER get theirs below.
             if (member.getOrganizationIds() != null) {
                 for (Long orgId : member.getOrganizationIds()) {
                     String relationSql = """
@@ -66,7 +66,7 @@ public class MemberDataLoader implements EntityDataLoader<TestdataConfig.MemberD
                     entityManager.createNativeQuery(relationSql)
                             .setParameter("memberId", member.getId())
                             .setParameter("orgId", orgId)
-                            .setParameter("role", member.getRole() != null ? member.getRole() : "ADMIN")
+                            .setParameter("role", member.getRole() != null ? member.getRole() : "TREASURER")
                             .executeUpdate();
                 }
             }

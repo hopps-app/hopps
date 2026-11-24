@@ -189,7 +189,7 @@ public class CategoryGroupResource {
     }
 
     @POST
-    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
+    @PermissionsAllowed(Permission.Names.MANAGE_CATEGORIES)
     @Transactional
     @Operation(summary = "Create a category group", description = "Creates a group with its bommel assignments and initial values. Optionally resets affected confirmed transactions to draft.")
     @APIResponse(responseCode = "201", description = "Group created", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CategoryGroupResponse.class)))
@@ -224,7 +224,7 @@ public class CategoryGroupResource {
     }
 
     @PUT
-    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
+    @PermissionsAllowed(Permission.Names.MANAGE_CATEGORIES)
     @Path("/{id}")
     @Transactional
     @Operation(summary = "Update a category group", description = "Updates name, required flag and bommel assignments. Values are managed via the /values sub-resource. Optionally resets affected confirmed transactions to draft.")
@@ -248,7 +248,7 @@ public class CategoryGroupResource {
     }
 
     @POST
-    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
+    @PermissionsAllowed(Permission.Names.MANAGE_CATEGORIES)
     @Path("/{id}/values")
     @Transactional
     @Operation(summary = "Add values to a group", description = "Adds one or more values, optionally under a top-level value. Duplicates within the group are ignored.")
@@ -272,7 +272,7 @@ public class CategoryGroupResource {
     }
 
     @PUT
-    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
+    @PermissionsAllowed(Permission.Names.MANAGE_CATEGORIES)
     @Path("/{id}/values/{valueId}")
     @Transactional
     @Operation(summary = "Update a value", description = "Moves a value in the hierarchy and sets whether it can be booked and whether it is hidden. Existing bookings keep the value either way. The value itself is not renamed: transactions store it as text.")
@@ -309,7 +309,7 @@ public class CategoryGroupResource {
     }
 
     @DELETE
-    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
+    @PermissionsAllowed(Permission.Names.MANAGE_CATEGORIES)
     @Path("/{id}/values/{valueId}")
     @Transactional
     @Operation(summary = "Remove a value from a group", description = "Deletes a single value; its children move to the top level. Values already recorded on transactions are kept as historical text.")
@@ -333,7 +333,7 @@ public class CategoryGroupResource {
     }
 
     @DELETE
-    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
+    @PermissionsAllowed(Permission.Names.MANAGE_CATEGORIES)
     @Path("/{id}")
     @Transactional
     @Operation(summary = "Delete a category group", description = "Deletes a group and its values, and removes the group's value from every transaction that carried it (draft or confirmed).")
@@ -368,7 +368,7 @@ public class CategoryGroupResource {
     }
 
     @POST
-    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
+    @PermissionsAllowed(Permission.Names.MANAGE_CATEGORIES)
     @Path("/import")
     @Transactional
     @Operation(operationId = "importCategoryGroup", summary = "Import a category group", description = "Creates a group from an export file. If the organization already has a group from the same source, its missing categories are added instead; existing categories and the group's settings stay as they are.")
@@ -410,7 +410,7 @@ public class CategoryGroupResource {
     }
 
     @POST
-    @PermissionsAllowed(Permission.Names.EDIT_BOOKKEEPING)
+    @PermissionsAllowed(Permission.Names.MANAGE_CATEGORIES)
     @Path("/reopen-impact")
     @Operation(summary = "Preview the re-draft impact", description = "For a pending group state (creating or editing), returns the already-confirmed transactions that would be reset to draft if the group became mandatory for its bommels.")
     @APIResponse(responseCode = "200", description = "Impact preview", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ReopenImpactResponse.class)))

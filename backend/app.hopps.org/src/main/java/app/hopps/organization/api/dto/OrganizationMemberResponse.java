@@ -25,8 +25,9 @@ public record OrganizationMemberResponse(
         @JsonInclude(JsonInclude.Include.NON_NULL) @Schema(description = "One-time link in which the invited person sets their password, to be passed on by the "
                 + "inviting admin. Only present right after adding a member whose invitation email could not be sent.") String setupLink) {
 
-    /** Order of the roles in the member list: founder, board, treasurer, auditor. */
-    private static final List<Role> ROLE_ORDER = List.of(Role.OWNER, Role.BOARD, Role.ADMIN, Role.AUDITOR);
+    /** Order of the roles in the member list: owner, board, treasurer, reader, auditor. */
+    private static final List<Role> ROLE_ORDER = List.of(Role.OWNER, Role.ADMIN, Role.TREASURER, Role.VIEWER,
+            Role.AUDITOR);
 
     /** Order of the member list: by {@link #ROLE_ORDER}, then by last and first name. */
     public static final Comparator<OrganizationMemberResponse> BY_ROLE_THEN_NAME = Comparator

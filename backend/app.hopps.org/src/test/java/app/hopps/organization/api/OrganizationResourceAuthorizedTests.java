@@ -145,7 +145,7 @@ class OrganizationResourceAuthorizedTests {
                 .body("email", is("kim.rakete@example.test"))
                 .body("position", is("Kassenwart"))
                 // Without a chosen role, the person becomes Treasurer.
-                .body("role", is("ADMIN"))
+                .body("role", is("TREASURER"))
                 // The account is provisioned, but Dev Services builds the test realm without an SMTP server, so the
                 // invitation mail cannot go out. That must not fail the request — it is reported through the status.
                 .body("status", is("INVITATION_FAILED"));
@@ -164,7 +164,7 @@ class OrganizationResourceAuthorizedTests {
     }
 
     @Test
-    @DisplayName("should invite with a role, list it and let the founder change it")
+    @DisplayName("should invite with a role, list it and let the owner change it")
     @TestSecurity(user = "emanuel_urban@domain.none")
     @OidcSecurity(claims = {
             @Claim(key = "sub", value = "00000000-0000-0000-0000-000000000002")
@@ -172,12 +172,12 @@ class OrganizationResourceAuthorizedTests {
     void shouldInviteWithRoleAndChangeIt() {
         int memberId = given()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body("{\"firstName\": \"Bo\", \"lastName\": \"Vorstand\", \"email\": \"board@example.test\", \"role\": \"BOARD\"}")
+                .body("{\"firstName\": \"Bo\", \"lastName\": \"Vorstand\", \"email\": \"board@example.test\", \"role\": \"ADMIN\"}")
                 .when()
                 .post("my/members")
                 .then()
                 .statusCode(201)
-                .body("role", is("BOARD"))
+                .body("role", is("ADMIN"))
                 .extract()
                 .path("id");
 
@@ -186,41 +186,51 @@ class OrganizationResourceAuthorizedTests {
                 .get("gruenes-herz-ev/members")
                 .then()
                 .statusCode(200)
-                .body("find { it.email == 'board@example.test' }.role", is("BOARD"))
+                .body("find { it.email == 'board@example.test' }.role", is("ADMIN"))
                 .body("find { it.email == 'emanuel_urban@domain.none' }.role", is("OWNER"))
-                // The founder heads the list, the new board member comes right after, before the treasurers.
+                // The owner heads the list, the new board member comes right after, before the treasurers.
                 .body("[0].role", is("OWNER"))
-                .body("[1].role", is("BOARD"));
+                .body("[1].role", is("ADMIN"));
 
+        given()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"role\": \"VIEWER\"}")
+                .when()
+                .put("my/members/{id}/role", memberId)
+                .then()
+                .statusCode(200)
+                .body("role", is("VIEWER"));
+
+        // The hidden auditor role cannot be handed out.
         given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("{\"role\": \"AUDITOR\"}")
                 .when()
                 .put("my/members/{id}/role", memberId)
                 .then()
-                .statusCode(200)
-                .body("role", is("AUDITOR"));
+                .statusCode(400);
 
-        // The founder role cannot be handed out.
+        // An owner can appoint a further owner.
         given()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body("{\"role\": \"OWNER\"}")
                 .when()
                 .put("my/members/{id}/role", memberId)
                 .then()
-                .statusCode(400);
+                .statusCode(200)
+                .body("role", is("OWNER"));
     }
 
     @Test
-    @DisplayName("should not hand out the founder role when inviting")
+    @DisplayName("should not hand out the hidden auditor role when inviting")
     @TestSecurity(user = "emanuel_urban@domain.none")
     @OidcSecurity(claims = {
             @Claim(key = "sub", value = "00000000-0000-0000-0000-000000000002")
     })
-    void shouldRejectInvitingAFounder() {
+    void shouldRejectInvitingAnAuditor() {
         given()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body("{\"firstName\": \"Fe\", \"lastName\": \"Founder\", \"email\": \"second-founder@example.test\", \"role\": \"OWNER\"}")
+                .body("{\"firstName\": \"Pru\", \"lastName\": \"Fer\", \"email\": \"auditor@example.test\", \"role\": \"AUDITOR\"}")
                 .when()
                 .post("my/members")
                 .then()

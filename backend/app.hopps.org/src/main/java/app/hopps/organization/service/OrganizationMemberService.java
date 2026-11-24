@@ -8,6 +8,7 @@ import app.hopps.member.domain.Role;
 import app.hopps.member.repository.MemberRepository;
 import app.hopps.organization.domain.Organization;
 import app.hopps.organization.model.MemberUpdateInput;
+import app.hopps.organization.repository.OrganizationRepository;
 import app.hopps.shared.security.AccessService;
 import app.hopps.shared.validation.NonUniqueConstraintViolation;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -45,6 +46,9 @@ public class OrganizationMemberService {
     MemberRepository memberRepository;
 
     @Inject
+    OrganizationRepository organizationRepository;
+
+    @Inject
     IdentityProvisioningService identityProvisioningService;
 
     @Inject
@@ -65,17 +69,18 @@ public class OrganizationMemberService {
      * @param member
      *            the person to add, not yet persisted and without a Keycloak id
      * @param role
-     *            the role the person gets in the organization; anything but {@link Role#OWNER}
+     *            the role the person gets in the organization
      * @param currentUser
-     *            the member making the request, who needs {@link Permission#MANAGE_MEMBERS}
+     *            the member making the request, who needs {@link Permission#MANAGE_MEMBERS}, and
+     *            {@link Permission#MANAGE_OWNERS} to invite an owner
      *
      * @return the persisted member, whose {@link app.hopps.member.domain.MemberStatus} says whether the invitation
      *         email reached them
      *
      * @throws ForbiddenException
-     *             if the current user may not manage members
+     *             if the current user may not manage members, or not owners when the role is the owner's
      * @throws BadRequestException
-     *             if the role is the founder's
+     *             if the role cannot be assigned
      * @throws ConstraintViolationException
      *             if the member is missing required fields
      * @throws NonUniqueConstraintViolation.NonUniqueConstraintViolationException
@@ -86,6 +91,7 @@ public class OrganizationMemberService {
     public Member addMember(Organization organization, Member member, Role role, Member currentUser) {
         accessService.require(currentUser, Permission.MANAGE_MEMBERS, organization);
         requireAssignable(role);
+        requireManageOwnersIfOwnerRole(role, currentUser, organization);
 
         LOG.info("Adding member {} to organization {}", member.getEmail(), organization.getSlug());
 
@@ -132,26 +138,29 @@ public class OrganizationMemberService {
      * @param memberId
      *            the member whose role changes
      * @param role
-     *            the new role; anything but {@link Role#OWNER}
+     *            the new role
      * @param currentUser
-     *            the member making the request, who needs {@link Permission#MANAGE_MEMBERS}
+     *            the member making the request, who needs {@link Permission#MANAGE_ROLES}, and
+     *            {@link Permission#MANAGE_OWNERS} to make someone an owner or to change an owner
      *
      * @return the member, now holding the new role
      *
      * @throws ForbiddenException
-     *             if the current user may not manage members
+     *             if the current user may not manage roles, or not owners when the new or the current role is the
+     *             owner's
      * @throws BadRequestException
-     *             if no role or the founder's role is given
+     *             if no role or a role that cannot be assigned is given
      * @throws NotFoundException
      *             if no member with that id belongs to the organization
      * @throws ClientErrorException
-     *             (409 Conflict) if the member is the current user or the founder: there is always exactly one founder,
-     *             and nobody changes their own role
+     *             (409 Conflict) if the member is the current user, as nobody changes their own role, or the last
+     *             owner, who stays
      */
     @Transactional
     public Member changeRole(Organization organization, long memberId, Role role, Member currentUser) {
-        accessService.require(currentUser, Permission.MANAGE_MEMBERS, organization);
+        accessService.require(currentUser, Permission.MANAGE_ROLES, organization);
         requireAssignable(role);
+        requireManageOwnersIfOwnerRole(role, currentUser, organization);
 
         Member member = memberRepository.findById(memberId);
         if (member == null || member.getRole(organization).isEmpty()) {
@@ -160,8 +169,10 @@ public class OrganizationMemberService {
         if (Objects.equals(member.id, currentUser.id)) {
             throw new ClientErrorException("Members cannot change their own role", Response.Status.CONFLICT);
         }
-        if (member.getRole(organization).filter(Role.OWNER::equals).isPresent()) {
-            throw new ClientErrorException("The founder's role cannot be changed", Response.Status.CONFLICT);
+        Role currentRole = member.getRole(organization).orElseThrow();
+        requireManageOwnersIfOwnerRole(currentRole, currentUser, organization);
+        if (currentRole.isOwnerRole() && !role.isOwnerRole()) {
+            requireAnotherOwner(organization, member);
         }
 
         member.changeRole(organization, role);
@@ -269,6 +280,25 @@ public class OrganizationMemberService {
     }
 
     /**
+     * Keeps at least one owner. Taking the organization's row lock first makes owner changes run one after the other,
+     * so two owners who demote or remove each other at once cannot both pass: the second one finds the first one's
+     * change committed and no owner left besides themselves.
+     */
+    private void requireAnotherOwner(Organization organization, Member leaving) {
+        organizationRepository.lockForOwnerChange(organization);
+        if (organizationRepository.countOwnersExcept(organization, leaving) == 0) {
+            throw new ClientErrorException("The last owner cannot be demoted or removed", Response.Status.CONFLICT);
+        }
+    }
+
+    /** Appointing, changing and removing an owner is for owners only, so the board cannot promote or oust anyone. */
+    private void requireManageOwnersIfOwnerRole(Role role, Member currentUser, Organization organization) {
+        if (role.isOwnerRole()) {
+            accessService.require(currentUser, Permission.MANAGE_OWNERS, organization);
+        }
+    }
+
+    /**
      * Takes a person out of an organization in hopps. Only hopps's own records change: their account at the identity
      * provider (Keycloak or Authentik) stays untouched, so they can still log in there, just no longer into this
      * organization. Their roles within the organization go with them, and a member without any organization left is
@@ -279,14 +309,16 @@ public class OrganizationMemberService {
      * @param memberId
      *            the member to remove
      * @param currentUser
-     *            the member making the request, who needs {@link Permission#MANAGE_MEMBERS}
+     *            the member making the request, who needs {@link Permission#MANAGE_MEMBERS}, and
+     *            {@link Permission#MANAGE_OWNERS} to remove an owner
      *
      * @throws ForbiddenException
-     *             if the current user may not manage members
+     *             if the current user may not manage members, or not owners when the member is one
      * @throws NotFoundException
      *             if no member with that id belongs to the organization
      * @throws ClientErrorException
-     *             (409 Conflict) if the member is the current user or the organization's owner: nobody could undo that
+     *             (409 Conflict) if the member is the current user, as nobody removes themselves, or the last owner,
+     *             who stays
      */
     @Transactional
     public void removeMember(Organization organization, long memberId, Member currentUser) {
@@ -299,8 +331,10 @@ public class OrganizationMemberService {
         if (Objects.equals(member.id, currentUser.id)) {
             throw new ClientErrorException("Members cannot remove themselves", Response.Status.CONFLICT);
         }
-        if (member.getRole(organization).filter(Role.OWNER::equals).isPresent()) {
-            throw new ClientErrorException("The owner cannot be removed", Response.Status.CONFLICT);
+        Role currentRole = member.getRole(organization).orElseThrow();
+        requireManageOwnersIfOwnerRole(currentRole, currentUser, organization);
+        if (currentRole.isOwnerRole()) {
+            requireAnotherOwner(organization, member);
         }
 
         // Role lives on the same membership row, so removing it takes the role with it.

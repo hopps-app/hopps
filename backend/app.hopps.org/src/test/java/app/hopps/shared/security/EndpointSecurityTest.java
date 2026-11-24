@@ -133,18 +133,38 @@ class EndpointSecurityTest {
     }
 
     @Test
-    void treasurersKeepTheBooksButNeitherManageTheOrganizationNorMembers() {
-        assertEquals(EnumSet.of(Permission.VIEW_BOOKKEEPING, Permission.EDIT_BOOKKEEPING), Role.ADMIN.getPermissions());
-        assertFalse(Role.ADMIN.getPermissions().contains(Permission.MANAGE_MEMBERS));
-        assertFalse(Role.ADMIN.getPermissions().contains(Permission.MANAGE_ORGANIZATION));
+    void ownerHoldsEveryPermission() {
         assertTrue(Role.OWNER.getPermissions().containsAll(EnumSet.allOf(Permission.class)));
     }
 
     @Test
-    void boardAndAuditorOnlyView() {
-        assertEquals(EnumSet.of(Permission.VIEW_BOOKKEEPING), Role.BOARD.getPermissions());
+    void boardKeepsTheBooksAndManagesMembersAndRolesButNotTheOwnersAreas() {
+        assertEquals(EnumSet.of(Permission.VIEW_BOOKKEEPING, Permission.EDIT_BOOKKEEPING, Permission.MANAGE_MEMBERS,
+                Permission.MANAGE_ROLES), Role.ADMIN.getPermissions());
+        assertFalse(Role.ADMIN.getPermissions().contains(Permission.MANAGE_ORGANIZATION));
+        assertFalse(Role.ADMIN.getPermissions().contains(Permission.MANAGE_CATEGORIES));
+        assertFalse(Role.ADMIN.getPermissions().contains(Permission.MANAGE_OWNERS));
+    }
+
+    @Test
+    void treasurersKeepTheBooksOnly() {
+        assertEquals(EnumSet.of(Permission.VIEW_BOOKKEEPING, Permission.EDIT_BOOKKEEPING),
+                Role.TREASURER.getPermissions());
+    }
+
+    @Test
+    void readersAndAuditorsOnlyView() {
+        assertEquals(EnumSet.of(Permission.VIEW_BOOKKEEPING), Role.VIEWER.getPermissions());
         assertEquals(EnumSet.of(Permission.VIEW_BOOKKEEPING), Role.AUDITOR.getPermissions());
-        assertFalse(Role.OWNER.isAssignable());
+    }
+
+    @Test
+    void onlyTheHiddenAuditorCannotBeHandedOut() {
+        assertFalse(Role.AUDITOR.isAssignable());
+        assertTrue(Role.OWNER.isAssignable());
+        assertTrue(Role.ADMIN.isAssignable());
+        assertTrue(Role.TREASURER.isAssignable());
+        assertTrue(Role.VIEWER.isAssignable());
     }
 
     // The role matrix uses the test data organization "Bühnefrei" (id 4), which has one member per role.
@@ -160,21 +180,21 @@ class EndpointSecurityTest {
     @TestSecurity(user = "jdoe@example.test")
     @OidcSecurity(claims = @Claim(key = "sub", value = "1eed6a8e-a853-4597-b4c6-c4c2533546a0"))
     void treasurerReachesTheEndpointsOfTheirPermissions() throws Exception {
-        assertRoleMatrix(Role.ADMIN);
+        assertRoleMatrix(Role.TREASURER);
     }
 
     @Test
     @TestSecurity(user = "bob@example.test")
     @OidcSecurity(claims = @Claim(key = "sub", value = "00000000-0000-0000-0000-000000000023"))
     void boardReachesTheEndpointsOfTheirPermissions() throws Exception {
-        assertRoleMatrix(Role.BOARD);
+        assertRoleMatrix(Role.ADMIN);
     }
 
     @Test
     @TestSecurity(user = "samantha1284@net-mail.none")
     @OidcSecurity(claims = @Claim(key = "sub", value = "00000000-0000-0000-0000-000000000015"))
-    void auditorReachesTheEndpointsOfTheirPermissions() throws Exception {
-        assertRoleMatrix(Role.AUDITOR);
+    void readerReachesTheEndpointsOfTheirPermissions() throws Exception {
+        assertRoleMatrix(Role.VIEWER);
     }
 
     /**
