@@ -1088,7 +1088,7 @@
         "whatsapp": {
             "badge": "WhatsApp",
             "by": "Per WhatsApp von {{name}}",
-            "hint": "Über den Hopps-WhatsApp-Chatbot von einer zum Bommel eingeladenen Nummer geschickt"
+            "hint": "Über den hopps-WhatsApp-Chatbot von einer zum Bommel eingeladenen Nummer geschickt"
         }
     },
     "bommel": {
@@ -1289,14 +1289,14 @@
         },
         "whatsapp": {
             "title": "WhatsApp",
-            "description": "Personen einladen, Belege für diesen Bommel per WhatsApp zu schicken. Hopps schickt ihnen eine Einladung; nach dem Annehmen landet jedes Foto oder PDF, das sie an Hopps senden, hier als Beleg.",
+            "description": "Personen einladen, Belege für diesen Bommel per WhatsApp zu schicken. hopps schickt ihnen eine Einladung; nach dem Annehmen landet jedes Foto oder PDF, das sie an hopps senden, hier als Beleg.",
             "stopHint": "Mit STOP lässt sich eine Nummer wieder trennen. Gilt nur für diesen Bommel.",
             "name": "Name",
             "namePlaceholder": "Name",
             "phone": "WhatsApp-Nummer",
             "phonePlaceholder": "WhatsApp-Nummer, z. B. +49 176 12345678",
             "invite": "Einladung senden",
-            "inviteHint": "Hopps schickt die Einladung per WhatsApp. Verbunden ist die Nummer, sobald sie angenommen wurde.",
+            "inviteHint": "hopps schickt die Einladung per WhatsApp. Verbunden ist die Nummer, sobald sie angenommen wurde.",
             "sent": "Einladung an {{name}} gesendet",
             "resend": "Einladung erneut senden",
             "remove": "Entfernen",

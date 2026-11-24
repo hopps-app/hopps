@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Who may send receipts for a bommel via WhatsApp: members invite a person by name and number, Hopps sends the
+ * Who may send receipts for a bommel via WhatsApp: members invite a person by name and number, hopps sends the
  * invitation, and the person accepts it in WhatsApp. Every member of the organization may do this, like for the upload
  * link.
  */
@@ -76,7 +76,7 @@ public class WhatsAppContactResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    @Operation(operationId = "inviteBommelWhatsAppContact", summary = "Invite a phone number via WhatsApp", description = "Hopps sends a WhatsApp invitation with Accept/Decline buttons. Once accepted, receipts from the number are filed in the bommel. Inviting a number with an open or declined invitation sends a new one.")
+    @Operation(operationId = "inviteBommelWhatsAppContact", summary = "Invite a phone number via WhatsApp", description = "hopps sends a WhatsApp invitation with Accept/Decline buttons. Once accepted, receipts from the number are filed in the bommel. Inviting a number with an open or declined invitation sends a new one.")
     @APIResponse(responseCode = "200", description = "Invitation sent", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = WhatsAppContactResponse.class)))
     @APIResponse(responseCode = "400", description = "Name missing, or the number is invalid or lacks a country code")
     @APIResponse(responseCode = "401", description = "Not authenticated")

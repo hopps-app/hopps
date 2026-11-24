@@ -1,6 +1,6 @@
 # app.hopps.chatbot
 
-WhatsApp chatbot of Hopps. People invited to a bommel send photos or PDFs of receipts via WhatsApp; Hopps files them
+WhatsApp chatbot of hopps. People invited to a bommel send photos or PDFs of receipts via WhatsApp; hopps files them
 in that bommel. Free-text questions are answered by an LLM assistant. Spec and status: issue #947.
 
 ## How it fits together
@@ -48,7 +48,7 @@ Needs a Meta app with the WhatsApp product and your phone added as test recipien
 1. `.env`: `HOPPS_WHATSAPP_PHONE_NUMBER_ID`, `HOPPS_WHATSAPP_ACCESS_TOKEN`, `HOPPS_WHATSAPP_VERIFY_TOKEN`,
    `HOPPS_WHATSAPP_APP_SECRET`, and `HOPPS_CHATBOT_INVITATION_CHANNEL=whatsapp`.
 2. Template `hopps_bommel_invitation` (language `de`, category Utility) approved in the WhatsApp Manager:
-   body `Einladung von {{1}}: Belege für {{2}} ({{3}}) lassen sich ab jetzt per WhatsApp an Hopps schicken. Einfach
+   body `Einladung von {{1}}: Belege für {{2}} ({{3}}) lassen sich ab jetzt per WhatsApp an hopps schicken. Einfach
    ein Foto oder PDF in diesen Chat senden.`, quick-reply buttons *Annehmen*, *Ablehnen*. Meta rejects bodies that
    start or end with a placeholder.
 3. Webhook: expose **only** `/webhooks/whatsapp` through a tunnel (the debug chat has no login), e.g. a Cloudflare

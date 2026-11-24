@@ -47,8 +47,8 @@ function errorKey(err: unknown): string {
 }
 
 /**
- * WhatsApp contacts of a bommel: a member enters a name and a number, Hopps sends a WhatsApp invitation, and once the
- * person accepts it, photos and PDFs they send to Hopps land here as receipts. The list shows every invited number
+ * WhatsApp contacts of a bommel: a member enters a name and a number, hopps sends a WhatsApp invitation, and once the
+ * person accepts it, photos and PDFs they send to hopps land here as receipts. The list shows every invited number
  * with its state; invitations can be sent again and contacts removed.
  */
 export function WhatsAppInviteSection({ bommelId }: WhatsAppInviteSectionProps) {

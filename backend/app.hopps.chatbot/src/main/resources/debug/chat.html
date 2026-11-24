@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hopps Chatbot Debug</title>
+<title>hopps Chatbot Debug</title>
 <style>
   :root {
     --bg: #f4f1ea; --panel: #ffffff; --text: #1d1d1b; --muted: #6b6b66; --line: #ddd8cc;
@@ -49,7 +49,7 @@
 <body>
 <main>
   <header>
-    <h1>Hopps Chatbot <small>debug, no WhatsApp</small></h1>
+    <h1>hopps Chatbot <small>debug, no WhatsApp</small></h1>
     <button class="secondary" id="reset" type="button" title="Start a new conversation with empty chat memory">New conversation</button>
   </header>
   <div class="sender">
@@ -104,7 +104,7 @@
         status.className = 'error';
         statusText.textContent = c.error;
       } else {
-        statusText.textContent = 'Not connected. Invite ' + phone.value + ' in Hopps (Struktur → Bommel → WhatsApp) and press Annehmen on the invitation here.';
+        statusText.textContent = 'Not connected. Invite ' + phone.value + ' in hopps (Struktur → Bommel → WhatsApp) and press Annehmen on the invitation here.';
       }
       disconnect.hidden = !c.connected;
     } catch (err) {
@@ -221,7 +221,7 @@
     } catch { /* org/chatbot restarting; try again */ }
   }
 
-  add('bot', 'Debug chat: talks to the same ChatService as the WhatsApp webhook, as the phone number above. To connect it, invite this number in Hopps (Struktur → Bommel → WhatsApp); the invitation appears here with its buttons. Then attach a JPEG, PNG or PDF to file a receipt. STOP disconnects.', 'conversation ' + conversationId);
+  add('bot', 'Debug chat: talks to the same ChatService as the WhatsApp webhook, as the phone number above. To connect it, invite this number in hopps (Struktur → Bommel → WhatsApp); the invitation appears here with its buttons. Then attach a JPEG, PNG or PDF to file a receipt. STOP disconnects.', 'conversation ' + conversationId);
   refreshStatus();
   pollOutbox();
   setInterval(pollOutbox, 3000);

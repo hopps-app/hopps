@@ -1224,7 +1224,7 @@
         "whatsapp": {
             "badge": "WhatsApp",
             "by": "Via WhatsApp from {{name}}",
-            "hint": "Sent through the Hopps WhatsApp chatbot by a number invited to the bommel"
+            "hint": "Sent through the hopps WhatsApp chatbot by a number invited to the bommel"
         }
     },
     "bommel": {
@@ -1425,14 +1425,14 @@
         },
         "whatsapp": {
             "title": "WhatsApp",
-            "description": "Invite people to send receipts for this bommel via WhatsApp. Hopps sends them an invitation; once they accept, every photo or PDF they send to Hopps lands here as a receipt.",
+            "description": "Invite people to send receipts for this bommel via WhatsApp. hopps sends them an invitation; once they accept, every photo or PDF they send to hopps lands here as a receipt.",
             "stopHint": "Sending STOP disconnects a number. Applies to this Bommel only.",
             "name": "Name",
             "namePlaceholder": "Name",
             "phone": "WhatsApp number",
             "phonePlaceholder": "WhatsApp number, e.g. +49 176 12345678",
             "invite": "Send invitation",
-            "inviteHint": "Hopps sends the invitation via WhatsApp. The number is connected once it is accepted.",
+            "inviteHint": "hopps sends the invitation via WhatsApp. The number is connected once it is accepted.",
             "sent": "Invitation sent to {{name}}",
             "resend": "Send invitation again",
             "remove": "Remove",

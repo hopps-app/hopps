@@ -32,7 +32,7 @@ class DebugChatResourceTest {
                 .get("/debug/chat")
                 .then()
                 .statusCode(200)
-                .body(containsString("Hopps Chatbot"));
+                .body(containsString("hopps Chatbot"));
     }
 
     @Test
@@ -114,7 +114,7 @@ class DebugChatResourceTest {
                 .post("/debug/chat/messages")
                 .then()
                 .statusCode(200)
-                .body("reply", startsWith("Diese Nummer ist jetzt von Hopps getrennt"));
+                .body("reply", startsWith("Diese Nummer ist jetzt von hopps getrennt"));
     }
 
     @Test
