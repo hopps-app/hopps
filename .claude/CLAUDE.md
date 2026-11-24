@@ -440,6 +440,14 @@ Vereins/Verbands/Interessenten übergeben werden** (typisch: PDF/Word aus OneDri
 
 ## Wichtige Hinweise für AI-Assistenten
 
+### Schreibweise des Produktnamens:
+**hopps wird immer klein geschrieben**, auch am Satzanfang und in Überschriften, in allen Sprachen. Das gilt für alles, was
+Menschen lesen: UI-Texte und Übersetzungen (`de.json`, `en.json`, `uk.json`), Antworten und Prompts des Chatbots,
+Fehlermeldungen, API-Beschreibungen (`@Operation`), Doku, Commit-Messages und PR-Texte.
+- Richtig: „hopps schickt eine Einladung“, „in hopps anmelden“, „hopps-Assistent“.
+- Unverändert bleiben Code-Bezeichner und feste Namen: Klassen (`HoppsAssistant`), HTTP-Header (`X-Hopps-Internal-Token`),
+  Umgebungsvariablen (`HOPPS_*`), Pakete und Repository-/Organisationsnamen (`app.hopps`, `hopps-app/hopps`).
+
 ### Bei Backend-Änderungen:
 1. Folge dem etablierten Vertical Slice Architecture Pattern (siehe "Backend Code-Organisation")
 2. Verwende konsistente Package-Benennung (`api/` statt `endpoint/`)
