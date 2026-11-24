@@ -46,7 +46,7 @@ Hopps ist eine cloud-basierte Open-Source Buchhaltungssoftware mit KI für gemei
 - `Category` - Kategorisierungssystem für Transaktionen
 - `Transaction` - Finanztransaktionen mit Dokumentreferenzen
 - `Document` + `TradeParty`, `DocumentTag` - hochgeladene Belege inkl. Analyse-/Extraktionsstatus
-- `BankAccount`, `BankImport`, `BankTransaction`, `BankCsvSchema`, `BankCsvColumnMapping`, `BankTransactionMatch` - Bank-CSV-Import und Abgleich mit Transaktionen (`bankimport`-Slice)
+- `BankAccount`, `BankImport`, `BankTransaction`, `BankCsvSchema`, `BankCsvColumnMapping`, `BankTransactionMatch` - Bank-CSV-, MT940- und PayPal-Import und Abgleich mit Transaktionen (`bankimport`-Slice). Konto-Art `BANK` (IBAN) oder `PAYPAL` (PayPal-E-Mail, keine IBAN); Umsätze zwischen eigenen Konten haben Status `TRANSFER`
 - `Tag` (shared)
 
 **API Endpoints** (class-level `@Path`):
@@ -80,7 +80,7 @@ ZUGFeRD-Rechnungsverarbeitung (XML aus PDFs extrahieren)
 - **Flyway Migrations:** `/src/main/resources/db/migration`
 - **Testdaten:** `/src/main/resources/db/testdata` (dev mode)
 - **Multi-Database:** Separate DBs für org, keycloak
-- **Schema Version:** aktuell V1.0.41 (Nummerierung mit Lücke: V1.0.0–V1.0.2, dann ab V1.0.13 fortlaufend)
+- **Schema Version:** aktuell V1.0.42 (Nummerierung mit Lücke: V1.0.0–V1.0.2, dann ab V1.0.13 fortlaufend)
 
 ## Frontend
 
@@ -447,6 +447,34 @@ Vereins/Verbands/Interessenten übergeben werden** (typisch: PDF/Word aus OneDri
 4. DTOs als Records (nicht Classes)
 5. Alle DB-Änderungen als Flyway Migrations
 6. Tests in entsprechender Struktur anlegen
+7. Jeden Endpoint absichern wie unter "Berechtigungen im Backend" beschrieben
+
+### Berechtigungen im Backend (org-Service):
+Code prüft **Permissions, nie Rollen**. Eine Rolle (`member/domain/Role`) ist nur ein Bündel von Permissions
+(`member/domain/Permission`); eine neue Rolle ändert keine einzige Prüfung. Rollen liegen in der hopps-DB pro
+Organisation, nicht beim Identity Provider. 
+
+1. **Jeder Endpoint nennt, was er braucht.** `quarkus.security.jaxrs.deny-unannotated-endpoints=true` sperrt jeden
+   Endpoint ohne Annotation.
+   - Fachliche Endpoints: `@PermissionsAllowed(Permission.Names.XYZ)` an **jeder Methode**, keine Annotation auf
+     Klassenebene. Lesen braucht `VIEW_BOOKKEEPING`, `POST`/`PUT`/`PATCH`/`DELETE` mindestens `EDIT_BOOKKEEPING`.
+   - `@Authenticated` nur für Daten des eigenen Kontos, `@PermitAll` nur für öffentliche Endpoints (Upload-Link,
+     `/instance`, Health), `@RolesAllowed("admin")` für `/admin/*`.
+   - `EndpointSecurityTest` prüft diese Regeln beim Build.
+2. **Die Annotation prüft nur die Rolle.** `shared/security/MemberPermissionCheckers` (Quarkus `@PermissionChecker`)
+   gewährt eine Permission, wenn die Rolle des Members in seiner Organisation sie enthält (`AccessService`).
+   Neue Permission: Enum-Wert plus Konstante in `Permission.Names`, Checker-Methode in `MemberPermissionCheckers`
+   (mit `@Blocking` und `@ActivateRequestContext`, sonst gibt es ein stilles 403 ohne Log), Zuordnung in `Role`.
+3. **Im Endpoint bzw. Service erneut prüfen, auf welche Daten zugegriffen wird.** Die Annotation weiß nicht, welche
+   Organisation oder welcher Bommel betroffen ist.
+   - Entities nur über org-gescopte Repository-Methoden laden (z. B. `findByIdScoped`); gehört die Entity zu einer
+     anderen Organisation, `404` liefern.
+   - Braucht eine Operation eine Permission auf eine bestimmte Organisation (z. B. Members verwalten), zusätzlich
+     `accessService.require(member, Permission.X, organization)` aufrufen.
+4. **Tests:** Die Rollen-Matrix in `EndpointSecurityTest` ruft jeden `@PermissionsAllowed`-Endpoint einmal pro Rolle
+   auf und erwartet `403` genau dort, wo der Rolle die Permission fehlt. Neue Endpoints sind damit automatisch
+   abgedeckt, keine eigene Testdatei pro Endpoint. Neue Rolle: Member mit dieser Rolle in Organisation 4 der
+   Testdaten (`testdata.yaml`) anlegen und eine Testmethode in der Matrix ergänzen.
 
 ### Bei Frontend-Änderungen:
 1. Neue UI-Komponenten in `components/ui/`
@@ -500,4 +528,4 @@ const { t } = useTranslation();
 4. **Neue Methoden verwenden:** Importiere die generierten Typen und Methoden aus `@hopps/api-client`
 5. **NIEMALS:** Direkte fetch/axios Calls zum Backend - immer den API Client verwenden
 6. Pact Tests für Consumer/Provider aktualisieren
-7. Keycloak Roles beachten
+7. Berechtigungen beachten (siehe "Berechtigungen im Backend")

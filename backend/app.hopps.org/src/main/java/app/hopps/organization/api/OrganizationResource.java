@@ -2,8 +2,11 @@ package app.hopps.organization.api;
 
 import app.hopps.member.domain.Member;
 import app.hopps.member.domain.Permission;
+import app.hopps.organization.api.dto.OrganizationMemberResponse;
 import app.hopps.organization.domain.Currency;
 import app.hopps.organization.domain.Organization;
+import app.hopps.organization.model.MemberRoleInput;
+import app.hopps.organization.model.MemberUpdateInput;
 import app.hopps.organization.model.NewMemberInput;
 import app.hopps.organization.model.NewOrganizationInput;
 import app.hopps.organization.model.OrganizationInput;
@@ -13,6 +16,9 @@ import app.hopps.organization.service.OrganizationCreationService;
 import app.hopps.organization.service.OrganizationCurrencyService;
 import app.hopps.organization.service.OrganizationLogoService;
 import app.hopps.organization.service.OrganizationMemberService;
+import app.hopps.organization.service.RegistrationNotifier;
+import app.hopps.shared.altcha.AltchaFailedException;
+import app.hopps.shared.altcha.AltchaService;
 import app.hopps.shared.infrastructure.storage.StoredFileNotFoundException;
 import app.hopps.shared.security.AccessService;
 import app.hopps.shared.security.SecurityUtils;
@@ -86,6 +92,12 @@ public class OrganizationResource {
 
     @Inject
     JsonWebToken jwt;
+
+    @Inject
+    AltchaService altchaService;
+
+    @Inject
+    RegistrationNotifier registrationNotifier;
 
     @GET
     @Path("{slug}")
@@ -288,6 +300,8 @@ public class OrganizationResource {
         }
 
         LOG.info("Successfully created organization for current user: {}", organization.getSlug());
+        registrationNotifier.organizationRegistered(organization,
+                new RegistrationNotifier.ContactPerson(firstName, lastName, email));
         return Response.status(Response.Status.CREATED).entity(organization).build();
     }
 
@@ -314,8 +328,8 @@ public class OrganizationResource {
     @Path("{slug}/members")
     @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get organization members", description = "Retrieves the members of the current user's organization using its unique slug identifier. Other organizations' slugs answer 404.")
-    @APIResponse(responseCode = "200", description = "Members retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Member[].class)))
+    @Operation(summary = "Get organization members", description = "Retrieves the members of the current user's organization using its unique slug identifier, each with their role in it, ordered by role (owner, board, treasurer, reader, auditor) and then by name. Other organizations' slugs answer 404.")
+    @APIResponse(responseCode = "200", description = "Members retrieved successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = OrganizationMemberResponse.class)))
     @APIResponse(responseCode = "403", description = "User is not a member of any organization")
     @APIResponse(responseCode = "404", description = "Organization not found for provided slug")
     public Response getOrganizationMembersBySlug(@Context SecurityContext securityContext,
@@ -324,19 +338,27 @@ public class OrganizationResource {
         if (organization == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return Response.ok(organization.getMembers()).build();
+        return Response.ok(organization.getMembers()
+                .stream()
+                .map(member -> OrganizationMemberResponse.of(member, organization))
+                .sorted(OrganizationMemberResponse.BY_ROLE_THEN_NAME)
+                .toList())
+                .build();
     }
 
     @POST
     @PermitAll
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create a new organization", description = "Registers a new organization together with its owner account. On a single-tenant installation this is the one-time initial setup: it works while no organization exists and answers 403 (code SETUP_COMPLETE) afterwards.")
+    @Operation(summary = "Create a new organization", description = "Registers a new organization together with its owner account. The request needs a solved ALTCHA challenge (see GET /public/altcha/challenge) in `altcha`; it is checked before anything else, so an unsolved request learns nothing about existing emails or slugs. On a single-tenant installation this is the one-time initial setup: it works while no organization exists and answers 403 (code SETUP_COMPLETE) afterwards.")
     @APIResponse(responseCode = "201", description = "Organization created successfully", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Organization.class)))
-    @APIResponse(responseCode = "400", description = "Validation of fields failed", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
+    @APIResponse(responseCode = "400", description = "Validation of fields failed, or the ALTCHA challenge is missing, invalid, expired or already used (code "
+            + AltchaFailedException.CODE
+            + ")", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ValidationResult.class)))
     @APIResponse(responseCode = "403", description = "Single-tenant installation that is already set up (code SETUP_COMPLETE)")
     @APIResponse(responseCode = "409", description = "Email or slug already exists", content = @Content(mediaType = MediaType.APPLICATION_JSON))
     public Response create(NewOrganizationInput input) {
+        altchaService.requireSolved(input.altcha());
         requireSupportedCountry(input.organization().country());
         Organization organization = input.toOrganization();
         Member owner = input.toOwner();
@@ -361,6 +383,8 @@ public class OrganizationResource {
         }
 
         LOG.info("Successfully created organization: {}", organization.getSlug());
+        registrationNotifier.organizationRegistered(organization,
+                new RegistrationNotifier.ContactPerson(owner.getFirstName(), owner.getLastName(), owner.getEmail()));
         return Response.status(Response.Status.CREATED)
                 .entity(organization)
                 .build();
@@ -371,11 +395,11 @@ public class OrganizationResource {
     @PermissionsAllowed(Permission.Names.MANAGE_MEMBERS)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(operationId = "addOrganizationMember", summary = "Add a member to my organization", description = "Adds a person to the current user's organization and gives them access to the app. Needs the MANAGE_MEMBERS permission. With Keycloak, an account is provisioned and Keycloak emails them an invitation link in which they set their own password. With Authentik, an existing account for that email is linked as is; otherwise one is created and Authentik emails the link, or, without a mail server, the returned member carries it as setupLink for the inviting admin to pass on. The status says whether an email went out (INVITED) or not (INVITATION_FAILED); the account exists either way.")
-    @APIResponse(responseCode = "201", description = "Member added to the organization", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Member.class)))
-    @APIResponse(responseCode = "400", description = "Validation of fields failed")
+    @Operation(operationId = "addOrganizationMember", summary = "Add a member to my organization", description = "Adds a person to the current user's organization with the given role (ADMIN for the board, TREASURER or VIEWER; OWNER to appoint a further owner; TREASURER if none is given) and gives them access to the app. Needs the MANAGE_MEMBERS permission, and MANAGE_OWNERS for the owner role. With Keycloak, an account is provisioned and Keycloak emails them an invitation link in which they set their own password. With Authentik, an existing account for that email is linked as is; otherwise one is created and Authentik emails the link, or, without a mail server, the returned member carries it as setupLink for the inviting admin to pass on. The status says whether an email went out (INVITED) or not (INVITATION_FAILED); the account exists either way.")
+    @APIResponse(responseCode = "201", description = "Member added to the organization", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = OrganizationMemberResponse.class)))
+    @APIResponse(responseCode = "400", description = "Validation of fields failed, or a role that cannot be given")
     @APIResponse(responseCode = "401", description = "User not logged in")
-    @APIResponse(responseCode = "403", description = "The current user may not manage members")
+    @APIResponse(responseCode = "403", description = "The current user may not manage members, or not owners when the owner role was given")
     @APIResponse(responseCode = "404", description = "Organization not found for user")
     @APIResponse(responseCode = "409", description = "A member with that email already exists", content = @Content(mediaType = MediaType.APPLICATION_JSON))
     public Response addMemberToMyOrganization(@Context SecurityContext securityContext,
@@ -385,7 +409,8 @@ public class OrganizationResource {
 
         Member member;
         try {
-            member = organizationMemberService.addMember(organization, input.toMember(), currentUser);
+            member = organizationMemberService.addMember(organization, input.toMember(), input.roleOrDefault(),
+                    currentUser);
         } catch (ConstraintViolationException e) {
             String message = e.getConstraintViolations()
                     .stream()
@@ -404,7 +429,65 @@ public class OrganizationResource {
                     .build();
         }
 
-        return Response.status(Response.Status.CREATED).entity(member).build();
+        return Response.status(Response.Status.CREATED)
+                .entity(OrganizationMemberResponse.of(member, organization))
+                .build();
+    }
+
+    @PUT
+    @Path("/my/members/{memberId}/role")
+    @PermissionsAllowed(Permission.Names.MANAGE_ROLES)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(operationId = "changeOrganizationMemberRole", summary = "Change a member's role", description = "Gives a member of the current user's organization another role: OWNER, ADMIN (board), TREASURER or VIEWER. Needs the MANAGE_ROLES permission, and MANAGE_OWNERS to make someone an owner or to change an owner, so there is always at least one owner. Nobody can change their own role. The new role applies with the member's next request.")
+    @APIResponse(responseCode = "200", description = "Role changed; the member with the new role", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = OrganizationMemberResponse.class)))
+    @APIResponse(responseCode = "400", description = "No role, or a role that cannot be given, was given")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "403", description = "The current user may not manage roles, or not owners when an owner is involved")
+    @APIResponse(responseCode = "404", description = "No member with that id in the current user's organization")
+    @APIResponse(responseCode = "409", description = "The member is the current user")
+    public OrganizationMemberResponse changeMemberRole(@Context SecurityContext securityContext,
+            @PathParam("memberId") @Parameter(description = "Id of the member whose role changes") long memberId,
+            @Parameter(description = "The new role") MemberRoleInput input) {
+        Member currentUser = securityUtils.getCurrentUser(securityContext);
+        Organization organization = securityUtils.getUserOrganization(securityContext);
+        Member member = organizationMemberService.changeRole(organization, memberId,
+                input == null ? null : input.role(), currentUser);
+        return OrganizationMemberResponse.of(member, organization);
+    }
+
+    @PUT
+    @Path("/my/members/{memberId}")
+    @PermissionsAllowed(Permission.Names.MANAGE_MEMBERS)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(operationId = "updateOrganizationMember", summary = "Correct a member's details", description = "Corrects the first name, last name and, while the invitation is pending (INVITED or INVITATION_FAILED), the email address of a member of the current user's organization. A new address gets the invitation again; the account for the old address is deleted if it was never used. Fields left out keep their value. Needs the MANAGE_MEMBERS permission.")
+    @APIResponse(responseCode = "200", description = "Member corrected", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = OrganizationMemberResponse.class)))
+    @APIResponse(responseCode = "400", description = "A name is blank or the email is invalid")
+    @APIResponse(responseCode = "401", description = "User not logged in")
+    @APIResponse(responseCode = "403", description = "The current user may not manage members")
+    @APIResponse(responseCode = "404", description = "No member with that id in the current user's organization")
+    @APIResponse(responseCode = "409", description = "The email belongs to another member, or the member has logged in and keeps their email", content = @Content(mediaType = MediaType.APPLICATION_JSON))
+    public Response updateMember(@Context SecurityContext securityContext,
+            @PathParam("memberId") @Parameter(description = "Id of the member to correct") long memberId,
+            @Parameter(description = "The corrected details") MemberUpdateInput input) {
+        Member currentUser = securityUtils.getCurrentUser(securityContext);
+        Organization organization = securityUtils.getUserOrganization(securityContext);
+        try {
+            Member member = organizationMemberService.updateMember(organization, memberId,
+                    input == null ? new MemberUpdateInput(null, null, null) : input, currentUser);
+            return Response.ok(OrganizationMemberResponse.of(member, organization)).build();
+        } catch (ConstraintViolationException e) {
+            String message = e.getConstraintViolations()
+                    .stream()
+                    .map(violation -> violation.getPropertyPath() + " " + violation.getMessage())
+                    .collect(Collectors.joining(", "));
+            throw new BadRequestException(Response.status(Response.Status.BAD_REQUEST).entity(message).build());
+        } catch (NonUniqueConstraintViolation.NonUniqueConstraintViolationException e) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(Map.of("conflictingFields", Set.of("email")))
+                    .build();
+        }
     }
 
     @GET
@@ -424,12 +507,12 @@ public class OrganizationResource {
     @DELETE
     @Path("/my/members/{memberId}")
     @PermissionsAllowed(Permission.Names.MANAGE_MEMBERS)
-    @Operation(operationId = "removeOrganizationMember", summary = "Remove a member from my organization", description = "Removes a person from the current user's organization. Needs the MANAGE_MEMBERS permission; nobody can remove themselves or the owner. Only hopps's own records are deleted: the person's account at the identity provider (Keycloak or Authentik) stays untouched, so they can still log in there, just no longer into this organization.")
+    @Operation(operationId = "removeOrganizationMember", summary = "Remove a member from my organization", description = "Removes a person from the current user's organization. Needs the MANAGE_MEMBERS permission, and MANAGE_OWNERS to remove an owner; nobody can remove themselves. Only hopps's own records are deleted: the person's account at the identity provider (Keycloak or Authentik) stays untouched, so they can still log in there, just no longer into this organization.")
     @APIResponse(responseCode = "204", description = "Member removed")
     @APIResponse(responseCode = "401", description = "User not logged in")
-    @APIResponse(responseCode = "403", description = "The current user may not manage members")
+    @APIResponse(responseCode = "403", description = "The current user may not manage members, or not owners when the member is one")
     @APIResponse(responseCode = "404", description = "No member with that id in the current user's organization")
-    @APIResponse(responseCode = "409", description = "The member to remove is the current user or the owner")
+    @APIResponse(responseCode = "409", description = "The member to remove is the current user")
     public Response removeMemberFromMyOrganization(@Context SecurityContext securityContext,
             @PathParam("memberId") @Parameter(description = "Id of the member to remove") long memberId) {
         Member currentUser = securityUtils.getCurrentUser(securityContext);

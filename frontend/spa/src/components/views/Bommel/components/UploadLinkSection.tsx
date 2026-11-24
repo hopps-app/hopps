@@ -12,6 +12,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { HintTooltip } from '@/components/ui/HintTooltip';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
+import { useCanEditBookkeeping } from '@/hooks/queries/usePermissions';
 import { uploadLinkUrl, useBommelUploadLink, useRegenerateUploadLink, useRevokeUploadLink } from '@/hooks/queries/useUploadLinks';
 import { useToast } from '@/hooks/use-toast';
 import { PUBLIC_UPLOAD_PATH } from '@/lib/publicUpload';
@@ -44,6 +45,8 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
     const { data: link, isLoading } = useBommelUploadLink(bommelId);
     const regenerate = useRegenerateUploadLink(bommelId);
     const revoke = useRevokeUploadLink(bommelId);
+    // Board members and auditors can copy and show an existing link, but not create, renew or revoke it (issue #959).
+    const canEdit = useCanEditBookkeeping();
 
     const [expiresOn, setExpiresOn] = useState('');
     const [createOpen, setCreateOpen] = useState(false);
@@ -138,36 +141,42 @@ export function UploadLinkSection({ bommelId, bommelName }: UploadLinkSectionPro
                         >
                             <QrCode size={16} />
                         </Button>
-                        <HintTooltip content={t('bommel.uploadLink.regenerate')}>
-                            <Button
-                                variant="tonal"
-                                size="icon"
-                                className="h-10 w-9 shrink-0"
-                                onClick={() => setConfirm('regenerate')}
-                                aria-label={t('bommel.uploadLink.regenerate')}
-                            >
-                                <RefreshCw size={16} />
-                            </Button>
-                        </HintTooltip>
-                        <HintTooltip content={t('bommel.uploadLink.revoke')}>
-                            <Button
-                                variant="tonal"
-                                size="icon"
-                                className="h-10 w-9 shrink-0 text-[var(--negative)]"
-                                onClick={() => setConfirm('revoke')}
-                                aria-label={t('bommel.uploadLink.revoke')}
-                            >
-                                <Trash2 size={16} />
-                            </Button>
-                        </HintTooltip>
+                        {canEdit && (
+                            <>
+                                <HintTooltip content={t('bommel.uploadLink.regenerate')}>
+                                    <Button
+                                        variant="tonal"
+                                        size="icon"
+                                        className="h-10 w-9 shrink-0"
+                                        onClick={() => setConfirm('regenerate')}
+                                        aria-label={t('bommel.uploadLink.regenerate')}
+                                    >
+                                        <RefreshCw size={16} />
+                                    </Button>
+                                </HintTooltip>
+                                <HintTooltip content={t('bommel.uploadLink.revoke')}>
+                                    <Button
+                                        variant="tonal"
+                                        size="icon"
+                                        className="h-10 w-9 shrink-0 text-[var(--negative)]"
+                                        onClick={() => setConfirm('revoke')}
+                                        aria-label={t('bommel.uploadLink.revoke')}
+                                    >
+                                        <Trash2 size={16} />
+                                    </Button>
+                                </HintTooltip>
+                            </>
+                        )}
                     </div>
                 </div>
             ) : (
                 <div className="flex flex-col gap-3 rounded-[14px] bg-[var(--surface-sunken)] px-[13px] py-3">
                     <p className="text-[12.5px] font-semibold leading-snug text-muted-foreground">{t('bommel.uploadLink.description')}</p>
-                    <Button className="w-full" variant="tonal" onClick={() => setCreateOpen(true)}>
-                        {t('bommel.uploadLink.create')}
-                    </Button>
+                    {canEdit && (
+                        <Button className="w-full" variant="tonal" onClick={() => setCreateOpen(true)}>
+                            {t('bommel.uploadLink.create')}
+                        </Button>
+                    )}
                 </div>
             )}
 

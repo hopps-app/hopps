@@ -242,6 +242,8 @@ public class TestdataConfig {
         private String firstName;
         private String lastName;
         private List<Long> organizationIds;
+        /** Role in the organizations listed in {@link #organizationIds}: OWNER, ADMIN, TREASURER, VIEWER or AUDITOR. */
+        private String role;
 
         public Long getId() {
             return id;
@@ -289,6 +291,14 @@ public class TestdataConfig {
 
         public void setOrganizationIds(List<Long> organizationIds) {
             this.organizationIds = organizationIds;
+        }
+
+        public String getRole() {
+            return role;
+        }
+
+        public void setRole(String role) {
+            this.role = role;
         }
     }
 

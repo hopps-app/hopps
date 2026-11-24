@@ -56,8 +56,13 @@ class OrganizationCurrencyResourceTests {
         flyway.clean();
         flyway.migrate();
         testdataBootstrapper.loadTestdata();
-        // Start every test from an organization without bookings, so the lock is only ever set on purpose.
-        QuarkusTransaction.requiringNew().run(() -> transactionRepository.delete("organization.id", ORGANIZATION_ID));
+        // Start every test from an organization without bookings, so the lock is only ever set on purpose. Deleted one
+        // by
+        // one, like the application does: since Quarkus 3.40 a bulk delete filtered by "organization.id" fails while
+        // clearing the transaction_tags collection table ("missing FROM-clause entry").
+        QuarkusTransaction.requiringNew()
+                .run(() -> transactionRepository.list("organization.id", ORGANIZATION_ID)
+                        .forEach(transactionRepository::delete));
     }
 
     @Test

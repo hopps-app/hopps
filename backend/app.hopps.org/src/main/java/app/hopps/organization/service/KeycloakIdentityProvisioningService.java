@@ -159,6 +159,26 @@ public class KeycloakIdentityProvisioningService implements IdentityProvisioning
     }
 
     /**
+     * Deletes the Keycloak user unless someone has set a password for it or logged in through a brokered provider.
+     */
+    @Override
+    public boolean deleteUnusedUser(String keycloakId) {
+        try {
+            var user = keycloak.realm(realmName).users().get(keycloakId);
+            if (!user.credentials().isEmpty() || !user.getFederatedIdentity().isEmpty()) {
+                LOG.info("Keeping Keycloak user {}: it has a password or a linked login", keycloakId);
+                return false;
+            }
+            try (Response response = keycloak.realm(realmName).users().delete(keycloakId)) {
+                return response.getStatusInfo().getFamily() == Response.Status.Family.SUCCESSFUL;
+            }
+        } catch (Exception e) {
+            LOG.warn("Could not remove unused Keycloak user {}", keycloakId, e);
+            return false;
+        }
+    }
+
+    /**
      * Asks Keycloak to email the invitation link. Returns false instead of throwing when that fails — most commonly
      * because the realm has no SMTP server configured. The account is already usable at this point, and letting the
      * whole request fail here would leave the member unpersisted while the Keycloak user exists.

@@ -5,7 +5,7 @@ export class LanguageService {
 
     public init() {
         const lang = localStorage.getItem(this.localStorageKey) || i18n.language;
-        i18n.changeLanguage(lang);
+        this.apply(lang);
     }
 
     public getLanguage() {
@@ -14,7 +14,13 @@ export class LanguageService {
 
     public setLanguage(lang: string) {
         localStorage.setItem(this.localStorageKey, lang);
+        this.apply(lang);
+    }
+
+    private apply(lang: string) {
         i18n.changeLanguage(lang);
+        // So screen readers read the page in that language (index.html starts out with "en").
+        document.documentElement.lang = lang;
     }
 }
 

@@ -2,6 +2,7 @@ import { Check, Pencil, X } from 'lucide-react';
 import { useState, type MouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useCanEditBookkeeping } from '@/hooks/queries/usePermissions';
 import { useCurrency } from '@/hooks/use-currency';
 import { cn } from '@/lib/utils';
 import { parseAllocationAmount } from '@/utils/parseAmount';
@@ -34,8 +35,18 @@ export function MatchAllocationControl({ amount, max, full = max, currency, pend
     const [editing, setEditing] = useState(false);
     const [text, setText] = useState('');
     const [error, setError] = useState(false);
+    const canEdit = useCanEditBookkeeping();
 
     const isPartial = amount < full - 0.005;
+
+    // Board members and auditors only see a partial amount, without the pencil to change it (issue #959).
+    if (!canEdit) {
+        return isPartial ? (
+            <span className="inline-flex flex-shrink-0 items-center rounded-full bg-[var(--warning-surface)] px-2.5 py-[5px] text-[12.5px] font-bold tabular-nums text-[var(--warning)]">
+                {t('transactions.detail.usedAmount', { amount: format(amount, { currency }) })}
+            </span>
+        ) : null;
+    }
 
     function start() {
         setText(amount.toFixed(2).replace('.', ','));

@@ -112,6 +112,55 @@ class SchemaDetectionServiceTest {
         }
     }
 
+    private static final List<String> COMMERZBANK_HEADERS = List.of(
+            "Buchungstag", "Wertstellung", "Umsatzart", "Buchungstext", "Betrag", "Währung", "IBAN Kontoinhaber",
+            "Kategorie", "Sender", "Empfänger", "Verwendungszweck");
+
+    @Test
+    void detectsCommerzbankForCommerzbankHeaders() {
+        List<String> headers = new ArrayList<>(COMMERZBANK_HEADERS);
+        headers.set(0, "﻿" + headers.get(0));
+
+        SchemaDetectionResult result = service.detect(headers);
+
+        assertEquals(SchemaDetectionResult.DetectionType.TEMPLATE, result.type());
+        assertEquals("commerzbank-csv", result.templateId());
+    }
+
+    @Test
+    void detectsCommerzbankForHeadersEndingAfterKategorie() {
+        SchemaDetectionResult result = service.detect(COMMERZBANK_HEADERS.subList(0, 8));
+
+        assertEquals("commerzbank-csv", result.templateId());
+    }
+
+    @Test
+    void commerzbankTemplateMapsColumnsToTheRightHeaders() {
+        var template = new SystemTemplateService().requireById("commerzbank-csv");
+
+        Map<BankFieldType, String> expected = Map.of(
+                BankFieldType.BOOKING_DATE, "Buchungstag",
+                BankFieldType.VALUE_DATE, "Wertstellung",
+                BankFieldType.TRANSACTION_TYPE, "Umsatzart",
+                BankFieldType.AMOUNT, "Betrag",
+                BankFieldType.CURRENCY, "Währung",
+                BankFieldType.COUNTERPARTY_NAME, "Empfänger",
+                BankFieldType.PURPOSE, "Verwendungszweck");
+        Map<BankFieldType, String> expectedFallback = Map.of(
+                BankFieldType.COUNTERPARTY_NAME, "Sender",
+                BankFieldType.PURPOSE, "Buchungstext");
+
+        assertEquals(expected.size(), template.columnMappings().size());
+        for (var mapping : template.columnMappings()) {
+            assertEquals(expected.get(mapping.targetField()), COMMERZBANK_HEADERS.get(mapping.sourceColumnIndex()),
+                    "wrong column index for " + mapping.targetField());
+            Integer fallback = SystemTemplateService.fallbackColumn(mapping.transform());
+            assertEquals(expectedFallback.get(mapping.targetField()),
+                    fallback == null ? null : COMMERZBANK_HEADERS.get(fallback),
+                    "wrong fallback column for " + mapping.targetField());
+        }
+    }
+
     @Test
     void returnsNoneForUnrelatedHeaders() {
         SchemaDetectionResult result = service.detect(List.of("foo", "bar", "baz"));

@@ -74,6 +74,7 @@ import {
     getDocumentReviewStatus,
     documentKeys,
 } from '@/hooks/queries/useDocuments';
+import { useCanEditBookkeeping } from '@/hooks/queries/usePermissions';
 import { transactionKeys, usePrefetchTransaction, useTransaction, useUpdateTransaction, useConfirmTransaction } from '@/hooks/queries/useTransactions';
 import { useCurrency } from '@/hooks/use-currency';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -282,6 +283,8 @@ export function ReviewDrawer({
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const confirmMutation = useConfirmDocument();
+    // Board members and auditors only look: the form is read-only and the footer actions are gone (issue #959).
+    const readOnly = !useCanEditBookkeeping();
     const updateMutation = useUpdateDocument();
     const deleteMutation = useDeleteDocument();
     const reanalyzeMutation = useReanalyzeDocument();
@@ -973,586 +976,603 @@ export function ReviewDrawer({
                                 ))}
                             </div>
 
-                            {detailTab === 'transaction' && editingForm && (
-                                <div className="flex flex-col gap-4">
-                                    {/* What the analysis did, in one line; details in the tooltip. */}
-                                    {isAnalyzing && (
-                                        <AnalysisNotice
-                                            tone="neutral"
-                                            icon={<Loader2 size={15} className="animate-spin" />}
-                                            title={t('receipts.review.analyzing')}
-                                            hint={t('receipts.review.analyzingHint')}
-                                        />
-                                    )}
-                                    {status === 'ready' && (
-                                        <AnalysisNotice
-                                            tone="warn"
-                                            icon={<Sparkles size={15} />}
-                                            title={t('receipts.review.completed')}
-                                            hint={t('receipts.review.completedHint')}
-                                        />
-                                    )}
-                                    {(status === 'failed' || status === 'skipped') && (
-                                        <AnalysisNotice
-                                            tone="info"
-                                            icon={<PencilLine size={15} />}
-                                            title={
-                                                status === 'skipped'
-                                                    ? t('receipts.status.failed')
-                                                    : serviceUnavailable
-                                                      ? t('receipts.review.serviceUnavailableTitle')
-                                                      : t('receipts.review.failedTitle')
-                                            }
-                                            hint={
-                                                status === 'skipped'
-                                                    ? t('receipts.status.hint.skipped')
-                                                    : serviceUnavailable
-                                                      ? t('receipts.review.serviceUnavailableHint')
-                                                      : doc.analysisError || t('receipts.review.failedHint')
-                                            }
-                                        />
-                                    )}
-                                    {amountDeviates ? (
-                                        <div
-                                            role="note"
-                                            className="flex flex-col gap-2 rounded-[12px] px-3.5 py-2.5 text-[13px] leading-snug"
-                                            style={{ background: 'var(--warning-surface)', color: 'var(--warning)' }}
-                                        >
-                                            <span className="flex items-start gap-2.5">
-                                                <AlertTriangle size={15} className="mt-0.5 flex-shrink-0" />
-                                                <span className="font-semibold">
-                                                    {t('receipts.review.amountDeviates', {
-                                                        transaction: format(Math.abs(formAmount)),
-                                                        receipt: format(receiptTotal ?? 0),
-                                                    })}
-                                                </span>
-                                            </span>
-                                            <button
-                                                type="button"
-                                                onClick={() => setAmount(String(receiptTotal))}
-                                                className="ml-[25px] self-start text-[13px] font-bold underline underline-offset-2 hover:opacity-80"
-                                            >
-                                                {t('receipts.review.useReceiptAmount', { amount: format(receiptTotal ?? 0) })}
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        isBankReconcile &&
-                                        !splitting && (
+                            <fieldset disabled={readOnly} className="m-0 min-w-0 border-0 p-0">
+                                {detailTab === 'transaction' && editingForm && (
+                                    <div className="flex flex-col gap-4">
+                                        {/* What the analysis did, in one line; details in the tooltip. */}
+                                        {isAnalyzing && (
                                             <AnalysisNotice
                                                 tone="neutral"
-                                                icon={<Link2 size={15} />}
-                                                title={t('receipts.review.bankReconcileTitle')}
-                                                hint={t('receipts.review.bankReconcileHint')}
+                                                icon={<Loader2 size={15} className="animate-spin" />}
+                                                title={t('receipts.review.analyzing')}
+                                                hint={t('receipts.review.analyzingHint')}
                                             />
-                                        )
-                                    )}
-
-                                    <DirectionCards
-                                        value={direction === 'OUTGOING' ? 'income' : 'expense'}
-                                        onChange={(id) => handleDirectionChange(id === 'income' ? 'OUTGOING' : 'INCOMING')}
-                                        labels={{ expense: t('receipts.direction.incoming'), income: t('receipts.direction.outgoing') }}
-                                        hints={{ expense: t('receipts.direction.incomingHint'), income: t('receipts.direction.outgoingHint') }}
-                                        ariaLabel={t('receipts.direction.label')}
-                                    />
-                                    <Field label={senderLabel}>
-                                        <DrawerInput value={senderName} onChange={setSenderName} loading={formLoading || (isAnalyzing && !senderName)} />
-                                    </Field>
-                                    <Field label={t('receipts.review.name')}>
-                                        <DrawerInput value={name} onChange={setName} loading={formLoading || (isAnalyzing && !name)} />
-                                    </Field>
-                                    <div className="grid grid-cols-2 gap-3.5">
-                                        <Field label={`${t('receipts.review.amount')} (${symbol})`}>
-                                            <div className="group/field contents">
-                                                <DrawerInput
-                                                    value={amount}
-                                                    onChange={setAmount}
-                                                    inputMode="decimal"
-                                                    loading={formLoading || (isAnalyzing && !amount)}
-                                                    warn={splitting && !splitEditor.hasTotal}
-                                                    error={amountInvalid}
-                                                />
-                                                {/* The split shares out this amount, so it is needed before parts can be created. */}
-                                                {amountInvalid && (
-                                                    <span className="text-[12px] font-semibold text-[var(--negative)]">
-                                                        {t('receipts.split.amountInvalid')}
+                                        )}
+                                        {status === 'ready' && (
+                                            <AnalysisNotice
+                                                tone="warn"
+                                                icon={<Sparkles size={15} />}
+                                                title={t('receipts.review.completed')}
+                                                hint={t('receipts.review.completedHint')}
+                                            />
+                                        )}
+                                        {(status === 'failed' || status === 'skipped') && (
+                                            <AnalysisNotice
+                                                tone="info"
+                                                icon={<PencilLine size={15} />}
+                                                title={
+                                                    status === 'skipped'
+                                                        ? t('receipts.status.failed')
+                                                        : serviceUnavailable
+                                                          ? t('receipts.review.serviceUnavailableTitle')
+                                                          : t('receipts.review.failedTitle')
+                                                }
+                                                hint={
+                                                    status === 'skipped'
+                                                        ? t('receipts.status.hint.skipped')
+                                                        : serviceUnavailable
+                                                          ? t('receipts.review.serviceUnavailableHint')
+                                                          : doc.analysisError || t('receipts.review.failedHint')
+                                                }
+                                            />
+                                        )}
+                                        {amountDeviates ? (
+                                            <div
+                                                role="note"
+                                                className="flex flex-col gap-2 rounded-[12px] px-3.5 py-2.5 text-[13px] leading-snug"
+                                                style={{ background: 'var(--warning-surface)', color: 'var(--warning)' }}
+                                            >
+                                                <span className="flex items-start gap-2.5">
+                                                    <AlertTriangle size={15} className="mt-0.5 flex-shrink-0" />
+                                                    <span className="font-semibold">
+                                                        {t('receipts.review.amountDeviates', {
+                                                            transaction: format(Math.abs(formAmount)),
+                                                            receipt: format(receiptTotal ?? 0),
+                                                        })}
                                                     </span>
-                                                )}
-                                                {!amountInvalid && splitting && !splitEditor.hasTotal && (
-                                                    <span className={cn('text-[12px] font-semibold text-[var(--warning)]', hideWhileEditingCls)}>
-                                                        {t('receipts.split.amountRequired')}
-                                                    </span>
-                                                )}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setAmount(String(receiptTotal))}
+                                                    className="ml-[25px] self-start text-[13px] font-bold underline underline-offset-2 hover:opacity-80"
+                                                >
+                                                    {t('receipts.review.useReceiptAmount', { amount: format(receiptTotal ?? 0) })}
+                                                </button>
                                             </div>
-                                        </Field>
-                                        <Field label={t('receipts.review.date')}>
-                                            <DrawerInput value={date} onChange={setDate} type="date" loading={formLoading || (isAnalyzing && !date)} />
-                                        </Field>
-                                    </div>
-                                    {/* Privately paid: a side option, kept quiet. */}
-                                    <div className="-mt-1 flex items-center gap-2.5 px-0.5">
-                                        <BaseSwitch id="receipt-privately-paid" checked={privatelyPaid} onCheckedChange={setPrivatelyPaid} />
-                                        <label htmlFor="receipt-privately-paid" className="cursor-pointer text-[12.5px] font-semibold text-muted-foreground">
-                                            {t('receipts.review.privatelyPaid')}
-                                        </label>
-                                    </div>
+                                        ) : (
+                                            isBankReconcile &&
+                                            !splitting && (
+                                                <AnalysisNotice
+                                                    tone="neutral"
+                                                    icon={<Link2 size={15} />}
+                                                    title={t('receipts.review.bankReconcileTitle')}
+                                                    hint={t('receipts.review.bankReconcileHint')}
+                                                />
+                                            )
+                                        )}
 
-                                    {/* Not saved as a split yet: down to one part it goes back to the single booking right away.
-                                        A saved split first has to drop the removed transactions, so that happens on save. */}
-                                    {splitting ? (
-                                        <SplitEditor
-                                            editor={splitEditor}
-                                            total={splitTotal}
-                                            onCancel={!isSplitDoc && !locked ? cancelSplit : undefined}
-                                            onSinglePart={!isSplitDoc && !locked ? leaveSplit : undefined}
+                                        <DirectionCards
+                                            value={direction === 'OUTGOING' ? 'income' : 'expense'}
+                                            onChange={(id) => handleDirectionChange(id === 'income' ? 'OUTGOING' : 'INCOMING')}
+                                            labels={{ expense: t('receipts.direction.incoming'), income: t('receipts.direction.outgoing') }}
+                                            hints={{ expense: t('receipts.direction.incomingHint'), income: t('receipts.direction.outgoingHint') }}
+                                            ariaLabel={t('receipts.direction.label')}
                                         />
-                                    ) : (
-                                        <>
-                                            {/* Where the amount belongs: the bommel and, right below it, the category groups that apply
+                                        <Field label={senderLabel}>
+                                            <DrawerInput value={senderName} onChange={setSenderName} loading={formLoading || (isAnalyzing && !senderName)} />
+                                        </Field>
+                                        <Field label={t('receipts.review.name')}>
+                                            <DrawerInput value={name} onChange={setName} loading={formLoading || (isAnalyzing && !name)} />
+                                        </Field>
+                                        <div className="grid grid-cols-2 gap-3.5">
+                                            <Field label={`${t('receipts.review.amount')} (${symbol})`}>
+                                                <div className="group/field contents">
+                                                    <DrawerInput
+                                                        value={amount}
+                                                        onChange={setAmount}
+                                                        inputMode="decimal"
+                                                        loading={formLoading || (isAnalyzing && !amount)}
+                                                        warn={splitting && !splitEditor.hasTotal}
+                                                        error={amountInvalid}
+                                                    />
+                                                    {/* The split shares out this amount, so it is needed before parts can be created. */}
+                                                    {amountInvalid && (
+                                                        <span className="text-[12px] font-semibold text-[var(--negative)]">
+                                                            {t('receipts.split.amountInvalid')}
+                                                        </span>
+                                                    )}
+                                                    {!amountInvalid && splitting && !splitEditor.hasTotal && (
+                                                        <span className={cn('text-[12px] font-semibold text-[var(--warning)]', hideWhileEditingCls)}>
+                                                            {t('receipts.split.amountRequired')}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </Field>
+                                            <Field label={t('receipts.review.date')}>
+                                                <DrawerInput value={date} onChange={setDate} type="date" loading={formLoading || (isAnalyzing && !date)} />
+                                            </Field>
+                                        </div>
+                                        {/* Privately paid: a side option, kept quiet. */}
+                                        <div className="-mt-1 flex items-center gap-2.5 px-0.5">
+                                            <BaseSwitch id="receipt-privately-paid" checked={privatelyPaid} onCheckedChange={setPrivatelyPaid} />
+                                            <label
+                                                htmlFor="receipt-privately-paid"
+                                                className="cursor-pointer text-[12.5px] font-semibold text-muted-foreground"
+                                            >
+                                                {t('receipts.review.privatelyPaid')}
+                                            </label>
+                                        </div>
+
+                                        {/* Not saved as a split yet: down to one part it goes back to the single booking right away.
+                                        A saved split first has to drop the removed transactions, so that happens on save. */}
+                                        {splitting ? (
+                                            <SplitEditor
+                                                editor={splitEditor}
+                                                total={splitTotal}
+                                                onCancel={!isSplitDoc && !locked ? cancelSplit : undefined}
+                                                onSinglePart={!isSplitDoc && !locked ? leaveSplit : undefined}
+                                            />
+                                        ) : (
+                                            <>
+                                                {/* Where the amount belongs: the bommel and, right below it, the category groups that apply
                                                 to it (filtered by the chosen bommel). Required groups must be filled before the receipt
                                                 can be confirmed. For a receipt without transaction the values are sent along when it
                                                 is confirmed. */}
-                                            <div className="flex flex-col gap-2.5 border-t border-border-soft pt-4">
-                                                <Eyebrow icon={<Tag size={14} />}>{t('receipts.review.assignment')}</Eyebrow>
-                                                <div className="flex flex-col gap-3.5">
-                                                    <BommelSelect
-                                                        items={bommelItems}
-                                                        value={bommelId ? Number(bommelId) : ALL_BOMMELS}
-                                                        emptyLabel={t('invoiceUpload.selectBommel')}
-                                                        onChange={(next) => {
-                                                            const id = next === ALL_BOMMELS ? null : Number(next);
-                                                            // Remember the choice for the next receipt, like the upload form does.
-                                                            cacheBommelChoice(id);
-                                                            setBommelId(id ? String(id) : '');
-                                                        }}
-                                                        triggerClassName={cn(
-                                                            'sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none',
-                                                            pickerFocusCls
-                                                        )}
-                                                        matchTriggerWidth
-                                                    />
-                                                    <CategoryGroupFields
-                                                        inline
-                                                        bommelId={bommelId ? Number(bommelId) : null}
-                                                        values={categoryValues}
-                                                        onChange={(groupId, value) => {
-                                                            setCategoryValues((prev) => {
-                                                                const next = { ...prev };
-                                                                if (value == null || value === '') delete next[groupId];
-                                                                else next[groupId] = value;
-                                                                return next;
-                                                            });
-                                                        }}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            {/* Several bommels/categories on one receipt: the split takes the place of the fields above.
-                                                Not while editing a confirmed receipt; its read view offers "Weitere Transaktion hinzufügen". */}
-                                            {!editingReceipt && (
-                                                <button
-                                                    type="button"
-                                                    onClick={startSplit}
-                                                    disabled={busy}
-                                                    className="inline-flex items-center gap-1.5 self-start text-[13px] font-bold text-purple-700 transition-colors hover:text-purple-900 disabled:opacity-50"
-                                                >
-                                                    <Plus size={15} />
-                                                    {t('receipts.split.link')}
-                                                </button>
-                                            )}
-                                        </>
-                                    )}
-
-                                    {/* Bank matching. Needs a transaction; a privately paid receipt has no bank movement. */}
-                                    {!privatelyPaid &&
-                                        (isBankReconcile && !splitting && linkedTx ? (
-                                            <BankMatchSection tx={linkedTx} className="mt-2 border-t border-border-soft pt-6" />
-                                        ) : (
-                                            <div className="mt-2 border-t border-border-soft pt-6">
-                                                <Eyebrow icon={<Link2 size={14} />} className="mb-[11px]">
-                                                    {t('receipts.review.paymentMatching')}
-                                                </Eyebrow>
-                                                <div
-                                                    className="flex items-start gap-3 rounded-[var(--r-card)] border px-4 py-3.5"
-                                                    style={{
-                                                        background: 'var(--info-surface)',
-                                                        borderColor: 'color-mix(in oklch, var(--info) 25%, transparent)',
-                                                    }}
-                                                >
-                                                    <Info size={18} className="mt-px flex-shrink-0 text-[var(--info)]" />
-                                                    <p className="text-[13.5px] font-semibold leading-snug text-[var(--info)]">
-                                                        {splitting ? t('receipts.split.linkLater') : t('receipts.review.linkAfterCreate')}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                </div>
-                            )}
-
-                            {detailTab === 'transaction' && locked && !splitting && !editingReceipt && (
-                                <div className="flex flex-col gap-6">
-                                    {/* Head: direction tile, name, upload date */}
-                                    <div className="flex items-center gap-3.5">
-                                        <TxIcon size={44} incoming={docIncome} />
-                                        <div className="min-w-0">
-                                            <div className="truncate text-[16px] font-extrabold text-foreground">
-                                                {doc.name || doc.senderName || doc.fileName}
-                                            </div>
-                                            <div className="mt-0.5 text-[12.5px] text-muted-foreground tabular-nums">
-                                                {t('receipts.review.uploadedOn', { date: fmtDate(doc.createdAt) })}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <Eyebrow className="mb-[11px]">{t('receipts.review.masterData')}</Eyebrow>
-                                        <InfoRows rows={masterRows} />
-                                    </div>
-
-                                    {isSplitDoc ? (
-                                        savedParts && savedParts.length > 1 ? (
-                                            <SplitTransactionsView parts={savedParts} receiptTotal={docAmount ?? 0} />
-                                        ) : (
-                                            <LoadingState className="py-4" />
-                                        )
-                                    ) : (
-                                        <>
-                                            {/* The transaction created from this receipt */}
-                                            <div>
-                                                <Eyebrow icon={<Coins size={14} />} className="mb-[11px]">
-                                                    {t('receipts.review.createdTransaction')}
-                                                </Eyebrow>
-                                                {linkedTx ? (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => navigate(`/transactions?id=${linkedTx.id}`)}
-                                                        className="flex w-full items-center gap-[13px] rounded-[var(--r-card)] px-4 py-3.5 text-left transition-shadow hover:ring-1 hover:ring-purple-300"
-                                                        style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-md)' }}
-                                                    >
-                                                        <TxIcon size={40} incoming={Number(linkedTx.total ?? 0) >= 0} />
-                                                        <span className="min-w-0 flex-1">
-                                                            <span className="flex items-center gap-2">
-                                                                <span className="truncate text-[14.5px] font-extrabold text-foreground">
-                                                                    {linkedTx.name || '—'}
-                                                                </span>
-                                                                <TxStatusBadge tx={linkedTx} />
-                                                            </span>
-                                                            <span className="mt-0.5 block truncate text-[12.5px] text-muted-foreground">
-                                                                {[linkedTx.senderName, fmtDate(linkedTx.transactionTime)].filter(Boolean).join(' · ')}
-                                                            </span>
-                                                        </span>
-                                                        <span
-                                                            className="flex-shrink-0 text-[15px] font-extrabold tabular-nums"
-                                                            style={{ color: Number(linkedTx.total ?? 0) >= 0 ? 'var(--positive)' : 'var(--foreground)' }}
-                                                        >
-                                                            {Number(linkedTx.total ?? 0) >= 0 ? '+ ' : '– '}
-                                                            {format(Math.abs(Number(linkedTx.total ?? 0)))}
-                                                        </span>
-                                                        <ChevronRight size={17} className="flex-shrink-0 text-[var(--ink-faint)]" />
-                                                    </button>
-                                                ) : hasLinkedTransaction ? (
-                                                    <LoadingState className="py-4" />
-                                                ) : (
-                                                    <div
-                                                        className="rounded-[var(--r-card)] px-4 py-3.5 text-[13.5px] text-muted-foreground"
-                                                        style={{ background: 'var(--surface-sunken)' }}
-                                                    >
-                                                        {t('receipts.review.noTransaction')}
+                                                <div className="flex flex-col gap-2.5 border-t border-border-soft pt-4">
+                                                    <Eyebrow icon={<Tag size={14} />}>{t('receipts.review.assignment')}</Eyebrow>
+                                                    <div className="flex flex-col gap-3.5">
+                                                        <BommelSelect
+                                                            items={bommelItems}
+                                                            value={bommelId ? Number(bommelId) : ALL_BOMMELS}
+                                                            emptyLabel={t('invoiceUpload.selectBommel')}
+                                                            onChange={(next) => {
+                                                                const id = next === ALL_BOMMELS ? null : Number(next);
+                                                                // Remember the choice for the next receipt, like the upload form does.
+                                                                cacheBommelChoice(id);
+                                                                setBommelId(id ? String(id) : '');
+                                                            }}
+                                                            triggerClassName={cn(
+                                                                'sm:w-full rounded-xl border-border-soft shadow-none hover:shadow-none',
+                                                                pickerFocusCls
+                                                            )}
+                                                            matchTriggerWidth
+                                                        />
+                                                        <CategoryGroupFields
+                                                            inline
+                                                            bommelId={bommelId ? Number(bommelId) : null}
+                                                            values={categoryValues}
+                                                            onChange={(groupId, value) => {
+                                                                setCategoryValues((prev) => {
+                                                                    const next = { ...prev };
+                                                                    if (value == null || value === '') delete next[groupId];
+                                                                    else next[groupId] = value;
+                                                                    return next;
+                                                                });
+                                                            }}
+                                                        />
                                                     </div>
-                                                )}
-                                            </div>
+                                                </div>
 
-                                            {/* More transactions from this receipt: the form opens the split with this one as the first part.
-                                                Like re-splitting, only while the transaction is not confirmed yet. */}
-                                            {linkedTx && (
-                                                <HintTooltip
-                                                    className="-mt-3 self-start"
-                                                    content={linkedTx.status === 'CONFIRMED' ? t('receipts.split.addTransactionLocked') : null}
-                                                >
+                                                {/* Several bommels/categories on one receipt: the split takes the place of the fields above.
+                                                Not while editing a confirmed receipt; its read view offers "Weitere Transaktion hinzufügen". */}
+                                                {!editingReceipt && (
                                                     <button
                                                         type="button"
                                                         onClick={startSplit}
-                                                        disabled={linkedTx.status === 'CONFIRMED'}
-                                                        className="inline-flex items-center gap-1.5 text-[13px] font-bold text-purple-700 transition-colors hover:text-purple-900 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        disabled={busy}
+                                                        className="inline-flex items-center gap-1.5 self-start text-[13px] font-bold text-purple-700 transition-colors hover:text-purple-900 disabled:opacity-50"
                                                     >
                                                         <Plus size={15} />
-                                                        {t('receipts.split.addTransaction')}
+                                                        {t('receipts.split.link')}
                                                     </button>
-                                                </HintTooltip>
-                                            )}
+                                                )}
+                                            </>
+                                        )}
 
-                                            {/* Bank matching of the transaction; editable while it is not confirmed. */}
-                                            {linkedTx && !linkedTx.privatelyPaid && <BankMatchSection tx={linkedTx} className="" />}
-                                        </>
-                                    )}
-                                </div>
-                            )}
-
-                            {detailTab === 'receipt' && (
-                                <div className="flex flex-col gap-6">
-                                    <div>
-                                        <Eyebrow icon={<FileText size={14} />} className="mb-[11px]">
-                                            {t('receipts.review.fileInfo')}
-                                        </Eyebrow>
-                                        <InfoRows rows={fileRows} />
-                                    </div>
-
-                                    {/* Values the analysis read from the file; while editing they can be applied field by field. Only
-                                        shown while the analysis runs or when it actually recognized values. */}
-                                    {(isAnalyzing || hasScannedValues) && (
-                                        <div>
-                                            <Eyebrow icon={<Sparkles size={14} />} className="mb-[11px]">
-                                                {t('receipts.review.extractedValues')}
-                                            </Eyebrow>
-                                            {isAnalyzing && !receiptHasData ? (
-                                                <div className="flex items-center gap-2.5 py-4 text-[13px] text-muted-foreground">
-                                                    <Loader2 size={16} className="animate-spin text-purple-700" />
-                                                    {t('receipts.review.analyzing')}
+                                        {/* Bank matching. Needs a transaction; a privately paid receipt has no bank movement. */}
+                                        {!privatelyPaid &&
+                                            (isBankReconcile && !splitting && linkedTx ? (
+                                                <BankMatchSection tx={linkedTx} className="mt-2 border-t border-border-soft pt-6" />
+                                            ) : (
+                                                <div className="mt-2 border-t border-border-soft pt-6">
+                                                    <Eyebrow icon={<Link2 size={14} />} className="mb-[11px]">
+                                                        {t('receipts.review.paymentMatching')}
+                                                    </Eyebrow>
+                                                    <div
+                                                        className="flex items-start gap-3 rounded-[var(--r-card)] border px-4 py-3.5"
+                                                        style={{
+                                                            background: 'var(--info-surface)',
+                                                            borderColor: 'color-mix(in oklch, var(--info) 25%, transparent)',
+                                                        }}
+                                                    >
+                                                        <Info size={18} className="mt-px flex-shrink-0 text-[var(--info)]" />
+                                                        <p className="text-[13.5px] font-semibold leading-snug text-[var(--info)]">
+                                                            {splitting ? t('receipts.split.linkLater') : t('receipts.review.linkAfterCreate')}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                            ) : hasScannedValues ? (
-                                                <InfoRows
-                                                    rows={(
-                                                        [
-                                                            [t('receipts.review.name'), aiName, !!aiName && aiName !== name, () => setName(aiName!)],
-                                                            [
-                                                                `${t('receipts.review.amount')} (${symbol})`,
-                                                                aiAmount ? format(aiTotal) : undefined,
-                                                                !!aiAmount && aiTotal !== parseAllocationAmount(amount),
-                                                                () => setAmount(aiAmount!),
-                                                            ],
-                                                            [
-                                                                t('receipts.review.date'),
-                                                                aiDate ? fmtDate(aiDate) : undefined,
-                                                                !!aiDate && aiDate !== date,
-                                                                () => setDate(aiDate!),
-                                                            ],
-                                                            [
-                                                                senderLabel,
-                                                                aiCounterparty,
-                                                                !!aiCounterparty && aiCounterparty !== senderName,
-                                                                () => setSenderName(aiCounterparty!),
-                                                            ],
-                                                        ] as [string, string | undefined, boolean, () => void][]
-                                                    ).map(([label, value, differs, apply]): [string, React.ReactNode] => [
-                                                        label,
-                                                        <span key={label} className="inline-flex items-center gap-3">
-                                                            <span>{value || '—'}</span>
-                                                            {!locked && differs && (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => {
-                                                                        apply();
-                                                                    }}
-                                                                    className="text-[12.5px] font-bold text-purple-700 hover:text-purple-900"
-                                                                >
-                                                                    {t('receipts.review.applySuggestion')}
-                                                                </button>
-                                                            )}
-                                                        </span>,
-                                                    ])}
-                                                />
-                                            ) : null}
+                                            ))}
+                                    </div>
+                                )}
+
+                                {detailTab === 'transaction' && locked && !splitting && !editingReceipt && (
+                                    <div className="flex flex-col gap-6">
+                                        {/* Head: direction tile, name, upload date */}
+                                        <div className="flex items-center gap-3.5">
+                                            <TxIcon size={44} incoming={docIncome} />
+                                            <div className="min-w-0">
+                                                <div className="truncate text-[16px] font-extrabold text-foreground">
+                                                    {doc.name || doc.senderName || doc.fileName}
+                                                </div>
+                                                <div className="mt-0.5 text-[12.5px] text-muted-foreground tabular-nums">
+                                                    {t('receipts.review.uploadedOn', { date: fmtDate(doc.createdAt) })}
+                                                </div>
+                                            </div>
                                         </div>
-                                    )}
-                                </div>
-                            )}
+
+                                        <div>
+                                            <Eyebrow className="mb-[11px]">{t('receipts.review.masterData')}</Eyebrow>
+                                            <InfoRows rows={masterRows} />
+                                        </div>
+
+                                        {isSplitDoc ? (
+                                            savedParts && savedParts.length > 1 ? (
+                                                <SplitTransactionsView parts={savedParts} receiptTotal={docAmount ?? 0} />
+                                            ) : (
+                                                <LoadingState className="py-4" />
+                                            )
+                                        ) : (
+                                            <>
+                                                {/* The transaction created from this receipt */}
+                                                <div>
+                                                    <Eyebrow icon={<Coins size={14} />} className="mb-[11px]">
+                                                        {t('receipts.review.createdTransaction')}
+                                                    </Eyebrow>
+                                                    {linkedTx ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => navigate(`/transactions?id=${linkedTx.id}`)}
+                                                            className="flex w-full items-center gap-[13px] rounded-[var(--r-card)] px-4 py-3.5 text-left transition-shadow hover:ring-1 hover:ring-purple-300"
+                                                            style={{ background: 'var(--background-secondary)', boxShadow: 'var(--shadow-md)' }}
+                                                        >
+                                                            <TxIcon size={40} incoming={Number(linkedTx.total ?? 0) >= 0} />
+                                                            <span className="min-w-0 flex-1">
+                                                                <span className="flex items-center gap-2">
+                                                                    <span className="truncate text-[14.5px] font-extrabold text-foreground">
+                                                                        {linkedTx.name || '—'}
+                                                                    </span>
+                                                                    <TxStatusBadge tx={linkedTx} />
+                                                                </span>
+                                                                <span className="mt-0.5 block truncate text-[12.5px] text-muted-foreground">
+                                                                    {[linkedTx.senderName, fmtDate(linkedTx.transactionTime)].filter(Boolean).join(' · ')}
+                                                                </span>
+                                                            </span>
+                                                            <span
+                                                                className="flex-shrink-0 text-[15px] font-extrabold tabular-nums"
+                                                                style={{ color: Number(linkedTx.total ?? 0) >= 0 ? 'var(--positive)' : 'var(--foreground)' }}
+                                                            >
+                                                                {Number(linkedTx.total ?? 0) >= 0 ? '+ ' : '– '}
+                                                                {format(Math.abs(Number(linkedTx.total ?? 0)))}
+                                                            </span>
+                                                            <ChevronRight size={17} className="flex-shrink-0 text-[var(--ink-faint)]" />
+                                                        </button>
+                                                    ) : hasLinkedTransaction ? (
+                                                        <LoadingState className="py-4" />
+                                                    ) : (
+                                                        <div
+                                                            className="rounded-[var(--r-card)] px-4 py-3.5 text-[13.5px] text-muted-foreground"
+                                                            style={{ background: 'var(--surface-sunken)' }}
+                                                        >
+                                                            {t('receipts.review.noTransaction')}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* More transactions from this receipt: the form opens the split with this one as the first part.
+                                                Like re-splitting, only while the transaction is not confirmed yet. */}
+                                                {linkedTx && (
+                                                    <HintTooltip
+                                                        className="-mt-3 self-start"
+                                                        content={linkedTx.status === 'CONFIRMED' ? t('receipts.split.addTransactionLocked') : null}
+                                                    >
+                                                        <button
+                                                            type="button"
+                                                            onClick={startSplit}
+                                                            disabled={linkedTx.status === 'CONFIRMED'}
+                                                            className="inline-flex items-center gap-1.5 text-[13px] font-bold text-purple-700 transition-colors hover:text-purple-900 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        >
+                                                            <Plus size={15} />
+                                                            {t('receipts.split.addTransaction')}
+                                                        </button>
+                                                    </HintTooltip>
+                                                )}
+
+                                                {/* Bank matching of the transaction; editable while it is not confirmed. */}
+                                                {linkedTx && !linkedTx.privatelyPaid && <BankMatchSection tx={linkedTx} className="" />}
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+
+                                {detailTab === 'receipt' && (
+                                    <div className="flex flex-col gap-6">
+                                        <div>
+                                            <Eyebrow icon={<FileText size={14} />} className="mb-[11px]">
+                                                {t('receipts.review.fileInfo')}
+                                            </Eyebrow>
+                                            <InfoRows rows={fileRows} />
+                                        </div>
+
+                                        {/* Values the analysis read from the file; while editing they can be applied field by field. Only
+                                        shown while the analysis runs or when it actually recognized values. */}
+                                        {(isAnalyzing || hasScannedValues) && (
+                                            <div>
+                                                <Eyebrow icon={<Sparkles size={14} />} className="mb-[11px]">
+                                                    {t('receipts.review.extractedValues')}
+                                                </Eyebrow>
+                                                {isAnalyzing && !receiptHasData ? (
+                                                    <div className="flex items-center gap-2.5 py-4 text-[13px] text-muted-foreground">
+                                                        <Loader2 size={16} className="animate-spin text-purple-700" />
+                                                        {t('receipts.review.analyzing')}
+                                                    </div>
+                                                ) : hasScannedValues ? (
+                                                    <InfoRows
+                                                        rows={(
+                                                            [
+                                                                [t('receipts.review.name'), aiName, !!aiName && aiName !== name, () => setName(aiName!)],
+                                                                [
+                                                                    `${t('receipts.review.amount')} (${symbol})`,
+                                                                    aiAmount ? format(aiTotal) : undefined,
+                                                                    !!aiAmount && aiTotal !== parseAllocationAmount(amount),
+                                                                    () => setAmount(aiAmount!),
+                                                                ],
+                                                                [
+                                                                    t('receipts.review.date'),
+                                                                    aiDate ? fmtDate(aiDate) : undefined,
+                                                                    !!aiDate && aiDate !== date,
+                                                                    () => setDate(aiDate!),
+                                                                ],
+                                                                [
+                                                                    senderLabel,
+                                                                    aiCounterparty,
+                                                                    !!aiCounterparty && aiCounterparty !== senderName,
+                                                                    () => setSenderName(aiCounterparty!),
+                                                                ],
+                                                            ] as [string, string | undefined, boolean, () => void][]
+                                                        ).map(([label, value, differs, apply]): [string, React.ReactNode] => [
+                                                            label,
+                                                            <span key={label} className="inline-flex items-center gap-3">
+                                                                <span>{value || '—'}</span>
+                                                                {!locked && differs && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            apply();
+                                                                        }}
+                                                                        className="text-[12.5px] font-bold text-purple-700 hover:text-purple-900"
+                                                                    >
+                                                                        {t('receipts.review.applySuggestion')}
+                                                                    </button>
+                                                                )}
+                                                            </span>,
+                                                        ])}
+                                                    />
+                                                ) : null}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </fieldset>
                         </div>
 
                         {/* Footer */}
-                        <div className="flex items-center gap-2.5 border-t border-border-soft px-6 py-4" style={{ background: 'var(--drawer-bg)' }}>
-                            <BaseButton
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setConfirmDeleteOpen(true)}
-                                disabled={deleteMutation.isPending}
-                                aria-label={t('receipts.review.delete')}
-                                title={t('receipts.review.delete')}
-                                className="h-[42px] w-[42px] text-[var(--negative)] hover:bg-[var(--negative-surface)] hover:text-[var(--negative)]"
-                            >
-                                <Trash2 />
-                            </BaseButton>
-                            {canReanalyze && (
+                        {!readOnly && (
+                            <div className="flex items-center gap-2.5 border-t border-border-soft px-6 py-4" style={{ background: 'var(--drawer-bg)' }}>
                                 <BaseButton
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() =>
-                                        doc.id && reanalyzeMutation.mutate(doc.id, { onSuccess: () => showInfo(t('receipts.toast.reanalyzeStarted')) })
-                                    }
-                                    disabled={reanalyzeMutation.isPending}
-                                    aria-label={t('receipts.review.reanalyze')}
-                                    title={t('receipts.review.reanalyze')}
-                                    className="h-[42px] w-[42px] text-muted-foreground hover:bg-[var(--surface-sunken)] hover:text-foreground"
+                                    onClick={() => setConfirmDeleteOpen(true)}
+                                    disabled={deleteMutation.isPending}
+                                    aria-label={t('receipts.review.delete')}
+                                    title={t('receipts.review.delete')}
+                                    className="h-[42px] w-[42px] text-[var(--negative)] hover:bg-[var(--negative-surface)] hover:text-[var(--negative)]"
                                 >
-                                    <RefreshCw className={reanalyzeMutation.isPending ? 'animate-spin' : ''} />
+                                    <Trash2 />
                                 </BaseButton>
-                            )}
-                            <div className="flex-1" />
-                            {splitting ? (
-                                <>
-                                    {locked && (
-                                        <BaseButton variant="ghost" onClick={cancelSplit} disabled={busy} className={cn(footerBtn, 'text-muted-foreground')}>
-                                            {t('common.cancel')}
-                                        </BaseButton>
-                                    )}
-                                    {/* A draft keeps the receipt in review; on a confirmed receipt it takes the confirmation back,
-                                        so the tooltip says so. */}
-                                    <HintTooltip content={locked ? t('receipts.split.saveDraftReopenHint') : t('receipts.split.saveDraftHint')}>
-                                        <BaseButton
-                                            variant="tonal"
-                                            onClick={() => saveSplit(false)}
-                                            disabled={busy || amountInvalid || splitAmountInvalid}
-                                            className={footerBtn}
-                                        >
-                                            {replaceParts.isPending ? '…' : t('receipts.review.save')}
-                                        </BaseButton>
-                                    </HintTooltip>
-                                    <HintTooltip
-                                        className={splitEditor.blocked ? 'cursor-not-allowed' : undefined}
-                                        onMouseEnter={splitEditor.blocked ? splitEditor.markAttempted : undefined}
-                                        content={
-                                            splitEditor.blocked ? (
-                                                <>
-                                                    <span className="font-bold">{t('receipts.split.incomplete')}</span>
-                                                    {splitEditor.reasons.map((r) => (
-                                                        <span key={r} className="mt-0.5 block tabular-nums">
-                                                            {r}
-                                                        </span>
-                                                    ))}
-                                                </>
-                                            ) : (
-                                                t('receipts.split.confirmHint')
-                                            )
+                                {canReanalyze && (
+                                    <BaseButton
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() =>
+                                            doc.id && reanalyzeMutation.mutate(doc.id, { onSuccess: () => showInfo(t('receipts.toast.reanalyzeStarted')) })
                                         }
+                                        disabled={reanalyzeMutation.isPending}
+                                        aria-label={t('receipts.review.reanalyze')}
+                                        title={t('receipts.review.reanalyze')}
+                                        className="h-[42px] w-[42px] text-muted-foreground hover:bg-[var(--surface-sunken)] hover:text-foreground"
                                     >
-                                        <BaseButton
-                                            variant="default"
-                                            onClick={() => saveSplit(true)}
-                                            disabled={busy || splitEditor.blocked || amountInvalid}
-                                            className={footerBtn}
-                                        >
-                                            <Check size={16} strokeWidth={2.5} />
-                                            {replaceParts.isPending ? '…' : splitConfirmLabel}
-                                        </BaseButton>
-                                    </HintTooltip>
-                                </>
-                            ) : editingReceipt ? (
-                                <>
-                                    <BaseButton variant="ghost" onClick={cancelEditReceipt} disabled={busy} className={cn(footerBtn, 'text-muted-foreground')}>
-                                        {t('common.cancel')}
+                                        <RefreshCw className={reanalyzeMutation.isPending ? 'animate-spin' : ''} />
                                     </BaseButton>
-                                    <HintTooltip
-                                        content={
-                                            formMissingGroups.length > 0 ? (
-                                                <>
-                                                    <span className="font-bold">{t('transactions.confirmBlockers.title')}</span>
-                                                    <span className="mt-0.5 block">{formMissingGroups.map((g) => g.name).join(', ')}</span>
-                                                </>
-                                            ) : null
-                                        }
-                                    >
-                                        <BaseButton
-                                            variant="default"
-                                            onClick={saveEditReceipt}
-                                            disabled={busy || formMissingGroups.length > 0 || amountInvalid}
-                                            className={footerBtn}
-                                        >
-                                            <Check size={16} strokeWidth={2.5} />
-                                            {updateMutation.isPending || updateTransaction.isPending ? '…' : t('receipts.review.save')}
-                                        </BaseButton>
-                                    </HintTooltip>
-                                </>
-                            ) : locked ? (
-                                <>
-                                    {!isSplitDoc && linkedTx?.status === 'DRAFT' && (
-                                        <BaseButton
-                                            variant="tonal"
-                                            onClick={startEditReceipt}
-                                            className={cn(footerBtn, 'animate-in fade-in slide-in-from-right-2 duration-300')}
-                                        >
-                                            <Pencil size={15} />
-                                            {t('receipts.review.editReceipt')}
-                                        </BaseButton>
-                                    )}
-                                    {isSplitDoc && (
-                                        <HintTooltip content={canEditSplit ? null : t('receipts.split.editSplitLocked')}>
+                                )}
+                                <div className="flex-1" />
+                                {splitting ? (
+                                    <>
+                                        {locked && (
+                                            <BaseButton
+                                                variant="ghost"
+                                                onClick={cancelSplit}
+                                                disabled={busy}
+                                                className={cn(footerBtn, 'text-muted-foreground')}
+                                            >
+                                                {t('common.cancel')}
+                                            </BaseButton>
+                                        )}
+                                        {/* A draft keeps the receipt in review; on a confirmed receipt it takes the confirmation back,
+                                        so the tooltip says so. */}
+                                        <HintTooltip content={locked ? t('receipts.split.saveDraftReopenHint') : t('receipts.split.saveDraftHint')}>
                                             <BaseButton
                                                 variant="tonal"
-                                                onClick={startSplit}
-                                                disabled={!canEditSplit}
+                                                onClick={() => saveSplit(false)}
+                                                disabled={busy || amountInvalid || splitAmountInvalid}
+                                                className={footerBtn}
+                                            >
+                                                {replaceParts.isPending ? '…' : t('receipts.review.save')}
+                                            </BaseButton>
+                                        </HintTooltip>
+                                        <HintTooltip
+                                            className={splitEditor.blocked ? 'cursor-not-allowed' : undefined}
+                                            onMouseEnter={splitEditor.blocked ? splitEditor.markAttempted : undefined}
+                                            content={
+                                                splitEditor.blocked ? (
+                                                    <>
+                                                        <span className="font-bold">{t('receipts.split.incomplete')}</span>
+                                                        {splitEditor.reasons.map((r) => (
+                                                            <span key={r} className="mt-0.5 block tabular-nums">
+                                                                {r}
+                                                            </span>
+                                                        ))}
+                                                    </>
+                                                ) : (
+                                                    t('receipts.split.confirmHint')
+                                                )
+                                            }
+                                        >
+                                            <BaseButton
+                                                variant="default"
+                                                onClick={() => saveSplit(true)}
+                                                disabled={busy || splitEditor.blocked || amountInvalid}
+                                                className={footerBtn}
+                                            >
+                                                <Check size={16} strokeWidth={2.5} />
+                                                {replaceParts.isPending ? '…' : splitConfirmLabel}
+                                            </BaseButton>
+                                        </HintTooltip>
+                                    </>
+                                ) : editingReceipt ? (
+                                    <>
+                                        <BaseButton
+                                            variant="ghost"
+                                            onClick={cancelEditReceipt}
+                                            disabled={busy}
+                                            className={cn(footerBtn, 'text-muted-foreground')}
+                                        >
+                                            {t('common.cancel')}
+                                        </BaseButton>
+                                        <HintTooltip
+                                            content={
+                                                formMissingGroups.length > 0 ? (
+                                                    <>
+                                                        <span className="font-bold">{t('transactions.confirmBlockers.title')}</span>
+                                                        <span className="mt-0.5 block">{formMissingGroups.map((g) => g.name).join(', ')}</span>
+                                                    </>
+                                                ) : null
+                                            }
+                                        >
+                                            <BaseButton
+                                                variant="default"
+                                                onClick={saveEditReceipt}
+                                                disabled={busy || formMissingGroups.length > 0 || amountInvalid}
+                                                className={footerBtn}
+                                            >
+                                                <Check size={16} strokeWidth={2.5} />
+                                                {updateMutation.isPending || updateTransaction.isPending ? '…' : t('receipts.review.save')}
+                                            </BaseButton>
+                                        </HintTooltip>
+                                    </>
+                                ) : locked ? (
+                                    <>
+                                        {!isSplitDoc && linkedTx?.status === 'DRAFT' && (
+                                            <BaseButton
+                                                variant="tonal"
+                                                onClick={startEditReceipt}
                                                 className={cn(footerBtn, 'animate-in fade-in slide-in-from-right-2 duration-300')}
                                             >
                                                 <Pencil size={15} />
-                                                {t('receipts.split.editSplit')}
+                                                {t('receipts.review.editReceipt')}
                                             </BaseButton>
-                                        </HintTooltip>
-                                    )}
-                                    {!isSplitDoc && linkedTx?.status === 'DRAFT' && (
-                                        <HintTooltip content={txConfirmBlockers}>
+                                        )}
+                                        {isSplitDoc && (
+                                            <HintTooltip content={canEditSplit ? null : t('receipts.split.editSplitLocked')}>
+                                                <BaseButton
+                                                    variant="tonal"
+                                                    onClick={startSplit}
+                                                    disabled={!canEditSplit}
+                                                    className={cn(footerBtn, 'animate-in fade-in slide-in-from-right-2 duration-300')}
+                                                >
+                                                    <Pencil size={15} />
+                                                    {t('receipts.split.editSplit')}
+                                                </BaseButton>
+                                            </HintTooltip>
+                                        )}
+                                        {!isSplitDoc && linkedTx?.status === 'DRAFT' && (
+                                            <HintTooltip content={txConfirmBlockers}>
+                                                <BaseButton
+                                                    variant="default"
+                                                    onClick={handleConfirmTransaction}
+                                                    disabled={confirmTransaction.isPending || !canConfirmTx}
+                                                    className={cn(footerBtn, 'animate-in fade-in slide-in-from-right-2 duration-300')}
+                                                >
+                                                    <Check size={16} strokeWidth={2.5} />
+                                                    {confirmTransaction.isPending ? '…' : t('receipts.review.confirmTransaction')}
+                                                </BaseButton>
+                                            </HintTooltip>
+                                        )}
+                                        {/* Everything is saved at this point; only once everything is booked; a draft transaction still has its own confirm button. */}
+                                        {receiptBooked && (
                                             <BaseButton
                                                 variant="default"
-                                                onClick={handleConfirmTransaction}
-                                                disabled={confirmTransaction.isPending || !canConfirmTx}
+                                                onClick={() => {
+                                                    if (nextDoc && onNext) {
+                                                        onNext(nextDoc);
+                                                    } else {
+                                                        showSuccess(t('receipts.toast.allDone'));
+                                                        onClose();
+                                                    }
+                                                }}
                                                 className={cn(footerBtn, 'animate-in fade-in slide-in-from-right-2 duration-300')}
                                             >
-                                                <Check size={16} strokeWidth={2.5} />
-                                                {confirmTransaction.isPending ? '…' : t('receipts.review.confirmTransaction')}
+                                                {nextDoc && onNext ? t('receipts.review.nextReceipt') : t('receipts.review.finish')}
+                                            </BaseButton>
+                                        )}
+                                    </>
+                                ) : (
+                                    <>
+                                        {/* Saving is a draft: the receipt stays in review until it is confirmed. */}
+                                        <HintTooltip content={t('receipts.review.saveDraftHint')}>
+                                            <BaseButton variant="tonal" onClick={handleSave} disabled={busy || amountInvalid} className={footerBtn}>
+                                                {(updateMutation.isPending || updateTransaction.isPending) && !confirmMutation.isPending
+                                                    ? '…'
+                                                    : t('receipts.review.save')}
                                             </BaseButton>
                                         </HintTooltip>
-                                    )}
-                                    {/* Everything is saved at this point; only once everything is booked; a draft transaction still has its own confirm button. */}
-                                    {receiptBooked && (
-                                        <BaseButton
-                                            variant="default"
-                                            onClick={() => {
-                                                if (nextDoc && onNext) {
-                                                    onNext(nextDoc);
-                                                } else {
-                                                    showSuccess(t('receipts.toast.allDone'));
-                                                    onClose();
-                                                }
-                                            }}
-                                            className={cn(footerBtn, 'animate-in fade-in slide-in-from-right-2 duration-300')}
+                                        <HintTooltip
+                                            content={
+                                                formMissingGroups.length > 0 ? (
+                                                    <>
+                                                        <span className="font-bold">{t('transactions.confirmBlockers.title')}</span>
+                                                        <span className="mt-0.5 block">{formMissingGroups.map((g) => g.name).join(', ')}</span>
+                                                    </>
+                                                ) : null
+                                            }
                                         >
-                                            {nextDoc && onNext ? t('receipts.review.nextReceipt') : t('receipts.review.finish')}
-                                        </BaseButton>
-                                    )}
-                                </>
-                            ) : (
-                                <>
-                                    {/* Saving is a draft: the receipt stays in review until it is confirmed. */}
-                                    <HintTooltip content={t('receipts.review.saveDraftHint')}>
-                                        <BaseButton variant="tonal" onClick={handleSave} disabled={busy || amountInvalid} className={footerBtn}>
-                                            {(updateMutation.isPending || updateTransaction.isPending) && !confirmMutation.isPending
-                                                ? '…'
-                                                : t('receipts.review.save')}
-                                        </BaseButton>
-                                    </HintTooltip>
-                                    <HintTooltip
-                                        content={
-                                            formMissingGroups.length > 0 ? (
-                                                <>
-                                                    <span className="font-bold">{t('transactions.confirmBlockers.title')}</span>
-                                                    <span className="mt-0.5 block">{formMissingGroups.map((g) => g.name).join(', ')}</span>
-                                                </>
-                                            ) : null
-                                        }
-                                    >
-                                        <BaseButton
-                                            variant="default"
-                                            onClick={handleCreateTransaction}
-                                            disabled={busy || formMissingGroups.length > 0 || amountInvalid}
-                                            className={footerBtn}
-                                        >
-                                            <Check size={16} strokeWidth={2.5} />
-                                            {confirmMutation.isPending
-                                                ? '…'
-                                                : isBankReconcile
-                                                  ? t('receipts.review.confirmReceipt')
-                                                  : t('receipts.review.createTransaction')}
-                                        </BaseButton>
-                                    </HintTooltip>
-                                </>
-                            )}
-                        </div>
+                                            <BaseButton
+                                                variant="default"
+                                                onClick={handleCreateTransaction}
+                                                disabled={busy || formMissingGroups.length > 0 || amountInvalid}
+                                                className={footerBtn}
+                                            >
+                                                <Check size={16} strokeWidth={2.5} />
+                                                {confirmMutation.isPending
+                                                    ? '…'
+                                                    : isBankReconcile
+                                                      ? t('receipts.review.confirmReceipt')
+                                                      : t('receipts.review.createTransaction')}
+                                            </BaseButton>
+                                        </HintTooltip>
+                                    </>
+                                )}
+                            </div>
+                        )}
                     </>
                 )}
             </div>
@@ -2176,6 +2196,8 @@ export function BelegeView() {
     const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
     const [search, setSearch] = useState('');
     const bulkDelete = useDeleteDocument({ silent: true });
+    // Board members and auditors cannot upload, re-analyze or delete receipts (issue #959).
+    const canEdit = useCanEditBookkeeping();
 
     const { data: allDocs, isLoading, refetch } = useDocuments();
 
@@ -2486,9 +2508,11 @@ export function BelegeView() {
             </div>
 
             {/* Upload zone */}
-            <div ref={uploadZoneRef} className="mb-4">
-                <UploadZone onUploaded={() => refetch()} highlightRequested={uploadRequested} onHighlightHandled={clearUploadParam} />
-            </div>
+            {canEdit && (
+                <div ref={uploadZoneRef} className="mb-4">
+                    <UploadZone onUploaded={() => refetch()} highlightRequested={uploadRequested} onHighlightHandled={clearUploadParam} />
+                </div>
+            )}
 
             {/* Filter tabs + bulk re-analyze action */}
             <div className="flex items-center gap-2 mb-3 flex-wrap">
@@ -2511,7 +2535,7 @@ export function BelegeView() {
                 {/* Right side: re-analyze action + search, pushed to the far right, aligned with the tabs. */}
                 <div className="ml-auto flex items-center gap-2">
                     {/* Only shown when there are receipts that can actually be re-analyzed (failed / not yet analyzed). */}
-                    {reanalyzable.length > 0 && (
+                    {canEdit && reanalyzable.length > 0 && (
                         <button
                             type="button"
                             onClick={handleReanalyzeAll}
@@ -2557,7 +2581,7 @@ export function BelegeView() {
             </div>
 
             {/* Bulk selection toolbar */}
-            {selectedIds.size > 0 && (
+            {canEdit && selectedIds.size > 0 && (
                 <BulkActionBar
                     className="mb-3"
                     label={t('receipts.bulk.selectedCount', { n: selectedIds.size })}

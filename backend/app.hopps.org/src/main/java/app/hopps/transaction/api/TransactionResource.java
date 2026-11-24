@@ -208,7 +208,8 @@ public class TransactionResource {
         };
         Sort.Direction direction = "asc".equalsIgnoreCase(sortDir) ? Sort.Direction.Ascending
                 : Sort.Direction.Descending;
-        return Sort.by(column, direction);
+        // The id settles ties, otherwise rows with the same value can repeat or go missing from one page to the next.
+        return Sort.by(column, direction).and("id", direction);
     }
 
     @GET

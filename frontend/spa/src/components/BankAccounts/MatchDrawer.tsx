@@ -34,6 +34,7 @@ import {
     bankTransactionKeys,
 } from '@/hooks/queries/useBankAccounts';
 import { useDocument } from '@/hooks/queries/useDocuments';
+import { useCanEditBookkeeping } from '@/hooks/queries/usePermissions';
 import { useReopenTransaction, useTransaction } from '@/hooks/queries/useTransactions';
 import { useCurrency } from '@/hooks/use-currency';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -228,6 +229,7 @@ function LinkedTxCard({
     const { format } = useCurrency();
     const { data: tx } = useTransaction(txId);
     const { data: doc } = useDocument(tx?.documentId ?? undefined, { poll: false });
+    const canEdit = useCanEditBookkeeping();
     // Holds the card's place while the transaction loads, so what is below does not jump.
     if (!tx) {
         return (
@@ -293,11 +295,13 @@ function LinkedTxCard({
                         onSave={onUpdateUsed}
                     />
                 )}
-                <HintTooltip content={t('konten.drawer.unlink')}>
-                    <button type="button" onClick={() => onUnlink(tx)} disabled={busy} aria-label={t('konten.drawer.unlink')} className={UNLINK_BTN}>
-                        <Unlink size={15} />
-                    </button>
-                </HintTooltip>
+                {canEdit && (
+                    <HintTooltip content={t('konten.drawer.unlink')}>
+                        <button type="button" onClick={() => onUnlink(tx)} disabled={busy} aria-label={t('konten.drawer.unlink')} className={UNLINK_BTN}>
+                            <Unlink size={15} />
+                        </button>
+                    </HintTooltip>
+                )}
                 {receiptToReview ? (
                     <RowAction onClick={() => onReview(doc)}>{t('konten.drawer.review')}</RowAction>
                 ) : (
@@ -415,6 +419,8 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     const removeMatch = useRemoveBankTransactionMatch();
     const updateMatchAmount = useUpdateBankTransactionMatchAmount();
     const ignoreTx = useIgnoreBankTransaction();
+    // Board members and auditors only look at the movement and its links (issue #959).
+    const canEdit = useCanEditBookkeeping();
     const reopenTx = useReopenTransaction();
     const unignoreTx = useMutation({
         meta: { errorMessage: 'bankMatch.toast.unignoreError' },
@@ -461,6 +467,9 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     }, [reviewDoc, organizationId, bommelsLoaded, loadBommels]);
 
     const ignored = bankTx?.status === 'IGNORED';
+    // A transfer between own accounts (e.g. a PayPal top-up) needs no receipt and cannot be linked.
+    const transfer = bankTx?.status === 'TRANSFER';
+    const locked = ignored || transfer;
     const magnitude = Math.abs(bankTx?.amount ?? 0);
     // Until the allocations arrive, the links and coverage of the list row, so the drawer opens the way it will stay.
     const matchAllocs = loadedAllocs ?? (bankTx?.matchedTransactionIds ?? []).map((transactionId) => new MatchAllocationResponse({ transactionId }));
@@ -496,7 +505,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
         },
         multiple: false,
         accept: ACCEPT,
-        disabled: createReceipt.isPending || ignored || covered,
+        disabled: createReceipt.isPending || locked || covered || !canEdit,
         noClick: true,
         noKeyboard: true,
     });
@@ -665,7 +674,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
 
                     {/* Summary: amount, linked parts, open rest, with the progress bar. Flat, like the summary tile of the
                         transaction drawer. */}
-                    {!ignored && (
+                    {!locked && (
                         <div className="rounded-[var(--r-card)] px-4 py-[13px]" style={{ background: 'var(--surface-track)' }}>
                             <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${summary.length}, minmax(0, 1fr))` }}>
                                 {summary.map((col) => (
@@ -703,7 +712,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                     {uploadingName && <ReadingCard fileName={uploadingName} />}
 
                     {/* What is linked so far */}
-                    {!ignored && hasLinks && (
+                    {!locked && hasLinks && (
                         <div className={firstLink ? LINK_ENTER : undefined}>
                             <Eyebrow icon={<Link2 size={14} />} className="mb-[11px]">
                                 {t('konten.drawer.sumAssigned')}
@@ -729,7 +738,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                     )}
 
                     {/* Everything that can still assign the open rest, most likely first */}
-                    {!ignored && !covered && !reading && settled && (
+                    {canEdit && !locked && !covered && !reading && settled && (
                         <div className={cn('flex flex-col gap-[11px]', FADE_IN)}>
                             {/* Strong matches, linked with one click. Hidden while the picker is open, which lists them too. */}
                             {!pickerOpen && suggestions.length > 0 && (
@@ -794,8 +803,8 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                 {/* Footer. Links are already saved, so the primary button only closes; its label shows the result. Once the
                     movement is fully assigned only "Schließen" is left. */}
                 <div className="flex flex-shrink-0 items-center gap-2.5 border-t border-border-soft px-6 py-4" style={{ background: 'var(--drawer-bg)' }}>
-                    {covered ? (
-                        /* Fully assigned: nothing left to assign or ignore. */
+                    {covered || !canEdit ? (
+                        /* Fully assigned, or only viewing: nothing left to assign or ignore. */
                         <>
                             <div className="flex-1" />
                             <BaseButton
@@ -808,7 +817,9 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                         </>
                     ) : (
                         <>
-                            {ignored ? (
+                            {transfer ? (
+                                <span className="text-xs text-muted-foreground">{t('konten.drawer.transferHint')}</span>
+                            ) : ignored ? (
                                 <BaseButton
                                     variant="ghost"
                                     className={cn(FOOTER_BTN, 'text-primary')}
@@ -828,7 +839,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                                 </BaseButton>
                             )}
                             <div className="flex-1" />
-                            {!ignored && hasLinks && (
+                            {!locked && hasLinks && (
                                 <BaseButton variant="default" className={FOOTER_BTN} onClick={close}>
                                     <Link2 size={16} />
                                     {t('konten.drawer.assignPartial')}

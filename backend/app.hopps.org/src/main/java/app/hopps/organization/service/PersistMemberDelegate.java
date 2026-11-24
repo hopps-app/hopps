@@ -33,14 +33,35 @@ public class PersistMemberDelegate {
      * session. So it is re-read here, inside the transaction, before the new membership is wired in.
      */
     @Transactional
-    public void persistMember(@Valid Member member, Organization organization) {
+    public void persistMember(@Valid Member member, Organization organization, Role role) {
         Organization attached = organizationRepository.findById(organization.getId());
         if (attached == null) {
             throw new NotFoundException("Organization " + organization.getId() + " no longer exists");
         }
 
-        member.addOrganization(attached, Role.ADMIN);
-        attached.addMember(member, Role.ADMIN);
+        member.addOrganization(attached, role);
+        attached.addMember(member, role);
         memberRepository.persist(member);
+    }
+
+    /**
+     * Writes corrected details onto the stored member: name, email, and the identity provider's user id and status from
+     * a repeated invitation.
+     *
+     * @return the stored member with the new details
+     */
+    @Transactional
+    public Member updateMember(@Valid Member corrected) {
+        Member stored = memberRepository.findById(corrected.id);
+        if (stored == null) {
+            throw new NotFoundException("Member " + corrected.id + " no longer exists");
+        }
+        stored.setFirstName(corrected.getFirstName());
+        stored.setLastName(corrected.getLastName());
+        stored.setEmail(corrected.getEmail());
+        stored.setKeycloakId(corrected.getKeycloakId());
+        stored.setStatus(corrected.getStatus());
+        stored.setSetupLink(corrected.getSetupLink());
+        return stored;
     }
 }

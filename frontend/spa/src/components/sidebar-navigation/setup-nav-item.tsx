@@ -2,6 +2,7 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import { useTranslation } from 'react-i18next';
 
 import { useSetupSteps } from '@/components/Dashboard/useSetupSteps';
+import { useCanEditBookkeeping } from '@/hooks/queries/usePermissions';
 import { useGuardedNavigate } from '@/hooks/use-unsaved-changes-warning';
 import { useSetupStore } from '@/store/setup/setupStore';
 import { useStore } from '@/store/store';
@@ -38,8 +39,9 @@ export function SetupNavItem({ collapsed, onNavigated }: { collapsed: boolean; /
     const organizationId = useStore((s) => s.organization?.id);
     const show = useSetupStore((s) => s.show);
     const { steps, doneCount, total, complete } = useSetupSteps(organizationId ?? undefined);
+    const canEdit = useCanEditBookkeeping();
 
-    if (organizationId == null || !steps || complete) {
+    if (organizationId == null || !steps || complete || !canEdit) {
         return null;
     }
 

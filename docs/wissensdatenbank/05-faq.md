@@ -47,7 +47,7 @@ Deutsch und Englisch vollständig, Ukrainisch teilweise. Weitere Sprachen sind r
 Die Währung wird am Beleg gespeichert, die Oberfläche rechnet und formatiert aber aktuell in EUR. Eine Organisations-Währung (z. B. CHF) ist mit überschaubarem Aufwand umsetzbar. → [02 §9](02-funktionsumfang.md)
 
 **Kann man Rechte auf einzelne Abteilungen/Anlässe beschränken?**
-Heute nicht – alle Mitglieder einer Organisation haben die gleichen Rechte. Ein Rollen- und Rechtemodell pro Organisationseinheit ist der wichtigste geplante Querschnittsbaustein. → [02 §7](02-funktionsumfang.md)
+Auf Abteilungen oder Anlässe nicht, aber auf Rollen: Pro Organisation gibt es Besitzer, Vorstand, Kassier:in und Leser mit unterschiedlichen Rechten (Stand 2026-11-24). Rechte pro Organisationseinheit sind weiter geplant. → [02 §7](02-funktionsumfang.md)
 
 **Gibt es einen DATEV-Export?**
-Noch nicht; geplant. Heute: CSV-Export der Kategorie-Auswertung und Download einzelner Belege. → [02 §6](02-funktionsumfang.md)
+Noch nicht; geplant. Heute: CSV-Export aller Transaktionen und der Kategorie-Auswertung sowie Download einzelner Belege. → [02 §6](02-funktionsumfang.md)

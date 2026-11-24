@@ -15,7 +15,8 @@ Neue Begriffe aus Anfragen **anonymisiert** ergänzen.
 | **Transaktion** | Finanzbewegung (Einnahme/Ausgabe), optional mit Beleg verknüpft | `transaction/` |
 | **Kategorie** | Frei definierbare Einordnung von Transaktionen (heute kein Kontenrahmen) | `category/` |
 | **Member** | Benutzerkonto (Keycloak), Mitglied einer oder mehrerer Organisationen | `member/` |
-| **Bank-Import** | CSV/MT940-Kontoauszug, Abgleich mit Transaktionen | `bankimport/` |
+| **Bank-Import** | CSV/MT940-Kontoauszug oder PayPal-Aktivitätenexport, Abgleich mit Transaktionen | `bankimport/` |
+| **Umbuchung** | Umsatz zwischen eigenen Konten, z. B. PayPal-Aufladung vom Bankkonto; braucht keinen Beleg | `BankTransactionStatus.TRANSFER` |
 | **Sphäre** (TransactionArea) | Steuerliche Tätigkeitsbereiche gemeinnütziger Vereine (DE) | `transaction/` |
 
 ## Kundenbegriffe → Hopps
@@ -24,7 +25,7 @@ Neue Begriffe aus Anfragen **anonymisiert** ergänzen.
 |---|---|---|
 | Anlass, Lager, Event, Veranstaltung, Freizeit, Fahrt, Projekt | CH / DE | **Bommel** (Unterknoten, z. B. unter einer Abteilung) |
 | Abteilung, Sparte, Stufe, Gruppe, Ortsgruppe, Sektion, Kantonalverband | CH / DE | **Bommel** (Ebenen im Baum) |
-| Kassier, Kassierin, Kassenwart:in, Schatzmeister:in, Finanzverantwortliche:r | CH / DE | Benutzer mit Finanzverantwortung – ⚠ heute **kein eigenes Rollenmodell**, siehe `02` → Benutzer & Rechte |
+| Kassier, Kassierin, Kassenwart:in, Schatzmeister:in, Finanzverantwortliche:r | CH / DE | Rolle **Kassier:in** (Buchhaltung sehen und bearbeiten), siehe `02` → Benutzer & Rechte |
 | Anlass-Kassier, Lagerkassier | CH | Kassier auf Ebene eines einzelnen Bommels – ⚠ Rechte pro Bommel prüfen (`02`) |
 | Quittung, Kassenzettel, Rechnung, Beleg, Kassabon | CH / DE / AT | **Beleg** (Document) |
 | Spesen, Auslagen, Auslagenerstattung, Rückerstattung, Auszahlung | CH / DE | Erstattung privat vorgestreckter Beträge – ⚠ siehe `02` → Auslagen |
