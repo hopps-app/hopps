@@ -118,19 +118,13 @@ export function AddUserDialog({ open, canManageOwners = false, onClose, onSubmit
                             control={control}
                             name="role"
                             render={({ field }) => (
-                                <div className="flex flex-col gap-2">
-                                    <Select
-                                        label={t('organization.details.users.add.role')}
-                                        value={field.value}
-                                        items={roleItems}
-                                        onValueChanged={field.onChange}
-                                        openDownwards
-                                    />
-                                    {/* The description of the chosen role, so the list stays short however many roles there are. */}
-                                    <p className="text-[13px] leading-snug text-[#6B6B76] dark:text-[#A0A0AC]">
-                                        {t(`organization.details.users.roles.${field.value}.description`)}
-                                    </p>
-                                </div>
+                                <Select
+                                    label={t('organization.details.users.add.role')}
+                                    value={field.value}
+                                    items={roleItems}
+                                    onValueChanged={field.onChange}
+                                    openDownwards
+                                />
                             )}
                         />
                     </fieldset>
