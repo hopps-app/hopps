@@ -14,7 +14,7 @@ import { rootBommel } from '@/components/CategoryGroups/helpers';
 import Button from '@/components/ui/Button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
 import { useCategoryGroups, useCategoryGroupTemplates, useCategoryGroupUsage, useDeleteCategoryGroup } from '@/hooks/queries/useCategoryGroups';
-import { useCanEditBookkeeping } from '@/hooks/queries/usePermissions';
+import { useHasPermission } from '@/hooks/queries/usePermissions';
 import { useEnsureBommels } from '@/hooks/use-ensure-bommels';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { useToast } from '@/hooks/use-toast';
@@ -32,8 +32,8 @@ function CategoryGroupsView() {
     const isSetup = !isLoading && groups.length === 0;
     usePageTitle(isSetup ? t('categoryGroups.setup.title') : t('categoryGroups.title'));
     const deleteMutation = useDeleteCategoryGroup();
-    // Board members and auditors see the groups but cannot set up, import, create or change them (issue #959).
-    const canEdit = useCanEditBookkeeping();
+    // Everyone sees the groups; only the owner sets up, imports, creates or changes them (issue #959).
+    const canEdit = useHasPermission('MANAGE_CATEGORIES');
     const { showSuccess, showError } = useToast();
     const allBommels = useBommelsStore((s) => s.allBommels);
     // The assignments show bommel names; load the tree when the page is opened directly.

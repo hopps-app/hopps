@@ -165,7 +165,7 @@
             "serverError": "Auf dem Server ist ein Fehler aufgetreten. Bitte später erneut versuchen.",
             "notFound": "Der Eintrag wurde nicht gefunden.",
             "unauthorized": "Die Sitzung ist abgelaufen. Bitte erneut anmelden.",
-            "forbidden": "Für diese Aktion fehlt die Berechtigung. Bitte an die Gründer:in des Vereins wenden.",
+            "forbidden": "Für diese Aktion fehlt die Berechtigung. Bitte an den Besitzer oder den Vorstand des Vereins wenden.",
             "conflict": "Der Eintrag wurde inzwischen geändert. Bitte die Seite neu laden.",
             "badRequest": "Die Eingaben sind ungültig. Bitte überprüfen.",
             "unknown": "Ein unerwarteter Fehler ist aufgetreten. Bitte erneut versuchen.",
@@ -386,16 +386,20 @@
                 "role": "Rolle",
                 "roles": {
                     "OWNER": {
-                        "name": "Gründer:in",
-                        "description": "Hat den Verein angelegt. Kann alles, pflegt die Vereinsdaten und verwaltet Mitglieder und Rollen."
+                        "name": "Besitzer",
+                        "description": "Kann alles, pflegt Vereinsdaten und Kategorien, verwaltet Mitglieder und Rollen und ernennt weitere Besitzer."
                     },
                     "ADMIN": {
-                        "name": "Kasse",
+                        "name": "Vorstand",
+                        "description": "Sieht und bearbeitet die Buchhaltung und verwaltet Mitglieder und Rollen, außer die des Besitzers."
+                    },
+                    "TREASURER": {
+                        "name": "Kassier:in",
                         "description": "Sieht, bearbeitet und bestätigt die Buchhaltung."
                     },
-                    "BOARD": {
-                        "name": "Vorstand",
-                        "description": "Sieht alle Finanzen, ändert nichts."
+                    "VIEWER": {
+                        "name": "Leser",
+                        "description": "Sieht alles, ändert nichts."
                     },
                     "AUDITOR": {
                         "name": "Kassenprüfung",
@@ -409,7 +413,7 @@
                 },
                 "rolesNotice": {
                     "title": "Jetzt mit Rollen",
-                    "text": "Neu können Rollen vergeben werden: Kasse, Vorstand oder Kassenprüfung. Alle bisherigen Mitglieder haben die Rolle Kasse und behalten damit ihre Rechte. Die Rolle lässt sich hier in der Liste ändern.",
+                    "text": "Neu können Rollen vergeben werden: Vorstand, Kassier:in oder Leser. Alle bisherigen Mitglieder sind Vorstand und können damit Mitglieder und Rollen verwalten. Wer nur die Buchhaltung führen soll, lässt sich hier in der Liste auf Kassier:in umstellen.",
                     "dismiss": "Verstanden"
                 },
                 "edit": {

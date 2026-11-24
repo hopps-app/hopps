@@ -165,7 +165,7 @@
             "serverError": "The server encountered an error. Please try again later.",
             "notFound": "The requested resource was not found.",
             "unauthorized": "Your session has expired. Please log in again.",
-            "forbidden": "You don't have permission for this action. Please contact the founder of your organization.",
+            "forbidden": "You don't have permission for this action. Please contact the owner or the board of your organization.",
             "conflict": "A conflict occurred. The resource may have been modified.",
             "badRequest": "The request was invalid. Please check your input.",
             "unknown": "An unexpected error occurred. Please try again.",
@@ -387,16 +387,20 @@
                 "role": "Role",
                 "roles": {
                     "OWNER": {
-                        "name": "Founder",
-                        "description": "Created the organization. Can do everything, maintains the organization details and manages members and roles."
+                        "name": "Owner",
+                        "description": "Can do everything, maintains the organization details and categories, manages members and roles and appoints further owners."
                     },
                     "ADMIN": {
+                        "name": "Board",
+                        "description": "Views and edits the bookkeeping and manages members and roles, except the owner's."
+                    },
+                    "TREASURER": {
                         "name": "Treasurer",
                         "description": "Views, edits and confirms the bookkeeping."
                     },
-                    "BOARD": {
-                        "name": "Board",
-                        "description": "Sees all finances, changes nothing."
+                    "VIEWER": {
+                        "name": "Reader",
+                        "description": "Sees everything, changes nothing."
                     },
                     "AUDITOR": {
                         "name": "Auditor",
@@ -410,7 +414,7 @@
                 },
                 "rolesNotice": {
                     "title": "Now with roles",
-                    "text": "You can now assign roles: Treasurer, Board or Auditor. All existing members have the Treasurer role and keep their rights. Change a role right here in the list.",
+                    "text": "You can now assign roles: Board, Treasurer or Reader. All existing members are Board and can manage members and roles. Anyone who should only keep the books can be switched to Treasurer right here in the list.",
                     "dismiss": "Got it"
                 },
                 "edit": {

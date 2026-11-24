@@ -7,7 +7,7 @@ import { RequiredBadge } from './CategoryGroupSetup';
 
 import Emoji from '@/components/ui/Emoji';
 import { useCategoryGroupValues } from '@/hooks/queries/useCategoryGroups';
-import { useCanEditBookkeeping } from '@/hooks/queries/usePermissions';
+import { useHasPermission } from '@/hooks/queries/usePermissions';
 import { cn } from '@/lib/utils';
 import { useBommelsStore } from '@/store/bommels/bommelsStore';
 
@@ -31,8 +31,8 @@ const sectionLabel = 'mb-2 text-[11.5px] font-bold uppercase tracking-[0.08em] t
 const CategoryGroupCard: FC<CategoryGroupCardProps> = ({ group, rootId, onEdit, onExport, onDelete }) => {
     const { t } = useTranslation();
     const allBommels = useBommelsStore((s) => s.allBommels);
-    // Board members and auditors see the groups and can export them, but not change them (issue #959).
-    const canEdit = useCanEditBookkeeping();
+    // Everyone sees the groups and can export them; only the owner changes them (issue #959).
+    const canEdit = useHasPermission('MANAGE_CATEGORIES');
     const { data: values } = useCategoryGroupValues(group.id, '', true, { topLevel: true });
 
     const valueCount = group.valueCount ?? 0;
