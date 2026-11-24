@@ -1,27 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Role } from '@hopps/api-client';
 import { UserPlus } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
+import { type AssignableRole, ASSIGNABLE_ROLES, roleSelectItems } from '@/components/Organization/roles';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup';
+import Select from '@/components/ui/Select';
 import TextField from '@/components/ui/TextField';
-
-/** The roles anyone who manages roles can give; the auditor is hidden, so it is not offered. */
-export const ASSIGNABLE_ROLES = ['ADMIN', 'TREASURER', 'VIEWER'] as const satisfies readonly Role[];
-
-/** Owners are only appointed by owners, so this role is offered to them alone. */
-export const OWNER_ROLE = 'OWNER' as const satisfies Role;
-
-/** The roles offered to someone who may, or may not, appoint owners, the owner role first. */
-export function assignableRoles(canManageOwners: boolean): readonly AssignableRole[] {
-    return canManageOwners ? [OWNER_ROLE, ...ASSIGNABLE_ROLES] : ASSIGNABLE_ROLES;
-}
-
-export type AssignableRole = (typeof ASSIGNABLE_ROLES)[number] | typeof OWNER_ROLE;
 
 export type NewUserValues = {
     firstName: string;
@@ -34,7 +21,7 @@ const EMPTY_VALUES: NewUserValues = { firstName: '', lastName: '', role: 'TREASU
 
 type AddUserDialogProps = {
     open: boolean;
-    /** Whether the owner role is offered too, which only owners may hand out. */
+    /** Whether the owner role can be chosen, which only owners may hand out. For anyone else it is shown but locked. */
     canManageOwners?: boolean;
     onClose: () => void;
     onSubmit: (values: NewUserValues) => Promise<void>;
@@ -46,17 +33,18 @@ type AddUserDialogProps = {
  */
 export function AddUserDialog({ open, canManageOwners = false, onClose, onSubmit }: AddUserDialogProps) {
     const { t } = useTranslation();
-    const roles = useMemo(() => assignableRoles(canManageOwners), [canManageOwners]);
+    const roleItems = useMemo(() => roleSelectItems(t, canManageOwners), [t, canManageOwners]);
 
     const schema = useMemo(
         () =>
             z.object({
                 firstName: z.string().trim().min(1, t('organization.details.users.add.firstNameRequired')),
                 lastName: z.string().trim().min(1, t('organization.details.users.add.lastNameRequired')),
-                role: z.enum([OWNER_ROLE, ...ASSIGNABLE_ROLES]).refine((role) => roles.includes(role)),
+                // Only owners may hand out the owner role (the backend refuses it for anyone else as well).
+                role: z.enum(ASSIGNABLE_ROLES).refine((role) => role !== 'OWNER' || canManageOwners),
                 email: z.string().trim().email(t('organization.details.users.add.emailInvalid')),
             }),
-        [t, roles]
+        [t, canManageOwners]
     );
 
     const {
@@ -126,35 +114,19 @@ export function AddUserDialog({ open, canManageOwners = false, onClose, onSubmit
                             required
                             {...register('email')}
                         />
-                        <div className="flex flex-col gap-2">
-                            <span id="add-user-role" className="text-[13px] font-bold text-[#1B1B1F] dark:text-[#F2F2F5]">
-                                {t('organization.details.users.add.role')}
-                            </span>
-                            <Controller
-                                control={control}
-                                name="role"
-                                render={({ field }) => (
-                                    <RadioGroup aria-labelledby="add-user-role" value={field.value} onValueChange={field.onChange} className="gap-2">
-                                        {roles.map((role) => (
-                                            <label
-                                                key={role}
-                                                className="flex cursor-pointer items-start gap-3 rounded-[12px] border border-[#E9E9EE] px-3.5 py-3 transition-colors hover:bg-[#F8F8FA] has-[[data-state=checked]]:border-[#9955CC] has-[[data-state=checked]]:bg-[#F7F0FC] dark:border-[var(--border-soft)] dark:hover:bg-[var(--surface-track)] dark:has-[[data-state=checked]]:border-[#AE73DC] dark:has-[[data-state=checked]]:bg-[#2A1E38]"
-                                            >
-                                                <RadioGroupItem value={role} className="mt-[3px]" />
-                                                <span className="flex flex-col gap-0.5">
-                                                    <span className="text-[14px] font-bold text-[#1B1B1F] dark:text-[#F2F2F5]">
-                                                        {t(`organization.details.users.roles.${role}.name`)}
-                                                    </span>
-                                                    <span className="text-[13px] leading-snug text-[#6B6B76] dark:text-[#A0A0AC]">
-                                                        {t(`organization.details.users.roles.${role}.description`)}
-                                                    </span>
-                                                </span>
-                                            </label>
-                                        ))}
-                                    </RadioGroup>
-                                )}
-                            />
-                        </div>
+                        <Controller
+                            control={control}
+                            name="role"
+                            render={({ field }) => (
+                                <Select
+                                    label={t('organization.details.users.add.role')}
+                                    value={field.value}
+                                    items={roleItems}
+                                    onValueChanged={field.onChange}
+                                    openDownwards
+                                />
+                            )}
+                        />
                     </fieldset>
 
                     <div className="flex justify-end gap-2.5 border-t border-[#E9E9EE] px-6 py-4 dark:border-[var(--border-soft)]">
