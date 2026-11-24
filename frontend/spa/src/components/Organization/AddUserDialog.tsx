@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/Dialog';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup';
+import Select from '@/components/ui/Select';
 import TextField from '@/components/ui/TextField';
 
 /** The roles anyone who manages roles can give; the auditor is hidden, so it is not offered. */
@@ -47,6 +47,7 @@ type AddUserDialogProps = {
 export function AddUserDialog({ open, canManageOwners = false, onClose, onSubmit }: AddUserDialogProps) {
     const { t } = useTranslation();
     const roles = useMemo(() => assignableRoles(canManageOwners), [canManageOwners]);
+    const roleItems = useMemo(() => roles.map((role) => ({ label: t(`organization.details.users.roles.${role}.name`), value: role })), [roles, t]);
 
     const schema = useMemo(
         () =>
@@ -126,35 +127,25 @@ export function AddUserDialog({ open, canManageOwners = false, onClose, onSubmit
                             required
                             {...register('email')}
                         />
-                        <div className="flex flex-col gap-2">
-                            <span id="add-user-role" className="text-[13px] font-bold text-[#1B1B1F] dark:text-[#F2F2F5]">
-                                {t('organization.details.users.add.role')}
-                            </span>
-                            <Controller
-                                control={control}
-                                name="role"
-                                render={({ field }) => (
-                                    <RadioGroup aria-labelledby="add-user-role" value={field.value} onValueChange={field.onChange} className="gap-2">
-                                        {roles.map((role) => (
-                                            <label
-                                                key={role}
-                                                className="flex cursor-pointer items-start gap-3 rounded-[12px] border border-[#E9E9EE] px-3.5 py-3 transition-colors hover:bg-[#F8F8FA] has-[[data-state=checked]]:border-[#9955CC] has-[[data-state=checked]]:bg-[#F7F0FC] dark:border-[var(--border-soft)] dark:hover:bg-[var(--surface-track)] dark:has-[[data-state=checked]]:border-[#AE73DC] dark:has-[[data-state=checked]]:bg-[#2A1E38]"
-                                            >
-                                                <RadioGroupItem value={role} className="mt-[3px]" />
-                                                <span className="flex flex-col gap-0.5">
-                                                    <span className="text-[14px] font-bold text-[#1B1B1F] dark:text-[#F2F2F5]">
-                                                        {t(`organization.details.users.roles.${role}.name`)}
-                                                    </span>
-                                                    <span className="text-[13px] leading-snug text-[#6B6B76] dark:text-[#A0A0AC]">
-                                                        {t(`organization.details.users.roles.${role}.description`)}
-                                                    </span>
-                                                </span>
-                                            </label>
-                                        ))}
-                                    </RadioGroup>
-                                )}
-                            />
-                        </div>
+                        <Controller
+                            control={control}
+                            name="role"
+                            render={({ field }) => (
+                                <div className="flex flex-col gap-2">
+                                    <Select
+                                        label={t('organization.details.users.add.role')}
+                                        value={field.value}
+                                        items={roleItems}
+                                        onValueChanged={field.onChange}
+                                        openDownwards
+                                    />
+                                    {/* The description of the chosen role, so the list stays short however many roles there are. */}
+                                    <p className="text-[13px] leading-snug text-[#6B6B76] dark:text-[#A0A0AC]">
+                                        {t(`organization.details.users.roles.${field.value}.description`)}
+                                    </p>
+                                </div>
+                            )}
+                        />
                     </fieldset>
 
                     <div className="flex justify-end gap-2.5 border-t border-[#E9E9EE] px-6 py-4 dark:border-[var(--border-soft)]">
