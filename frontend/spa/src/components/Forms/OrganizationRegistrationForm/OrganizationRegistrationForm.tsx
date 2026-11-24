@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { PasswordStrengthMeter } from './PasswordStrengthMeter.tsx';
 
 import { OrganizationFields } from '@/components/Forms/OrganizationFields/OrganizationFields';
+import { AltchaField, type AltchaHandle } from '@/components/ui/AltchaField';
 import Button from '@/components/ui/Button.tsx';
 import TextField from '@/components/ui/TextField.tsx';
 import { useInstance } from '@/hooks/use-instance';
@@ -15,6 +16,7 @@ import { useToast } from '@/hooks/use-toast.ts';
 import { DEFAULT_ORGANIZATION_FIELDS, organizationFieldErrors, type OrganizationFieldValues } from '@/lib/organizationTypes';
 import { cn } from '@/lib/utils';
 import apiService from '@/services/ApiService.ts';
+import { getErrorBody } from '@/utils/errorUtils';
 
 type FormFields = {
     firstName: string;
@@ -68,6 +70,7 @@ export function OrganizationRegistrationForm(props: Props) {
     });
     const errors = formState.errors;
     const submittingRef = useRef(false);
+    const altchaRef = useRef<AltchaHandle>(null);
     const password = watch('password') ?? '';
     // The form validates on submit, but a mismatch should not wait that long: compare as soon as either password field
     // is left, once the repetition has been typed.
@@ -75,7 +78,7 @@ export function OrganizationRegistrationForm(props: Props) {
         if (getValues('passwordConfirm')) void trigger('passwordConfirm');
     };
 
-    // Two steps: the organization first, then the administrator account that owns it.
+    // Two steps: the organization first, then the account that owns it.
     const [step, setStep] = useState<1 | 2>(1);
     const [organization, setOrganization] = useState<OrganizationFieldValues>(DEFAULT_ORGANIZATION_FIELDS);
     const [organizationErrors, setOrganizationErrors] = useState<ReturnType<typeof organizationFieldErrors>>({});
@@ -90,6 +93,12 @@ export function OrganizationRegistrationForm(props: Props) {
         if (submittingRef.current) return;
         submittingRef.current = true;
         try {
+            // The solution from the switch, or solved now if it was not switched on.
+            const altcha = await altchaRef.current?.solve();
+            if (!altcha) {
+                showError(t('organization.registration.spamCheckFailed'));
+                return;
+            }
             await apiService.orgService.organizationPOST(
                 NewOrganizationInput.fromJS({
                     owner: {
@@ -107,6 +116,7 @@ export function OrganizationRegistrationForm(props: Props) {
                         slug: createSlug(organization.name),
                     },
                     newPassword: data.password,
+                    altcha,
                 })
             );
 
@@ -114,7 +124,12 @@ export function OrganizationRegistrationForm(props: Props) {
             props.onSuccess();
         } catch (e) {
             console.error(e);
-            if (ApiException.isApiException(e) && e.status === 403) {
+            // The server accepts a solution only once, and it may already have used this one (e.g. before answering
+            // that the email is taken), so the next attempt needs the switch again.
+            altchaRef.current?.reset();
+            if (ApiException.isApiException(e) && e.status === 400 && getErrorBody(e)?.code === 'ALTCHA_FAILED') {
+                showError(t('organization.registration.spamCheckFailed'));
+            } else if (ApiException.isApiException(e) && e.status === 403) {
                 // Single-tenant installation whose organization already exists (code SETUP_COMPLETE).
                 showError(t('organization.setup.alreadyDone'));
             } else if (ApiException.isApiException(e) && e.status === 409) {
@@ -144,10 +159,11 @@ export function OrganizationRegistrationForm(props: Props) {
     }
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)}>
+        // noValidate: the fields are validated by the schema above, and the browser's own check would block the submit
+        // until the spam-check switch is on, instead of letting the submit solve it.
+        <form noValidate onSubmit={handleSubmit(onSubmit)}>
             <div className="mb-4">
                 <h1 className="text-xl font-semibold text-left">{isSetup ? t('organization.setup.header') : t('organization.registration.header')}</h1>
-                <p className="mt-1 text-sm text-muted text-left">{isSetup ? t('organization.setup.subtitle') : t('organization.registration.subtitle')}</p>
                 {/* Thin two-part progress bar: done and current segments filled, the step names below. */}
                 <div
                     className="mt-4"
@@ -166,13 +182,16 @@ export function OrganizationRegistrationForm(props: Props) {
                         ))}
                     </div>
                     <div className="mt-1.5 flex text-[11px] font-semibold text-muted-foreground">
-                        {[t('organization.registration.stepOrganization'), t('organization.registration.stepAdmin')].map((label, i) => (
+                        {[t('organization.registration.stepOrganization'), t('organization.registration.stepAccount')].map((label, i) => (
                             <span key={label} className={cn('flex-1', i + 1 === step && 'text-foreground')}>
                                 {label}
                             </span>
                         ))}
                     </div>
                 </div>
+                <p className="mt-4 text-sm text-muted text-left">
+                    {step === 1 ? t('organization.registration.stepOrganizationHint') : t('organization.registration.stepAccountHint')}
+                </p>
             </div>
 
             {step === 1 ? (
@@ -222,16 +241,24 @@ export function OrganizationRegistrationForm(props: Props) {
                             autoComplete="new-password"
                         />
                     </div>
-
-                    <div className="mt-6 flex gap-2">
-                        <Button type="button" variant="outline" onClick={() => setStep(1)} disabled={formState.isSubmitting}>
-                            {t('common.goBack')}
-                        </Button>
-                        <Button type="submit" className="flex-1" disabled={formState.isSubmitting}>
-                            {isSetup ? t('organization.setup.submit') : t('header.register')}
-                        </Button>
-                    </div>
                 </>
+            )}
+
+            {/* Mounted from the start and only hidden in the first step, so it has loaded by then and keeps its state when
+                someone goes back and forth between the steps. */}
+            <div className={cn('mt-5', step !== 2 && 'hidden')}>
+                <AltchaField ref={altchaRef} />
+            </div>
+
+            {step === 2 && (
+                <div className="mt-4 flex gap-2">
+                    <Button type="button" variant="outline" onClick={() => setStep(1)} disabled={formState.isSubmitting}>
+                        {t('common.goBack')}
+                    </Button>
+                    <Button type="submit" className="flex-1" disabled={formState.isSubmitting}>
+                        {isSetup ? t('organization.setup.submit') : t('header.register')}
+                    </Button>
+                </div>
             )}
         </form>
     );

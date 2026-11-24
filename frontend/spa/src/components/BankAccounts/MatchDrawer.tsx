@@ -467,6 +467,9 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
     }, [reviewDoc, organizationId, bommelsLoaded, loadBommels]);
 
     const ignored = bankTx?.status === 'IGNORED';
+    // A transfer between own accounts (e.g. a PayPal top-up) needs no receipt and cannot be linked.
+    const transfer = bankTx?.status === 'TRANSFER';
+    const locked = ignored || transfer;
     const magnitude = Math.abs(bankTx?.amount ?? 0);
     // Until the allocations arrive, the links and coverage of the list row, so the drawer opens the way it will stay.
     const matchAllocs = loadedAllocs ?? (bankTx?.matchedTransactionIds ?? []).map((transactionId) => new MatchAllocationResponse({ transactionId }));
@@ -502,7 +505,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
         },
         multiple: false,
         accept: ACCEPT,
-        disabled: createReceipt.isPending || ignored || covered || !canEdit,
+        disabled: createReceipt.isPending || locked || covered || !canEdit,
         noClick: true,
         noKeyboard: true,
     });
@@ -671,7 +674,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
 
                     {/* Summary: amount, linked parts, open rest, with the progress bar. Flat, like the summary tile of the
                         transaction drawer. */}
-                    {!ignored && (
+                    {!locked && (
                         <div className="rounded-[var(--r-card)] px-4 py-[13px]" style={{ background: 'var(--surface-track)' }}>
                             <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${summary.length}, minmax(0, 1fr))` }}>
                                 {summary.map((col) => (
@@ -709,7 +712,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                     {uploadingName && <ReadingCard fileName={uploadingName} />}
 
                     {/* What is linked so far */}
-                    {!ignored && hasLinks && (
+                    {!locked && hasLinks && (
                         <div className={firstLink ? LINK_ENTER : undefined}>
                             <Eyebrow icon={<Link2 size={14} />} className="mb-[11px]">
                                 {t('konten.drawer.sumAssigned')}
@@ -735,7 +738,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                     )}
 
                     {/* Everything that can still assign the open rest, most likely first */}
-                    {canEdit && !ignored && !covered && !reading && settled && (
+                    {canEdit && !locked && !covered && !reading && settled && (
                         <div className={cn('flex flex-col gap-[11px]', FADE_IN)}>
                             {/* Strong matches, linked with one click. Hidden while the picker is open, which lists them too. */}
                             {!pickerOpen && suggestions.length > 0 && (
@@ -814,7 +817,9 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                         </>
                     ) : (
                         <>
-                            {ignored ? (
+                            {transfer ? (
+                                <span className="text-xs text-muted-foreground">{t('konten.drawer.transferHint')}</span>
+                            ) : ignored ? (
                                 <BaseButton
                                     variant="ghost"
                                     className={cn(FOOTER_BTN, 'text-primary')}
@@ -834,7 +839,7 @@ export function MatchDrawer({ bankTxId, onClose }: MatchDrawerProps) {
                                 </BaseButton>
                             )}
                             <div className="flex-1" />
-                            {!ignored && hasLinks && (
+                            {!locked && hasLinks && (
                                 <BaseButton variant="default" className={FOOTER_BTN} onClick={close}>
                                     <Link2 size={16} />
                                     {t('konten.drawer.assignPartial')}

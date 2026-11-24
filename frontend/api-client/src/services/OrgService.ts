@@ -1286,7 +1286,7 @@ export class Client {
      * @param search (optional) Substring match on purpose / counterparty name
      * @param size (optional) Page size
      * @param sort (optional) Sort field: bookingDate, amount or counterpartyName
-     * @param status (optional) Comma-separated statuses (UNMATCHED, PARTIALLY_MATCHED, FULLY_MATCHED, IGNORED)
+     * @param status (optional) Comma-separated statuses (UNMATCHED, PARTIALLY_MATCHED, FULLY_MATCHED, IGNORED, TRANSFER)
      * @return List of transactions
      */
     bankTransactionsAll(accountIds: string | undefined, dateFrom: string | undefined, dateTo: string | undefined, direction: string | undefined, maxAmount: string | undefined, minAmount: string | undefined, page: number | undefined, search: string | undefined, size: number | undefined, sort: string | undefined, status: string | undefined): Promise<BankTransactionResponse[]> {
@@ -2334,7 +2334,7 @@ export class Client {
             });
         } else if (status === 409) {
             return response.text().then((_responseText) => {
-            return throwException("The file\'s amounts are in another currency than the account, or in several (code CURRENCY_MISMATCH, fields fileCurrencies, accountCurrency), or the file was already imported into another account (code FILE_ALREADY_IMPORTED, fields accountName, accountArchived)", status, _responseText, _headers);
+            return throwException("The file\'s amounts are in another currency than the account, or in several (code CURRENCY_MISMATCH, fields fileCurrencies, accountCurrency), or the file was already imported into another account (code FILE_ALREADY_IMPORTED, fields accountName, accountArchived), or a PayPal export was dropped on a bank account or a bank file on a PayPal account (code WRONG_ACCOUNT_TYPE, field fileAccountType BANK / PAYPAL)", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -7381,7 +7381,9 @@ export type AnalysisStatus = "PENDING" | "ANALYZING" | "COMPLETED" | "FAILED" | 
 
 export class BankAccountCreateRequest implements IBankAccountCreateRequest {
     name!: string;
-    iban!: string;
+    accountType?: BankAccountType;
+    iban?: string;
+    paypalEmail?: string;
     bic?: string;
     bankName?: string;
     accountHolder?: string;
@@ -7411,7 +7413,9 @@ export class BankAccountCreateRequest implements IBankAccountCreateRequest {
                     this[property] = _data[property];
             }
             this.name = _data["name"];
+            this.accountType = _data["accountType"];
             this.iban = _data["iban"];
+            this.paypalEmail = _data["paypalEmail"];
             this.bic = _data["bic"];
             this.bankName = _data["bankName"];
             this.accountHolder = _data["accountHolder"];
@@ -7439,7 +7443,9 @@ export class BankAccountCreateRequest implements IBankAccountCreateRequest {
                 data[property] = this[property];
         }
         data["name"] = this.name;
+        data["accountType"] = this.accountType;
         data["iban"] = this.iban;
+        data["paypalEmail"] = this.paypalEmail;
         data["bic"] = this.bic;
         data["bankName"] = this.bankName;
         data["accountHolder"] = this.accountHolder;
@@ -7463,7 +7469,9 @@ export class BankAccountCreateRequest implements IBankAccountCreateRequest {
 
 export interface IBankAccountCreateRequest {
     name: string;
-    iban: string;
+    accountType?: BankAccountType;
+    iban?: string;
+    paypalEmail?: string;
     bic?: string;
     bankName?: string;
     accountHolder?: string;
@@ -7484,7 +7492,9 @@ export class BankAccountResponse implements IBankAccountResponse {
     bommelId?: number;
     bommelName?: string;
     name?: string;
+    accountType?: BankAccountType;
     iban?: string;
+    paypalEmail?: string;
     bic?: string;
     bankName?: string;
     accountHolder?: string;
@@ -7526,7 +7536,9 @@ export class BankAccountResponse implements IBankAccountResponse {
             this.bommelId = _data["bommelId"];
             this.bommelName = _data["bommelName"];
             this.name = _data["name"];
+            this.accountType = _data["accountType"];
             this.iban = _data["iban"];
+            this.paypalEmail = _data["paypalEmail"];
             this.bic = _data["bic"];
             this.bankName = _data["bankName"];
             this.accountHolder = _data["accountHolder"];
@@ -7566,7 +7578,9 @@ export class BankAccountResponse implements IBankAccountResponse {
         data["bommelId"] = this.bommelId;
         data["bommelName"] = this.bommelName;
         data["name"] = this.name;
+        data["accountType"] = this.accountType;
         data["iban"] = this.iban;
+        data["paypalEmail"] = this.paypalEmail;
         data["bic"] = this.bic;
         data["bankName"] = this.bankName;
         data["accountHolder"] = this.accountHolder;
@@ -7602,7 +7616,9 @@ export interface IBankAccountResponse {
     bommelId?: number;
     bommelName?: string;
     name?: string;
+    accountType?: BankAccountType;
     iban?: string;
+    paypalEmail?: string;
     bic?: string;
     bankName?: string;
     accountHolder?: string;
@@ -7625,9 +7641,12 @@ export interface IBankAccountResponse {
     [key: string]: any;
 }
 
+export type BankAccountType = "BANK" | "PAYPAL";
+
 export class BankAccountUpdateRequest implements IBankAccountUpdateRequest {
     name?: string;
     iban?: string;
+    paypalEmail?: string;
     bic?: string;
     bankName?: string;
     accountHolder?: string;
@@ -7657,6 +7676,7 @@ export class BankAccountUpdateRequest implements IBankAccountUpdateRequest {
             }
             this.name = _data["name"];
             this.iban = _data["iban"];
+            this.paypalEmail = _data["paypalEmail"];
             this.bic = _data["bic"];
             this.bankName = _data["bankName"];
             this.accountHolder = _data["accountHolder"];
@@ -7684,6 +7704,7 @@ export class BankAccountUpdateRequest implements IBankAccountUpdateRequest {
         }
         data["name"] = this.name;
         data["iban"] = this.iban;
+        data["paypalEmail"] = this.paypalEmail;
         data["bic"] = this.bic;
         data["bankName"] = this.bankName;
         data["accountHolder"] = this.accountHolder;
@@ -7707,6 +7728,7 @@ export class BankAccountUpdateRequest implements IBankAccountUpdateRequest {
 export interface IBankAccountUpdateRequest {
     name?: string;
     iban?: string;
+    paypalEmail?: string;
     bic?: string;
     bankName?: string;
     accountHolder?: string;
@@ -8667,7 +8689,7 @@ export interface IBankTransactionResponse {
     [key: string]: any;
 }
 
-export type BankTransactionStatus = "UNMATCHED" | "PARTIALLY_MATCHED" | "FULLY_MATCHED" | "IGNORED";
+export type BankTransactionStatus = "UNMATCHED" | "PARTIALLY_MATCHED" | "FULLY_MATCHED" | "IGNORED" | "TRANSFER";
 
 export class Bommel implements IBommel {
     id?: number;
@@ -12361,6 +12383,8 @@ export class NewOrganizationInput implements INewOrganizationInput {
     owner!: OwnerInput;
     newPassword!: string;
     organization!: OrganizationInput;
+    /** Payload of the solved ALTCHA challenge from GET /public/altcha/challenge, as the altcha widget produces it. Required unless spam protection is switched off (hopps.altcha.enabled=false). */
+    altcha?: string;
 
     [key: string]: any;
 
@@ -12386,6 +12410,7 @@ export class NewOrganizationInput implements INewOrganizationInput {
             this.owner = _data["owner"] ? OwnerInput.fromJS(_data["owner"]) : new OwnerInput();
             this.newPassword = _data["newPassword"];
             this.organization = _data["organization"] ? OrganizationInput.fromJS(_data["organization"]) : new OrganizationInput();
+            this.altcha = _data["altcha"];
         }
     }
 
@@ -12405,6 +12430,7 @@ export class NewOrganizationInput implements INewOrganizationInput {
         data["owner"] = this.owner ? this.owner.toJSON() : undefined as any;
         data["newPassword"] = this.newPassword;
         data["organization"] = this.organization ? this.organization.toJSON() : undefined as any;
+        data["altcha"] = this.altcha;
         return data;
     }
 
@@ -12420,6 +12446,8 @@ export interface INewOrganizationInput {
     owner: OwnerInput;
     newPassword: string;
     organization: OrganizationInput;
+    /** Payload of the solved ALTCHA challenge from GET /public/altcha/challenge, as the altcha widget produces it. Required unless spam protection is switched off (hopps.altcha.enabled=false). */
+    altcha?: string;
 
     [key: string]: any;
 }

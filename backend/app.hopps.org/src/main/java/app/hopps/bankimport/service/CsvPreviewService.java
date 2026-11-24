@@ -5,6 +5,7 @@ import app.hopps.bankimport.parser.DelimiterDetector;
 import app.hopps.bankimport.parser.EncodingDetector;
 import app.hopps.bankimport.parser.Mt940Parser;
 import app.hopps.bankimport.parser.Mt940Parser.ParsedMt940Transaction;
+import app.hopps.bankimport.parser.PaypalCsvParser;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -31,10 +32,25 @@ public class CsvPreviewService {
     /** Maximum number of MT940 sample transactions returned in the preview. */
     private static final int MT940_PREVIEW_TRANSACTIONS = 5;
 
+    /** Maximum number of PayPal movements returned in the preview. */
+    private static final int PAYPAL_PREVIEW_ROWS = 8;
+
     public CsvPreviewResponse preview(byte[] content) {
+        return preview(content, null);
+    }
+
+    /**
+     * @param accountCurrency
+     *            the currency of the account the file is meant for; picks the movements of a PayPal export, which may
+     *            hold several currencies. Null means EUR.
+     */
+    public CsvPreviewResponse preview(byte[] content, String accountCurrency) {
         // Fast-path: detect MT940 before CSV processing
         if (Mt940Parser.isMt940(content)) {
             return previewMt940(content);
+        }
+        if (PaypalCsvParser.isPaypal(content)) {
+            return previewPaypal(content, accountCurrency != null ? accountCurrency : "EUR");
         }
         Charset charset;
         String text;
@@ -101,6 +117,53 @@ public class CsvPreviewService {
                 headerColumns,
                 sampleRows,
                 "CSV");
+    }
+
+    /**
+     * Preview of a PayPal activity export: the movements as they will be booked (top-ups as transfers, fees split off,
+     * foreign currency through its conversion), in the same column layout as the MT940 preview plus the kind.
+     */
+    private CsvPreviewResponse previewPaypal(byte[] content, String accountCurrency) {
+        String warning = null;
+        boolean encodingValid = true;
+        List<PaypalCsvParser.Entry> entries = List.of();
+        int total = 0;
+        try {
+            PaypalCsvParser.Result result = PaypalCsvParser.parse(PaypalImportService.decode(content),
+                    accountCurrency);
+            entries = result.entries();
+            total = entries.size();
+            if (!result.problems().isEmpty()) {
+                warning = result.problems().size() + " Zeilen können nicht importiert werden, z. B.: "
+                        + result.problems().get(0).message();
+            }
+        } catch (IllegalArgumentException e) {
+            encodingValid = !e.getMessage().contains("replacement");
+            warning = e.getMessage();
+        }
+
+        List<List<String>> sampleRows = new ArrayList<>();
+        for (PaypalCsvParser.Entry entry : entries.subList(0, Math.min(entries.size(), PAYPAL_PREVIEW_ROWS))) {
+            sampleRows.add(Arrays.asList(
+                    entry.bookingDate().toString(),
+                    entry.amount().toPlainString(),
+                    entry.currency(),
+                    entry.purpose() != null ? entry.purpose() : "",
+                    entry.counterpartyName() != null ? entry.counterpartyName() : "",
+                    entry.kind().name()));
+        }
+        List<String> headerColumns = List.of("bookingDate", "amount", "currency", "purpose", "counterpartyName",
+                "kind");
+        return new CsvPreviewResponse(
+                "UTF-8",
+                ",",
+                encodingValid,
+                warning,
+                total,
+                List.of(),
+                headerColumns,
+                sampleRows,
+                PaypalImportService.FILE_TYPE);
     }
 
     private CsvPreviewResponse previewMt940(byte[] content) {

@@ -1,5 +1,6 @@
 package app.hopps.bankimport.api.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
@@ -13,6 +14,7 @@ import java.time.LocalDate;
 public record BankAccountUpdateRequest(
         String name,
         @Size(min = 15, max = 34) String iban,
+        @Email @Size(max = 254) String paypalEmail,
         @Size(max = 11) String bic,
         String bankName,
         String accountHolder,

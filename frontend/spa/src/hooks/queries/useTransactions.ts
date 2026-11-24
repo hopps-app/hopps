@@ -65,26 +65,41 @@ export const transactionKeys = {
         ] as const,
 };
 
+function listTransactions(filters: TransactionFilters) {
+    return apiService.orgService.transactionsAll(
+        filters.bommelIds,
+        encodeCategoryValues(filters.categoryValues),
+        filters.detached,
+        filters.displayStatuses,
+        filters.endDate,
+        filters.page ?? 0,
+        filters.privatelyPaid,
+        filters.search,
+        filters.size ?? 50,
+        filters.sortBy,
+        filters.sortDir,
+        filters.startDate,
+        filters.status
+    );
+}
+
 export function useTransactions(filters: TransactionFilters = {}) {
     return useQuery({
         queryKey: transactionKeys.list(filters),
-        queryFn: () =>
-            apiService.orgService.transactionsAll(
-                filters.bommelIds,
-                encodeCategoryValues(filters.categoryValues),
-                filters.detached,
-                filters.displayStatuses,
-                filters.endDate,
-                filters.page ?? 0,
-                filters.privatelyPaid,
-                filters.search,
-                filters.size ?? 50,
-                filters.sortBy,
-                filters.sortDir,
-                filters.startDate,
-                filters.status
-            ),
+        queryFn: () => listTransactions(filters),
     });
+}
+
+const FETCH_ALL_PAGE_SIZE = 200;
+
+/** Every transaction matching the filters, page by page. For exports; the screens stay paged. */
+export async function fetchAllTransactions(filters: Omit<TransactionFilters, 'page' | 'size'> = {}): Promise<TransactionResponse[]> {
+    const all: TransactionResponse[] = [];
+    for (let page = 0; ; page++) {
+        const rows = await listTransactions({ ...filters, page, size: FETCH_ALL_PAGE_SIZE });
+        all.push(...rows);
+        if (rows.length < FETCH_ALL_PAGE_SIZE) return all;
+    }
 }
 
 /**

@@ -232,16 +232,18 @@
             "organizationEmail": "Organization email (optional)",
             "step": "Step {{current}} of {{total}}",
             "stepOrganization": "Organization",
-            "stepAdmin": "Administrator",
+            "stepAccount": "Account",
+            "stepOrganizationHint": "The organization whose bookkeeping you will manage in hopps.",
+            "stepAccountHint": "Your personal account that manages the organization. You will use these details to sign in.",
             "country": "Country",
             "legalForm": "Legal form",
             "currencyInfo": "Accounting currency: {{currency}}. It follows from the country and can be changed later in the settings while no bank accounts or transactions exist.",
             "failed": "Failed to register organization",
+            "spamCheckFailed": "The security check failed. Please try again.",
             "emailAlreadyRegistered": "This email address is already registered",
             "organizationAlreadyExists": "An organization with this name already exists",
             "emailAndOrganizationAlreadyExist": "This email address and organization name are already taken",
             "header": "Register Organization",
-            "subtitle": "Create your organization and account to get started.",
             "alreadyHaveAccount": "Already have an account?",
             "loginInstead": "Log in",
             "success": "Organization successfully created",
@@ -444,7 +446,6 @@
         },
         "setup": {
             "header": "Initial setup",
-            "subtitle": "Create your association and the first administrator account. Invite further members from the settings afterwards.",
             "existingAccountSubtitle": "You are signed in and this installation has no association yet. Create it now; your account becomes its first administrator. Invite further members from the settings afterwards.",
             "submit": "Complete setup",
             "successHeading": "Your association is set up. Sign in with the account you just created.",
@@ -574,6 +575,20 @@
         "title": "Transactions",
         "subtitle": "{{count}} entries · Income {{income}} · Expenses {{expense}}",
         "new": "Record transaction",
+        "export": {
+            "button": "Export",
+            "hint": "Exports all transactions of every status as a CSV file. A period or Bommel selected in the filters limits the export.",
+            "fileName": "hopps-transactions",
+            "done": "{{n}} transaction(s) exported",
+            "empty": "No transactions to export for this period and Bommel",
+            "failed": "Transactions could not be exported",
+            "columns": {
+                "currency": "Currency",
+                "counterparty": "Counterparty",
+                "description": "Description",
+                "receipt": "Receipt no."
+            }
+        },
         "columns": {
             "transaction": "Transaction",
             "category": "Category",
@@ -1492,8 +1507,16 @@
                 "bicTooLong": "BIC must not exceed 11 characters",
                 "openingBalanceDateRequired": "Opening balance date is required when a balance is provided",
                 "openingBalanceRequired": "Opening balance is required when a date is provided",
-                "duplicateIban": "An account with this IBAN already exists in your organization"
-            }
+                "duplicateIban": "An account with this IBAN already exists in your organization",
+                "paypalEmailRequired": "Please enter the PayPal email address",
+                "paypalEmailInvalid": "Not a valid email address"
+            },
+            "type": "Account type",
+            "typeBank": "Bank account",
+            "typePaypal": "PayPal",
+            "paypalEmail": "PayPal email address",
+            "paypalEmailPlaceholder": "treasurer@club.org",
+            "paypalEmailHint": "The address the organization signs in to PayPal with."
         },
         "toast": {
             "createSuccess": "Bank account created",
@@ -1516,7 +1539,10 @@
             "currencyMismatchTitle": "Wrong currency",
             "currencyMismatch": "The file contains amounts in {{fileCurrencies}}, but the account is kept in {{accountCurrency}}. Import the file into an account with that currency.",
             "mixedCurrencies": "The file contains amounts in several currencies ({{fileCurrencies}}). An account can only hold one currency, so the file cannot be imported.",
-            "startError": "The import could not be started."
+            "startError": "The import could not be started.",
+            "wrongAccountTypeTitle": "File does not fit the account",
+            "paypalFileForBankAccount": "This is a PayPal export. Please import it into a PayPal account.",
+            "bankFileForPaypalAccount": "A PayPal account only takes the PayPal activity export (CSV)."
         },
         "title": "Import bank statement",
         "wizard": {
@@ -1550,7 +1576,15 @@
             "previewButton": "Show preview",
             "previewError": "Failed to load preview",
             "confirmTitle": "Confirm import",
-            "startImport": "Start import"
+            "startImport": "Start import",
+            "paypalDetected": "PayPal export detected · {{count}} movements · no schema needed",
+            "paypalHint": "Top-ups and withdrawals to the bank account are marked as transfers, fees become movements of their own, and foreign currency payments are booked through their conversion.",
+            "paypalUnreadable": "The PayPal export could not be read. Please download the activity as CSV with the language set to German.",
+            "paypalKind": {
+                "PAYMENT": "Payment",
+                "FEE": "Fee",
+                "TRANSFER": "Transfer"
+            }
         },
         "preview": {
             "encoding": "Encoding",
@@ -1698,7 +1732,8 @@
             "open": "Open",
             "matched": "Matched",
             "partial": "Partially linked",
-            "ignored": "Ignored"
+            "ignored": "Ignored",
+            "transfer": "Transfer"
         },
         "filter": {
             "open": "Open",
@@ -1803,7 +1838,8 @@
             "suggestionLink": "Link",
             "review": "Review",
             "assignPartial": "Assign partially",
-            "zugferdCreatedHint": "Created from the ZUGFeRD data of the e-invoice. You check category and Bommel in the transaction."
+            "zugferdCreatedHint": "Created from the ZUGFeRD data of the e-invoice. You check category and Bommel in the transaction.",
+            "transferHint": "Transfer between own accounts, e.g. a PayPal top-up from the bank account. No receipt needed."
         },
         "createTx": {
             "title": "Transaction from bank transaction",
