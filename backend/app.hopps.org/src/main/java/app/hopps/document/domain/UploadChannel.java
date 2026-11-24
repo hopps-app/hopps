@@ -12,5 +12,11 @@ public enum UploadChannel {
     /**
      * Submitted without an account through a bommel's public upload link; uploadedBy is the name the submitter typed.
      */
-    UPLOAD_LINK
+    UPLOAD_LINK,
+
+    /**
+     * Sent through the WhatsApp chatbot by a phone number that joined the bommel's WhatsApp invite; uploadedBy is the
+     * sender's WhatsApp profile name.
+     */
+    WHATSAPP
 }

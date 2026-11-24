@@ -1099,6 +1099,11 @@
             "by": "Per Link von {{name}}",
             "hint": "Ohne Konto über den Upload-Link des Bommels eingereicht",
             "comment": "Kommentar"
+        },
+        "whatsapp": {
+            "badge": "WhatsApp",
+            "by": "Per WhatsApp von {{name}}",
+            "hint": "Über den hopps-WhatsApp-Chatbot von einer zum Bommel eingeladenen Nummer geschickt"
         }
     },
     "bommel": {
@@ -1296,6 +1301,37 @@
                 "start": "Ersten Bommel anlegen"
             },
             "start": "Rundgang starten"
+        },
+        "whatsapp": {
+            "title": "WhatsApp",
+            "description": "Personen einladen, Belege für diesen Bommel per WhatsApp zu schicken. hopps schickt ihnen eine Einladung; nach dem Annehmen landet jedes Foto oder PDF, das sie an hopps senden, hier als Beleg.",
+            "stopHint": "Mit STOP lässt sich eine Nummer wieder trennen. Gilt nur für diesen Bommel.",
+            "name": "Name",
+            "namePlaceholder": "Name",
+            "phone": "WhatsApp-Nummer",
+            "phonePlaceholder": "WhatsApp-Nummer, z. B. +49 176 12345678",
+            "invite": "Einladung senden",
+            "inviteHint": "hopps schickt die Einladung per WhatsApp. Verbunden ist die Nummer, sobald sie angenommen wurde.",
+            "sent": "Einladung an {{name}} gesendet",
+            "resend": "Einladung erneut senden",
+            "remove": "Entfernen",
+            "removed": "Entfernt",
+            "removeConfirmTitle": "{{name}} entfernen?",
+            "removeConfirmActive": "Belege von dieser Nummer werden für diesen Bommel nicht mehr angenommen.",
+            "removeConfirmInvited": "Die Einladung kann dann nicht mehr angenommen werden.",
+            "invitedAt": "eingeladen am {{date}}",
+            "joinedAt": "seit {{date}}",
+            "status": {
+                "invited": "Eingeladen",
+                "expired": "Abgelaufen",
+                "active": "Verbunden",
+                "declined": "Abgelehnt"
+            },
+            "error": "WhatsApp-Kontakte konnten nicht geändert werden",
+            "errorInvalid": "Bitte Name und WhatsApp-Nummer mit Ländervorwahl angeben, z. B. +49 176 12345678.",
+            "errorAlreadyConnected": "Diese Nummer ist schon mit diesem Bommel verbunden.",
+            "errorTooMany": "Gerade wurden zu viele Einladungen verschickt. Bitte später noch einmal versuchen.",
+            "errorNotSent": "Die Einladung konnte nicht gesendet werden. Es wurde nichts gespeichert."
         }
     },
     "dashboard": {

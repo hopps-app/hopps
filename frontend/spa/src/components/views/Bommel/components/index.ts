@@ -7,3 +7,4 @@ export { PeriodField } from './PeriodField';
 export { SumFlowHint } from './SumFlowHint';
 export { ToggleField } from './ToggleField';
 export { UploadLinkSection } from './UploadLinkSection';
+export { WhatsAppInviteSection } from './WhatsAppInviteSection';
