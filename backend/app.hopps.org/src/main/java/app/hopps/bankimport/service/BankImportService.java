@@ -63,6 +63,9 @@ public class BankImportService {
     @Inject
     ImportFileCheckService importFileCheckService;
 
+    @Inject
+    PleoImportService pleoImportService;
+
     /**
      * Reads the uploaded file, validates the request, archives the original to S3 and enqueues a {@link BankImport}
      * record in {@code QUEUED} state. The worker will pick it up within a few seconds.
@@ -158,6 +161,11 @@ public class BankImportService {
         BankImport job = get(id);
         if (job.getStatus() == BankImportStatus.PROCESSING || job.getStatus() == BankImportStatus.QUEUED) {
             throw new BadRequestException("Cannot rollback an import that is still in progress");
+        }
+        // A Pleo import created its own draft bookings; those go with it as long as nobody has confirmed them.
+        if (PleoImportService.FILE_TYPE.equals(job.getFileType())) {
+            pleoImportService.releaseDrafts(job);
+            job = get(id);
         }
         if (!transactionRepository.findImportsInUse(List.of(job.getId())).isEmpty()) {
             throw BankImportRejectedException.importInUse();

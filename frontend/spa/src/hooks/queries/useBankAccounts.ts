@@ -11,6 +11,7 @@ import {
     MatchAllocationResponse,
     MatchRequest,
     MatchAmountRequest,
+    type BankAccountType,
     TransactionResponse,
 } from '@hopps/api-client';
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
@@ -392,6 +393,46 @@ export function useCreateReceiptForBankTransaction() {
     });
 }
 
+/** Everything a Pleo import changes: movements, balances, bookings, receipts and the import history. */
+function invalidateAfterPleoImport(queryClient: ReturnType<typeof useQueryClient>, accountId: number) {
+    return Promise.all([
+        queryClient.invalidateQueries({ queryKey: SETUP_PROGRESS_KEY }),
+        queryClient.invalidateQueries({ queryKey: bankImportKeys.byAccount(accountId) }),
+        queryClient.invalidateQueries({ queryKey: bankTransactionKeys.all }),
+        queryClient.invalidateQueries({ queryKey: bankAccountKeys.all }),
+        queryClient.invalidateQueries({ queryKey: transactionKeys.all }),
+        queryClient.invalidateQueries({ queryKey: documentKeys.all }),
+    ]);
+}
+
+/**
+ * Imports a Pleo expense export: each expense becomes a movement with a linked draft booking, its category taken into
+ * the chosen group. The dialog reports errors itself.
+ */
+export function useImportPleoExport() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        meta: { silent: true },
+        mutationFn: ({ accountId, file, categoryGroupId }: { accountId: number; file: File; categoryGroupId?: number }) =>
+            apiService.orgService.importPleoExport(accountId, categoryGroupId, { data: file, fileName: file.name }),
+        onSuccess: (_, variables) => invalidateAfterPleoImport(queryClient, variables.accountId),
+    });
+}
+
+/** Attaches receipt files (or ZIPs of them) to the imported Pleo expenses by their receipt number; several files of one expense become one PDF. */
+export function useAttachPleoReceipts() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        meta: { silent: true },
+        mutationFn: ({ accountId, files }: { accountId: number; files: File[] }) =>
+            apiService.orgService.attachPleoReceipts(
+                accountId,
+                files.map((file) => ({ data: file, fileName: file.name }))
+            ),
+        onSuccess: (_, variables) => invalidateAfterPleoImport(queryClient, variables.accountId),
+    });
+}
+
 export function useSuggestSchema(accountId: number, headerColumns: string[] | null) {
     return useQuery({
         queryKey: ['suggestSchema', accountId, headerColumns],
@@ -616,7 +657,9 @@ export function useBankTransactionSearch(search: string, enabled: boolean) {
 
 export interface IBankAccountCreateRequest {
     name: string;
-    iban: string;
+    /** Optional: a Pleo card account has none. */
+    iban?: string;
+    accountType?: BankAccountType;
     bic?: string;
     bankName?: string;
     accountHolder?: string;

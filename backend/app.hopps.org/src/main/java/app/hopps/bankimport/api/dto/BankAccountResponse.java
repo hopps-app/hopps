@@ -1,6 +1,7 @@
 package app.hopps.bankimport.api.dto;
 
 import app.hopps.bankimport.domain.BankAccount;
+import app.hopps.bankimport.domain.BankAccountType;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -15,6 +16,7 @@ public record BankAccountResponse(
         Long bommelId,
         String bommelName,
         String name,
+        BankAccountType accountType,
         String iban,
         String bic,
         String bankName,
@@ -27,6 +29,8 @@ public record BankAccountResponse(
         String color,
         Long defaultSchemaId,
         String defaultSchemaName,
+        // Pleo: the category group the last import filled, offered again for the next one.
+        Long categoryGroupId,
         boolean archived,
         Instant archivedAt,
         // No imports and no movements, so it can be deleted for good; otherwise it can only be archived.
@@ -54,6 +58,7 @@ public record BankAccountResponse(
                 account.getBommel() != null ? account.getBommel().id : null,
                 account.getBommel() != null ? account.getBommel().getName() : null,
                 account.getName(),
+                account.getAccountType(),
                 account.getIban(),
                 account.getBic(),
                 account.getBankName(),
@@ -66,6 +71,7 @@ public record BankAccountResponse(
                 account.getColor(),
                 account.getDefaultSchema() != null ? account.getDefaultSchema().getId() : null,
                 account.getDefaultSchema() != null ? account.getDefaultSchema().getName() : null,
+                account.getCategoryGroup() != null ? account.getCategoryGroup().getId() : null,
                 account.isArchived(),
                 account.getArchivedAt(),
                 deletable,

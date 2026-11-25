@@ -1421,8 +1421,8 @@
     },
     "bankAccounts": {
         "form": {
-            "createTitle": "Create bank account",
-            "editTitle": "Edit bank account",
+            "createTitle": "Create account",
+            "editTitle": "Edit account",
             "name": "Account name",
             "namePlaceholder": "e.g. Club account",
             "iban": "IBAN",
@@ -1451,7 +1451,8 @@
                 "openingBalanceDateRequired": "Opening balance date is required when a balance is provided",
                 "openingBalanceRequired": "Opening balance is required when a date is provided",
                 "duplicateIban": "An account with this IBAN already exists in your organization"
-            }
+            },
+            "optional": "(optional)"
         },
         "toast": {
             "createSuccess": "Bank account created",
@@ -1642,7 +1643,7 @@
         "balance": "Balance",
         "open": "open",
         "allMatched": "reconciled",
-        "addAccount": "Add bank account",
+        "addAccount": "Add bank/cash/PayPal",
         "accountsCollapse": "Hide details",
         "importAction": "Import transactions",
         "import": "Import",
@@ -1719,7 +1720,6 @@
             "otherStatus_other": "{{count}} bank transactions have a different status."
         },
         "form": {
-            "subtitle": "Account master data",
             "bankPlaceholder": "e.g. Sparkasse",
             "create": "Create"
         },
@@ -1781,7 +1781,28 @@
         "firstAccount": {
             "title": "Create a bank account first",
             "text": "Bank statements always belong to an account. Once an account exists, you can import and reconcile transactions.",
-            "action": "Add bank account"
+            "action": "Add bank/cash/PayPal"
+        },
+        "pleoCard": "Pleo card",
+        "accountType": {
+            "subtitle": "What kind of account is it? This decides how its transactions are imported.",
+            "soon": "Coming soon",
+            "bank": {
+                "title": "Bank account",
+                "text": "Checking or savings account. Transactions come from a CSV bank statement."
+            },
+            "pleo": {
+                "title": "Pleo",
+                "text": "Pleo company cards. The expense export is imported with its receipts, and every expense becomes a draft booking."
+            },
+            "cash": {
+                "title": "Cash box",
+                "text": "Petty cash for income and expenses paid in cash."
+            },
+            "paypal": {
+                "title": "PayPal",
+                "text": "PayPal account with incoming and outgoing payments."
+            }
         }
     },
     "bankMatch": {
@@ -1840,6 +1861,79 @@
             "server": "Something went wrong on our side. Please try again in a few minutes.",
             "summary_one": "{{count}} receipt could not be uploaded. Use the button below to try again.",
             "summary_other": "{{count}} receipts could not be uploaded. Use the button below to try again."
+        }
+    },
+    "pleoImport": {
+        "title": "Import Pleo export",
+        "intro": "Each expense of the export becomes a movement with a linked draft booking. Receipts are matched by the receipt number in their file name (e.g. 2600016.pdf). Nothing is confirmed automatically.",
+        "removeFile": "Remove {{name}}",
+        "start": "Import",
+        "csv": {
+            "title": "Pleo export (CSV)",
+            "drop": "Drop export_….csv here or choose it",
+            "choose": "Choose Pleo export",
+            "hint": "Expenses imported before are skipped. Without an export, you can only add receipts."
+        },
+        "group": {
+            "title": "Category group",
+            "none": "Don't take over categories",
+            "hint": "The export's \"Category\" column goes into this group when the group has a value of the same name.",
+            "noneAvailable": "No category group applies to this account's bommel. Import the Pleo categories under <link>Categories</link> first."
+        },
+        "receipts": {
+            "title": "Receipts",
+            "drop": "Drop receipts or ZIP archives here or choose them",
+            "choose": "Choose receipts",
+            "hint": "PDF, JPG, PNG or ZIP",
+            "selected_one": "{{count}} file, {{size}}",
+            "selected_other": "{{count}} files, {{size}}",
+            "clear": "Remove all",
+            "mergeHint": "Several files of one expense (e.g. 2600009a.pdf, 2600009b.pdf) are merged into one receipt."
+        },
+        "running": {
+            "export": "Importing export …",
+            "receipts": "Uploading receipts ({{done}} of {{total}}) …"
+        },
+        "error": {
+            "alreadyImported": "This file was already imported into the account \"{{account}}\".",
+            "notAPleoExport": "The file is no Pleo export, or the category group does not apply to this account.",
+            "generic": "The import failed. Please try again later."
+        },
+        "result": {
+            "confirmHint": "Import finished. All bookings are drafts and still need to be confirmed.",
+            "imported_one": "{{count}} expense imported",
+            "imported_other": "{{count}} expenses imported",
+            "duplicates_one": "{{count}} expense was imported before",
+            "duplicates_other": "{{count}} expenses were imported before",
+            "categorized_one": "{{count}} expense with a category",
+            "categorized_other": "{{count}} expenses with a category",
+            "uncategorized_one": "{{count}} expense without a category in the export",
+            "uncategorized_other": "{{count}} expenses without a category in the export",
+            "receipts_one": "{{count}} receipt linked ({{files}} files)",
+            "receipts_other": "{{count}} receipts linked ({{files}} files)",
+            "unknownCategories": "Not found in the category group: {{categories}}. These expenses stay without a category.",
+            "errors_one": "{{count}} row not imported:",
+            "errors_other": "{{count}} rows not imported:",
+            "errorRow": "Row {{row}}",
+            "uploadFailed_one": "Upload failed (file too large?): {{files}}",
+            "uploadFailed_other": "Upload failed (files too large?): {{files}}",
+            "viewTransactions": "View movements"
+        },
+        "skipped": {
+            "NO_EXPENSE_one": "No expense with this receipt number: {{files}}",
+            "NO_EXPENSE_other": "No expenses with these receipt numbers: {{files}}",
+            "HAS_RECEIPT_one": "The booking has a receipt already: {{files}}",
+            "HAS_RECEIPT_other": "The bookings have a receipt already: {{files}}",
+            "NOT_DRAFT_one": "The booking is confirmed already: {{files}}",
+            "NOT_DRAFT_other": "The bookings are confirmed already: {{files}}",
+            "DUPLICATE_one": "This file was uploaded before: {{files}}",
+            "DUPLICATE_other": "These files were uploaded before: {{files}}",
+            "UNSUPPORTED_TYPE_one": "No PDF, JPG or PNG: {{files}}",
+            "UNSUPPORTED_TYPE_other": "No PDF, JPG or PNG: {{files}}",
+            "TOO_LARGE_one": "Too large: {{files}}",
+            "TOO_LARGE_other": "Too large: {{files}}",
+            "UNREADABLE_one": "Unreadable: {{files}}",
+            "UNREADABLE_other": "Unreadable: {{files}}"
         }
     }
 }

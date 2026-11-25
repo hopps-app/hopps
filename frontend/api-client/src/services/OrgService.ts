@@ -2466,6 +2466,147 @@ export class Client {
     }
 
     /**
+     * Import a Pleo expense export
+     * @param accountId Pleo account ID
+     * @param categoryGroupId (optional) Category group the export's "Category" column fills; omit for none
+     * @param file (optional) 
+     * @return Export imported
+     */
+    importPleoExport(accountId: number, categoryGroupId: number | undefined, file: FileParameter | undefined): Promise<PleoImportResponse> {
+        let url_ = this.baseUrl + "/bankaccounts/{accountId}/pleo/import?";
+        if (accountId === undefined || accountId === null)
+            throw new globalThis.Error("The parameter 'accountId' must be defined.");
+        url_ = url_.replace("{accountId}", encodeURIComponent("" + accountId));
+        if (categoryGroupId === null)
+            throw new globalThis.Error("The parameter 'categoryGroupId' cannot be null.");
+        else if (categoryGroupId !== undefined)
+            url_ += "categoryGroupId=" + encodeURIComponent("" + categoryGroupId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (file === null || file === undefined)
+            throw new globalThis.Error("The parameter 'file' cannot be null.");
+        else
+            content_.append("file", file.data, file.fileName ? file.fileName : "file");
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processImportPleoExport(_response);
+        });
+    }
+
+    protected processImportPleoExport(response: Response): Promise<PleoImportResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PleoImportResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("No Pleo account, no Pleo export, or the category group does not apply to the account\'s bommel", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Account or category group not found", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("The file was already imported into another account (code FILE_ALREADY_IMPORTED)", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PleoImportResponse>(null as any);
+    }
+
+    /**
+     * Attach receipts to Pleo expenses
+     * @param accountId Pleo account ID
+     * @param files (optional) 
+     * @return Receipts attached as far as possible
+     */
+    attachPleoReceipts(accountId: number, files: FileParameter[] | undefined): Promise<PleoReceiptsResponse> {
+        let url_ = this.baseUrl + "/bankaccounts/{accountId}/pleo/receipts";
+        if (accountId === undefined || accountId === null)
+            throw new globalThis.Error("The parameter 'accountId' must be defined.");
+        url_ = url_.replace("{accountId}", encodeURIComponent("" + accountId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (files === null || files === undefined)
+            throw new globalThis.Error("The parameter 'files' cannot be null.");
+        else
+            files.forEach(item_ => content_.append("files", item_.data, item_.fileName ? item_.fileName : "files") );
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAttachPleoReceipts(_response);
+        });
+    }
+
+    protected processAttachPleoReceipts(response: Response): Promise<PleoReceiptsResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PleoReceiptsResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("No Pleo account or no files", status, _responseText, _headers);
+            });
+        } else if (status === 401) {
+            return response.text().then((_responseText) => {
+            return throwException("User not logged in", status, _responseText, _headers);
+            });
+        } else if (status === 403) {
+            return response.text().then((_responseText) => {
+            return throwException("Not Allowed", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("Account not found", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PleoReceiptsResponse>(null as any);
+    }
+
+    /**
      * Update a bank account
      * @param id Bank account ID
      * @return Bank account updated
@@ -7241,7 +7382,7 @@ export type AnalysisStatus = "PENDING" | "ANALYZING" | "COMPLETED" | "FAILED" | 
 
 export class BankAccountCreateRequest implements IBankAccountCreateRequest {
     name!: string;
-    iban!: string;
+    iban?: string;
     bic?: string;
     bankName?: string;
     accountHolder?: string;
@@ -7252,6 +7393,7 @@ export class BankAccountCreateRequest implements IBankAccountCreateRequest {
     color?: string;
     defaultSchemaId?: number;
     bommelId?: number;
+    accountType?: BankAccountType;
 
     [key: string]: any;
 
@@ -7282,6 +7424,7 @@ export class BankAccountCreateRequest implements IBankAccountCreateRequest {
             this.color = _data["color"];
             this.defaultSchemaId = _data["defaultSchemaId"];
             this.bommelId = _data["bommelId"];
+            this.accountType = _data["accountType"];
         }
     }
 
@@ -7310,6 +7453,7 @@ export class BankAccountCreateRequest implements IBankAccountCreateRequest {
         data["color"] = this.color;
         data["defaultSchemaId"] = this.defaultSchemaId;
         data["bommelId"] = this.bommelId;
+        data["accountType"] = this.accountType;
         return data;
     }
 
@@ -7323,7 +7467,7 @@ export class BankAccountCreateRequest implements IBankAccountCreateRequest {
 
 export interface IBankAccountCreateRequest {
     name: string;
-    iban: string;
+    iban?: string;
     bic?: string;
     bankName?: string;
     accountHolder?: string;
@@ -7334,6 +7478,7 @@ export interface IBankAccountCreateRequest {
     color?: string;
     defaultSchemaId?: number;
     bommelId?: number;
+    accountType?: BankAccountType;
 
     [key: string]: any;
 }
@@ -7344,6 +7489,7 @@ export class BankAccountResponse implements IBankAccountResponse {
     bommelId?: number;
     bommelName?: string;
     name?: string;
+    accountType?: BankAccountType;
     iban?: string;
     bic?: string;
     bankName?: string;
@@ -7356,6 +7502,7 @@ export class BankAccountResponse implements IBankAccountResponse {
     color?: string;
     defaultSchemaId?: number;
     defaultSchemaName?: string;
+    categoryGroupId?: number;
     archived?: boolean;
     archivedAt?: Date;
     deletable?: boolean;
@@ -7386,6 +7533,7 @@ export class BankAccountResponse implements IBankAccountResponse {
             this.bommelId = _data["bommelId"];
             this.bommelName = _data["bommelName"];
             this.name = _data["name"];
+            this.accountType = _data["accountType"];
             this.iban = _data["iban"];
             this.bic = _data["bic"];
             this.bankName = _data["bankName"];
@@ -7398,6 +7546,7 @@ export class BankAccountResponse implements IBankAccountResponse {
             this.color = _data["color"];
             this.defaultSchemaId = _data["defaultSchemaId"];
             this.defaultSchemaName = _data["defaultSchemaName"];
+            this.categoryGroupId = _data["categoryGroupId"];
             this.archived = _data["archived"];
             this.archivedAt = _data["archivedAt"] ? new Date(_data["archivedAt"].toString()) : undefined as any;
             this.deletable = _data["deletable"];
@@ -7426,6 +7575,7 @@ export class BankAccountResponse implements IBankAccountResponse {
         data["bommelId"] = this.bommelId;
         data["bommelName"] = this.bommelName;
         data["name"] = this.name;
+        data["accountType"] = this.accountType;
         data["iban"] = this.iban;
         data["bic"] = this.bic;
         data["bankName"] = this.bankName;
@@ -7438,6 +7588,7 @@ export class BankAccountResponse implements IBankAccountResponse {
         data["color"] = this.color;
         data["defaultSchemaId"] = this.defaultSchemaId;
         data["defaultSchemaName"] = this.defaultSchemaName;
+        data["categoryGroupId"] = this.categoryGroupId;
         data["archived"] = this.archived;
         data["archivedAt"] = this.archivedAt ? this.archivedAt.toISOString() : undefined as any;
         data["deletable"] = this.deletable;
@@ -7462,6 +7613,7 @@ export interface IBankAccountResponse {
     bommelId?: number;
     bommelName?: string;
     name?: string;
+    accountType?: BankAccountType;
     iban?: string;
     bic?: string;
     bankName?: string;
@@ -7474,6 +7626,7 @@ export interface IBankAccountResponse {
     color?: string;
     defaultSchemaId?: number;
     defaultSchemaName?: string;
+    categoryGroupId?: number;
     archived?: boolean;
     archivedAt?: Date;
     deletable?: boolean;
@@ -7484,6 +7637,8 @@ export interface IBankAccountResponse {
 
     [key: string]: any;
 }
+
+export type BankAccountType = "BANK" | "PLEO";
 
 export class BankAccountUpdateRequest implements IBankAccountUpdateRequest {
     name?: string;
@@ -12641,6 +12796,366 @@ export interface IPagedValuesResponse {
 }
 
 export type Permission = "MANAGE_MEMBERS";
+
+/** Outcome of a Pleo export import */
+export class PleoImportResponse implements IPleoImportResponse {
+    /** The import record, e.g. to take it back */
+    importId?: number;
+    /** Rows in the file */
+    totalRows?: number;
+    /** Expenses imported, each as a movement with a linked draft booking */
+    importedRows?: number;
+    /** Expenses skipped because they were imported before */
+    duplicateRows?: number;
+    /** Rows that could not be imported */
+    errorRows?: number;
+    /** Imported expenses whose category was found in the chosen group */
+    categorizedRows?: number;
+    /** Imported expenses without a category in the export */
+    uncategorizedRows?: number;
+    /** Categories of the export that the chosen group has no bookable value for */
+    unknownCategories?: string[];
+    /** Imported expenses that name a receipt number, so a receipt file can be attached */
+    awaitingReceiptRows?: number;
+    /** Row errors as "row: message" */
+    errors?: string[];
+
+    [key: string]: any;
+
+    constructor(data?: IPleoImportResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.importId = _data["importId"];
+            this.totalRows = _data["totalRows"];
+            this.importedRows = _data["importedRows"];
+            this.duplicateRows = _data["duplicateRows"];
+            this.errorRows = _data["errorRows"];
+            this.categorizedRows = _data["categorizedRows"];
+            this.uncategorizedRows = _data["uncategorizedRows"];
+            if (Array.isArray(_data["unknownCategories"])) {
+                this.unknownCategories = [] as any;
+                for (let item of _data["unknownCategories"])
+                    this.unknownCategories!.push(item);
+            }
+            this.awaitingReceiptRows = _data["awaitingReceiptRows"];
+            if (Array.isArray(_data["errors"])) {
+                this.errors = [] as any;
+                for (let item of _data["errors"])
+                    this.errors!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): PleoImportResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new PleoImportResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["importId"] = this.importId;
+        data["totalRows"] = this.totalRows;
+        data["importedRows"] = this.importedRows;
+        data["duplicateRows"] = this.duplicateRows;
+        data["errorRows"] = this.errorRows;
+        data["categorizedRows"] = this.categorizedRows;
+        data["uncategorizedRows"] = this.uncategorizedRows;
+        if (Array.isArray(this.unknownCategories)) {
+            data["unknownCategories"] = [];
+            for (let item of this.unknownCategories)
+                data["unknownCategories"].push(item);
+        }
+        data["awaitingReceiptRows"] = this.awaitingReceiptRows;
+        if (Array.isArray(this.errors)) {
+            data["errors"] = [];
+            for (let item of this.errors)
+                data["errors"].push(item);
+        }
+        return data;
+    }
+
+    clone(): PleoImportResponse {
+        const json = this.toJSON();
+        let result = new PleoImportResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Outcome of a Pleo export import */
+export interface IPleoImportResponse {
+    /** The import record, e.g. to take it back */
+    importId?: number;
+    /** Rows in the file */
+    totalRows?: number;
+    /** Expenses imported, each as a movement with a linked draft booking */
+    importedRows?: number;
+    /** Expenses skipped because they were imported before */
+    duplicateRows?: number;
+    /** Rows that could not be imported */
+    errorRows?: number;
+    /** Imported expenses whose category was found in the chosen group */
+    categorizedRows?: number;
+    /** Imported expenses without a category in the export */
+    uncategorizedRows?: number;
+    /** Categories of the export that the chosen group has no bookable value for */
+    unknownCategories?: string[];
+    /** Imported expenses that name a receipt number, so a receipt file can be attached */
+    awaitingReceiptRows?: number;
+    /** Row errors as "row: message" */
+    errors?: string[];
+
+    [key: string]: any;
+}
+
+/** A receipt created from one or more files and linked to a booking */
+export class PleoLinkedReceipt implements IPleoLinkedReceipt {
+    /** The expense's receipt number */
+    receiptNumber?: string;
+    /** The files the receipt was made of */
+    fileNames?: string[];
+    /** The booking it is linked to */
+    transactionId?: number;
+    /** The new receipt */
+    documentId?: number;
+
+    [key: string]: any;
+
+    constructor(data?: IPleoLinkedReceipt) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.receiptNumber = _data["receiptNumber"];
+            if (Array.isArray(_data["fileNames"])) {
+                this.fileNames = [] as any;
+                for (let item of _data["fileNames"])
+                    this.fileNames!.push(item);
+            }
+            this.transactionId = _data["transactionId"];
+            this.documentId = _data["documentId"];
+        }
+    }
+
+    static fromJS(data: any): PleoLinkedReceipt {
+        data = typeof data === 'object' ? data : {};
+        let result = new PleoLinkedReceipt();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["receiptNumber"] = this.receiptNumber;
+        if (Array.isArray(this.fileNames)) {
+            data["fileNames"] = [];
+            for (let item of this.fileNames)
+                data["fileNames"].push(item);
+        }
+        data["transactionId"] = this.transactionId;
+        data["documentId"] = this.documentId;
+        return data;
+    }
+
+    clone(): PleoLinkedReceipt {
+        const json = this.toJSON();
+        let result = new PleoLinkedReceipt();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A receipt created from one or more files and linked to a booking */
+export interface IPleoLinkedReceipt {
+    /** The expense's receipt number */
+    receiptNumber?: string;
+    /** The files the receipt was made of */
+    fileNames?: string[];
+    /** The booking it is linked to */
+    transactionId?: number;
+    /** The new receipt */
+    documentId?: number;
+
+    [key: string]: any;
+}
+
+/** Outcome of attaching receipt files to Pleo expenses */
+export class PleoReceiptsResponse implements IPleoReceiptsResponse {
+    /** Receipts created and linked to a booking */
+    linked?: PleoLinkedReceipt[];
+    /** Files not used, with the reason */
+    skipped?: PleoSkippedFile[];
+
+    [key: string]: any;
+
+    constructor(data?: IPleoReceiptsResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (Array.isArray(_data["linked"])) {
+                this.linked = [] as any;
+                for (let item of _data["linked"])
+                    this.linked!.push(PleoLinkedReceipt.fromJS(item));
+            }
+            if (Array.isArray(_data["skipped"])) {
+                this.skipped = [] as any;
+                for (let item of _data["skipped"])
+                    this.skipped!.push(PleoSkippedFile.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): PleoReceiptsResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new PleoReceiptsResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (Array.isArray(this.linked)) {
+            data["linked"] = [];
+            for (let item of this.linked)
+                data["linked"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.skipped)) {
+            data["skipped"] = [];
+            for (let item of this.skipped)
+                data["skipped"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+
+    clone(): PleoReceiptsResponse {
+        const json = this.toJSON();
+        let result = new PleoReceiptsResponse();
+        result.init(json);
+        return result;
+    }
+}
+
+/** Outcome of attaching receipt files to Pleo expenses */
+export interface IPleoReceiptsResponse {
+    /** Receipts created and linked to a booking */
+    linked?: PleoLinkedReceipt[];
+    /** Files not used, with the reason */
+    skipped?: PleoSkippedFile[];
+
+    [key: string]: any;
+}
+
+/** A file that was not used */
+export class PleoSkippedFile implements IPleoSkippedFile {
+    /** The file's name */
+    fileName?: string;
+    /** NO_EXPENSE (no expense with this receipt number), HAS_RECEIPT (the booking has a receipt already), NOT_DRAFT (the booking is confirmed), DUPLICATE (the organization has this file already), UNSUPPORTED_TYPE, TOO_LARGE or UNREADABLE */
+    reason?: string;
+
+    [key: string]: any;
+
+    constructor(data?: IPleoSkippedFile) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.fileName = _data["fileName"];
+            this.reason = _data["reason"];
+        }
+    }
+
+    static fromJS(data: any): PleoSkippedFile {
+        data = typeof data === 'object' ? data : {};
+        let result = new PleoSkippedFile();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["fileName"] = this.fileName;
+        data["reason"] = this.reason;
+        return data;
+    }
+
+    clone(): PleoSkippedFile {
+        const json = this.toJSON();
+        let result = new PleoSkippedFile();
+        result.init(json);
+        return result;
+    }
+}
+
+/** A file that was not used */
+export interface IPleoSkippedFile {
+    /** The file's name */
+    fileName?: string;
+    /** NO_EXPENSE (no expense with this receipt number), HAS_RECEIPT (the booking has a receipt already), NOT_DRAFT (the booking is confirmed), DUPLICATE (the organization has this file already), UNSUPPORTED_TYPE, TOO_LARGE or UNREADABLE */
+    reason?: string;
+
+    [key: string]: any;
+}
 
 export class PublicReceiptForm implements IPublicReceiptForm {
     /** The receipt (PNG, JPEG or PDF) */

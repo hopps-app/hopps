@@ -60,6 +60,19 @@ public class BankTransactionMatchService {
      */
     @Transactional
     public void addMatch(Long bankTxId, Long transactionId, String username, BigDecimal requestedAmount) {
+        addMatch(bankTxId, transactionId, username, requestedAmount, BankTransactionMatchType.MANUAL);
+    }
+
+    /**
+     * Links a movement in full to a booking that an import created for it (Pleo: the expense's own draft), recorded as
+     * {@link BankTransactionMatchType#AUTO_RULE}.
+     */
+    public void addAutoMatch(Long bankTxId, Long transactionId, String username) {
+        addMatch(bankTxId, transactionId, username, null, BankTransactionMatchType.AUTO_RULE);
+    }
+
+    private void addMatch(Long bankTxId, Long transactionId, String username, BigDecimal requestedAmount,
+            BankTransactionMatchType matchType) {
         BankTransaction bankTx = bankTransactionRepository.findByIdScoped(bankTxId);
         if (bankTx == null) {
             throw new NotFoundException("Bank transaction not found");
@@ -101,7 +114,7 @@ public class BankTransactionMatchService {
         match.setTransaction(tx);
         match.setMatchedAmount(allocation);
         match.setAmountManual(manual);
-        match.setMatchType(BankTransactionMatchType.MANUAL);
+        match.setMatchType(matchType);
         match.setMatchedBy(username);
         em.persist(match);
         transactionAuditor.linked(tx, bankTxId, allocation, manual, adoptedTotal);

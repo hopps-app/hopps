@@ -1431,8 +1431,8 @@
     },
     "bankAccounts": {
         "form": {
-            "createTitle": "Bankkonto erstellen",
-            "editTitle": "Bankkonto bearbeiten",
+            "createTitle": "Konto erstellen",
+            "editTitle": "Konto bearbeiten",
             "name": "Kontoname",
             "namePlaceholder": "z. B. Vereinskonto",
             "iban": "IBAN",
@@ -1461,7 +1461,8 @@
                 "openingBalanceDateRequired": "Datum des Eröffnungssaldos ist erforderlich, wenn ein Saldo angegeben wird",
                 "openingBalanceRequired": "Eröffnungssaldo ist erforderlich, wenn ein Datum angegeben wird",
                 "duplicateIban": "Ein Konto mit dieser IBAN existiert bereits in der Organisation"
-            }
+            },
+            "optional": "(optional)"
         },
         "toast": {
             "createSuccess": "Bankkonto erstellt",
@@ -1641,7 +1642,7 @@
         "balance": "Saldo",
         "open": "offen",
         "allMatched": "abgeglichen",
-        "addAccount": "Bankkonto hinzufügen",
+        "addAccount": "Bank/Kasse/PayPal hinzufügen",
         "accountsCollapse": "Details ausblenden",
         "importAction": "Umsätze importieren",
         "import": "Importieren",
@@ -1719,7 +1720,6 @@
             "otherStatus_other": "{{count}} Umsätze haben einen anderen Status."
         },
         "form": {
-            "subtitle": "Stammdaten des Kontos",
             "bankPlaceholder": "z. B. Sparkasse",
             "create": "Anlegen"
         },
@@ -1781,7 +1781,28 @@
         "firstAccount": {
             "title": "Zuerst ein Bankkonto anlegen",
             "text": "Kontoauszüge werden immer einem Konto zugeordnet. Sobald ein Konto angelegt ist, können Umsätze importiert und abgeglichen werden.",
-            "action": "Bankkonto hinzufügen"
+            "action": "Bank/Kasse/PayPal hinzufügen"
+        },
+        "pleoCard": "Pleo-Karte",
+        "accountType": {
+            "subtitle": "Welche Art von Konto soll angelegt werden? Davon hängt ab, wie Umsätze importiert werden.",
+            "soon": "Demnächst",
+            "bank": {
+                "title": "Bankkonto",
+                "text": "Girokonto, Sparkonto oder Tagesgeld. Umsätze kommen per CSV-Kontoauszug."
+            },
+            "pleo": {
+                "title": "Pleo",
+                "text": "Firmenkarten von Pleo. Der Ausgaben-Export wird samt Belegen importiert und jede Ausgabe als Buchungsentwurf angelegt."
+            },
+            "cash": {
+                "title": "Kasse",
+                "text": "Barkasse für Einnahmen und Ausgaben in bar."
+            },
+            "paypal": {
+                "title": "PayPal",
+                "text": "PayPal-Konto mit Zahlungseingängen und -ausgängen."
+            }
         }
     },
     "bankMatch": {
@@ -1840,6 +1861,79 @@
             "server": "Auf dem Server ist ein Fehler aufgetreten. Bitte in ein paar Minuten erneut versuchen.",
             "summary_one": "{{count}} Beleg konnte nicht hochgeladen werden. Über die Schaltfläche unten erneut versuchen.",
             "summary_other": "{{count}} Belege konnten nicht hochgeladen werden. Über die Schaltfläche unten erneut versuchen."
+        }
+    },
+    "pleoImport": {
+        "title": "Pleo-Export importieren",
+        "intro": "Jede Ausgabe aus dem Export wird als Bewegung mit einem verknüpften Buchungsentwurf angelegt. Belege werden über ihre Belegnummer im Dateinamen zugeordnet (z. B. 2600016.pdf). Bestätigt wird nichts automatisch.",
+        "removeFile": "{{name}} entfernen",
+        "start": "Importieren",
+        "csv": {
+            "title": "Pleo-Export (CSV)",
+            "drop": "export_….csv hier ablegen oder auswählen",
+            "choose": "Pleo-Export auswählen",
+            "hint": "Bereits importierte Ausgaben werden übersprungen. Ohne Export lassen sich nur Belege nachreichen."
+        },
+        "group": {
+            "title": "Kategoriegruppe",
+            "none": "Keine Kategorie übernehmen",
+            "hint": "Die Spalte „Category“ des Exports wird in diese Gruppe übernommen, wenn die Gruppe einen gleichnamigen Wert hat.",
+            "noneAvailable": "Für den Bommel dieses Kontos gibt es keine Kategoriegruppe. Die Pleo-Kategorien lassen sich vorher unter <link>Kategorien</link> importieren."
+        },
+        "receipts": {
+            "title": "Belege",
+            "drop": "Belege oder ZIP-Archive hier ablegen oder auswählen",
+            "choose": "Belege auswählen",
+            "hint": "PDF, JPG, PNG oder ZIP",
+            "selected_one": "{{count}} Datei, {{size}}",
+            "selected_other": "{{count}} Dateien, {{size}}",
+            "clear": "Alle entfernen",
+            "mergeHint": "Mehrere Dateien einer Ausgabe (z. B. 2600009a.pdf, 2600009b.pdf) werden zu einem Beleg zusammengeführt."
+        },
+        "running": {
+            "export": "Export wird importiert …",
+            "receipts": "Belege werden hochgeladen ({{done}} von {{total}}) …"
+        },
+        "error": {
+            "alreadyImported": "Diese Datei wurde bereits in das Konto „{{account}}“ importiert.",
+            "notAPleoExport": "Die Datei ist kein Pleo-Export oder die Kategoriegruppe gilt nicht für dieses Konto.",
+            "generic": "Der Import ist fehlgeschlagen. Bitte später erneut versuchen."
+        },
+        "result": {
+            "confirmHint": "Import abgeschlossen. Alle Buchungen sind Entwürfe und müssen noch bestätigt werden.",
+            "imported_one": "{{count}} Ausgabe importiert",
+            "imported_other": "{{count}} Ausgaben importiert",
+            "duplicates_one": "{{count}} Ausgabe war bereits importiert",
+            "duplicates_other": "{{count}} Ausgaben waren bereits importiert",
+            "categorized_one": "{{count}} Ausgabe mit Kategorie",
+            "categorized_other": "{{count}} Ausgaben mit Kategorie",
+            "uncategorized_one": "{{count}} Ausgabe ohne Kategorie im Export",
+            "uncategorized_other": "{{count}} Ausgaben ohne Kategorie im Export",
+            "receipts_one": "{{count}} Beleg verknüpft ({{files}} Dateien)",
+            "receipts_other": "{{count}} Belege verknüpft ({{files}} Dateien)",
+            "unknownCategories": "Nicht in der Kategoriegruppe gefunden: {{categories}}. Diese Ausgaben bleiben ohne Kategorie.",
+            "errors_one": "{{count}} Zeile nicht importiert:",
+            "errors_other": "{{count}} Zeilen nicht importiert:",
+            "errorRow": "Zeile {{row}}",
+            "uploadFailed_one": "Hochladen fehlgeschlagen (Datei zu groß?): {{files}}",
+            "uploadFailed_other": "Hochladen fehlgeschlagen (Dateien zu groß?): {{files}}",
+            "viewTransactions": "Zu den Bewegungen"
+        },
+        "skipped": {
+            "NO_EXPENSE_one": "Keine Ausgabe mit dieser Belegnummer: {{files}}",
+            "NO_EXPENSE_other": "Keine Ausgabe mit diesen Belegnummern: {{files}}",
+            "HAS_RECEIPT_one": "Die Buchung hat schon einen Beleg: {{files}}",
+            "HAS_RECEIPT_other": "Die Buchungen haben schon einen Beleg: {{files}}",
+            "NOT_DRAFT_one": "Die Buchung ist bereits bestätigt: {{files}}",
+            "NOT_DRAFT_other": "Die Buchungen sind bereits bestätigt: {{files}}",
+            "DUPLICATE_one": "Diese Datei wurde schon hochgeladen: {{files}}",
+            "DUPLICATE_other": "Diese Dateien wurden schon hochgeladen: {{files}}",
+            "UNSUPPORTED_TYPE_one": "Kein PDF, JPG oder PNG: {{files}}",
+            "UNSUPPORTED_TYPE_other": "Kein PDF, JPG oder PNG: {{files}}",
+            "TOO_LARGE_one": "Zu groß: {{files}}",
+            "TOO_LARGE_other": "Zu groß: {{files}}",
+            "UNREADABLE_one": "Nicht lesbar: {{files}}",
+            "UNREADABLE_other": "Nicht lesbar: {{files}}"
         }
     }
 }

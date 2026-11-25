@@ -3,6 +3,7 @@ package app.hopps.bankimport.service;
 import app.hopps.bankimport.api.dto.BankAccountCreateRequest;
 import app.hopps.bankimport.api.dto.BankAccountUpdateRequest;
 import app.hopps.bankimport.domain.BankAccount;
+import app.hopps.bankimport.domain.BankAccountType;
 import app.hopps.bankimport.domain.BankCsvSchema;
 import app.hopps.bankimport.repository.BankAccountRepository;
 import app.hopps.bankimport.repository.BankImportRepository;
@@ -26,7 +27,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 /**
- * Business logic for bank accounts: org-scoping, default-bommel resolution, IBAN validation, and soft-delete.
+ * Business logic for bank accounts: org-scoping, default-bommel resolution, IBAN validation, and soft-delete. The IBAN
+ * is optional; when one is given it is checked and may belong to one account only.
  */
 @ApplicationScoped
 public class BankAccountService {
@@ -77,8 +79,10 @@ public class BankAccountService {
     public BankAccount create(BankAccountCreateRequest request) {
         Organization organization = requireOrganization();
         String normalizedIban = normalizeIban(request.iban());
-        validateIban(normalizedIban);
-        requireIbanFree(normalizedIban, null);
+        if (normalizedIban != null) {
+            validateIban(normalizedIban);
+            requireIbanFree(normalizedIban, null);
+        }
         Bommel bommel = resolveBommel(request.bommelId(), organization);
         BankCsvSchema defaultSchema = resolveDefaultSchema(request.defaultSchemaId());
 
@@ -86,6 +90,7 @@ public class BankAccountService {
         account.setOrganization(organization);
         account.setBommel(bommel);
         account.setName(request.name());
+        account.setAccountType(request.accountType() != null ? request.accountType() : BankAccountType.BANK);
         account.setIban(normalizedIban);
         account.setBic(request.bic());
         account.setBankName(request.bankName());
@@ -95,7 +100,9 @@ public class BankAccountService {
         if (request.currency() != null && !request.currency().equals(currency)) {
             throw new BadRequestException("Bank accounts are kept in the organization's currency " + currency);
         }
-        validateIbanFitsCurrency(normalizedIban, currency);
+        if (normalizedIban != null) {
+            validateIbanFitsCurrency(normalizedIban, currency);
+        }
         account.setCurrency(currency);
         account.setOpeningBalance(request.openingBalance());
         account.setOpeningBalanceDate(request.openingBalanceDate());
@@ -114,11 +121,14 @@ public class BankAccountService {
         BankAccount account = get(id);
 
         if (request.iban() != null) {
+            // An empty IBAN removes it.
             String normalizedIban = normalizeIban(request.iban());
-            validateIban(normalizedIban);
-            if (!normalizedIban.equals(account.getIban())) {
-                requireIbanFree(normalizedIban, id);
-                validateIbanFitsCurrency(normalizedIban, account.getCurrency());
+            if (normalizedIban != null) {
+                validateIban(normalizedIban);
+                if (!normalizedIban.equals(account.getIban())) {
+                    requireIbanFree(normalizedIban, id);
+                    validateIbanFitsCurrency(normalizedIban, account.getCurrency());
+                }
             }
             account.setIban(normalizedIban);
         }
@@ -200,7 +210,7 @@ public class BankAccountService {
     public BankAccount restore(Long id) {
         BankAccount account = get(id);
         if (account.isArchived()) {
-            if (bankAccountRepository.existsByIban(account.getIban(), id)) {
+            if (account.getIban() != null && bankAccountRepository.existsByIban(account.getIban(), id)) {
                 throw BankAccountConflictException.ibanInUse();
             }
             account.setArchived(false);
@@ -274,7 +284,11 @@ public class BankAccountService {
         }
     }
 
+    /** Strips the spaces; null for a missing or blank IBAN. */
     private String normalizeIban(String iban) {
+        if (iban == null || iban.isBlank()) {
+            return null;
+        }
         return iban.replaceAll("\\s+", "").toUpperCase();
     }
 

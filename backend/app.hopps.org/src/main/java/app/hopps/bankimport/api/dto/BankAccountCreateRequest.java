@@ -1,5 +1,6 @@
 package app.hopps.bankimport.api.dto;
 
+import app.hopps.bankimport.domain.BankAccountType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -8,12 +9,13 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
- * Request payload for creating a new bank account. {@code name} and {@code iban} are required (see Q2). All other
- * fields are optional. {@code bommelId}, when null, defaults to the organization's root bommel server-side.
+ * Request payload for creating a new bank account. Only {@code name} is required. {@code iban} is optional, but checked
+ * when given. {@code accountType} defaults to {@code BANK}. {@code bommelId}, when null, defaults to the organization's
+ * root bommel server-side.
  */
 public record BankAccountCreateRequest(
         @NotBlank String name,
-        @NotBlank @Size(min = 15, max = 34) String iban,
+        @Size(max = 42) String iban,
         @Size(max = 11) String bic,
         String bankName,
         String accountHolder,
@@ -23,5 +25,6 @@ public record BankAccountCreateRequest(
         String description,
         String color,
         Long defaultSchemaId,
-        Long bommelId) {
+        Long bommelId,
+        BankAccountType accountType) {
 }

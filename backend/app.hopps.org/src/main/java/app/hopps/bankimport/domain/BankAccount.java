@@ -1,10 +1,13 @@
 package app.hopps.bankimport.domain;
 
 import app.hopps.bommel.domain.Bommel;
+import app.hopps.category.domain.CategoryGroup;
 import app.hopps.organization.domain.Organization;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -35,7 +38,12 @@ public class BankAccount extends PanacheEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, length = 34)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "accounttype", nullable = false, length = 20)
+    private BankAccountType accountType = BankAccountType.BANK;
+
+    /** Optional: a card account (Pleo) has none, and an ordinary account can be imported without it. */
+    @Column(length = 34)
     private String iban;
 
     @Column(length = 11)
@@ -64,6 +72,11 @@ public class BankAccount extends PanacheEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "defaultschema_id")
     private BankCsvSchema defaultSchema;
+
+    /** The category group the last Pleo import filled; offered again for the next one. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categorygroup_id")
+    private CategoryGroup categoryGroup;
 
     @Column(nullable = false)
     private boolean archived = false;
@@ -115,6 +128,26 @@ public class BankAccount extends PanacheEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public BankAccountType getAccountType() {
+        return accountType;
+    }
+
+    public void setAccountType(BankAccountType accountType) {
+        this.accountType = accountType;
+    }
+
+    public boolean isPleo() {
+        return accountType == BankAccountType.PLEO;
+    }
+
+    public CategoryGroup getCategoryGroup() {
+        return categoryGroup;
+    }
+
+    public void setCategoryGroup(CategoryGroup categoryGroup) {
+        this.categoryGroup = categoryGroup;
     }
 
     public String getIban() {

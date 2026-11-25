@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ApiException, BankAccountResponse } from '@hopps/api-client';
+import { ApiException, BankAccountResponse, type BankAccountType } from '@hopps/api-client';
 import { Archive, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Resolver, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 
+import { AccountTypeIcon } from '@/components/BankAccounts/AccountTypeDialog';
 import { LoadingState } from '@/components/common/LoadingState';
 import Button from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -31,6 +32,8 @@ const ACCT_COLORS = ['#9955CC', '#2E9E6B', '#2A6FDB', '#C8385A', '#B47C18', '#5B
 const IBAN_FORMAT = /^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/;
 
 /**
+ * The IBAN is optional (a Pleo card account has none, and no import needs it); a given one is checked.
+ *
  * @param organizationCurrency accounts are kept in it (no conversion yet), so the IBAN has to fit it: CH/LI means CHF,
  *            everything else EUR.
  * @param storedIban the IBAN the account is saved with. The rule only applies to a new or changed IBAN (like in the
@@ -42,18 +45,17 @@ function buildSchema(t: (k: string, o?: Record<string, unknown>) => string, orga
             name: z.string().min(1, t('bankAccounts.form.validation.nameRequired')),
             iban: z
                 .string()
-                .min(1, t('bankAccounts.form.validation.ibanRequired'))
                 .transform(normalizeIban)
-                .refine((v) => v.length >= 15, t('bankAccounts.form.validation.ibanTooShort'))
+                .refine((v) => v === '' || v.length >= 15, t('bankAccounts.form.validation.ibanTooShort'))
                 .refine((v) => v.length <= 34, t('bankAccounts.form.validation.ibanTooLong'))
-                .refine((v) => IBAN_FORMAT.test(v), t('bankAccounts.form.validation.ibanInvalidFormat')),
+                .refine((v) => v === '' || IBAN_FORMAT.test(v), t('bankAccounts.form.validation.ibanInvalidFormat')),
             bankName: z.string().optional(),
             openingBalance: z.preprocess((v) => (v === '' || v === null || v === undefined ? undefined : Number(v)), z.number().optional()),
             openingBalanceDate: z.string().optional(),
             color: z.string().optional(),
         })
         .superRefine((data, ctx) => {
-            const ibanCurrency = currencyForIban(data.iban);
+            const ibanCurrency = data.iban ? currencyForIban(data.iban) : organizationCurrency;
             const unchanged = storedIban !== undefined && normalizeIban(storedIban) === data.iban;
             if (ibanCurrency !== organizationCurrency && !unchanged) {
                 ctx.addIssue({
@@ -94,13 +96,17 @@ interface BankAccountDrawerProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     account?: BankAccountResponse;
+    /** Type of a new account, picked beforehand in the AccountTypeDialog. An existing account keeps its own. */
+    accountType?: BankAccountType;
+    /** Back to picking the type, offered while creating. */
+    onBack?: () => void;
     /** Called after saving, with the saved account (e.g. to select a newly created one). */
     onSuccess?: (account: BankAccountResponse) => void;
     /** Called after the account was deleted or archived. */
     onRemoved?: (accountId: number) => void;
 }
 
-export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRemoved }: BankAccountDrawerProps) {
+export function BankAccountDrawer({ open, onOpenChange, account, accountType: newAccountType = 'BANK', onBack, onSuccess, onRemoved }: BankAccountDrawerProps) {
     // Accounts are kept in the organization's currency; the backend sets it, the form only checks that the IBAN fits.
     const { currency: organizationCurrency } = useCurrency();
     const { t } = useTranslation();
@@ -129,6 +135,8 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRe
     // The archived account the typed IBAN belongs to, offered for restoring instead of a second account.
     const [archivedMatch, setArchivedMatch] = useState<number | null>(null);
     const restoreMutation = useRestoreBankAccount();
+    // Chosen before the form opens; afterwards it decides how the account is imported and stays as it is.
+    const accountType = account?.accountType ?? newAccountType;
 
     const {
         register,
@@ -172,22 +180,26 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRe
                     : {
                           name: '',
                           iban: '',
-                          bankName: '',
+                          bankName: newAccountType === 'PLEO' ? 'Pleo' : '',
                           openingBalance: undefined,
                           openingBalanceDate: '',
                           color: ACCT_COLORS[0],
                       }
             );
         }
-    }, [open, account, reset]);
+    }, [open, account, newAccountType, reset]);
 
     const onSubmit = async (values: FormValues) => {
         setArchivedMatch(null);
         const openingBalanceDate = values.openingBalanceDate ? new Date(values.openingBalanceDate) : undefined;
-        const payload = { ...values, openingBalanceDate };
+        // An emptied IBAN is sent as "" when editing, so the backend removes it; a new account just has none.
+        const iban = values.iban === '' && !isEdit ? undefined : values.iban;
+        const payload = { ...values, iban, openingBalanceDate };
         try {
             const saved =
-                isEdit && account?.id ? await updateMutation.mutateAsync({ id: account.id, data: payload }) : await createMutation.mutateAsync(payload);
+                isEdit && account?.id
+                    ? await updateMutation.mutateAsync({ id: account.id, data: payload })
+                    : await createMutation.mutateAsync({ ...payload, accountType });
             onSuccess?.(saved);
         } catch (err) {
             if (ApiException.isApiException(err) && err.status === 409) {
@@ -247,7 +259,10 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRe
 
                 <DialogHeader>
                     <DialogTitle>{isEdit ? t('bankAccounts.form.editTitle') : t('bankAccounts.form.createTitle')}</DialogTitle>
-                    <p className="text-sm text-muted-foreground">{t('konten.form.subtitle')}</p>
+                    <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <AccountTypeIcon type={accountType} className="h-4 w-4 flex-shrink-0" />
+                        {t(accountType === 'PLEO' ? 'konten.accountType.pleo.title' : 'konten.accountType.bank.title')}
+                    </p>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 pt-1">
@@ -260,7 +275,9 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRe
 
                     {/* IBAN */}
                     <div className="grid gap-1.5">
-                        <Label htmlFor="ba-iban">{t('bankAccounts.form.iban')}</Label>
+                        <Label htmlFor="ba-iban">
+                            {t('bankAccounts.form.iban')} <span className="font-normal text-muted-foreground">{t('bankAccounts.form.optional')}</span>
+                        </Label>
                         <BaseInput
                             id="ba-iban"
                             {...register('iban', {
@@ -340,6 +357,11 @@ export function BankAccountDrawer({ open, onOpenChange, account, onSuccess, onRe
                     </div>
 
                     <DialogFooter className="pt-2">
+                        {!isEdit && onBack && (
+                            <Button type="button" variant="link" className="sm:mr-auto" onClick={onBack} disabled={isLoading}>
+                                {t('common.goBack')}
+                            </Button>
+                        )}
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
                             {t('common.cancel')}
                         </Button>

@@ -54,7 +54,17 @@ public class DocumentFileService {
             LOG.error("Failed to read uploaded file", e);
             throw new RuntimeException("Fehler beim Lesen der Datei", e);
         }
+        handleFileUpload(document, file.fileName(), file.contentType(), bytes);
+    }
 
+    /**
+     * Like {@link #handleFileUpload(Document, FileUpload)}, for content already in memory (e.g. taken from a ZIP or
+     * merged from several files).
+     *
+     * @throws ClientErrorException
+     *             (409 Conflict) if another document in the same organization already has identical content
+     */
+    public void handleFileUpload(Document document, String originalFileName, String contentType, byte[] bytes) {
         // Reject re-uploads of a file that already exists in this organization. Comparing the document id lets a file
         // replacement keep its own identical content without tripping the check.
         String fileHash = DedupeHashService.sha256(bytes);
@@ -69,18 +79,18 @@ public class DocumentFileService {
         }
 
         String fileKey = "documents/" + UUID.randomUUID() + "/"
-                + StorageKeys.sanitizeFileName(file.fileName(), DEFAULT_FILE_NAME);
+                + StorageKeys.sanitizeFileName(originalFileName, DEFAULT_FILE_NAME);
         // Bound the display name before the file goes to storage, so a name that does not fit the column cannot fail
         // the insert afterwards and leave the stored file orphaned.
-        String fileName = StorageKeys.displayName(file.fileName(), DEFAULT_FILE_NAME);
+        String fileName = StorageKeys.displayName(originalFileName, DEFAULT_FILE_NAME);
         try {
-            fileStorage.put(fileKey, bytes, file.contentType());
-            LOG.info("File uploaded to storage: key={}, size={}", fileKey, file.size());
+            fileStorage.put(fileKey, bytes, contentType);
+            LOG.info("File uploaded to storage: key={}, size={}", fileKey, bytes.length);
 
             document.setFileKey(fileKey);
             document.setFileName(fileName);
-            document.setFileContentType(file.contentType());
-            document.setFileSize(file.size());
+            document.setFileContentType(contentType);
+            document.setFileSize((long) bytes.length);
             document.setFileHash(fileHash);
         } catch (Exception e) {
             LOG.error("Failed to upload file", e);

@@ -1316,8 +1316,8 @@
     },
     "bankAccounts": {
         "form": {
-            "createTitle": "Crea conto bancario",
-            "editTitle": "Modifica conto bancario",
+            "createTitle": "Crea conto",
+            "editTitle": "Modifica conto",
             "name": "Nome del conto",
             "namePlaceholder": "es. Conto dell'associazione",
             "iban": "IBAN",
@@ -1538,7 +1538,7 @@
         "balance": "Saldo",
         "open": "aperto",
         "allMatched": "riconciliato",
-        "addAccount": "Aggiungi conto bancario",
+        "addAccount": "Aggiungi banca/cassa/PayPal",
         "accounts": "Conti",
         "accountsExpand": "Mostra dettagli",
         "accountsCollapse": "Nascondi dettagli",
@@ -1626,7 +1626,6 @@
             "otherStatus_other": "{{count}} movimenti hanno un altro stato."
         },
         "form": {
-            "subtitle": "Dati anagrafici del conto",
             "bankPlaceholder": "es. Sparkasse",
             "create": "Crea"
         },
@@ -1699,7 +1698,27 @@
         "firstAccount": {
             "title": "Crea prima un conto bancario",
             "text": "Gli estratti conto appartengono sempre a un conto. Una volta creato un conto, puoi importare e riconciliare i movimenti.",
-            "action": "Aggiungi conto bancario"
+            "action": "Aggiungi banca/cassa/PayPal"
+        },
+        "accountType": {
+            "subtitle": "Che tipo di conto è? Da questo dipende come vengono importati i movimenti.",
+            "soon": "Prossimamente",
+            "bank": {
+                "title": "Conto bancario",
+                "text": "Conto corrente o di risparmio. I movimenti arrivano da un estratto conto CSV."
+            },
+            "pleo": {
+                "title": "Pleo",
+                "text": "Carte aziendali Pleo. L’export delle spese viene importato con le ricevute e ogni spesa diventa una bozza di registrazione."
+            },
+            "cash": {
+                "title": "Cassa",
+                "text": "Cassa contanti per entrate e uscite in contanti."
+            },
+            "paypal": {
+                "title": "PayPal",
+                "text": "Conto PayPal con pagamenti in entrata e in uscita."
+            }
         }
     },
     "bankMatch": {

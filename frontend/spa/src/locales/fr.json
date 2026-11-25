@@ -1316,8 +1316,8 @@
     },
     "bankAccounts": {
         "form": {
-            "createTitle": "Créer un compte bancaire",
-            "editTitle": "Modifier le compte bancaire",
+            "createTitle": "Créer un compte",
+            "editTitle": "Modifier le compte",
             "name": "Nom du compte",
             "namePlaceholder": "p. ex. Compte du club",
             "iban": "IBAN",
@@ -1538,7 +1538,7 @@
         "balance": "Solde",
         "open": "ouvert",
         "allMatched": "rapprochés",
-        "addAccount": "Ajouter un compte bancaire",
+        "addAccount": "Ajouter banque/caisse/PayPal",
         "accounts": "Comptes",
         "accountsExpand": "Afficher les détails",
         "accountsCollapse": "Masquer les détails",
@@ -1626,7 +1626,6 @@
             "otherStatus_other": "{{count}} opérations ont un autre statut."
         },
         "form": {
-            "subtitle": "Données de base du compte",
             "bankPlaceholder": "p. ex. Sparkasse",
             "create": "Créer"
         },
@@ -1699,7 +1698,27 @@
         "firstAccount": {
             "title": "Créez d'abord un compte bancaire",
             "text": "Les relevés bancaires sont toujours rattachés à un compte. Dès qu’un compte existe, vous pouvez importer et rapprocher les opérations.",
-            "action": "Ajouter un compte bancaire"
+            "action": "Ajouter banque/caisse/PayPal"
+        },
+        "accountType": {
+            "subtitle": "De quel type de compte s’agit-il ? Cela détermine comment ses opérations sont importées.",
+            "soon": "Bientôt",
+            "bank": {
+                "title": "Compte bancaire",
+                "text": "Compte courant ou d’épargne. Les opérations proviennent d’un relevé CSV."
+            },
+            "pleo": {
+                "title": "Pleo",
+                "text": "Cartes d’entreprise Pleo. L’export des dépenses est importé avec les justificatifs, chaque dépense devient un brouillon d’écriture."
+            },
+            "cash": {
+                "title": "Caisse",
+                "text": "Caisse pour les recettes et dépenses en espèces."
+            },
+            "paypal": {
+                "title": "PayPal",
+                "text": "Compte PayPal avec paiements entrants et sortants."
+            }
         }
     },
     "bankMatch": {

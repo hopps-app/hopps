@@ -8,11 +8,11 @@ import java.time.LocalDate;
 
 /**
  * Request payload for updating a bank account. All fields are optional; only non-null fields are applied (PATCH
- * semantics).
+ * semantics). An empty {@code iban} removes it.
  */
 public record BankAccountUpdateRequest(
         String name,
-        @Size(min = 15, max = 34) String iban,
+        @Size(max = 42) String iban,
         @Size(max = 11) String bic,
         String bankName,
         String accountHolder,

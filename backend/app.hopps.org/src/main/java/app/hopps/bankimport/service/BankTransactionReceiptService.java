@@ -1,6 +1,7 @@
 package app.hopps.bankimport.service;
 
 import app.hopps.document.audit.DocumentAuditor;
+import app.hopps.bankimport.domain.BankAccountType;
 import app.hopps.bankimport.domain.BankTransaction;
 import app.hopps.bankimport.domain.BankTransactionStatus;
 import app.hopps.bankimport.repository.BankTransactionRepository;
@@ -194,13 +195,22 @@ public class BankTransactionReceiptService {
         if (transaction.getStatus() != TransactionStatus.DRAFT) {
             return;
         }
-        List<String> bankPurposes = em.createQuery(
-                "SELECT m.bankTransaction.purpose FROM BankTransactionMatch m WHERE m.transaction.id = :txId",
-                String.class)
+        List<Object[]> bankRows = em.createQuery(
+                "SELECT m.bankTransaction.purpose, m.bankTransaction.counterpartyName, "
+                        + "m.bankTransaction.bankAccount.accountType "
+                        + "FROM BankTransactionMatch m WHERE m.transaction.id = :txId",
+                Object[].class)
                 .setParameter("txId", transaction.getId())
                 .getResultList();
-        if (bankPurposes.isEmpty()) {
+        if (bankRows.isEmpty()) {
             return;
+        }
+        // Names the bank movement suggested, so a receipt name may replace them. A Pleo expense's purpose is the
+        // employee's note, which says more than the receipt's name, so there only the merchant name counts as
+        // untouched.
+        List<String> bankPurposes = new java.util.ArrayList<>();
+        for (Object[] row : bankRows) {
+            bankPurposes.add((String) (row[2] == BankAccountType.PLEO ? row[1] : row[0]));
         }
 
         Map<String, Object> before = transactionAuditor.snapshot(transaction);

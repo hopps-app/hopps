@@ -1,4 +1,4 @@
-import { BankAccountResponse, IBankImportResponse } from '@hopps/api-client';
+import { BankAccountResponse, IBankImportResponse, type BankAccountType } from '@hopps/api-client';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Edit, Landmark, Plus, Search, Sheet, Trash2, Upload } from 'lucide-react';
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
@@ -6,6 +6,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
 import { AccountDot } from '@/components/BankAccounts/AccountMultiSelect';
+import { AccountTypeDialog, AccountTypeIcon } from '@/components/BankAccounts/AccountTypeDialog';
 import { BankAccountDrawer } from '@/components/BankAccounts/BankAccountDrawer';
 import { BANK_STATUS_STYLE, BankStatusBadge, type BankTransactionStatusValue } from '@/components/BankAccounts/BankStatusBadge';
 import { BankTxFilterBar } from '@/components/BankAccounts/BankTxFilterBar';
@@ -14,6 +15,7 @@ import { ACCOUNT_TX_COLUMNS, ALL_TX_COLUMNS, IMPORT_COLUMNS } from '@/components
 import { KontenPageSkeleton, KontenTableSkeleton } from '@/components/BankAccounts/KontenSkeleton';
 import { ALL_TAB, IMPORTS_TAB, hasAllTab, resolveKontenTab, type KontenTabId } from '@/components/BankAccounts/kontenTabs';
 import { MatchDrawer } from '@/components/BankAccounts/MatchDrawer';
+import { PleoImportDialog } from '@/components/BankAccounts/PleoImportDialog';
 import { NextStepCard, TableEmptyState } from '@/components/common';
 import { Badge, type BadgeTone } from '@/components/Transactions/StatusBadge';
 import Button from '@/components/ui/Button';
@@ -98,6 +100,11 @@ function maskIban(iban?: string): string {
     return `${clean.slice(0, 4)} •••• •••• ${clean.slice(-4)}`;
 }
 
+/** A card for a Pleo account, a bank building for an ordinary one. */
+function AccountIcon({ account, className }: { account: BankAccountResponse; className: string }) {
+    return <AccountTypeIcon type={account.accountType} className={className} strokeWidth={1.75} />;
+}
+
 function AccountCard({
     account,
     openCount,
@@ -134,7 +141,7 @@ function AccountCard({
                     className="w-11 h-11 rounded-[14px] flex items-center justify-center flex-shrink-0 text-white ring-1 ring-inset ring-white/25"
                     style={accountTileStyle(account.color)}
                 >
-                    <Landmark className="w-[19px] h-[19px]" strokeWidth={1.75} />
+                    <AccountIcon account={account} className="w-[19px] h-[19px]" />
                 </div>
                 <div className="min-w-0 flex-1">
                     <div className="font-bold text-[15px] truncate">{account.name}</div>
@@ -150,7 +157,9 @@ function AccountCard({
                 </button>
             </div>
 
-            <div className="mt-3 text-xs font-mono text-muted-foreground tracking-widest">{maskIban(account.iban)}</div>
+            <div className="mt-3 text-xs font-mono text-muted-foreground tracking-widest">
+                {account.accountType === 'PLEO' && !account.iban ? t('konten.pleoCard') : maskIban(account.iban)}
+            </div>
 
             {/* The status pill shares the small label line rather than sitting beside the amount: at the card's width
                 a long balance and the pill collided, and the pill competed with the number for attention. */}
@@ -235,7 +244,7 @@ function AccountPill({ account, openCount, active, onClick }: { account: BankAcc
                     className="w-8 h-8 rounded-[9px] flex items-center justify-center flex-shrink-0 text-white ring-1 ring-inset ring-white/25"
                     style={accountTileStyle(account.color, 10)}
                 >
-                    <Landmark className="w-[17px] h-[17px]" strokeWidth={1.75} />
+                    <AccountIcon account={account} className="w-[17px] h-[17px]" />
                 </span>
                 <span className="text-[15px] font-semibold truncate max-w-[12rem]">{account.name}</span>
                 <span className="text-[15px] font-bold tabular-nums text-muted-foreground">
@@ -352,7 +361,7 @@ function TransactionsTab({
                 {account && (
                     <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
                         <AccountDot color={account.color} />
-                        <span className="font-mono">{account.iban}</span>
+                        <span className="font-mono">{account.iban ?? (account.accountType === 'PLEO' ? t('konten.pleoCard') : '')}</span>
                     </span>
                 )}
                 <div className="ml-auto">
@@ -864,9 +873,14 @@ export function KontenView() {
     const [selectedTab, setTab] = useState<KontenTabId | null>(null);
     const tab = resolveKontenTab(selectedTab, accounts);
     const [drawerAccount, setDrawerAccount] = useState<BankAccountResponse | 'new' | null>(null);
+    // Adding an account starts with picking its type; the form then opens for that type.
+    const [typePickerOpen, setTypePickerOpen] = useState(false);
+    const [newAccountType, setNewAccountType] = useState<BankAccountType>('BANK');
     // The account stays set while the dialog closes, so it keeps its content during the closing animation.
     const [importAccountId, setImportAccountId] = useState<number | null>(null);
     const [importOpen, setImportOpen] = useState(false);
+    // A Pleo account imports Pleo's expense export with its receipts instead of a bank statement.
+    const importIsPleo = accounts.find((a) => a.id === importAccountId)?.accountType === 'PLEO';
     // Status filter of the transaction tabs, shared between them. Several can be selected; none selected shows every
     // movement. Starts on the worklist: Offen and Teilverknüpft. Lives here so that finishing an import can set it.
     const [statuses, setStatuses] = usePersistedState<BankTransactionStatusValue[]>(STATUS_FILTER_KEY, ['UNMATCHED', 'PARTIALLY_MATCHED']);
@@ -979,7 +993,7 @@ export function KontenView() {
                     title={t('konten.firstAccount.title')}
                     text={t('konten.firstAccount.text')}
                     action={
-                        <Button size="sm" className="h-10" onClick={() => setDrawerAccount('new')}>
+                        <Button size="sm" className="h-10" onClick={() => setTypePickerOpen(true)}>
                             <Plus />
                             {t('konten.firstAccount.action')}
                         </Button>
@@ -1005,7 +1019,7 @@ export function KontenView() {
                                         }}
                                     />
                                 ))}
-                                <AddAccountPill onClick={() => setDrawerAccount('new')} />
+                                <AddAccountPill onClick={() => setTypePickerOpen(true)} />
                             </div>
                         )}
 
@@ -1029,7 +1043,7 @@ export function KontenView() {
                                         }}
                                     />
                                 ))}
-                                <AddAccountCard onClick={() => setDrawerAccount('new')} />
+                                <AddAccountCard onClick={() => setTypePickerOpen(true)} />
                             </div>
                         )}
                     </div>
@@ -1085,12 +1099,27 @@ export function KontenView() {
             {/* Create / Edit drawer */}
             <ArchivedAccounts />
 
+            <AccountTypeDialog
+                open={typePickerOpen}
+                onOpenChange={setTypePickerOpen}
+                onSelect={(type) => {
+                    setNewAccountType(type);
+                    setTypePickerOpen(false);
+                    setDrawerAccount('new');
+                }}
+            />
+
             <BankAccountDrawer
                 open={drawerAccount !== null}
                 onOpenChange={(open) => {
                     if (!open) setDrawerAccount(null);
                 }}
                 account={drawerAccount !== 'new' ? (drawerAccount ?? undefined) : undefined}
+                accountType={newAccountType}
+                onBack={() => {
+                    setDrawerAccount(null);
+                    setTypePickerOpen(true);
+                }}
                 onSuccess={() => {
                     refetch();
                     setDrawerAccount(null);
@@ -1102,9 +1131,24 @@ export function KontenView() {
             />
 
             {/* Import wizard dialog */}
+            <PleoImportDialog
+                accountId={importAccountId}
+                open={importOpen && importIsPleo}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setImportOpen(false);
+                        refetch();
+                    }
+                }}
+                onViewTransactions={(id) => {
+                    // The drafts are linked already; what is left is confirming them, so show every movement.
+                    setStatuses([]);
+                    setTab(String(id));
+                }}
+            />
             <ImportWizardDialog
                 accountId={importAccountId}
-                open={importOpen}
+                open={importOpen && !importIsPleo}
                 onOpenChange={(open) => {
                     if (!open) {
                         setImportOpen(false);
